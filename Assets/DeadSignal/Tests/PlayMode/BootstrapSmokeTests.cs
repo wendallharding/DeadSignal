@@ -29,6 +29,19 @@ namespace DeadSignal.Tests
             Assert.That(maintenanceDrone.GetComponentsInChildren<Renderer>().Length, Is.EqualTo(4));
             Assert.That(Resources.Load<GameObject>("Actors/MaintenanceDroneModel"), Is.Not.Null,
                 "The authored Blender model should load from Resources.");
+            var authoredDronePrefab = Resources.Load<GameObject>("Actors/MaintenanceDroneAssembly");
+            var authoredHullMaterial = Resources.Load<Material>("Materials/MaintenanceDroneHull");
+            Assert.That(authoredHullMaterial, Is.Not.Null);
+            Assert.That(authoredHullMaterial.mainTexture, Is.EqualTo(Resources.Load<Texture2D>("Actors/MaintenanceDroneHullAlbedo")),
+                "The authored hull material should persistently map the generated albedo outside Play Mode.");
+            Assert.That(authoredDronePrefab.transform.Find("Drone Chassis").GetComponent<Renderer>().sharedMaterial,
+                Is.EqualTo(authoredHullMaterial), "Prefab Mode should display the mapped hull material.");
+            Assert.That(authoredDronePrefab.transform.Find("Drone Signal Ring").GetComponent<Renderer>().sharedMaterial,
+                Is.EqualTo(Resources.Load<Material>("Materials/MaintenanceDroneSignal")));
+            Assert.That(authoredDronePrefab.transform.Find("Drone Core").GetComponent<Renderer>().sharedMaterial,
+                Is.EqualTo(Resources.Load<Material>("Materials/MaintenanceDroneCore")));
+            Assert.That(authoredDronePrefab.transform.Find("Drone Tool").GetComponent<Renderer>().sharedMaterial,
+                Is.EqualTo(Resources.Load<Material>("Materials/MaintenanceDroneTool")));
             Assert.That(maintenanceDrone.GetComponentsInChildren<Collider>().Length, Is.Zero,
                 "The authored player drone should remain presentation-only so deterministic movement stays authoritative.");
             Assert.That(maintenanceDrone.Find("Drone Chassis").GetComponent<Renderer>().sharedMaterial.mainTexture,

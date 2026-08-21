@@ -33,6 +33,10 @@ namespace DeadSignal.Editor
         private const string PLAYER_DRONE_TEXTURE_PATH = ACTORS_FOLDER + "/MaintenanceDroneHullAlbedo.png";
         private const string PLAYER_DRONE_MODEL_PATH = ACTORS_FOLDER + "/MaintenanceDroneModel.fbx";
         private const string PLAYER_DRONE_PREFAB_PATH = ACTORS_FOLDER + "/MaintenanceDroneAssembly.prefab";
+        private const string PLAYER_DRONE_HULL_MATERIAL_PATH = MATERIALS_FOLDER + "/MaintenanceDroneHull.mat";
+        private const string PLAYER_DRONE_SIGNAL_MATERIAL_PATH = MATERIALS_FOLDER + "/MaintenanceDroneSignal.mat";
+        private const string PLAYER_DRONE_CORE_MATERIAL_PATH = MATERIALS_FOLDER + "/MaintenanceDroneCore.mat";
+        private const string PLAYER_DRONE_TOOL_MATERIAL_PATH = MATERIALS_FOLDER + "/MaintenanceDroneTool.mat";
         private const string CREATE_REFLEX_SETTINGS_MENU = "Assets/Create/Reflex/Settings";
 
         public static bool HasReflexSettings =>
@@ -77,7 +81,8 @@ namespace DeadSignal.Editor
         public static bool HasPlayerDroneAssets =>
             AssetDatabase.LoadAssetAtPath<Texture2D>(PLAYER_DRONE_TEXTURE_PATH) != null &&
             AssetDatabase.LoadAssetAtPath<GameObject>(PLAYER_DRONE_MODEL_PATH) != null &&
-            _hasPlayerDroneModelPrefab();
+            _hasPlayerDroneModelPrefab() &&
+            _hasPlayerDroneMaterialAssignments();
 
         public static void EnsureReflexSettings()
         {
@@ -478,6 +483,8 @@ namespace DeadSignal.Editor
             modelImporter.optimizeMeshVertices = true;
             modelImporter.SaveAndReimport();
 
+            _ensurePlayerDroneMaterials(AssetDatabase.LoadAssetAtPath<Texture2D>(PLAYER_DRONE_TEXTURE_PATH));
+
             if (!_hasPlayerDroneModelPrefab())
             {
                 var model = AssetDatabase.LoadAssetAtPath<GameObject>(PLAYER_DRONE_MODEL_PATH);
@@ -492,12 +499,147 @@ namespace DeadSignal.Editor
                 UnityEngine.Object.DestroyImmediate(drone);
             }
 
+            _assignPlayerDroneMaterials();
+
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
             if (!HasPlayerDroneAssets)
             {
                 throw new InvalidOperationException("The maintenance-drone texture and assembly prefab were not created successfully.");
             }
+        }
+
+        private static void _ensurePlayerDroneMaterials(Texture2D hullTexture)
+        {
+            _configurePlayerDroneMaterial(
+                PLAYER_DRONE_HULL_MATERIAL_PATH,
+                "MaintenanceDroneHull",
+                new Color(0.92f, 0.9f, 0.82f),
+                Color.black,
+                0.42f,
+                hullTexture);
+            _configurePlayerDroneMaterial(
+                PLAYER_DRONE_SIGNAL_MATERIAL_PATH,
+                "MaintenanceDroneSignal",
+                new Color(0.02f, 0.92f, 1f),
+                new Color(0f, 1.8f, 2.2f),
+                0.25f,
+                null);
+            _configurePlayerDroneMaterial(
+                PLAYER_DRONE_CORE_MATERIAL_PATH,
+                "MaintenanceDroneCore",
+                new Color(0.025f, 0.035f, 0.045f),
+                Color.black,
+                0.32f,
+                null);
+            _configurePlayerDroneMaterial(
+                PLAYER_DRONE_TOOL_MATERIAL_PATH,
+                "MaintenanceDroneTool",
+                new Color(0.02f, 0.72f, 0.82f),
+                new Color(0f, 1.2f, 1.55f),
+                0.3f,
+                null);
+        }
+
+        private static void _configurePlayerDroneMaterial(
+            string assetPath,
+            string materialName,
+            Color baseColor,
+            Color emissionColor,
+            float smoothness,
+            Texture2D texture)
+        {
+            var material = AssetDatabase.LoadAssetAtPath<Material>(assetPath);
+            if (material == null)
+            {
+                var shader = Shader.Find("Universal Render Pipeline/Lit");
+                if (shader == null)
+                {
+                    throw new InvalidOperationException("Could not find the URP Lit shader for the maintenance-drone materials.");
+                }
+
+                material = new Material(shader);
+                AssetDatabase.CreateAsset(material, assetPath);
+            }
+
+            material.name = materialName;
+            material.color = baseColor;
+            material.mainTexture = texture;
+            if (material.HasProperty("_BaseColor"))
+            {
+                material.SetColor("_BaseColor", baseColor);
+            }
+
+            if (material.HasProperty("_BaseMap"))
+            {
+                material.SetTexture("_BaseMap", texture);
+            }
+
+            if (material.HasProperty("_Smoothness"))
+            {
+                material.SetFloat("_Smoothness", smoothness);
+            }
+
+            if (material.HasProperty("_EmissionColor"))
+            {
+                material.SetColor("_EmissionColor", emissionColor);
+                if (emissionColor.maxColorComponent > 0f)
+                {
+                    material.EnableKeyword("_EMISSION");
+                }
+                else
+                {
+                    material.DisableKeyword("_EMISSION");
+                }
+            }
+
+            EditorUtility.SetDirty(material);
+        }
+
+        private static void _assignPlayerDroneMaterials()
+        {
+            var prefabRoot = PrefabUtility.LoadPrefabContents(PLAYER_DRONE_PREFAB_PATH);
+            try
+            {
+                _assignPlayerDroneMaterial(prefabRoot.transform, "Drone Chassis", PLAYER_DRONE_HULL_MATERIAL_PATH);
+                _assignPlayerDroneMaterial(prefabRoot.transform, "Drone Signal Ring", PLAYER_DRONE_SIGNAL_MATERIAL_PATH);
+                _assignPlayerDroneMaterial(prefabRoot.transform, "Drone Core", PLAYER_DRONE_CORE_MATERIAL_PATH);
+                _assignPlayerDroneMaterial(prefabRoot.transform, "Drone Tool", PLAYER_DRONE_TOOL_MATERIAL_PATH);
+                PrefabUtility.SaveAsPrefabAsset(prefabRoot, PLAYER_DRONE_PREFAB_PATH);
+            }
+            finally
+            {
+                PrefabUtility.UnloadPrefabContents(prefabRoot);
+            }
+        }
+
+        private static void _assignPlayerDroneMaterial(Transform root, string partName, string materialPath)
+        {
+            var part = root.Find(partName);
+            var material = AssetDatabase.LoadAssetAtPath<Material>(materialPath);
+            if (part == null || material == null || !part.TryGetComponent<Renderer>(out var renderer))
+            {
+                throw new InvalidOperationException($"Could not assign {materialPath} to maintenance-drone part {partName}.");
+            }
+
+            renderer.sharedMaterial = material;
+        }
+
+        private static bool _hasPlayerDroneMaterialAssignments()
+        {
+            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(PLAYER_DRONE_PREFAB_PATH);
+            return prefab != null &&
+                   _hasPlayerDroneMaterial(prefab.transform.Find("Drone Chassis"), PLAYER_DRONE_HULL_MATERIAL_PATH) &&
+                   _hasPlayerDroneMaterial(prefab.transform.Find("Drone Signal Ring"), PLAYER_DRONE_SIGNAL_MATERIAL_PATH) &&
+                   _hasPlayerDroneMaterial(prefab.transform.Find("Drone Core"), PLAYER_DRONE_CORE_MATERIAL_PATH) &&
+                   _hasPlayerDroneMaterial(prefab.transform.Find("Drone Tool"), PLAYER_DRONE_TOOL_MATERIAL_PATH);
+        }
+
+        private static bool _hasPlayerDroneMaterial(Transform part, string materialPath)
+        {
+            return part != null &&
+                   part.TryGetComponent<Renderer>(out var renderer) &&
+                   renderer.sharedMaterial == AssetDatabase.LoadAssetAtPath<Material>(materialPath);
         }
 
         private static bool _hasPlayerDroneModelPrefab()

@@ -1706,3 +1706,55 @@ The live workspace was open in Unity 6000.3.11f1 as process `254024` and was not
 ### Best next step
 
 Open `Assets/Scenes/SampleScene.unity`, play at 16:9 and ultrawide in normal and High Contrast modes, and verify the forward emitter and cyan ring remain readable during a full tower-to-extraction run. If that composition holds, the next production-art target should be the still-primitive Signal Sapper.
+
+## 2026-08-21 — Player material follow-up
+
+### Today's single idea — persistent prefab materials
+
+Player benefit: the maintenance drone now displays its finished white-ceramic, graphite, and cyan appearance in Prefab Mode and scene previews instead of appearing gray until Play Mode begins.
+
+Acceptance criteria:
+
+- four persistent URP Lit material assets represent the hull, Signal ring, core, and tool;
+- the hull material maps `MaintenanceDroneHullAlbedo.png` through its Base Map;
+- the prefab persistently assigns the correct material to every imported mesh renderer while runtime High Contrast overrides remain unchanged;
+- asset setup detects and repairs missing or stale material assignments; and
+- EditMode, PlayMode, Windows build, and packaged-resource validation pass.
+
+### Files and systems changed
+
+- `Assets/DeadSignal/Resources/Materials/MaintenanceDroneHull.mat` and `.meta`: added the authored hull material with the generated albedo, warm-white tint, and restrained smoothness.
+- `Assets/DeadSignal/Resources/Materials/MaintenanceDroneSignal.mat` and `.meta`: added the cyan emissive Signal-ring material.
+- `Assets/DeadSignal/Resources/Materials/MaintenanceDroneCore.mat` and `.meta`: added the dark graphite core material.
+- `Assets/DeadSignal/Resources/Materials/MaintenanceDroneTool.mat` and `.meta`: added the cyan emissive tool material.
+- `Assets/DeadSignal/Resources/Actors/MaintenanceDroneAssembly.prefab`: stores four material overrides on the nested FBX instance, making the authored appearance visible without runtime composition.
+- `Assets/DeadSignal/Editor/DeadSignalProjectSetup.cs`: creates/configures the four materials, applies them through Prefab Contents, and includes exact assignments in player-asset readiness.
+- `Assets/DeadSignal/Runtime/StandaloneBuildSmokeProbe.cs`: requires all four material Resources in packaged readiness.
+- `Assets/DeadSignal/Tests/PlayMode/BootstrapSmokeTests.cs`: verifies the prefab's persistent assignments and the hull Base Map before exercising the unchanged runtime palette and complete run flow.
+- `BACKLOG.md` and `DEVLOG.md`: record the completed presentation fix.
+
+No model geometry, UVs, generated texture pixels, scenes, packages, project settings, gameplay tuning, input, audio, save data, or deterministic rules changed.
+
+### Tests run and exact outcomes
+
+The live project remained open in Unity 6000.3.11f1 and was not controlled. Authoritative validation used `C:\Projects\Wendall\CodexPrototype_Run30Validation` with the matching Editor.
+
+1. The first isolated material setup completed but reported four asset-name/filename import warnings. Material object names were corrected to match their filenames; authoritative setup then exited `0` with no compiler error, warning, exception, or name mismatch in `run30-material-setup-final.log`.
+2. EditMode regression wrote `run30-editmode-results.xml` and `run30-editmode.log`: Unity exited `0`; `16/16` passed, `0` failed in `0.0431715` seconds.
+3. PlayMode regression wrote `run30-playmode-results.xml` and `run30-playmode.log`: Unity exited `0`; `1/1` passed, `0` failed in `3.9131303` seconds. It proved the persistent hull Base Map and all four prefab material assignments before retaining the full gameplay regression.
+4. Windows development build wrote `run30-windows-build.log`: Unity exited `0`, reported `Build Finished, Result: Success`, emitted the build PASS marker, and produced `195,541,036` reported bytes in `60.26` seconds.
+5. A directly launched packaged player forced Direct3D 11 on the NVIDIA GeForce RTX 3060, loaded all four material Resources, printed one `[DEAD SIGNAL STANDALONE SMOKE] PASS` marker, and exited. The earlier `Start-Process` launch failed to forward the smoke argument correctly and was stopped after it remained in the normal game flow; it is not counted as product validation.
+
+### Bugs found and fixed
+
+- Root cause: runtime composition assigned generated `DeadSignalPalette` materials after entering Play Mode, but the prefab stored Unity's default gray Lit material. Four persistent materials now make the asset correct in every Editor context while runtime accessibility remapping remains intact.
+- Unity warned when the first material object names contained spaces but their filenames did not. The object names now exactly match their filenames.
+
+### Known limitations
+
+- Unity may require the currently open Prefab Mode stage to refresh or be reopened once after the external asset import completes.
+- The hull uses an albedo without a normal map or packed metallic/roughness mask; those remain optional future polish after an in-game readability pass.
+
+### Best next step
+
+Reopen `MaintenanceDroneAssembly.prefab` if it was already open during import, confirm the hull shows the generated panel texture and the ring/tool show cyan materials, then verify the same appearance in `SampleScene.unity` under normal and High Contrast modes.

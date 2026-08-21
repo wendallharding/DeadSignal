@@ -48,10 +48,26 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: -7076595015186716609, guid: c2e4e612f29ff0b4caa5b362031ceaa3, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value:
+      objectReference: {fileID: 2100000, guid: 284024a2d397f0d47b4caeabf91e9706, type: 2}
+    - target: {fileID: -3672804584374994904, guid: c2e4e612f29ff0b4caa5b362031ceaa3, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value:
+      objectReference: {fileID: 2100000, guid: 4ab9126b54825874cbf33a59c2a9072c, type: 2}
+    - target: {fileID: -388870873948971936, guid: c2e4e612f29ff0b4caa5b362031ceaa3, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value:
+      objectReference: {fileID: 2100000, guid: 657835414411be243b479b12a2fe9471, type: 2}
     - target: {fileID: 919132149155446097, guid: c2e4e612f29ff0b4caa5b362031ceaa3, type: 3}
       propertyPath: m_Name
       value: MaintenanceDroneAssembly
       objectReference: {fileID: 0}
+    - target: {fileID: 5151631153080425725, guid: c2e4e612f29ff0b4caa5b362031ceaa3, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value:
+      objectReference: {fileID: 2100000, guid: e78a0151d80a4794bb42f55a852597c2, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []

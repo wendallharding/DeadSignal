@@ -29,6 +29,7 @@
 - [x] Migrate the three salvage pickups into a textured authored prefab without changing collection or guidance
 - [x] Migrate the maintenance drone into a textured authored prefab without changing movement, aim, or firing
 - [x] Replace the maintenance drone's placeholder primitive meshes with a UV-mapped Blender-authored model
+- [x] Persist the maintenance drone's mapped URP materials on its prefab outside Play Mode
 - [x] Migrate the Security Warden into a textured authored prefab without changing pursuit, damage, or health
 - [x] Add a Signal-cost shortcut gate and first route choice
 - [x] Add a second enemy archetype that pressures powered territory
