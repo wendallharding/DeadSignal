@@ -750,13 +750,15 @@ Matching editor: `C:\Program Files\Unity\Hub\Editor\6000.3.11f1\Editor\Unity.exe
 2. EditMode deterministic suite wrote `Logs/run13-editmode-results.xml` and `Logs/run13-editmode.log`: Unity return code `0`; `12/12` passed, `0` failed, `0` skipped in `0.0542899` seconds.
 3. PlayMode full runtime/input regression wrote `Logs/run13-playmode-results.xml` and `Logs/run13-playmode.log`: Unity return code `0`; `1/1` passed, `0` failed, `0` skipped in `3.6270884` seconds.
 4. Final warmed-project compilation wrote `Logs/run13-final-compile.log`: Unity return code `0`; batch mode exited successfully after the final source, asset, test, and documentation audit.
-5. Strict scans of both compile logs plus the EditMode and PlayMode logs found no C# compiler warnings/errors, null or missing-reference exceptions, unhandled exceptions, assertion failures, or failed-test markers. Unity's initial licensing channel reported the same transient handshake/access-token messages as prior runs, then resolved both installed Unity Pro entitlements and completed every requested operation.
-6. The generated PNG was visually inspected at its project path. Pixel inspection reported 1254x1254 `Format32bppArgb`, sampled corner alpha values `0, 0, 1, 0`, and opaque center alpha `253`. PlayMode also proved Unity imports and loads it from Resources.
+5. Metadata hygiene validation wrote `Logs/run13-meta-validation.log`: Unity return code `0`; Unity accepted the whitespace-normalized generated `.meta` while preserving its GUID and exited batch mode successfully.
+6. Strict scans of all compile logs plus the EditMode and PlayMode logs found no C# compiler warnings/errors, null or missing-reference exceptions, unhandled exceptions, assertion failures, or failed-test markers. Unity's initial licensing channel reported the same transient handshake/access-token messages as prior runs, then resolved both installed Unity Pro entitlements and completed every requested operation.
+7. The generated PNG was visually inspected at its project path. Pixel inspection reported 1254x1254 `Format32bppArgb`, sampled corner alpha values `0, 0, 1, 0`, and opaque center alpha `253`. PlayMode also proved Unity imports and loads it from Resources.
 
 ### Bugs found and fixed
 
 - No gameplay, compilation, import, or automated-test regression was found.
 - Device arbitration deliberately ignores stick input below the existing 0.18 deadzone and mouse delta below 0.5 pixels so ordinary controller drift or a stationary pointer cannot steal the prompt mode.
+- The initial Unity-generated texture metadata contained trailing spaces on empty YAML values; those values were normalized, re-imported successfully, and retained the generated asset GUID.
 
 ### Known limitations
 
