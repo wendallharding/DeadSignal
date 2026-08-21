@@ -20,6 +20,7 @@
 - [ ] Add remappable Input Actions and platform-specific button glyph sets
 - [ ] Replace bootstrap arena with modular authored room prefabs
 - [x] Add a tunable player-follow tactical camera that preserves arena-edge framing and combat impulse
+- [x] Connect a scene-authored optional east salvage vault and allow extraction after any three of four caches
 - [x] Establish the first reusable authored room component with a textured maintenance-deck prefab
 - [x] Author the first textured room-shell prefab with perimeter bulkheads and machine sockets
 - [x] Place a reusable authored tower-approach junction in the scene with obstacle-driven movement lanes

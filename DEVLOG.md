@@ -2779,3 +2779,83 @@ The Unity logs contained transient licensing handshake/access-token messages fol
 ### Best next step
 
 Play from extraction through the tower and each salvage branch at both keyboard/mouse and controller, paying particular attention to fast direction reversals and combat near arena edges; if the framing feels comfortable, use the new camera foundation to add the first connected modular room beyond the current bounds.
+
+## 2026-08-21 - Autonomous Run 46
+
+### Today's single idea
+
+**Optional east salvage vault.** Open a guarded doorway through the original east shell, connect one reusable scene-authored room beyond the former arena boundary, and place a fourth salvage cache inside while keeping extraction at any three caches.
+
+Player benefit: salvage recovery is now a route-selection decision instead of a fixed three-stop checklist. The player can brave the longer copper-and-amber dead-zone vault or skip it in favor of the existing annex, coolant gauntlet, and relay fork, while the room's two internal lanes add positioning around its central splitter.
+
+Alternatives considered: a mandatory east corridor would lengthen the run but not increase replay value; another landmark inside the old arena would improve presentation without using the new follow-camera foundation; a room-specific hazard would add scope before current Signal drain and enemy pressure are fully exploited. The optional fourth cache was selected because it creates a meaningful risk/reward choice using only established mechanics.
+
+Acceptance criteria:
+
+- place one reusable east-vault prefab directly in `SampleScene` beyond the original room boundary;
+- open a player-width route through two serialized east-shell doorway segments while preventing traversal through the visible wall sections;
+- use original generated art and Blender-authored UV-mapped geometry for the floor, five wall sections, route splitter, and energy guides;
+- keep imported render transforms separate from six identity-oriented object-aligned navigation bounds;
+- place the fourth cache through a serialized `AuthoredSalvageSocket` at world position `(18.7, 0, 0)`;
+- retain `RunModel.SalvageRequired == 3`, make extraction guidance authoritative after any three caches, and leave the fourth cache optional;
+- expand movement and follow-camera bounds only as far as the connected room requires; and
+- prove complete-map route clearance, wall containment, resource composition, any-three progression, build readiness, and packaged loading.
+
+### Files and systems changed
+
+- `Assets/DeadSignal/Resources/Environment/EastSalvageVaultAlbedo.png` and Unity-generated `.meta`: added an original `1254x1254` graphite, ceramic, copper, amber, and cyan atlas generated with OpenAI's built-in image-generation mode. SHA-256: `9AFC611EC0397315DE298014BB41623C3B2CCC8894CD72D99F22BDFB709D5E50`.
+- Final image-generation prompt: square Unity low-poly orbital-station salvage-vault albedo atlas with broad UV-friendly graphite deck, pale worn ceramic armor, oxidized copper conduit panels, amber salvage-lock strips, restrained cyan indicators, flat lighting, and no text, logos, characters, weapons, UI, watermark, perspective objects, or franchise styling.
+- `ArtSource/EastSalvageVault/create_east_salvage_vault.py`, `EastSalvageVault.blend`, `EastSalvageVaultPreview.png`, and `README.md`: added reproducible Blender 5.2 source, editable geometry, regeneration instructions, and a visually inspected room preview.
+- `Assets/DeadSignal/Resources/Environment/EastSalvageVaultModel.fbx`, `EastSalvageVault.prefab`, and Unity-generated `.meta`: added eight purpose-built UV-mapped mesh parts, six presentation-free object-aligned bounds, and one serialized salvage socket. Model SHA-256: `DE6FF0EAB2DCA67D3DDAE7FB32F259C292280E5E33013EC543AD194F50599BF5`.
+- `Assets/DeadSignal/Resources/Materials/EastVaultDeck.mat`, `EastVaultArmor.mat`, `EastVaultCopper.mat`, and `EastVaultEnergy.mat`, with Unity-generated `.meta`: added persistent URP materials mapping the generated atlas and amber emission.
+- `Assets/DeadSignal/Resources/Environment/MaintenanceRoomShell.prefab`: replaced the solid east wall with north/south doorway segments and gave both serialized movement bounds now that the arena extends beyond them.
+- `Assets/Scenes/SampleScene.unity`: places `Optional East Salvage Vault` at `(16.7, 0, 0)` with the imported basis corrected to face west.
+- `Assets/DeadSignal/Runtime/AuthoredSalvageSocket.cs`: added a focused scene-authoring marker that exposes cache placement without owning collection behavior.
+- `Assets/DeadSignal/Runtime/SalvagePresentationTuning.cs` and `Assets/DeadSignal/Resources/Tuning/SalvagePresentationTuning.asset`: migrated salvage rotation, hover, frequency, and collection radius out of prototype literals into validated designer tuning.
+- `Assets/DeadSignal/Runtime/DeadSignalSalvageController.cs`: refactored the existing controller to consume the tuning asset while preserving collection rules.
+- `Assets/DeadSignal/Runtime/DeadSignalWorld.cs`: discovers authored salvage sockets, builds four cache presentations, expands the east movement/camera bound, and preserves a safe fallback doorway.
+- `Assets/DeadSignal/Runtime/DeadSignalGame.cs`: loads the required salvage tuning and exposes cache/socket readiness for validation.
+- `Assets/DeadSignal/Runtime/ObjectiveBeaconHud.cs`: now directs the player to extraction as soon as any three caches satisfy `CanExtract`, even if an optional cache remains.
+- `Assets/DeadSignal/Runtime/StandaloneBuildSmokeProbe.cs`: now requires the vault Resources, one socket, four caches, salvage tuning, and twenty-five authored blockers.
+- `Assets/DeadSignal/Editor/DeadSignalEastVaultSetup.cs` and `DeadSignalWindowsBuild.cs`: added idempotent texture/model import, material assignment, prefab composition, shell-doorway authoring, scene placement, tuning creation, and build validation.
+- `Assets/DeadSignal/Tests/SalvagePresentationTuningTests.cs` and `Assets/DeadSignal/Tests/PlayMode/BootstrapSmokeTests.cs`: added tuning/socket rules plus complete-map route, nondegenerate axis, doorway containment, mesh/UV/material, four-cache, any-three extraction, and packaged-readiness coverage.
+- `GAME_VISION.md`, `BACKLOG.md`, and `DEVLOG.md`: record the selected optional-room rationale, completed milestone, acceptance criteria, evidence, and next step.
+
+The user's concurrent `AGENTS.md` level-authoring guidance and empty `OWNER_NOTES.md` edit were detected and preserved without staging or attribution to this run. No package, project setting, input binding, enemy rule, Signal cost, tower behavior, save-data contract, or required-salvage count changed.
+
+### Tests run and exact outcomes
+
+The main workspace was not opened or rewritten by Unity batch validation. Authoritative validation used `C:\Projects\Wendall\CodexPrototype_Run40CleanValidation` with Unity `6000.3.11f1`.
+
+1. OpenAI built-in image generation produced the original vault atlas, which was copied into project Resources and visually inspected for large usable UV regions, cohesive palette, and absence of text/logos.
+2. Blender `5.2.0 LTS` ran `create_east_salvage_vault.py`, exported the `72,460`-byte FBX, saved the editable `.blend`, rendered the `1280x720` preview, and exited `0`. The preview was visually inspected for a broad west opening, two clear internal lanes, copper splitter, amber lock lighting, mapped surfaces, and complete geometry. Blender emitted two forward-looking `use_nodes` deprecation warnings only.
+3. Unity setup/import logs `east-vault-setup.log`, `east-vault-orientation-setup.log`, `east-vault-bounds-setup.log`, and `east-vault-doorway-bounds-setup.log` compiled the feature, created four materials, one tuning asset, one prefab, one scene instance, and the split shell doorway; each exited `0`.
+4. The first full PlayMode run wrote `east-vault-playmode.xml`: `1/2` passed and `1/2` failed because the imported FBX basis placed the named east wall at the west entrance. A 180-degree scene orientation corrected the render composition.
+5. Subsequent focused diagnostics reproduced two additional authoring defects: exact `Vector3` equality rejected a sub-display floating-point rotation difference, and mesh-attached bounds had a vertical imported forward axis with zero horizontal depth. The assertion now uses positional tolerance, while six dedicated identity-oriented bounds replace mesh-owned navigation.
+6. A later focused run proved the complete route but failed because the objective beacon still targeted the fourth live cache after `CanExtract` became true. Extraction now takes guidance priority, and the final focused regression wrote `east-vault-focused-pass.xml`: `1/1` passed in `4.436775` seconds.
+7. Final EditMode regression wrote `east-vault-editmode-final.xml` and `.log`: `23/23` passed, `0` failed, `0` skipped in `0.0612893` seconds, exit `0`.
+8. Final full PlayMode regression wrote `east-vault-playmode-guarded.xml` and `.log`: `2/2` passed, `0` failed, `0` skipped in `4.912963` seconds, exit `0`.
+9. Final Windows development build wrote `east-vault-build-final.log`: Unity reported `Build Finished, Result: Success`, emitted one PASS marker, and produced `215,423,836` reported bytes in `12.26` seconds, exit `0`.
+10. Final packaged `-batchmode -nographics -deadSignalBuildSmoke` wrote `east-vault-standalone-final.log`, loaded the new room/tuning Resources, verified four caches and twenty-five blockers, emitted one standalone PASS marker, and exited `0`.
+11. Windows `PrintWindow` captured the running packaged player as `east-vault-packaged.png` with title `DEAD SIGNAL`; the `1296x759` capture was visually inspected and confirms clean initial camera, HUD, objective, and authored opening-area rendering. The room itself was visually validated through the Blender preview rather than an interactive traversal capture.
+
+Final Unity logs contained transient licensing handshake/access-token messages followed by successful entitlement resolution. No compiler error, failed assertion, missing Resource, build failure, or packaged-player failure remained.
+
+### Bugs found and fixed
+
+- Unity's FBX basis mirrored the vault's authored east/west presentation, initially sealing the entrance with the solid wall. The scene prefab now carries an explicit 180-degree rotation and mirrored salvage socket.
+- Attaching `AuthoredMapObstacle` directly to imported mesh children produced a vertical forward axis and zero horizontal depth. Navigation bounds now live on six identity-oriented, renderer-free prefab children, with regression assertions for both axes.
+- Expanding the arena would have allowed the drone to pass through visible portions of the previously presentation-only east shell. Both doorway segments now own serialized bounds, and the route test evaluates the complete authored map.
+- The objective beacon assumed all spawned caches were mandatory. It now prioritizes extraction when any three caches satisfy the unchanged run rule.
+- No remaining compiler, resource, route, progression, build, or packaged-player defect was found.
+
+### Known limitations
+
+- Automated checks prove route clearance and containment at the drone radius, but the room's travel cost, lane comfort under Warden pressure, and whether players perceive the fourth cache as optional require a human play pass.
+- The arena and camera still use one expanded rectangular bound; future rooms that branch north or south should migrate this to authored camera/movement volumes.
+- Projectiles continue to ignore authored map obstacles and therefore pass through vault walls and the splitter.
+- The optional room is a scene-placed prefab in the primary scene rather than an additive subscene; additive loading remains unnecessary at the current map size.
+
+### Best next step
+
+Activate the tower, compare the east vault against each existing salvage branch, and complete two runs while deliberately skipping a different cache each time. Check whether the vault's longer dead-zone commitment feels worth choosing and whether Warden pressure makes its north/south splitter lanes meaningfully different.

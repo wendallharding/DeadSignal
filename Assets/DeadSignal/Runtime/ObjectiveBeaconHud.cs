@@ -103,6 +103,13 @@ namespace DeadSignal
                 return;
             }
 
+            if (m_model.CanExtract)
+            {
+                CurrentPhase = ObjectiveBeaconPhase.Extraction;
+                CurrentTarget = m_world.ExtractionPosition;
+                return;
+            }
+
             GameObject nearestSalvage = null;
             float nearestDistance = float.PositiveInfinity;
             foreach (var salvage in m_world.SalvagePickups)

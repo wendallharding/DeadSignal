@@ -12,7 +12,7 @@ namespace DeadSignal
         public const string COMMAND_LINE_ARGUMENT = "-deadSignalBuildSmoke";
         public const string PASS_MARKER = "[DEAD SIGNAL STANDALONE SMOKE] PASS";
 
-        private const int EXPECTED_AUTHORED_OBSTACLE_COUNT = 17;
+        private const int EXPECTED_AUTHORED_OBSTACLE_COUNT = 25;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         private static void _startWhenRequested()
@@ -53,6 +53,9 @@ namespace DeadSignal
                                 game.HasSignalRoutingAssets &&
                                 game.HasStationMachineAssets &&
                                 game.HasSalvageCacheAssets &&
+                                game.SalvageCacheInstanceCount == RunModel.SalvageRequired + 1 &&
+                                game.AuthoredSalvageSocketCount == 1 &&
+                                game.HasSalvagePresentationTuning &&
                                 game.HasPlayerDroneAssets &&
                                 game.HasPlayerCameraTuning &&
                                 game.IsPlayerCameraFollowing &&
@@ -63,6 +66,7 @@ namespace DeadSignal
                                 Resources.Load<Material>("Materials/MaintenanceDroneCore") != null &&
                                 Resources.Load<Material>("Materials/MaintenanceDroneTool") != null &&
                                 Resources.Load<PlayerCameraTuning>("Tuning/PlayerCameraTuning") != null &&
+                                Resources.Load<SalvagePresentationTuning>("Tuning/SalvagePresentationTuning") != null &&
                                 Resources.Load<GameObject>("Actors/SecurityWardenAssembly") != null &&
                                 Resources.Load<GameObject>("Actors/SecurityWardenModel") != null &&
                                 Resources.Load<Texture2D>("Actors/SecurityWardenArmorAlbedo") != null &&
@@ -79,6 +83,9 @@ namespace DeadSignal
                                 Resources.Load<GameObject>("Environment/SalvageAnnexBarrier") != null &&
                                 Resources.Load<GameObject>("Environment/SalvageAnnex") != null &&
                                 Resources.Load<Texture2D>("Environment/SalvageAnnexAlbedo") != null &&
+                                Resources.Load<GameObject>("Environment/EastSalvageVaultModel") != null &&
+                                Resources.Load<GameObject>("Environment/EastSalvageVault") != null &&
+                                Resources.Load<Texture2D>("Environment/EastSalvageVaultAlbedo") != null &&
                                 Resources.Load<GameObject>("Environment/DepartureCapacitor") != null &&
                                 Resources.Load<GameObject>("Environment/ExtractionDepartureChannel") != null &&
                                 Resources.Load<Texture2D>("Environment/DepartureCapacitorAlbedo") != null &&

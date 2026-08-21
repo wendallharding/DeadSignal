@@ -43,6 +43,7 @@ This autonomous run is accepted when a fresh Play session provides all of the fo
 - The northeast salvage cache sits inside a scene-placed cargo annex whose single readable entrance turns an optional reward into a positioning commitment without moving the objective.
 - The southeast salvage cache sits inside a scene-placed coolant reclamation gauntlet whose staggered baffles create a pressured collection lane without moving the objective.
 - The northwest salvage cache sits beyond a scene-placed relay fork whose tight central throat and longer outside approaches create a readable route decision without moving the objective.
+- An optional fourth salvage cache sits in a scene-placed east vault beyond the original room boundary; players still need only three, turning salvage recovery into a route-selection decision rather than a fixed checklist.
 - The central Signal tower is a reusable authored assembly with original control-panel housing art while its dormant/online state remains unmistakable.
 - The extraction dock is a reusable authored assembly with original radial docking art while its safe-home and final-objective read remains unmistakable.
 - The optional Signal-cost shortcut is a reusable authored assembly with original powered-lock art while both free detours and its closed/open state remain unmistakable.
@@ -88,6 +89,8 @@ The first threat encounter is anchored by the Warden bay rather than another obj
 The second threat is now anchored by a Sapper service cradle at the northwest edge: an L-shaped pair of magenta siphon pylons makes the dormant saboteur legible before tower activation, then leaves it a clear southeast emergence path and gives the player cover if combat returns to that corner. This was selected over a central debris pinch or southwest optional pocket because it turns an existing open-floor enemy spawn into anticipation, navigation, and tactical positioning without adding a new mechanic or objective.
 
 The camera now prioritizes local tactical readability over displaying the entire station at once: a tunable follow rig frames the drone at roughly 1.8 times the previous scale, adds gentle movement-direction look-ahead, and clamps so the current arena never exposes empty space beyond its authored edges. This was selected before another room expansion because new geometry would remain hard to read at the old full-map scale; a static room landmark would not solve that foundation, while an immediate additive-scene conversion would add production architecture without improving the current minute-to-minute play experience.
+
+The first true room extension is an optional east salvage vault connected through a guarded opening in the original shell. Its copper route splitter offers two internal lanes, its amber lock lighting distinguishes it from the central station, and its fourth cache lets the player skip one of four salvage routes while still meeting the three-cache extraction requirement. This was selected over a mandatory corridor because route choice creates replay value, and over a new hazard because the established dead-zone clock, Warden pressure, and salvage economy already supply risk without another system.
 
 ## Experience target
 

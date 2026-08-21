@@ -25,6 +25,7 @@ namespace DeadSignal
         private IDeadSignalHud m_hud;
         private IObjectiveBeacon m_objectiveBeacon;
         private ISignalDust m_signalDust;
+        private SalvagePresentationTuning m_salvageTuning;
         private ILowSignalWarning m_lowSignalWarning;
         private ITowerActivationSweep m_towerActivationSweep;
         private Container m_container;
@@ -73,6 +74,7 @@ namespace DeadSignal
         public bool HasSignalSapperAssets => m_world?.HasSignalSapperAssets ?? false;
         public int SignalSapperPartCount => m_world?.SignalSapperPartCount ?? 0;
         public int AuthoredMapObstacleCount => m_world?.AuthoredMapObstacleCount ?? 0;
+        public int AuthoredSalvageSocketCount => m_world?.AuthoredSalvageSocketCount ?? 0;
         public bool HasPlayerCameraTuning => m_world?.HasPlayerCameraTuning ?? false;
         public bool IsPlayerCameraFollowing => m_world?.PlayerCamera?.IsConfigured ?? false;
         public float LowSignalWarningIntensity => m_lowSignalWarning?.CurrentIntensity ?? 0f;
@@ -91,6 +93,7 @@ namespace DeadSignal
         public bool IsCameraImpulseEnabled => m_comfortSettings?.CameraImpulseEnabled ?? true;
         public bool IsReducedFlashesEnabled => m_comfortSettings?.ReducedFlashesEnabled ?? false;
         public bool IsHighContrastEnabled => m_comfortSettings?.HighContrastEnabled ?? false;
+        public bool HasSalvagePresentationTuning => m_salvageTuning != null;
 
         /// <summary>
         /// Toggles the persisted camera-impulse preference while the pause overlay is authoritative.
@@ -168,10 +171,18 @@ namespace DeadSignal
 
             m_model = new RunModel();
             m_metrics = new RunMetrics();
+            m_salvageTuning = Resources.Load<SalvagePresentationTuning>("Tuning/SalvagePresentationTuning");
+            if (m_salvageTuning == null)
+            {
+                Debug.LogError("Salvage presentation tuning is missing from Resources/Tuning.", this);
+                enabled = false;
+                return;
+            }
+
             m_world = new DeadSignalWorld(transform, m_comfortSettings);
             m_combatFeedback.Configure(m_world.Camera);
             m_threats = new DeadSignalThreatController(m_model, m_metrics, m_world, m_combatFeedback, m_audio, _showFeedback);
-            m_salvage = new DeadSignalSalvageController(m_model, m_world, m_audio, _showFeedback);
+            m_salvage = new DeadSignalSalvageController(m_model, m_world, m_audio, m_salvageTuning, _showFeedback);
             m_hud.Configure(m_model, m_metrics, m_world, m_threats);
             m_objectiveBeacon.Configure(m_model, m_world);
             m_lastPoweredState = m_world.IsPowered(m_world.Player.position, m_model.TowerOnline);

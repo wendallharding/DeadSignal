@@ -8,7 +8,7 @@ namespace DeadSignal
     /// </summary>
     internal sealed class DeadSignalWorld
     {
-        public const float ARENA_HALF_WIDTH = 13.2f;
+        public const float ARENA_HALF_WIDTH = 20f;
         public const float ARENA_HALF_HEIGHT = 8.8f;
         public const float STARTING_POWER_RADIUS = 3.6f;
         public const float TOWER_POWER_RADIUS = 7.2f;
@@ -54,6 +54,7 @@ namespace DeadSignal
         public bool HasSignalSapperAssets { get; private set; }
         public int SignalSapperPartCount { get; private set; }
         public int AuthoredMapObstacleCount { get; private set; }
+        public int AuthoredSalvageSocketCount { get; private set; }
         public bool HasPlayerCameraTuning { get; private set; }
         public PlayerFollowCamera PlayerCamera { get; private set; }
 
@@ -324,8 +325,12 @@ namespace DeadSignal
                     new Vector3(27.8f, 0.8f, 0.5f), m_palette.Bulkhead, fallbackRoot.transform);
                 _createPrimitive("South Bulkhead", PrimitiveType.Cube, new Vector3(0f, 0.25f, -9.1f),
                     new Vector3(27.8f, 0.8f, 0.5f), m_palette.Bulkhead, fallbackRoot.transform);
-                _createPrimitive("East Bulkhead", PrimitiveType.Cube, new Vector3(13.7f, 0.25f, 0f),
-                    new Vector3(0.5f, 0.8f, 18.7f), m_palette.Bulkhead, fallbackRoot.transform);
+                _createPrimitive("East Bulkhead North", PrimitiveType.Cube, new Vector3(13.7f, 0.25f, 5.425f),
+                    new Vector3(0.5f, 0.8f, 7.85f), m_palette.Bulkhead, fallbackRoot.transform);
+                _createPrimitive("East Bulkhead South", PrimitiveType.Cube, new Vector3(13.7f, 0.25f, -5.425f),
+                    new Vector3(0.5f, 0.8f, 7.85f), m_palette.Bulkhead, fallbackRoot.transform);
+                m_movementBlockers.Add(new MovementBlocker(new Vector2(13.7f, 5.425f), new Vector2(0.25f, 3.925f), false));
+                m_movementBlockers.Add(new MovementBlocker(new Vector2(13.7f, -5.425f), new Vector2(0.25f, 3.925f), false));
                 _createPrimitive("West Bulkhead", PrimitiveType.Cube, new Vector3(-13.7f, 0.25f, 0f),
                     new Vector3(0.5f, 0.8f, 18.7f), m_palette.Bulkhead, fallbackRoot.transform);
                 m_machineSockets.AddRange(new[]
@@ -333,7 +338,7 @@ namespace DeadSignal
                     new Vector3(-11.6f, 0f, 6.8f), new Vector3(-8.8f, 0f, 6.9f), new Vector3(10.8f, 0f, 6.8f),
                     new Vector3(11.2f, 0f, -6.7f), new Vector3(4.8f, 0f, -7.1f), new Vector3(-3.8f, 0f, 7.1f)
                 });
-                RoomShellBulkheadCount = 4;
+                RoomShellBulkheadCount = 5;
                 return;
             }
 
@@ -357,7 +362,7 @@ namespace DeadSignal
             }
 
             HasMaintenanceRoomShellAssets =
-                m_palette.HasBulkheadTexture && RoomShellBulkheadCount == 4 && m_machineSockets.Count == 6;
+                m_palette.HasBulkheadTexture && RoomShellBulkheadCount == 5 && m_machineSockets.Count == 6;
         }
 
         private void _buildExtraction()
@@ -616,6 +621,13 @@ namespace DeadSignal
             _createSalvage(new Vector3(9.7f, 0f, 6.3f));
             _createSalvage(new Vector3(10.4f, 0f, -6.4f));
             _createSalvage(new Vector3(-5.8f, 0f, 7.2f));
+            var authoredSockets = Object.FindObjectsByType<AuthoredSalvageSocket>(FindObjectsSortMode.None);
+            foreach (var socket in authoredSockets)
+            {
+                _createSalvage(socket.Position);
+            }
+
+            AuthoredSalvageSocketCount = authoredSockets.Length;
         }
 
         private void _buildSapper()
@@ -769,8 +781,7 @@ namespace DeadSignal
             SalvageCacheInstanceCount++;
             SalvageCachePartCount += 2;
             HasSalvageCacheAssets = hasValidPrefab && m_palette.HasSalvageCacheTexture &&
-                                    SalvageCacheInstanceCount == RunModel.SalvageRequired &&
-                                    SalvageCachePartCount == RunModel.SalvageRequired * 2;
+                                    SalvageCachePartCount == SalvageCacheInstanceCount * 2;
         }
 
         private bool _isBlocked(Vector3 position, float radius, bool shortcutOpen)

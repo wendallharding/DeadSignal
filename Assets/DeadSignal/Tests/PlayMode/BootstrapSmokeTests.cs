@@ -143,7 +143,7 @@ namespace DeadSignal.Tests
                 "The tower approach should be placed as scene-authored prefab content rather than runtime layout code.");
             var authoredObstacles = towerJunction.GetComponentsInChildren<AuthoredMapObstacle>();
             Assert.That(authoredObstacles.Length, Is.EqualTo(3));
-            Assert.That(game.AuthoredMapObstacleCount, Is.EqualTo(17),
+            Assert.That(game.AuthoredMapObstacleCount, Is.EqualTo(25),
                 "Every authored junction, salvage area, departure channel, and threat-bay obstacle should participate " +
                 "in movement resolution.");
             Assert.That(authoredObstacles.Sum(obstacle => obstacle.GetComponentsInChildren<Renderer>().Length), Is.EqualTo(6));
@@ -177,6 +177,67 @@ namespace DeadSignal.Tests
                 annexObstacles.SelectMany(obstacle => obstacle.GetComponentsInChildren<Renderer>())
                     .Count(renderer => renderer.sharedMaterial == annexArmor),
                 Is.EqualTo(3));
+            var eastVault = GameObject.Find("Optional East Salvage Vault");
+            Assert.That(eastVault, Is.Not.Null,
+                "The fourth cache should occupy a scene-authored optional room beyond the original east boundary.");
+            Assert.That(eastVault.transform.position, Is.EqualTo(new Vector3(16.7f, 0f, 0f)));
+            Assert.That(eastVault.transform.eulerAngles.y, Is.EqualTo(180f).Within(0.01f),
+                "The imported vault must face its split doorway toward the original arena.");
+            var eastVaultObstacles = eastVault.GetComponentsInChildren<AuthoredMapObstacle>();
+            var eastVaultSocket = eastVault.GetComponentInChildren<AuthoredSalvageSocket>();
+            Assert.That(eastVaultObstacles.Length, Is.EqualTo(6));
+            Assert.That(eastVaultObstacles.All(obstacle =>
+                    obstacle.RightAxis.sqrMagnitude > 0.99f && obstacle.ForwardAxis.sqrMagnitude > 0.99f), Is.True,
+                "Imported render transforms must not own navigation bounds because FBX basis rotation can make an axis vertical.");
+            Assert.That(eastVaultObstacles.All(obstacle =>
+                    obstacle.GetComponent<Renderer>() == null && obstacle.transform.localRotation == Quaternion.identity), Is.True,
+                "East-vault collision authoring should remain on identity-oriented, presentation-free transforms.");
+            Assert.That(eastVaultSocket, Is.Not.Null);
+            Assert.That(Vector3.Distance(eastVaultSocket.Position, new Vector3(18.7f, 0f, 0f)), Is.LessThan(0.001f));
+            Assert.That(game.AuthoredSalvageSocketCount, Is.EqualTo(1));
+            Assert.That(eastVault.GetComponentsInChildren<Collider>().Length, Is.Zero,
+                "The optional room should use serialized object-aligned blockers without duplicate physics colliders.");
+            var eastVaultMeshes = eastVault.GetComponentsInChildren<MeshFilter>()
+                .Select(filter => filter.sharedMesh)
+                .ToArray();
+            Assert.That(eastVaultMeshes.Length, Is.EqualTo(8));
+            Assert.That(eastVaultMeshes.All(mesh => mesh != null && mesh.vertexCount >= 24), Is.True,
+                "Every east-vault part should use authored beveled geometry instead of a primitive placeholder.");
+            Assert.That(eastVaultMeshes.All(mesh =>
+                mesh.HasVertexAttribute(UnityEngine.Rendering.VertexAttribute.TexCoord0)), Is.True,
+                "Every east-vault mesh should retain authored UV coordinates.");
+            var eastVaultTexture = Resources.Load<Texture2D>("Environment/EastSalvageVaultAlbedo");
+            var eastVaultArmor = Resources.Load<Material>("Materials/EastVaultArmor");
+            Assert.That(eastVaultTexture, Is.Not.Null);
+            Assert.That(eastVaultArmor.mainTexture, Is.EqualTo(eastVaultTexture));
+            Assert.That(eastVault.transform.Find("Vault North Wall").GetComponent<Renderer>().sharedMaterial,
+                Is.EqualTo(eastVaultArmor));
+            var eastVaultRouteWaypoints = new[]
+            {
+                new Vector3(12.5f, 0f, 0f),
+                new Vector3(14.6f, 0f, 0f),
+                new Vector3(15.5f, 0f, 2f),
+                new Vector3(18.7f, 0f, 2f),
+                new Vector3(18.7f, 0f, 0f)
+            };
+            var eastVaultRouteSamples = eastVaultRouteWaypoints
+                .SelectMany((start, index) => index == eastVaultRouteWaypoints.Length - 1
+                    ? Enumerable.Empty<Vector3>()
+                    : Enumerable.Range(0, 11).Select(step =>
+                        Vector3.Lerp(start, eastVaultRouteWaypoints[index + 1], step / 10f)))
+                .Append(eastVaultRouteWaypoints[^1])
+                .ToArray();
+            var completeEastRouteObstacles = Object.FindObjectsByType<AuthoredMapObstacle>(FindObjectsSortMode.None);
+            var blockedEastVaultSample = eastVaultRouteSamples.FirstOrDefault(sample =>
+                completeEastRouteObstacles.Any(obstacle => obstacle.OverlapsCircle(sample, 0.48f)));
+            var blockingEastVaultObstacle = completeEastRouteObstacles.FirstOrDefault(obstacle =>
+                obstacle.OverlapsCircle(blockedEastVaultSample, 0.48f));
+            Assert.That(blockingEastVaultObstacle, Is.Null,
+                $"A continuous player-radius-clear route must pass through the east doorway, around the splitter, " +
+                $"and reach the optional cache. Sample {blockedEastVaultSample} overlaps " +
+                $"{blockingEastVaultObstacle?.name ?? "no named obstacle"}; center " +
+                $"{blockingEastVaultObstacle?.Center}, half-size {blockingEastVaultObstacle?.ScaledHalfSize}, " +
+                $"right {blockingEastVaultObstacle?.RightAxis}, forward {blockingEastVaultObstacle?.ForwardAxis}.");
             var departureChannel = GameObject.Find("Extraction Departure Channel");
             Assert.That(departureChannel, Is.Not.Null,
                 "The opening route should be framed by scene-authored departure-channel content.");
@@ -483,8 +544,14 @@ namespace DeadSignal.Tests
             Assert.That(roomShell, Is.Not.Null, "The arena perimeter should load from the authored room-shell prefab.");
             Assert.That(game.HasMaintenanceRoomShellAssets, Is.True,
                 "The room-shell prefab and original bulkhead texture should load from Resources.");
-            Assert.That(game.RoomShellBulkheadCount, Is.EqualTo(4));
+            Assert.That(game.RoomShellBulkheadCount, Is.EqualTo(5));
             Assert.That(game.MachineSocketCount, Is.EqualTo(6));
+            Assert.That(roomShell.Find("Bulkheads/East Bulkhead"), Is.Null,
+                "The former solid east wall must not visually seal the optional room route.");
+            Assert.That(roomShell.Find("Bulkheads/East Bulkhead North"), Is.Not.Null);
+            Assert.That(roomShell.Find("Bulkheads/East Bulkhead South"), Is.Not.Null);
+            Assert.That(roomShell.GetComponentsInChildren<AuthoredMapObstacle>().Length, Is.EqualTo(2),
+                "The widened arena must not allow movement through either visible side of the east doorway.");
             Assert.That(roomShell.Find("Bulkheads").GetChild(0).GetComponent<Renderer>().sharedMaterial.mainTexture, Is.Not.Null,
                 "Every authored bulkhead should render the original wall texture.");
             var stationMachines = game.transform.Find("Station Machines");
@@ -508,11 +575,13 @@ namespace DeadSignal.Tests
             var salvageCaches = game.transform.Cast<Transform>().Where(child => child.name == "Salvage Cache").ToArray();
             Assert.That(game.HasSalvageCacheAssets, Is.True,
                 "The salvage-cache prefab and original containment texture should load from Resources.");
-            Assert.That(game.SalvageCacheInstanceCount, Is.EqualTo(RunModel.SalvageRequired));
-            Assert.That(game.SalvageCachePartCount, Is.EqualTo(RunModel.SalvageRequired * 2));
-            Assert.That(salvageCaches.Length, Is.EqualTo(RunModel.SalvageRequired));
+            Assert.That(game.SalvageCacheInstanceCount, Is.EqualTo(RunModel.SalvageRequired + 1));
+            Assert.That(game.SalvageCachePartCount, Is.EqualTo((RunModel.SalvageRequired + 1) * 2));
+            Assert.That(salvageCaches.Length, Is.EqualTo(RunModel.SalvageRequired + 1));
             Assert.That(salvageCaches.Sum(cache => cache.GetComponentsInChildren<Renderer>().Length),
-                Is.EqualTo(RunModel.SalvageRequired * 2));
+                Is.EqualTo((RunModel.SalvageRequired + 1) * 2));
+            Assert.That(game.HasSalvagePresentationTuning, Is.True);
+            Assert.That(Resources.Load<SalvagePresentationTuning>("Tuning/SalvagePresentationTuning"), Is.Not.Null);
             Assert.That(salvageCaches.Sum(cache => cache.GetComponentsInChildren<Collider>().Length), Is.Zero,
                 "The authored salvage caches should remain presentation-only so collection rules stay authoritative.");
             Assert.That(salvageCaches[0].Find("Salvage Case").GetComponent<Renderer>().sharedMaterial.mainTexture,
@@ -868,20 +937,22 @@ namespace DeadSignal.Tests
                     "Purging the Sapper should immediately hide every telegraph element.");
                 Assert.That(telegraph.IsVisible, Is.False);
 
-                foreach (Transform child in game.transform)
+                var cachesToSecure = game.transform.Cast<Transform>()
+                    .Where(child => child.name == "Salvage Cache" && child.gameObject.activeSelf)
+                    .Take(RunModel.SalvageRequired)
+                    .ToArray();
+                foreach (var child in cachesToSecure)
                 {
-                    if (child.name != "Salvage Cache" || !child.gameObject.activeSelf)
-                    {
-                        continue;
-                    }
-
                     player.position = child.position;
                     yield return null;
                 }
 
                 yield return null;
                 Assert.That(game.CurrentObjectiveBeaconPhase, Is.EqualTo(ObjectiveBeaconPhase.Extraction),
-                    "Securing every cache should advance guidance to extraction.");
+                    "Securing any three of four caches should advance guidance to extraction.");
+                Assert.That(game.transform.Cast<Transform>().Count(child =>
+                        child.name == "Salvage Cache" && child.gameObject.activeSelf), Is.EqualTo(1),
+                    "One optional cache should remain available after the extraction requirement is met.");
                 Assert.That(game.CurrentObjectiveBeaconTarget, Is.EqualTo(new Vector3(-9.2f, 0f, -5.6f)));
 
                 InputSystem.QueueStateEvent(gamepad, new GamepadState());

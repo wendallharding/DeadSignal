@@ -12,16 +12,19 @@ namespace DeadSignal
         private readonly DeadSignalWorld m_world;
         private readonly IDeadSignalAudio m_audio;
         private readonly Action<string> m_showFeedback;
+        private readonly SalvagePresentationTuning m_tuning;
 
         public DeadSignalSalvageController(
             RunModel model,
             DeadSignalWorld world,
             IDeadSignalAudio audio,
+            SalvagePresentationTuning tuning,
             Action<string> showFeedback)
         {
             m_model = model;
             m_world = world;
             m_audio = audio;
+            m_tuning = tuning;
             m_showFeedback = showFeedback;
         }
 
@@ -34,13 +37,15 @@ namespace DeadSignal
                     continue;
                 }
 
-                pickup.transform.Rotate(Vector3.up, 70f * dt, Space.World);
-                var hover = 0.06f + Mathf.Sin(Time.time * 3f + pickup.transform.position.x) * 0.04f;
+                pickup.transform.Rotate(Vector3.up, m_tuning.RotationSpeed * dt, Space.World);
+                var hover = m_tuning.HoverHeight +
+                            Mathf.Sin(Time.time * m_tuning.HoverFrequency + pickup.transform.position.x) *
+                            m_tuning.HoverAmplitude;
                 var position = pickup.transform.position;
                 position.y = hover;
                 pickup.transform.position = position;
 
-                if (DeadSignalWorld.FlatDistance(m_world.Player.position, pickup.transform.position) >= 0.85f)
+                if (DeadSignalWorld.FlatDistance(m_world.Player.position, pickup.transform.position) >= m_tuning.CollectionRadius)
                 {
                     continue;
                 }

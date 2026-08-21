@@ -43,6 +43,7 @@ namespace DeadSignal.Editor
             DeadSignalWardenBaySetup.EnsureAssets();
             DeadSignalSapperCradleSetup.EnsureAssets();
             DeadSignalCameraSetup.EnsureAssets();
+            DeadSignalEastVaultSetup.EnsureAssets();
             _validateBuildInputs();
             _configureWindowsPlayer();
 
@@ -205,6 +206,11 @@ namespace DeadSignal.Editor
             if (!DeadSignalCameraSetup.HasAssets)
             {
                 throw new BuildFailedException("The player follow-camera tuning asset is missing.");
+            }
+
+            if (!DeadSignalEastVaultSetup.HasAssets)
+            {
+                throw new BuildFailedException("The optional east salvage-vault assets are missing.");
             }
 
             if (AssetDatabase.LoadAssetAtPath<Texture2D>(APPLICATION_ICON_PATH) == null)
