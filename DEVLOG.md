@@ -1413,3 +1413,61 @@ Matching Editor: `C:\Program Files\Unity\Hub\Editor\6000.3.11f1\Editor\Unity.exe
 ### Best next step
 
 Play `Build/Windows/DeadSignal.exe` at 16:9 and ultrawide in normal and High Contrast modes, activate the tower, and confirm all three conduit runs appear continuous without overpowering actors or territory overlays; then migrate the runtime machine visuals into an authored socket-driven prop prefab.
+
+## 2026-08-21 — Autonomous Run 25
+
+### Today's single idea — authored station-machine assembly
+
+Player benefit: the six room-edge props now read as purposeful maintenance consoles instead of repeated bare cubes. A reusable machine silhouette and original dark-alloy control-surface art make the authored room feel cohesive while alternating red/cyan status strips retain the established state color rhythm.
+
+Acceptance criteria:
+
+- one reusable Unity-authored, collider-free station-machine prefab owns the existing machine block and status strip at the existing dimensions;
+- runtime composition places exactly six prefab instances at the room shell's existing machine sockets, applies original console art to every housing, and preserves alternating red/cyan status strips;
+- a safe primitive fallback preserves all six props if the prefab is absent, while tests, build validation, and packaged smoke report production readiness as false;
+- High Contrast continues to update the live housing and status materials without changing gameplay;
+- no room layout, collision, Signal economy, threat timing, movement, controls, audio, save data, or serialized gameplay state changes; and
+- import/compile, EditMode, PlayMode, Windows build, Direct3D 11 packaged smoke, strict scans, and repository checks pass.
+
+### Files and systems changed
+
+- `Assets/DeadSignal/Resources/Environment/StationMachinePanel.png` and Unity-generated `.meta`: added an original 1254x1254 RGB dark-alloy console-panel texture generated with the built-in image tool. The project copy was visually inspected and imported with sRGB, mipmaps, repeat wrapping, high-quality compression, and a 1024px default-platform cap. SHA-256: `A33DFE72D0ED70076E224F8948DF1EC346FBC1511F4884B76361C200847F7343`; GUID: `1e636385f0e661446a84b3ca9e570e88`.
+- `Assets/DeadSignal/Resources/Environment/StationMachineAssembly.prefab` and Unity-generated `.meta`: added the reusable collider-free two-part console assembly through Unity's Prefab API. GUID: `9f4174f9c3e4c6b449cf99582d77e1fa`.
+- `Assets/DeadSignal/Runtime/DeadSignalWorld.cs`: replaces six repeated runtime primitive pairs with socket-driven prefab instances, assigns alternating live status materials, and retains a safe primitive fallback. This focused extraction advances the class from prototype composition toward authored production assets.
+- `Assets/DeadSignal/Runtime/DeadSignalPalette.cs`: adds the machine texture Resource and a dedicated live High Contrast-aware housing material.
+- `Assets/DeadSignal/Runtime/DeadSignalGame.cs`: exposes narrow machine asset and hierarchy state for validation.
+- `Assets/DeadSignal/Editor/DeadSignalProjectSetup.cs`: adds idempotent texture configuration and Unity-driven machine-prefab creation.
+- `Assets/DeadSignal/Editor/DeadSignalWindowsBuild.cs`: prepares and requires the authored machine assets before packaging.
+- `Assets/DeadSignal/Runtime/StandaloneBuildSmokeProbe.cs`: requires the authored machine assembly and texture in packaged-player readiness.
+- `Assets/DeadSignal/Tests/PlayMode/BootstrapSmokeTests.cs`: verifies the authored root, six instances, 12 renderers, absent colliders, original texture assignment, alternating statuses, and production readiness. Its new apparent-type local uses `var` as this run's focused convention cleanup.
+- `GAME_VISION.md`, `BACKLOG.md`, and `DEVLOG.md`: record completion of the socket-driven machine milestone without changing the core concept.
+
+No packages, assembly definitions, scenes, project settings, deterministic rules, input, audio, balance, save data, or serialized gameplay state were intentionally changed. Reflex 14.3.1 was already installed. Unity's automatic build rewrites to URP assets, Graphics settings, batching, Unity Services, and earlier texture metadata were removed from the final source diff.
+
+### Tests run and exact outcomes
+
+Matching Editor: `C:\Program Files\Unity\Hub\Editor\6000.3.11f1\Editor\Unity.exe` (Unity 6000.3.11f1) against the live workspace.
+
+1. Unity import, compilation, texture configuration, and prefab setup wrote `Logs/run25-station-machines-setup.log`: Unity imported the generated PNG, compiled all changed assemblies, created the collider-free prefab and both `.meta` files, and exited `0`.
+2. EditMode regression wrote `Logs/run25-editmode-results.xml` and `Logs/run25-editmode.log`: Unity exited `0`; `16/16` passed, `0` failed, `0` skipped, `0` inconclusive in `0.0442418` seconds.
+3. PlayMode full runtime regression wrote `Logs/run25-playmode-results.xml` and `Logs/run25-playmode.log`: Unity exited `0`; `1/1` passed, `0` failed, `0` skipped, `0` inconclusive in `3.9605548` seconds. It proved authored station-machine composition while retaining every prior input, pause, accessibility, audio, particles, warning, activation, combat, Sapper, salvage, shortcut, extraction, and restart assertion.
+4. Windows development build wrote `Logs/run25-windows-build.log`: Unity exited `0`, reported `Build Finished, Result: Success`, emitted the build PASS marker, and produced 189,614,737 reported bytes in 60.57 seconds. The ignored local artifact contains 293 files totaling 189,808,079 bytes.
+5. Real packaged launch wrote `Logs/run25-standalone-d3d11-smoke.log`: the player forced Direct3D 11 on the NVIDIA GeForce RTX 3060, found the authored machine hierarchy and generated texture, printed one PASS marker, and exited `0`.
+6. Static asset inspection found exactly two mesh renderers and no collider component in the prefab. The project PNG was visually inspected and verified as 1254x1254 `Format24bppRgb`.
+7. Final post-audit compilation wrote `Logs/run25-post-audit-compile.log`: Unity exited `0` with no first-party compiler error or warning after the focused test-style cleanup.
+8. Strict scans of setup, EditMode, PlayMode, build, packaged-player, and final-compile logs found no first-party compiler errors, null or missing-reference exceptions, unhandled exceptions, failed assertions, failed tests, or failed smoke markers. Final metadata, trailing-whitespace, and `git diff --check` validation passed. The successful build noted no Unity Cloud token for optional native-symbol upload; no publishing occurred.
+
+### Bugs found and fixed
+
+- The first final-compile wrapper launched a GUI-subsystem Unity process without waiting, so an overlapping retry returned `1` before the original process completed successfully. A clean, uniquely logged `Start-Process -Wait` retry exited `0`; no product defect was involved.
+- Removed unrelated Unity build-time URP, Graphics, batching, Unity Services, and existing texture-metadata serialization changes before final validation.
+
+### Known limitations
+
+- Automated checks prove hierarchy, socket placement, Resources loading, texture assignment, High Contrast remapping, alternating status materials, unchanged collision, and packaged startup but cannot judge panel UV repetition, console silhouette, or threat/prop separation at 16:9 and ultrawide.
+- The generated texture is an albedo only and the two-part assembly retains simple cube meshes; bevels, screen decals, and a normal map should wait until a human top-down composition pass.
+- Deck, room shell, tower, extraction, shortcut, Signal routing, and machine props are now authored, while gameplay markers remain runtime-composed. The broader complete-room migration and tuning-session work remain open.
+
+### Best next step
+
+Play `Build/Windows/DeadSignal.exe` at 16:9 and ultrawide in normal and High Contrast modes, confirm the six consoles enrich the room edges without hiding actors or routes, then replace the remaining runtime gameplay markers with a small authored marker kit.

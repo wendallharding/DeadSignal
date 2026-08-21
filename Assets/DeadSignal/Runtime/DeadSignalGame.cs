@@ -57,6 +57,9 @@ namespace DeadSignal
         public int ShortcutGatePartCount => m_world?.ShortcutGatePartCount ?? 0;
         public bool HasSignalRoutingAssets => m_world?.HasSignalRoutingAssets ?? false;
         public int SignalRoutingPartCount => m_world?.SignalRoutingPartCount ?? 0;
+        public bool HasStationMachineAssets => m_world?.HasStationMachineAssets ?? false;
+        public int StationMachineInstanceCount => m_world?.StationMachineInstanceCount ?? 0;
+        public int StationMachinePartCount => m_world?.StationMachinePartCount ?? 0;
         public float LowSignalWarningIntensity => m_lowSignalWarning?.CurrentIntensity ?? 0f;
         public bool IsSignalDustPowered => m_signalDust?.IsPowered ?? false;
         public int SignalDustMaximumParticles => m_signalDust?.MaximumParticles ?? 0;

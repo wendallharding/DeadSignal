@@ -15,6 +15,7 @@ namespace DeadSignal
         private const string EXTRACTION_DOCK_TEXTURE_RESOURCE = "Environment/ExtractionDockPanel";
         private const string SHORTCUT_GATE_TEXTURE_RESOURCE = "Environment/ShortcutGatePanel";
         private const string SIGNAL_ROUTING_TEXTURE_RESOURCE = "Environment/SignalRoutingPanel";
+        private const string STATION_MACHINE_TEXTURE_RESOURCE = "Environment/StationMachinePanel";
 
         public DeadSignalPalette(bool highContrastEnabled)
         {
@@ -31,6 +32,7 @@ namespace DeadSignal
             ShortcutHousing = _createMaterial("Shortcut Gate Housing");
             ShortcutLocked = _createMaterial("Shortcut Gate Locked");
             SignalRouting = _createMaterial("Signal Routing");
+            StationMachineHousing = _createMaterial("Station Machine Housing");
             Dark = _createMaterial("Station Black");
             Steel = _createMaterial("Station Steel");
             White = _createMaterial("Drone White");
@@ -132,6 +134,22 @@ namespace DeadSignal
             }
 
             HasSignalRoutingTexture = signalRoutingTexture != null;
+            var stationMachineTexture = Resources.Load<Texture2D>(STATION_MACHINE_TEXTURE_RESOURCE);
+            if (stationMachineTexture != null)
+            {
+                StationMachineHousing.mainTexture = stationMachineTexture;
+                if (StationMachineHousing.HasProperty("_BaseMap"))
+                {
+                    StationMachineHousing.SetTexture("_BaseMap", stationMachineTexture);
+                }
+
+                if (StationMachineHousing.HasProperty("_Smoothness"))
+                {
+                    StationMachineHousing.SetFloat("_Smoothness", 0.28f);
+                }
+            }
+
+            HasStationMachineTexture = stationMachineTexture != null;
             ApplyHighContrast(highContrastEnabled);
         }
 
@@ -148,6 +166,7 @@ namespace DeadSignal
         public Material ShortcutHousing { get; }
         public Material ShortcutLocked { get; }
         public Material SignalRouting { get; }
+        public Material StationMachineHousing { get; }
         public Material Dark { get; }
         public Material Steel { get; }
         public Material White { get; }
@@ -157,6 +176,7 @@ namespace DeadSignal
         public bool HasExtractionTexture { get; }
         public bool HasShortcutTexture { get; }
         public bool HasSignalRoutingTexture { get; }
+        public bool HasStationMachineTexture { get; }
 
         public void ApplyHighContrast(bool enabled)
         {
@@ -199,6 +219,9 @@ namespace DeadSignal
             _setMaterial(SignalRouting,
                 enabled ? Color.white : new Color(0.72f, 0.82f, 0.86f),
                 enabled ? new Color(0.06f, 0.72f, 0.8f) : new Color(0.015f, 0.32f, 0.38f));
+            _setMaterial(StationMachineHousing,
+                enabled ? new Color(0.82f, 0.88f, 0.92f) : new Color(0.5f, 0.56f, 0.6f),
+                Color.black);
             _setMaterial(Dark,
                 enabled ? Color.black : new Color(0.012f, 0.018f, 0.026f),
                 Color.black);

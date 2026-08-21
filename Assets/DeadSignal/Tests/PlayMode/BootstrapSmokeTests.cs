@@ -81,6 +81,24 @@ namespace DeadSignal.Tests
             Assert.That(game.MachineSocketCount, Is.EqualTo(6));
             Assert.That(roomShell.Find("Bulkheads").GetChild(0).GetComponent<Renderer>().sharedMaterial.mainTexture, Is.Not.Null,
                 "Every authored bulkhead should render the original wall texture.");
+            var stationMachines = game.transform.Find("Station Machines");
+            Assert.That(stationMachines, Is.Not.Null, "The room sockets should be populated from the authored station-machine prefab.");
+            Assert.That(game.HasStationMachineAssets, Is.True,
+                "The station-machine prefab and original console texture should load from Resources.");
+            Assert.That(game.StationMachineInstanceCount, Is.EqualTo(6));
+            Assert.That(game.StationMachinePartCount, Is.EqualTo(12));
+            Assert.That(stationMachines.childCount, Is.EqualTo(6));
+            Assert.That(stationMachines.GetComponentsInChildren<Renderer>().Length, Is.EqualTo(12));
+            Assert.That(stationMachines.GetComponentsInChildren<Collider>().Length, Is.Zero,
+                "The authored machines should remain presentation-only so room navigation stays unchanged.");
+            Assert.That(
+                stationMachines.GetChild(0).Find("Machine Housing").GetComponent<Renderer>().sharedMaterial.mainTexture,
+                Is.Not.Null,
+                "Every authored machine housing should render the original console texture.");
+            Assert.That(
+                stationMachines.GetChild(0).Find("Machine Status").GetComponent<Renderer>().sharedMaterial,
+                Is.Not.EqualTo(stationMachines.GetChild(1).Find("Machine Status").GetComponent<Renderer>().sharedMaterial),
+                "Adjacent station machines should retain alternating red/cyan status strips.");
             Transform signalTower = game.transform.Find("Signal Tower Assembly");
             Assert.That(signalTower, Is.Not.Null, "The central objective should load from the authored Signal-tower prefab.");
             Assert.That(game.HasSignalTowerAssets, Is.True,
@@ -208,6 +226,8 @@ namespace DeadSignal.Tests
                 Transform salvageCase = game.transform.Find("Salvage Cache/Salvage Case");
                 Assert.That(salvageCase, Is.Not.Null);
                 Color initialSalvageColor = salvageCase.GetComponent<Renderer>().sharedMaterial.color;
+                var machineHousing = stationMachines.GetChild(0).Find("Machine Housing").GetComponent<Renderer>();
+                var initialMachineHousingColor = machineHousing.sharedMaterial.color;
                 InputSystem.QueueStateEvent(gamepad, new GamepadState().WithButton(GamepadButton.DpadUp));
                 yield return null;
                 Assert.That(game.IsHighContrastEnabled, Is.EqualTo(!initialHighContrast),
@@ -216,6 +236,8 @@ namespace DeadSignal.Tests
                     Is.EqualTo(game.IsHighContrastEnabled ? 1 : 0), "The high-contrast choice should persist for future runs.");
                 Assert.That(salvageCase.GetComponent<Renderer>().sharedMaterial.color, Is.Not.EqualTo(initialSalvageColor),
                     "High Contrast should immediately remap shared world materials while paused.");
+                Assert.That(machineHousing.sharedMaterial.color, Is.Not.EqualTo(initialMachineHousingColor),
+                    "High Contrast should immediately remap the authored machine housing material.");
 
                 InputSystem.QueueStateEvent(gamepad, new GamepadState());
                 yield return null;

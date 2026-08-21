@@ -19,6 +19,7 @@ namespace DeadSignal
         private const string EXTRACTION_PAD_PREFAB_RESOURCE = "Environment/ExtractionPadAssembly";
         private const string SHORTCUT_GATE_PREFAB_RESOURCE = "Environment/ShortcutGateAssembly";
         private const string SIGNAL_ROUTING_PREFAB_RESOURCE = "Environment/SignalRoutingAssembly";
+        private const string STATION_MACHINE_PREFAB_RESOURCE = "Environment/StationMachineAssembly";
         private const float DECK_MODULE_WIDTH = 3.9f;
         private const float DECK_MODULE_DEPTH = 3.6f;
 
@@ -69,6 +70,9 @@ namespace DeadSignal
         public int ShortcutGatePartCount { get; private set; }
         public bool HasSignalRoutingAssets { get; private set; }
         public int SignalRoutingPartCount { get; private set; }
+        public bool HasStationMachineAssets { get; private set; }
+        public int StationMachineInstanceCount { get; private set; }
+        public int StationMachinePartCount { get; private set; }
 
         public bool IsPowered(Vector3 position, bool towerOnline)
         {
@@ -441,13 +445,42 @@ namespace DeadSignal
 
         private void _buildStationMachines()
         {
+            var machinePrefab = Resources.Load<GameObject>(STATION_MACHINE_PREFAB_RESOURCE);
+            var hasValidPrefab = machinePrefab != null &&
+                                 machinePrefab.transform.Find("Machine Housing") != null &&
+                                 machinePrefab.transform.Find("Machine Status") != null;
+            var machinesRoot = new GameObject("Station Machines");
+            machinesRoot.transform.SetParent(m_root, false);
             for (var i = 0; i < m_machineSockets.Count; i++)
             {
                 var position = m_machineSockets[i];
-                _createPrimitive("Machine Block", PrimitiveType.Cube, position + new Vector3(0f, 0.45f, 0f), new Vector3(1.5f, 0.9f, 1.1f), m_palette.Steel);
-                _createPrimitive("Machine Status", PrimitiveType.Cube, position + new Vector3(0f, 0.92f, -0.15f), new Vector3(0.75f, 0.06f, 0.18f),
-                    i % 2 == 0 ? m_palette.RedDim : m_palette.CyanDim);
+                if (hasValidPrefab)
+                {
+                    var machine = Object.Instantiate(machinePrefab, machinesRoot.transform);
+                    machine.name = $"Station Machine {i + 1:00}";
+                    machine.transform.localPosition = position;
+                    machine.transform.localRotation = Quaternion.identity;
+                    machine.transform.Find("Machine Housing").GetComponent<Renderer>().sharedMaterial = m_palette.StationMachineHousing;
+                    machine.transform.Find("Machine Status").GetComponent<Renderer>().sharedMaterial =
+                        i % 2 == 0 ? m_palette.RedDim : m_palette.CyanDim;
+                }
+                else
+                {
+                    var machine = new GameObject($"Station Machine {i + 1:00}");
+                    machine.transform.SetParent(machinesRoot.transform, false);
+                    machine.transform.localPosition = position;
+                    _createPrimitive("Machine Housing", PrimitiveType.Cube, new Vector3(0f, 0.45f, 0f),
+                        new Vector3(1.5f, 0.9f, 1.1f), m_palette.StationMachineHousing, machine.transform);
+                    _createPrimitive("Machine Status", PrimitiveType.Cube, new Vector3(0f, 0.92f, -0.15f),
+                        new Vector3(0.75f, 0.06f, 0.18f), i % 2 == 0 ? m_palette.RedDim : m_palette.CyanDim, machine.transform);
+                }
+
+                StationMachineInstanceCount++;
+                StationMachinePartCount += 2;
             }
+
+            HasStationMachineAssets = hasValidPrefab && m_palette.HasStationMachineTexture &&
+                                      StationMachineInstanceCount == 6 && StationMachinePartCount == 12;
         }
 
         private void _buildSignalShortcut()

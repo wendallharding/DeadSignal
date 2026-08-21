@@ -25,6 +25,8 @@ namespace DeadSignal.Editor
         private const string SHORTCUT_GATE_PREFAB_PATH = ENVIRONMENT_FOLDER + "/ShortcutGateAssembly.prefab";
         private const string SIGNAL_ROUTING_TEXTURE_PATH = ENVIRONMENT_FOLDER + "/SignalRoutingPanel.png";
         private const string SIGNAL_ROUTING_PREFAB_PATH = ENVIRONMENT_FOLDER + "/SignalRoutingAssembly.prefab";
+        private const string STATION_MACHINE_TEXTURE_PATH = ENVIRONMENT_FOLDER + "/StationMachinePanel.png";
+        private const string STATION_MACHINE_PREFAB_PATH = ENVIRONMENT_FOLDER + "/StationMachineAssembly.prefab";
         private const string CREATE_REFLEX_SETTINGS_MENU = "Assets/Create/Reflex/Settings";
 
         public static bool HasReflexSettings =>
@@ -57,6 +59,10 @@ namespace DeadSignal.Editor
         public static bool HasSignalRoutingAssets =>
             AssetDatabase.LoadAssetAtPath<Texture2D>(SIGNAL_ROUTING_TEXTURE_PATH) != null &&
             AssetDatabase.LoadAssetAtPath<GameObject>(SIGNAL_ROUTING_PREFAB_PATH) != null;
+
+        public static bool HasStationMachineAssets =>
+            AssetDatabase.LoadAssetAtPath<Texture2D>(STATION_MACHINE_TEXTURE_PATH) != null &&
+            AssetDatabase.LoadAssetAtPath<GameObject>(STATION_MACHINE_PREFAB_PATH) != null;
 
         public static void EnsureReflexSettings()
         {
@@ -353,6 +359,41 @@ namespace DeadSignal.Editor
             if (!HasSignalRoutingAssets)
             {
                 throw new InvalidOperationException("The Signal-routing texture and assembly prefab were not created successfully.");
+            }
+        }
+
+        public static void EnsureStationMachineAssets()
+        {
+            var importer = AssetImporter.GetAtPath(STATION_MACHINE_TEXTURE_PATH) as TextureImporter;
+            if (importer == null)
+            {
+                throw new InvalidOperationException($"Could not find the station-machine texture at {STATION_MACHINE_TEXTURE_PATH}.");
+            }
+
+            importer.alphaIsTransparency = false;
+            importer.mipmapEnabled = true;
+            importer.maxTextureSize = 1024;
+            importer.wrapMode = TextureWrapMode.Repeat;
+            importer.textureCompression = TextureImporterCompression.CompressedHQ;
+            importer.SaveAndReimport();
+
+            if (AssetDatabase.LoadAssetAtPath<GameObject>(STATION_MACHINE_PREFAB_PATH) == null)
+            {
+                var machine = new GameObject("Station Machine Assembly");
+                _createPrefabCube("Machine Housing", new Vector3(0f, 0.45f, 0f),
+                    new Vector3(1.5f, 0.9f, 1.1f), machine.transform);
+                _createPrefabCube("Machine Status", new Vector3(0f, 0.92f, -0.15f),
+                    new Vector3(0.75f, 0.06f, 0.18f), machine.transform);
+
+                PrefabUtility.SaveAsPrefabAsset(machine, STATION_MACHINE_PREFAB_PATH);
+                UnityEngine.Object.DestroyImmediate(machine);
+            }
+
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
+            if (!HasStationMachineAssets)
+            {
+                throw new InvalidOperationException("The station-machine texture and assembly prefab were not created successfully.");
             }
         }
 
