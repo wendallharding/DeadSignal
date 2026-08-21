@@ -67,10 +67,13 @@ namespace DeadSignal
                                 game.HasWardenWarningTexture &&
                                 Resources.Load<Texture2D>("VFX/WardenStrikeWarning") != null &&
                                 Resources.Load<WardenThreatTelegraphTuning>("Tuning/WardenThreatTelegraphTuning") != null &&
-                                game.AuthoredMapObstacleCount == 3 &&
+                                game.AuthoredMapObstacleCount == 6 &&
                                 Resources.Load<GameObject>("Environment/CoolantManifoldAssembly") != null &&
                                 Resources.Load<GameObject>("Environment/TowerApproachJunction") != null &&
                                 Resources.Load<Texture2D>("Environment/CoolantManifoldAlbedo") != null &&
+                                Resources.Load<GameObject>("Environment/SalvageAnnexBarrier") != null &&
+                                Resources.Load<GameObject>("Environment/SalvageAnnex") != null &&
+                                Resources.Load<Texture2D>("Environment/SalvageAnnexAlbedo") != null &&
                                 Resources.Load<GameObject>("Actors/SignalSapperAssembly") != null &&
                                 Resources.Load<GameObject>("Actors/SignalSapperModel") != null &&
                                 Resources.Load<Texture2D>("Actors/SignalSapperArmorAlbedo") != null &&

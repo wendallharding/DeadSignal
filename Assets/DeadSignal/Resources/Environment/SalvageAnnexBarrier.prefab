@@ -1,0 +1,92 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1001 &2919918697478708751
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: -8679921383154817045, guid: 10af3b8c6136ce84ca80d8fecaf38a93, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 10af3b8c6136ce84ca80d8fecaf38a93, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 10af3b8c6136ce84ca80d8fecaf38a93, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 10af3b8c6136ce84ca80d8fecaf38a93, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 10af3b8c6136ce84ca80d8fecaf38a93, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 10af3b8c6136ce84ca80d8fecaf38a93, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 10af3b8c6136ce84ca80d8fecaf38a93, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 10af3b8c6136ce84ca80d8fecaf38a93, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 10af3b8c6136ce84ca80d8fecaf38a93, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 10af3b8c6136ce84ca80d8fecaf38a93, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -7219663992501169361, guid: 10af3b8c6136ce84ca80d8fecaf38a93, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value:
+      objectReference: {fileID: 2100000, guid: 11da8ee3eea7c5c49a986f0226220b08, type: 2}
+    - target: {fileID: -4174373956296078483, guid: 10af3b8c6136ce84ca80d8fecaf38a93, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value:
+      objectReference: {fileID: 2100000, guid: ce2983c9bb610604c8845637600a8a8d, type: 2}
+    - target: {fileID: -398339407967467557, guid: 10af3b8c6136ce84ca80d8fecaf38a93, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value:
+      objectReference: {fileID: 2100000, guid: 71c4cfef0a68c354cb549c6f82c0d7b8, type: 2}
+    - target: {fileID: 919132149155446097, guid: 10af3b8c6136ce84ca80d8fecaf38a93, type: 3}
+      propertyPath: m_Name
+      value: SalvageAnnexBarrier
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 10af3b8c6136ce84ca80d8fecaf38a93, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 5051533781477643063}
+  m_SourcePrefab: {fileID: 100100000, guid: 10af3b8c6136ce84ca80d8fecaf38a93, type: 3}
+--- !u!1 &2613437177307095902 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 10af3b8c6136ce84ca80d8fecaf38a93, type: 3}
+  m_PrefabInstance: {fileID: 2919918697478708751}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &5051533781477643063
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2613437177307095902}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e5c2114ec9f7be54889bb05839f089fe, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: DeadSignal.Runtime::DeadSignal.AuthoredMapObstacle
+  m_localHalfSize: {x: 2.15, y: 0.39}

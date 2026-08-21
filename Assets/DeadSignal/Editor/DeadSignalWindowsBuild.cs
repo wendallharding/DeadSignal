@@ -36,6 +36,7 @@ namespace DeadSignal.Editor
             DeadSignalSapperTelegraphSetup.EnsureAssets();
             DeadSignalWardenTelegraphSetup.EnsureAssets();
             DeadSignalTowerJunctionSetup.EnsureAssets();
+            DeadSignalSalvageAnnexSetup.EnsureAssets();
             _validateBuildInputs();
             _configureWindowsPlayer();
 
@@ -163,6 +164,11 @@ namespace DeadSignal.Editor
             if (!DeadSignalTowerJunctionSetup.HasAssets)
             {
                 throw new BuildFailedException("The scene-authored tower-approach junction assets are missing.");
+            }
+
+            if (!DeadSignalSalvageAnnexSetup.HasAssets)
+            {
+                throw new BuildFailedException("The scene-authored salvage-annex assets are missing.");
             }
 
             if (AssetDatabase.LoadAssetAtPath<Texture2D>(APPLICATION_ICON_PATH) == null)

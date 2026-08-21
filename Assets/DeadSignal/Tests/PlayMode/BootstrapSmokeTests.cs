@@ -17,7 +17,7 @@ namespace DeadSignal.Tests
             yield return SceneManager.LoadSceneAsync("SampleScene");
             yield return null;
 
-            DeadSignalGame game = Object.FindFirstObjectByType<DeadSignalGame>();
+            var game = Object.FindFirstObjectByType<DeadSignalGame>();
             Assert.That(game, Is.Not.Null, "Runtime bootstrap did not create the game controller.");
             Assert.That(Object.FindFirstObjectByType<DeadSignalHud>(), Is.Not.Null,
                 "Runtime bootstrap should compose a dedicated HUD presenter.");
@@ -143,8 +143,8 @@ namespace DeadSignal.Tests
                 "The tower approach should be placed as scene-authored prefab content rather than runtime layout code.");
             var authoredObstacles = towerJunction.GetComponentsInChildren<AuthoredMapObstacle>();
             Assert.That(authoredObstacles.Length, Is.EqualTo(3));
-            Assert.That(game.AuthoredMapObstacleCount, Is.EqualTo(authoredObstacles.Length),
-                "Every authored junction obstacle should participate in runtime movement resolution.");
+            Assert.That(game.AuthoredMapObstacleCount, Is.EqualTo(6),
+                "Every authored junction and salvage-annex obstacle should participate in runtime movement resolution.");
             Assert.That(authoredObstacles.Sum(obstacle => obstacle.GetComponentsInChildren<Renderer>().Length), Is.EqualTo(6));
             Assert.That(authoredObstacles.Sum(obstacle => obstacle.GetComponentsInChildren<Collider>().Length), Is.Zero,
                 "The non-physics movement controller should use authored obstacle bounds without duplicate physics colliders.");
@@ -153,6 +153,25 @@ namespace DeadSignal.Tests
                     .Any(renderer => renderer.sharedMaterial.mainTexture != null),
                 Is.True,
                 "The tower junction should display its original coolant-manifold panel texture.");
+            var salvageAnnex = GameObject.Find("Northeast Salvage Annex");
+            Assert.That(salvageAnnex, Is.Not.Null,
+                "The optional northeast cache should be enclosed by scene-authored prefab content.");
+            Assert.That(salvageAnnex.transform.position, Is.EqualTo(new Vector3(9.7f, 0f, 6.3f)),
+                "The annex should surround the established cache position without moving the objective.");
+            var annexObstacles = salvageAnnex.GetComponentsInChildren<AuthoredMapObstacle>();
+            Assert.That(annexObstacles.Length, Is.EqualTo(3));
+            Assert.That(annexObstacles.Sum(obstacle => obstacle.GetComponentsInChildren<Renderer>().Length), Is.EqualTo(9));
+            Assert.That(annexObstacles.Sum(obstacle => obstacle.GetComponentsInChildren<Collider>().Length), Is.Zero,
+                "The annex should use serialized movement bounds without duplicate physics colliders.");
+            var annexTexture = Resources.Load<Texture2D>("Environment/SalvageAnnexAlbedo");
+            var annexArmor = Resources.Load<Material>("Materials/SalvageAnnexArmor");
+            Assert.That(annexTexture, Is.Not.Null);
+            Assert.That(annexArmor.mainTexture, Is.EqualTo(annexTexture),
+                "The annex armor should persistently map its original cargo-panel albedo.");
+            Assert.That(
+                annexObstacles.SelectMany(obstacle => obstacle.GetComponentsInChildren<Renderer>())
+                    .Count(renderer => renderer.sharedMaterial == annexArmor),
+                Is.EqualTo(3));
             var signalSapper = game.transform.Find("Signal Sapper");
             var authoredSapperPrefab = Resources.Load<GameObject>("Actors/SignalSapperAssembly");
             var sapperArmorTexture = Resources.Load<Texture2D>("Actors/SignalSapperArmorAlbedo");
@@ -194,7 +213,7 @@ namespace DeadSignal.Tests
             Assert.That(signalSapper.gameObject.activeSelf, Is.False);
             var telegraphRoot = game.transform.Find("Sapper Drain Telegraph");
             Assert.That(telegraphRoot, Is.Not.Null, "The Sapper telegraph should be constructed with the runtime arena.");
-            SignalSapperTelegraph telegraph = telegraphRoot.GetComponent<SignalSapperTelegraph>();
+            var telegraph = telegraphRoot.GetComponent<SignalSapperTelegraph>();
             Assert.That(telegraphRoot.gameObject.activeSelf, Is.False, "The Sapper telegraph should remain hidden while dormant.");
             Assert.That(telegraph.IsVisible, Is.False);
             Assert.That(telegraph.HasPulseTexture, Is.True,
@@ -212,7 +231,7 @@ namespace DeadSignal.Tests
             Assert.That(sapperPulseFlash.GetComponent<SpriteRenderer>(), Is.Not.Null,
                 "The expanding drain pulse should render the authored transparent glyph instead of a primitive cylinder.");
             Assert.That(game.transform.Find("Tower Power Territory"), Is.Not.Null);
-            Transform extractionPad = game.transform.Find("Extraction Pad Assembly");
+            var extractionPad = game.transform.Find("Extraction Pad Assembly");
             Assert.That(extractionPad, Is.Not.Null, "The start and finish objective should load from the authored extraction-pad prefab.");
             Assert.That(game.HasExtractionPadAssets, Is.True,
                 "The extraction-pad prefab and original docking texture should load from Resources.");
@@ -223,7 +242,7 @@ namespace DeadSignal.Tests
             Assert.That(extractionPad.Find("Extraction Plinth").GetComponent<Renderer>().sharedMaterial.mainTexture, Is.Not.Null,
                 "The authored extraction housing should render the original docking texture.");
             Assert.That(extractionPad.Find("Extraction Beacon"), Is.Not.Null);
-            Transform shortcut = game.transform.Find("Shortcut Gate Assembly");
+            var shortcut = game.transform.Find("Shortcut Gate Assembly");
             Assert.That(shortcut, Is.Not.Null, "The optional route choice should load from the authored shortcut prefab.");
             Assert.That(game.HasShortcutGateAssets, Is.True,
                 "The shortcut prefab and original powered-lock texture should load from Resources.");
@@ -247,7 +266,7 @@ namespace DeadSignal.Tests
                 "The authored network trunks should render the original circuit texture.");
             Assert.That(signalRouting.gameObject.activeSelf, Is.False,
                 "The authored network routing should remain hidden while the tower is dormant.");
-            Transform maintenanceDeck = game.transform.Find("Maintenance Deck Modules");
+            var maintenanceDeck = game.transform.Find("Maintenance Deck Modules");
             Assert.That(maintenanceDeck, Is.Not.Null, "The arena should be assembled from authored maintenance-deck modules.");
             Assert.That(game.MaintenanceDeckModuleCount, Is.EqualTo(35));
             Assert.That(maintenanceDeck.childCount, Is.EqualTo(35));
@@ -255,7 +274,7 @@ namespace DeadSignal.Tests
                 "The authored deck prefab and original plating texture should load from Resources.");
             Assert.That(maintenanceDeck.GetChild(0).GetComponent<Renderer>().sharedMaterial.mainTexture, Is.Not.Null,
                 "Every deck module should render the original plating texture.");
-            Transform roomShell = game.transform.Find("Maintenance Room Shell");
+            var roomShell = game.transform.Find("Maintenance Room Shell");
             Assert.That(roomShell, Is.Not.Null, "The arena perimeter should load from the authored room-shell prefab.");
             Assert.That(game.HasMaintenanceRoomShellAssets, Is.True,
                 "The room-shell prefab and original bulkhead texture should load from Resources.");
@@ -293,7 +312,7 @@ namespace DeadSignal.Tests
                 "The authored salvage caches should remain presentation-only so collection rules stay authoritative.");
             Assert.That(salvageCaches[0].Find("Salvage Case").GetComponent<Renderer>().sharedMaterial.mainTexture,
                 Is.Not.Null, "Every authored salvage case should render the original containment texture.");
-            Transform signalTower = game.transform.Find("Signal Tower Assembly");
+            var signalTower = game.transform.Find("Signal Tower Assembly");
             Assert.That(signalTower, Is.Not.Null, "The central objective should load from the authored Signal-tower prefab.");
             Assert.That(game.HasSignalTowerAssets, Is.True,
                 "The Signal-tower prefab and original housing texture should load from Resources.");
@@ -334,27 +353,27 @@ namespace DeadSignal.Tests
                 "A fresh run should begin with keyboard-and-mouse guidance until controller input is received.");
             Assert.That(game.CurrentObjectiveBeaconPhase, Is.EqualTo(ObjectiveBeaconPhase.Tower));
             Assert.That(game.CurrentObjectiveBeaconTarget, Is.EqualTo(new Vector3(-0.6f, 0f, 0.4f)));
-            CombatFeedbackController combatFeedback = Object.FindFirstObjectByType<CombatFeedbackController>();
+            var combatFeedback = Object.FindFirstObjectByType<CombatFeedbackController>();
             Assert.That(combatFeedback, Is.Not.Null, "Reflex composition should provide the combat-feedback controller.");
             Assert.That(combatFeedback.HasImpactTexture, Is.True, "The generated impact texture should load from Resources.");
-            DeadSignalAudio audio = Object.FindFirstObjectByType<DeadSignalAudio>();
+            var audio = Object.FindFirstObjectByType<DeadSignalAudio>();
             Assert.That(audio, Is.Not.Null, "Reflex composition should provide the adaptive audio controller.");
             Assert.That(audio.HasGeneratedClips, Is.True);
 
-            Gamepad gamepad = InputSystem.AddDevice<Gamepad>();
+            var gamepad = InputSystem.AddDevice<Gamepad>();
             var player = game.transform.Find("Maintenance Drone");
-            Vector3 startingPosition = player.position;
-            bool hadCameraImpulsePreference = PlayerPrefs.HasKey("DeadSignal.CameraImpulseEnabled");
-            bool initialCameraImpulse = game.IsCameraImpulseEnabled;
-            bool hadReducedFlashesPreference = PlayerPrefs.HasKey("DeadSignal.ReducedFlashesEnabled");
-            bool initialReducedFlashes = game.IsReducedFlashesEnabled;
-            bool hadHighContrastPreference = PlayerPrefs.HasKey("DeadSignal.HighContrastEnabled");
-            bool initialHighContrast = game.IsHighContrastEnabled;
-            bool hadAudioPreference = PlayerPrefs.HasKey("DeadSignal.AudioEnabled");
-            bool initialAudio = game.IsAudioEnabled;
+            var startingPosition = player.position;
+            var hadCameraImpulsePreference = PlayerPrefs.HasKey("DeadSignal.CameraImpulseEnabled");
+            var initialCameraImpulse = game.IsCameraImpulseEnabled;
+            var hadReducedFlashesPreference = PlayerPrefs.HasKey("DeadSignal.ReducedFlashesEnabled");
+            var initialReducedFlashes = game.IsReducedFlashesEnabled;
+            var hadHighContrastPreference = PlayerPrefs.HasKey("DeadSignal.HighContrastEnabled");
+            var initialHighContrast = game.IsHighContrastEnabled;
+            var hadAudioPreference = PlayerPrefs.HasKey("DeadSignal.AudioEnabled");
+            var initialAudio = game.IsAudioEnabled;
             try
             {
-                float signalBeforePause = game.CurrentSignal;
+                var signalBeforePause = game.CurrentSignal;
                 InputSystem.QueueStateEvent(gamepad, new GamepadState().WithButton(GamepadButton.Start));
                 yield return null;
 
@@ -365,7 +384,7 @@ namespace DeadSignal.Tests
                 yield return new WaitForSecondsRealtime(0.1f);
                 Assert.That(game.CurrentSignal, Is.EqualTo(signalBeforePause), "Signal must not drain while paused.");
 
-                ParticleSystem signalDust = game.transform.Find("Adaptive Signal Dust Field").GetComponent<ParticleSystem>();
+                var signalDust = game.transform.Find("Adaptive Signal Dust Field").GetComponent<ParticleSystem>();
                 Assert.That(signalDust.isPaused, Is.True, "Time-scale pause should also freeze ambient Signal dust.");
 
                 InputSystem.QueueStateEvent(gamepad, new GamepadState().WithButton(GamepadButton.DpadLeft));
@@ -417,9 +436,9 @@ namespace DeadSignal.Tests
                 Assert.That(game.IsReducedFlashesEnabled, Is.EqualTo(initialReducedFlashes),
                     "The pause option should restore its prior reduced-flashes state.");
 
-                Transform salvageCase = game.transform.Find("Salvage Cache/Salvage Case");
+                var salvageCase = game.transform.Find("Salvage Cache/Salvage Case");
                 Assert.That(salvageCase, Is.Not.Null);
-                Color initialSalvageColor = salvageCase.GetComponent<Renderer>().sharedMaterial.color;
+                var initialSalvageColor = salvageCase.GetComponent<Renderer>().sharedMaterial.color;
                 var machineHousing = stationMachines.GetChild(0).Find("Machine Housing").GetComponent<Renderer>();
                 var initialMachineHousingColor = machineHousing.sharedMaterial.color;
                 var playerHousing = player.Find("Drone Chassis").GetComponent<Renderer>();
@@ -482,23 +501,23 @@ namespace DeadSignal.Tests
                 player.position = new Vector3(7.5f, 0f, -4f);
                 yield return null;
                 Assert.That(game.IsSignalDustPowered, Is.False, "Dead zones should switch the ambient field to its sparse state.");
-                float deadDustRate = game.SignalDustEmissionRate;
+                var deadDustRate = game.SignalDustEmissionRate;
                 player.position = startingPosition;
                 yield return null;
                 Assert.That(game.IsSignalDustPowered, Is.True);
                 Assert.That(game.SignalDustEmissionRate, Is.GreaterThan(deadDustRate),
                     "Powered territory should carry a visibly denser Signal-dust field.");
 
-                Camera gameCamera = game.GetComponentInChildren<Camera>();
-                Vector3 cameraRestPosition = gameCamera.transform.position;
+                var gameCamera = game.GetComponentInChildren<Camera>();
+                var cameraRestPosition = gameCamera.transform.position;
                 combatFeedback.PlaySignalImpact(player.position + Vector3.up * 0.5f, false);
                 Assert.That(combatFeedback.ActiveImpactCount, Is.EqualTo(1));
-                Transform impactBurst = combatFeedback.transform.Find("Combat Impact Burst");
+                var impactBurst = combatFeedback.transform.Find("Combat Impact Burst");
                 Assert.That(impactBurst, Is.Not.Null);
                 Assert.That(impactBurst.GetComponent<SpriteRenderer>().sprite, Is.Not.Null);
                 Assert.That(impactBurst.GetComponent<SpriteRenderer>().color.a, Is.LessThanOrEqualTo(0.3f),
                     "Reduced Flashes should cap combat-burst opacity without removing the hit confirmation.");
-                Vector3 cameraFacingDirection = -game.GetComponentInChildren<Camera>().transform.forward;
+                var cameraFacingDirection = -game.GetComponentInChildren<Camera>().transform.forward;
                 Assert.That(Vector3.Dot(impactBurst.forward, cameraFacingDirection), Is.GreaterThan(0.99f),
                     "The impact sprite should face the overhead camera.");
                 Assert.That(combatFeedback.IsHitStopped, Is.True, "A combat impact should begin a brief hit-stop.");
@@ -524,7 +543,7 @@ namespace DeadSignal.Tests
                 Assert.That(Vector3.Dot(player.forward, Vector3.forward), Is.GreaterThan(0.9f), "Right stick should aim the drone.");
 
                 player.position = new Vector3(-0.6f, 0f, 0.4f);
-                int cuesBeforeTower = audio.PlayedCueCount;
+                var cuesBeforeTower = audio.PlayedCueCount;
                 InputSystem.QueueStateEvent(gamepad, new GamepadState().WithButton(GamepadButton.West));
                 yield return null;
 
@@ -568,7 +587,7 @@ namespace DeadSignal.Tests
                     "Reduced Flashes should retain the warning while suppressing its rotation and scale pulse.");
                 securityWarden.position = new Vector3(6.8f, 0f, 4.7f);
                 yield return null;
-                Transform sapper = game.transform.Find("Signal Sapper");
+                var sapper = game.transform.Find("Signal Sapper");
                 Assert.That(sapper.gameObject.activeSelf, Is.True,
                     "Tower activation should awaken the Signal Sapper.");
                 Assert.That(telegraphRoot.gameObject.activeSelf, Is.True,
@@ -576,7 +595,7 @@ namespace DeadSignal.Tests
                 Assert.That(telegraph.IsVisible, Is.True);
                 Assert.That(telegraph.IsLatched, Is.False);
                 Assert.That(telegraphRoot.Find("Sapper Target Tether"), Is.Not.Null);
-                float tetherOffsetBeforeAnimation = telegraph.TetherTextureOffset;
+                var tetherOffsetBeforeAnimation = telegraph.TetherTextureOffset;
                 yield return null;
                 Assert.That(telegraph.TetherTextureOffset, Is.LessThan(tetherOffsetBeforeAnimation),
                     "The tether texture should animate from the Sapper toward its tower target.");
@@ -587,7 +606,7 @@ namespace DeadSignal.Tests
                 Assert.That(new Vector2(salvageTarget.x, salvageTarget.z), Is.EqualTo(new Vector2(-5.8f, 7.2f)),
                     "The beacon should select the closest remaining cache from the tower.");
 
-                float signalBeforePulse = game.CurrentSignal;
+                var signalBeforePulse = game.CurrentSignal;
                 sapper.position = new Vector3(-0.6f, 0f, 0.4f);
                 yield return null;
 
@@ -595,13 +614,13 @@ namespace DeadSignal.Tests
                 Assert.That(telegraph.IsLatched, Is.True, "The telegraph should switch to its countdown presentation when latched.");
                 Assert.That(sapper.Find("Sapper Drain Core").localScale.y, Is.GreaterThan(0.5f),
                     "The drain pulse should preserve the authored core thickness instead of applying primitive-only scale values.");
-                float initialCountdown = telegraph.DisplayedCountdown;
+                var initialCountdown = telegraph.DisplayedCountdown;
                 Assert.That(initialCountdown, Is.GreaterThan(1f));
                 yield return new WaitForSeconds(0.2f);
                 Assert.That(telegraph.DisplayedCountdown, Is.LessThan(initialCountdown),
                     "The displayed drain countdown should decrease with the gameplay pulse timer.");
 
-                float pulseTimeout = 2f;
+                var pulseTimeout = 2f;
                 while (game.CurrentSignal > signalBeforePulse - RunModel.SapperPulseCost && pulseTimeout > 0f)
                 {
                     pulseTimeout -= Time.deltaTime;
@@ -618,7 +637,7 @@ namespace DeadSignal.Tests
                     new GamepadState { rightStick = Vector2.up }.WithButton(GamepadButton.RightShoulder));
                 yield return null;
                 InputSystem.QueueStateEvent(gamepad, new GamepadState { rightStick = Vector2.up });
-                float boltSpawnTimeout = 0.4f;
+                var boltSpawnTimeout = 0.4f;
                 while (!game.LastSignalBoltUsedAuthoredPrefab && boltSpawnTimeout > 0f)
                 {
                     boltSpawnTimeout -= Time.unscaledDeltaTime;
@@ -695,13 +714,13 @@ namespace DeadSignal.Tests
                 InputSystem.QueueStateEvent(gamepad, new GamepadState());
                 yield return null;
 
-                int completedRunInstanceId = game.GetInstanceID();
+                var completedRunInstanceId = game.GetInstanceID();
                 InputSystem.QueueStateEvent(gamepad, new GamepadState().WithButton(GamepadButton.South));
                 yield return null;
                 InputSystem.QueueStateEvent(gamepad, new GamepadState());
                 yield return null;
 
-                DeadSignalGame restartedGame = Object.FindFirstObjectByType<DeadSignalGame>();
+                var restartedGame = Object.FindFirstObjectByType<DeadSignalGame>();
                 Assert.That(restartedGame, Is.Not.Null,
                     "Restarting a completed run should bootstrap a fresh playable runtime after the scene reloads.");
                 Assert.That(restartedGame.GetInstanceID(), Is.Not.EqualTo(completedRunInstanceId));

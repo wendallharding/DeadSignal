@@ -2229,3 +2229,62 @@ The live project remained open in Unity `6000.3.11f1` and was not closed or cont
 ### Best next step
 
 Play from extraction through both sides of the south manifold, activate the tower, and kite each awakened threat around the three obstacles; then tune the prefab transforms in `SampleScene` based on which lane currently dominates.
+
+## 2026-08-21 - Autonomous Run 39
+
+### Today's single idea
+
+**Scene-authored northeast salvage annex.** Enclose the established northeast salvage cache with three modular cargo barriers, leaving one west-facing entrance so claiming the optional reward becomes a deliberate positioning commitment rather than an open-floor drive-by.
+
+Player benefit: the northeast corner now has a recognizable amber cargo landmark and a compact risk/reward pocket. The player must enter and leave through a readable opening while awakened threats can pressure that same route, adding navigation and kiting decisions without padding the map or changing the reward.
+
+Acceptance criteria:
+
+- place one reusable salvage-annex prefab directly in `SampleScene` around the existing northeast cache;
+- use three original Blender-authored, textured cargo barriers to form an enclosed reward pocket with one clear west-facing entrance;
+- register all three barriers through serialized `AuthoredMapObstacle` bounds rather than physics colliders or hard-coded runtime blockers;
+- preserve the cache at `(9.7, 0, 6.3)` and preserve every objective, Signal, enemy, shortcut, and salvage rule; and
+- pass Unity import/compile, EditMode, PlayMode, Windows build, packaged-resource smoke, and repository checks.
+
+### Files and systems changed
+
+- `OWNER_NOTES.md`: remained the primary product direction; its tracked owner content was read but not modified.
+- `Assets/DeadSignal/Resources/Environment/SalvageAnnexAlbedo.png` and Unity-generated `.meta`: added an original graphite/amber/cyan cargo-panel albedo generated with OpenAI's built-in image-generation mode.
+- Final image-generation prompt: square orthographic albedo texture for a dangerous optional orbital-station salvage room; layered dark graphite deck plates, reinforced amber hazard rails, recessed cargo channels, sparse cyan maintenance conduits, large readable UV regions; no text, logos, characters, UI, watermark, perspective room, red, or magenta focal accents.
+- `ArtSource/SalvageAnnex/create_salvage_annex_barrier.py`, `SalvageAnnexBarrier.blend`, `SalvageAnnexBarrierPreview.png`, and `README.md`: added reproducible Blender 5.2 source, editable geometry, and a visually inspected preview.
+- `Assets/DeadSignal/Resources/Environment/SalvageAnnexBarrierModel.fbx`, `SalvageAnnexBarrier.prefab`, `SalvageAnnex.prefab`, and Unity-generated `.meta` files: added a three-part UV-mapped barrier, reusable obstacle assembly, and three-wall room layout.
+- `Assets/DeadSignal/Resources/Materials/SalvageAnnexArmor.mat`, `SalvageAnnexHazard.mat`, and `SalvageAnnexConduit.mat`, with Unity-generated `.meta`: added persistent URP materials for mapped armor, amber rails, and restrained cyan emission.
+- `Assets/Scenes/SampleScene.unity`: now places `Northeast Salvage Annex` at the unchanged cache coordinate.
+- `Assets/DeadSignal/Editor/DeadSignalSalvageAnnexSetup.cs` and Unity-generated `.meta`, plus `DeadSignalWindowsBuild.cs`: added repeatable import, material, prefab, scene-placement, and build-readiness validation.
+- `Assets/DeadSignal/Runtime/StandaloneBuildSmokeProbe.cs` and `Assets/DeadSignal/Tests/PlayMode/BootstrapSmokeTests.cs`: require six total authored obstacles and validate the annex's placement, renderer/material mapping, collider-free integration, and packaged resources. The touched smoke-test class was also refactored to use the repository's `var` convention for obvious local types without changing behavior.
+- `GAME_VISION.md`, `BACKLOG.md`, and `DEVLOG.md`: record the new optional-room acceptance criterion, completed backlog step, evidence, limitations, and next step.
+
+No objective position, powered radius, Signal economy, enemy speed/health/damage, shortcut behavior, salvage requirement, input, audio, package, project setting, or save data was changed. The pre-existing `SignalBoltShell.mat` working content was preserved byte-for-byte with SHA-256 `59BA8974FB04AF0E3376C5F67C469BDF528C1101A18B81D982824A2A844F91F1`.
+
+### Tests run and exact outcomes
+
+The live project was not closed or controlled. Authoritative validation used `C:\Projects\Wendall\CodexPrototype_Run39Validation` with Unity `6000.3.11f1`.
+
+1. OpenAI built-in image generation produced a `1254x1254` 24-bit RGB albedo, saved it into project Resources, and it was visually inspected for strong graphite cargo surfaces, amber hazard framing, sparse cyan routing, readable large-scale regions, and absence of text/logos. SHA-256: `BACA42BDF5C35B0179B06B653595BB1552DBB0700259574BAD281F309168AE8C`; texture GUID: `cf3d73f23f7a89b4fb7e56cebcf41de7`.
+2. Blender `5.2.0 LTS` ran `create_salvage_annex_barrier.py`, exported the `49,932`-byte UV-mapped FBX, saved the editable `.blend`, rendered the `1280x720` preview, and exited `0`. The preview was visually inspected for a distinct cargo-barrier silhouette, mapped armor, amber rail, cyan service line, anchors, and no missing geometry. Blender emitted two forward-looking `use_nodes` deprecation warnings but no generation failure. Model SHA-256: `ABEEB6C8E754B7EFB25F39B674BC590D55DBE422EA73DD3740C4E6AE5C1C74DC`; model GUID: `10af3b8c6136ce84ca80d8fecaf38a93`.
+3. Unity setup wrote `run39-setup.log`: the pinned Editor rebuilt the isolated Library, compiled the changed assemblies, imported the texture/model, created three persistent materials and two prefabs, placed annex prefab GUID `06951022e04580748a0fe133ca92ecb6` in `SampleScene`, saved the scene, and exited `0`.
+4. EditMode regression wrote `run39-editmode-results.xml` and `run39-editmode.log`: `17/17` passed, `0` failed, `0` skipped in `0.041999` seconds, exit `0`.
+5. Final PlayMode regression after the behavior-neutral smoke-test refactor wrote `run39-playmode-final-results.xml` and `run39-playmode-final.log`: `1/1` passed, `0` failed, `0` skipped in `4.721861` seconds, exit `0`. It proved the unchanged cache coordinate, scene prefab instance, three serialized annex obstacles, six total registered blockers, nine imported annex renderers, mapped armor texture, zero colliders, and every prior core-loop assertion.
+6. The Windows development build wrote `run39-build.log`: Unity exited `0`, reported `Build Finished, Result: Success`, emitted one build PASS marker, and produced `206,415,245` reported bytes in `62.49` seconds.
+7. The packaged `-batchmode -nographics -deadSignalBuildSmoke` launch wrote `run39-standalone-final.log`, loaded both annex prefabs and the texture from packaged Resources, emitted one standalone PASS marker, and exited `0`.
+8. Strict scans of setup, EditMode, final PlayMode, build, and final standalone logs found zero compiler errors, null/missing-reference exceptions, failed assertions, failed tests, build failures, or smoke failures. Unity-generated whitespace was normalized and the staged `git diff --check` passed.
+
+### Bugs found and fixed
+
+- The northeast salvage cache previously sat in open floor and could be collected without a positional commitment. The annex now creates a single approach/escape opening while leaving the reward and economy unchanged.
+- Packaged readiness previously expected only the three tower-junction blockers. Validation now requires all six scene-authored obstacles and the new annex resources.
+
+### Known limitations
+
+- Projectile collision still ignores authored obstacles, matching the existing bulkhead and tower-junction behavior.
+- Automated tests prove composition and movement registration but cannot decide whether the west entrance is too generous or whether enemies create enjoyable pressure inside the pocket.
+- Only one salvage location is now a distinct authored optional room; the other two remain open-floor objectives for future scoped map passes.
+
+### Best next step
+
+Play from the powered tower to the northeast annex with both threats active, collect the cache, and escape through the west opening; then tune the three child transforms in `SalvageAnnex.prefab` if entry, turning clearance, or threat pressure feels too forgiving.
