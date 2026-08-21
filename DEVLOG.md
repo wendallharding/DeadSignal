@@ -2346,3 +2346,13 @@ The live Unity project remained open and was not closed or controlled. Authorita
 ### Best next step
 
 Start a fresh run, move through the departure channel without using the HUD beacon, and assess whether its heading, width, and visual contrast naturally lead toward the tower while making the dead-zone transition obvious.
+
+## 2026-08-21 - Object-aligned authored blocker follow-up
+
+- Player-reported issue: rotated departure capacitors used expanded world-axis-aligned movement bounds, so their invisible blocked area extended well beyond the visible mesh.
+- Fix: `AuthoredMapObstacle` now exposes normalized transformed right/forward axes and scale-only half-extents; `DeadSignalWorld` tests circle overlap in that oriented basis. Selected gizmos now rotate with the object as well.
+- Permanent guardrail: `AGENTS.md` now forbids collapsing rotated authored obstacles into world AABBs, and `AuthoredMapObstacleTests.OverlapsCircle_UsesObjectAlignedBounds` proves that a point inside the former AABB but outside the true rotated box remains traversable.
+- Validation: isolated Unity EditMode `18/18` passed in `0.0520965` seconds and PlayMode `1/1` passed in `4.388854` seconds. The Windows development build succeeded in `12.54` seconds (`207,884,313` bytes), and its standalone smoke probe reported `PASS` with exit code `0`.
+- Bugs found/fixed: the movement system reduced every rotated authored obstacle to an expanded world AABB; it now preserves each object's local orientation. No compiler errors, failed assertions, missing references, or unhandled exceptions were found in the validation logs.
+- Known limitation: obstacle collision remains a deliberate 2D footprint used by the top-down movement model; vertical mesh shape is not considered.
+- Best next step: walk around both diagonal departure capacitors in `SampleScene` and verify that their visible edges, cyan selected gizmos, and movement limits agree at each corner.

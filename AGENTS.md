@@ -146,6 +146,12 @@ Preferred layout, organize class members in this order:
 - Prefer serialized references, registries, factories, or explicit composition over runtime hierarchy searches outside bootstrap, composition, test, and Editor code.
 - When a search is justified, use current Unity APIs such as `FindAnyObjectByType`, `FindFirstObjectByType`, or `FindObjectsByType` with explicit inactive/sort behavior.
 
+## Level Collision Authoring
+
+- Authored obstacle bounds must stay aligned to the obstacle's transformed local axes. Do not expand rotated scene or prefab obstacles into world-axis-aligned bounding boxes for movement collision.
+- Represent a rectangular blocker with its center, scaled local half-extents, and normalized right/forward axes; test player-circle overlap in that oriented basis.
+- Keep `AuthoredMapObstacleTests.OverlapsCircle_UsesObjectAlignedBounds` as a regression rule whenever authored blocker math or map-obstacle registration changes.
+
 ## Input, Frame Updates, and Async Work
 
 - Use the installed Unity Input System for player input; preserve complete keyboard/mouse and controller paths unless the task explicitly changes supported input.

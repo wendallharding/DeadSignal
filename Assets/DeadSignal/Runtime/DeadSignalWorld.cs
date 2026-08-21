@@ -559,7 +559,12 @@ namespace DeadSignal
             var authoredObstacles = Object.FindObjectsByType<AuthoredMapObstacle>(FindObjectsSortMode.None);
             foreach (var obstacle in authoredObstacles)
             {
-                m_movementBlockers.Add(new MovementBlocker(obstacle.Center, obstacle.WorldHalfSize, false));
+                m_movementBlockers.Add(new MovementBlocker(
+                    obstacle.Center,
+                    obstacle.ScaledHalfSize,
+                    obstacle.RightAxis,
+                    obstacle.ForwardAxis,
+                    false));
             }
 
             AuthoredMapObstacleCount = authoredObstacles.Length;
@@ -752,8 +757,7 @@ namespace DeadSignal
                     continue;
                 }
 
-                if (Mathf.Abs(position.x - blocker.Center.x) < blocker.HalfSize.x + radius &&
-                    Mathf.Abs(position.z - blocker.Center.y) < blocker.HalfSize.y + radius)
+                if (blocker.Overlaps(position, radius))
                 {
                     return true;
                 }
@@ -828,15 +832,36 @@ namespace DeadSignal
         private sealed class MovementBlocker
         {
             public MovementBlocker(Vector2 center, Vector2 halfSize, bool isShortcutGate)
+                : this(center, halfSize, Vector2.right, Vector2.up, isShortcutGate)
+            {
+            }
+
+            public MovementBlocker(
+                Vector2 center,
+                Vector2 halfSize,
+                Vector2 rightAxis,
+                Vector2 forwardAxis,
+                bool isShortcutGate)
             {
                 Center = center;
                 HalfSize = halfSize;
+                RightAxis = rightAxis;
+                ForwardAxis = forwardAxis;
                 IsShortcutGate = isShortcutGate;
             }
 
             public Vector2 Center { get; }
             public Vector2 HalfSize { get; }
+            public Vector2 RightAxis { get; }
+            public Vector2 ForwardAxis { get; }
             public bool IsShortcutGate { get; }
+
+            public bool Overlaps(Vector3 position, float radius)
+            {
+                var delta = new Vector2(position.x - Center.x, position.z - Center.y);
+                return Mathf.Abs(Vector2.Dot(delta, RightAxis)) < HalfSize.x + radius &&
+                       Mathf.Abs(Vector2.Dot(delta, ForwardAxis)) < HalfSize.y + radius;
+            }
         }
     }
 }
