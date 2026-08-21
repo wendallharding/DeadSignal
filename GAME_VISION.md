@@ -38,6 +38,7 @@ This autonomous run is accepted when a fresh Play session provides all of the fo
 - The station deck is assembled from reusable authored floor modules carrying original dark-alloy plating art while powered/dead-zone overlays remain readable.
 - The playable room perimeter is an authored reusable shell with textured bulkheads and explicit machine sockets rather than hard-coded wall and prop placement.
 - The central tower approach is a scene-placed modular junction whose authored coolant-manifold obstacles create distinct safe and exposed lanes for the player and awakened threats.
+- The extraction dock opens into a scene-placed capacitor channel aligned toward the tower, creating a readable first movement lane and a clear powered-to-dead-zone threshold.
 - The northeast salvage cache sits inside a scene-placed cargo annex whose single readable entrance turns an optional reward into a positioning commitment without moving the objective.
 - The central Signal tower is a reusable authored assembly with original control-panel housing art while its dormant/online state remains unmistakable.
 - The extraction dock is a reusable authored assembly with original radial docking art while its safe-home and final-objective read remains unmistakable.

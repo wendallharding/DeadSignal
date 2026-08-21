@@ -2288,3 +2288,61 @@ The live project was not closed or controlled. Authoritative validation used `C:
 ### Best next step
 
 Play from the powered tower to the northeast annex with both threats active, collect the cache, and escape through the west opening; then tune the three child transforms in `SalvageAnnex.prefab` if entry, turning clearance, or threat pressure feels too forgiving.
+
+## 2026-08-21 - Autonomous Run 40
+
+### Today's single idea
+
+**Scene-authored extraction departure channel.** Place two long Signal capacitor banks along the extraction-to-tower vector, forming a bright diagonal lane that teaches movement and makes the first powered-to-dead-zone crossing feel like a deliberate station threshold.
+
+Player benefit: a fresh run now begins with a strong white/cyan landmark and an immediately readable direction of travel. The narrow channel provides a short movement warm-up and makes leaving safety visually and spatially meaningful without adding tutorial text or empty distance.
+
+Acceptance criteria:
+
+- place one reusable departure-channel prefab directly in `SampleScene`, aligned from extraction toward the established tower;
+- use two original Blender-authored, textured capacitor-bank obstacles to frame a traversable lane;
+- register both banks through serialized `AuthoredMapObstacle` bounds with no physics colliders or runtime layout coordinates;
+- preserve extraction, tower, objective, Signal, enemy, shortcut, and salvage rules; and
+- pass clean Unity import/compile, EditMode, PlayMode, Windows build, packaged-resource smoke, and repository checks.
+
+### Files and systems changed
+
+- `OWNER_NOTES.md`: remained the primary product direction and was not modified.
+- `Assets/DeadSignal/Resources/Environment/DepartureCapacitorAlbedo.png` and Unity-generated `.meta`: added an original graphite/white/cyan capacitor albedo generated with OpenAI's built-in image-generation mode.
+- Final prompt: square orthographic Unity albedo for a safe-dock/dead-zone Signal capacitor; white ceramic maintenance armor, graphite machinery, broad cyan energy cells, restrained amber caution details, large overhead-readable UV regions; no text, logos, characters, UI, watermark, red, magenta, or perspective scene.
+- `ArtSource/DepartureChannel/create_departure_capacitor.py`, `DepartureCapacitor.blend`, `DepartureCapacitorPreview.png`, and `README.md`: added reproducible Blender 5.2 source, editable geometry, and a visually inspected preview.
+- `Assets/DeadSignal/Resources/Environment/DepartureCapacitorModel.fbx`, `DepartureCapacitor.prefab`, `ExtractionDepartureChannel.prefab`, and Unity-generated `.meta`: added a three-part UV-mapped bank, reusable obstacle, and two-bank lane layout.
+- `Assets/DeadSignal/Resources/Materials/DepartureCapacitorArmor.mat`, `DepartureCapacitorCells.mat`, and `DepartureThresholdBeacons.mat`, with Unity-generated `.meta`: added persistent URP materials for mapped armor and cyan emission.
+- `Assets/Scenes/SampleScene.unity`: now places `Extraction Departure Channel` at `(-7.2, 0, -4.2)` with a `-35`-degree heading toward the tower.
+- `Assets/DeadSignal/Editor/DeadSignalDepartureChannelSetup.cs` and Unity-generated `.meta`, plus `DeadSignalWindowsBuild.cs`: added repeatable import, composition, material, prefab, scene, and build validation. The setup reuses the established obstacle-prefab component rather than duplicating runtime configuration.
+- `Assets/DeadSignal/Runtime/StandaloneBuildSmokeProbe.cs` and `Assets/DeadSignal/Tests/PlayMode/BootstrapSmokeTests.cs`: now require eight authored obstacles and validate channel transform, six renderers, texture mapping, zero colliders, and packaged resources.
+- `GAME_VISION.md`, `BACKLOG.md`, and `DEVLOG.md`: record the opening-lane acceptance criterion, completed map step, evidence, limitations, and next step.
+
+No objective position, powered radius, Signal economy, enemy tuning, shortcut behavior, salvage requirement, input, audio, package, project setting, or save data changed.
+
+### Tests run and exact outcomes
+
+The live Unity project remained open and was not closed or controlled. Authoritative validation used the clean isolated project `C:\Projects\Wendall\CodexPrototype_Run40CleanValidation` with Unity `6000.3.11f1`.
+
+1. OpenAI built-in image generation produced a `1254x1254` 24-bit RGB albedo, saved into project Resources, and visually inspected for white ceramic armor, dark machinery, broad cyan cells, overhead readability, and no text/logos. SHA-256: `3CF647CCB60848926AD76DB242433A1B86D11BC2DA38233F4A6E60C57AA6640F`; texture GUID: `4c70981286ce7cd4a9ad13e009842f72`.
+2. Blender `5.2.0 LTS` exported the `49,868`-byte UV-mapped FBX, saved the editable `.blend`, rendered a `1280x720` preview, and exited `0`. The preview was visually inspected for a readable long-bank silhouette, mapped armor, four cells, threshold beacons, anchors, and complete geometry. Blender emitted two forward-looking `use_nodes` deprecation warnings only. Model SHA-256: `009D7F3C3219D654E6E59A56BBB149EC7F0C112E5DF47374B918766B03E2D7EC`; model GUID: `953f5b1c0038d9a48a70be22cb3146d9`.
+3. Two preliminary attempts using a Unity Library copied across project paths correctly failed because the copied type cache serialized a missing obstacle-script reference. No live asset was affected. The cross-path cache was abandoned; clean setup wrote `run40-setup.log`, imported and compiled from source, generated all materials/prefabs, placed channel prefab GUID `55ec5005dc0a8ed4da35b69d91f40dc8`, saved the scene, and exited `0`.
+4. EditMode regression wrote `run40-editmode-results.xml` and `run40-editmode.log`: `17/17` passed, `0` failed, `0` skipped in `0.0508934` seconds, exit `0`.
+5. An overlapping PlayMode launch correctly exited `1` on the project lock while EditMode was still finishing and was not counted. The final isolated PlayMode run wrote `run40-playmode-final-results.xml` and `run40-playmode-final.log`: `1/1` passed, `0` failed, `0` skipped in `4.3687025` seconds, exit `0`.
+6. Windows development build `run40-build.log` exited `0`, reported `Build Finished, Result: Success`, emitted one PASS marker, and produced `207,882,964` reported bytes in `73.11` seconds.
+7. Packaged `-batchmode -nographics -deadSignalBuildSmoke` wrote `run40-standalone.log`, loaded the channel resources, emitted one PASS marker, and exited `0`.
+
+### Bugs found and fixed
+
+- The opening previously offered no physical framing between extraction and the first objective. The channel now creates a readable departure lane and safety threshold.
+- Cross-project Unity Library reuse produced stale MonoScript mapping during validation. Validation now uses a clean source import; the setup also composes from an established serialized obstacle prefab, avoiding duplicate component construction.
+
+### Known limitations
+
+- Automated checks cannot determine whether the `1.66`-unit clear lane feels comfortably narrow with keyboard and controller input.
+- Projectile collision still ignores authored obstacles, matching other map blockers.
+- The capacitors are static cyan landmarks; they do not yet react to crossing the powered-territory boundary.
+
+### Best next step
+
+Start a fresh run, move through the departure channel without using the HUD beacon, and assess whether its heading, width, and visual contrast naturally lead toward the tower while making the dead-zone transition obvious.

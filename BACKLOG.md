@@ -23,6 +23,7 @@
 - [x] Author the first textured room-shell prefab with perimeter bulkheads and machine sockets
 - [x] Place a reusable authored tower-approach junction in the scene with obstacle-driven movement lanes
 - [x] Enclose the northeast salvage cache in a reusable authored annex with one tactical entrance
+- [x] Frame the extraction-to-tower opening with a reusable authored departure channel
 - [x] Migrate the central Signal tower into a textured authored prefab without changing its interaction or animation
 - [x] Migrate the extraction dock into a textured authored prefab without changing its safe-zone or extraction rules
 - [x] Migrate the Signal-cost shortcut into a textured authored prefab without changing its route-choice rules

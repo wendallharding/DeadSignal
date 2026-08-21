@@ -143,8 +143,8 @@ namespace DeadSignal.Tests
                 "The tower approach should be placed as scene-authored prefab content rather than runtime layout code.");
             var authoredObstacles = towerJunction.GetComponentsInChildren<AuthoredMapObstacle>();
             Assert.That(authoredObstacles.Length, Is.EqualTo(3));
-            Assert.That(game.AuthoredMapObstacleCount, Is.EqualTo(6),
-                "Every authored junction and salvage-annex obstacle should participate in runtime movement resolution.");
+            Assert.That(game.AuthoredMapObstacleCount, Is.EqualTo(8),
+                "Every authored junction, annex, and departure-channel obstacle should participate in movement resolution.");
             Assert.That(authoredObstacles.Sum(obstacle => obstacle.GetComponentsInChildren<Renderer>().Length), Is.EqualTo(6));
             Assert.That(authoredObstacles.Sum(obstacle => obstacle.GetComponentsInChildren<Collider>().Length), Is.Zero,
                 "The non-physics movement controller should use authored obstacle bounds without duplicate physics colliders.");
@@ -172,6 +172,20 @@ namespace DeadSignal.Tests
                 annexObstacles.SelectMany(obstacle => obstacle.GetComponentsInChildren<Renderer>())
                     .Count(renderer => renderer.sharedMaterial == annexArmor),
                 Is.EqualTo(3));
+            var departureChannel = GameObject.Find("Extraction Departure Channel");
+            Assert.That(departureChannel, Is.Not.Null,
+                "The opening route should be framed by scene-authored departure-channel content.");
+            Assert.That(departureChannel.transform.position, Is.EqualTo(new Vector3(-7.2f, 0f, -4.2f)));
+            Assert.That(departureChannel.transform.eulerAngles.y, Is.EqualTo(325f).Within(0.01f),
+                "The channel should align with the extraction-to-tower route.");
+            var departureObstacles = departureChannel.GetComponentsInChildren<AuthoredMapObstacle>();
+            Assert.That(departureObstacles.Length, Is.EqualTo(2));
+            Assert.That(departureObstacles.Sum(obstacle => obstacle.GetComponentsInChildren<Renderer>().Length), Is.EqualTo(6));
+            Assert.That(departureObstacles.Sum(obstacle => obstacle.GetComponentsInChildren<Collider>().Length), Is.Zero);
+            var departureTexture = Resources.Load<Texture2D>("Environment/DepartureCapacitorAlbedo");
+            var departureArmor = Resources.Load<Material>("Materials/DepartureCapacitorArmor");
+            Assert.That(departureTexture, Is.Not.Null);
+            Assert.That(departureArmor.mainTexture, Is.EqualTo(departureTexture));
             var signalSapper = game.transform.Find("Signal Sapper");
             var authoredSapperPrefab = Resources.Load<GameObject>("Actors/SignalSapperAssembly");
             var sapperArmorTexture = Resources.Load<Texture2D>("Actors/SignalSapperArmorAlbedo");
