@@ -36,6 +36,7 @@ namespace DeadSignal.Tests
             Assert.That(game.HasPauseInsignia, Is.True, "The generated pause-menu insignia should load from Resources.");
             Assert.That(game.HasCameraComfortIcon, Is.True, "The generated Steady Camera icon should load from Resources.");
             Assert.That(game.HasReducedFlashesIcon, Is.True, "The generated Reduced Flashes icon should load from Resources.");
+            Assert.That(game.HasHighContrastIcon, Is.True, "The generated High Contrast icon should load from Resources.");
             Assert.That(game.HasObjectiveBeaconIcon, Is.True, "The generated objective beacon icon should load from Resources.");
             Assert.That(game.CurrentObjectiveBeaconPhase, Is.EqualTo(ObjectiveBeaconPhase.Tower));
             Assert.That(game.CurrentObjectiveBeaconTarget, Is.EqualTo(new Vector3(-0.6f, 0f, 0.4f)));
@@ -50,6 +51,8 @@ namespace DeadSignal.Tests
             bool initialCameraImpulse = game.IsCameraImpulseEnabled;
             bool hadReducedFlashesPreference = PlayerPrefs.HasKey("DeadSignal.ReducedFlashesEnabled");
             bool initialReducedFlashes = game.IsReducedFlashesEnabled;
+            bool hadHighContrastPreference = PlayerPrefs.HasKey("DeadSignal.HighContrastEnabled");
+            bool initialHighContrast = game.IsHighContrastEnabled;
             try
             {
                 float signalBeforePause = game.CurrentSignal;
@@ -90,6 +93,32 @@ namespace DeadSignal.Tests
                 game.ToggleReducedFlashes();
                 Assert.That(game.IsReducedFlashesEnabled, Is.EqualTo(initialReducedFlashes),
                     "The pause option should restore its prior reduced-flashes state.");
+
+                Transform salvageCase = game.transform.Find("Salvage Cache/Salvage Case");
+                Assert.That(salvageCase, Is.Not.Null);
+                Color initialSalvageColor = salvageCase.GetComponent<Renderer>().sharedMaterial.color;
+                InputSystem.QueueStateEvent(gamepad, new GamepadState().WithButton(GamepadButton.DpadUp));
+                yield return null;
+                Assert.That(game.IsHighContrastEnabled, Is.EqualTo(!initialHighContrast),
+                    "Gamepad d-pad up should toggle High Contrast while paused.");
+                Assert.That(PlayerPrefs.GetInt("DeadSignal.HighContrastEnabled", -1),
+                    Is.EqualTo(game.IsHighContrastEnabled ? 1 : 0), "The high-contrast choice should persist for future runs.");
+                Assert.That(salvageCase.GetComponent<Renderer>().sharedMaterial.color, Is.Not.EqualTo(initialSalvageColor),
+                    "High Contrast should immediately remap shared world materials while paused.");
+
+                InputSystem.QueueStateEvent(gamepad, new GamepadState());
+                yield return null;
+                game.ToggleHighContrast();
+                Assert.That(game.IsHighContrastEnabled, Is.EqualTo(initialHighContrast),
+                    "The pause option should restore its prior high-contrast state.");
+
+                if (!game.IsHighContrastEnabled)
+                {
+                    game.ToggleHighContrast();
+                }
+
+                Assert.That(game.IsHighContrastEnabled, Is.True,
+                    "High Contrast should remain active for restart-persistence validation.");
 
                 if (!game.IsReducedFlashesEnabled)
                 {
@@ -278,6 +307,8 @@ namespace DeadSignal.Tests
                     "Restarting a completed run should bootstrap a fresh playable runtime after the scene reloads.");
                 Assert.That(restartedGame.GetInstanceID(), Is.Not.EqualTo(completedRunInstanceId));
                 Assert.That(restartedGame.transform.Find("Maintenance Drone"), Is.Not.Null);
+                Assert.That(restartedGame.IsHighContrastEnabled, Is.True,
+                    "A restarted run should apply the persisted high-contrast palette during construction.");
             }
             finally
             {
@@ -298,6 +329,15 @@ namespace DeadSignal.Tests
                 else
                 {
                     PlayerPrefs.DeleteKey("DeadSignal.ReducedFlashesEnabled");
+                }
+
+                if (hadHighContrastPreference)
+                {
+                    PlayerPrefs.SetInt("DeadSignal.HighContrastEnabled", initialHighContrast ? 1 : 0);
+                }
+                else
+                {
+                    PlayerPrefs.DeleteKey("DeadSignal.HighContrastEnabled");
                 }
 
                 PlayerPrefs.Save();

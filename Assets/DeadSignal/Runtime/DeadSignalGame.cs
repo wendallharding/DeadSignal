@@ -32,11 +32,13 @@ namespace DeadSignal
         public bool HasPauseInsignia => m_hud?.HasPauseInsignia ?? false;
         public bool HasCameraComfortIcon => m_hud?.HasCameraComfortIcon ?? false;
         public bool HasReducedFlashesIcon => m_hud?.HasReducedFlashesIcon ?? false;
+        public bool HasHighContrastIcon => m_hud?.HasHighContrastIcon ?? false;
         public bool HasObjectiveBeaconIcon => m_objectiveBeacon?.HasIcon ?? false;
         public ObjectiveBeaconPhase CurrentObjectiveBeaconPhase => m_objectiveBeacon?.CurrentPhase ?? ObjectiveBeaconPhase.Tower;
         public Vector3 CurrentObjectiveBeaconTarget => m_objectiveBeacon?.CurrentTarget ?? Vector3.zero;
         public bool IsCameraImpulseEnabled => m_comfortSettings?.CameraImpulseEnabled ?? true;
         public bool IsReducedFlashesEnabled => m_comfortSettings?.ReducedFlashesEnabled ?? false;
+        public bool IsHighContrastEnabled => m_comfortSettings?.HighContrastEnabled ?? false;
 
         /// <summary>
         /// Toggles the persisted camera-impulse preference while the pause overlay is authoritative.
@@ -58,6 +60,20 @@ namespace DeadSignal
             {
                 m_comfortSettings.ToggleReducedFlashes();
             }
+        }
+
+        /// <summary>
+        /// Toggles the persisted high-contrast preference while the pause overlay is authoritative.
+        /// </summary>
+        public void ToggleHighContrast()
+        {
+            if (!IsPaused)
+            {
+                return;
+            }
+
+            m_comfortSettings.ToggleHighContrast();
+            m_world.ApplyHighContrast(m_comfortSettings.HighContrastEnabled);
         }
 
         [Inject]
@@ -106,6 +122,11 @@ namespace DeadSignal
             if (IsPaused && DeadSignalInput.PressedReducedFlashesToggle())
             {
                 ToggleReducedFlashes();
+            }
+
+            if (IsPaused && DeadSignalInput.PressedHighContrastToggle())
+            {
+                ToggleHighContrast();
             }
 
             if (m_combatFeedback.IsFrozen)

@@ -99,5 +99,11 @@ namespace DeadSignal
             return (Keyboard.current != null && Keyboard.current.fKey.wasPressedThisFrame) ||
                    (Gamepad.current != null && Gamepad.current.dpad.down.wasPressedThisFrame);
         }
+
+        public static bool PressedHighContrastToggle()
+        {
+            return (Keyboard.current != null && Keyboard.current.hKey.wasPressedThisFrame) ||
+                   (Gamepad.current != null && Gamepad.current.dpad.up.wasPressedThisFrame);
+        }
     }
 }

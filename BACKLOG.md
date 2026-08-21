@@ -29,7 +29,7 @@
 - [x] Add dynamic tower, nearest-salvage, and extraction objective guidance
 - [x] Add a persisted Steady Camera comfort toggle to disable combat camera impulse
 - [x] Add a persisted Reduced Flashes mode for combat and Sapper feedback
-- [ ] Add remaining accessibility setting (high contrast)
+- [x] Add a persisted High Contrast mode for world and HUD readability
 - [ ] Add a build-validation test and Windows development build
 
 ## P2 — MVP production

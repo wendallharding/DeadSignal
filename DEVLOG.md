@@ -657,3 +657,60 @@ Matching editor: `C:\Program Files\Unity\Hub\Editor\6000.3.11f1\Editor\Unity.exe
 ### Best next step
 
 Run one keyboard/controller comfort-options pass at 16:9 and ultrawide with both options in every combination, then implement the remaining high-contrast accessibility setting without changing gameplay balance.
+
+## 2026-08-21 - Autonomous Run 12
+
+### Today's single idea - persisted High Contrast mode
+
+Player benefit: players who need stronger visual separation can make powered territory, salvage, security threats, Sapper telegraphs, the drone, and critical HUD values brighter and more distinct without changing Signal costs, timing, damage, input, or enemy behavior.
+
+Acceptance criteria:
+
+- While paused, keyboard H or gamepad d-pad up toggles High Contrast, and the choice persists between runs.
+- The setting immediately remaps all shared runtime world materials, the camera backdrop, ambient light, and critical HUD colors while the game remains safely paused.
+- Signal stays cyan-white, salvage becomes bright yellow-amber, the Warden remains orange-red, and the Sapper becomes bright violet against a true-black backdrop.
+- The pause UI loads one original transparent visibility icon and preserves the existing Steady Camera and Reduced Flashes options.
+- PlayMode coverage proves icon loading, gamepad input, persistence, immediate material changes, restart restoration, and the existing complete runtime flow.
+
+### Files and systems changed
+
+- `Assets/DeadSignal/Runtime/ComfortSettings.cs`: added the locally persisted High Contrast preference to the existing Reflex-composed comfort service.
+- `Assets/DeadSignal/Runtime/DeadSignalInput.cs`: added pause-only H and gamepad d-pad-up polling.
+- `Assets/DeadSignal/Runtime/DeadSignalGame.cs`: exposes the narrow icon/setting test surface, handles the pause-authoritative toggle, and asks the world to apply the selected presentation.
+- `Assets/DeadSignal/Runtime/DeadSignalHud.cs`: loads the generated icon, adds the third comfort panel, and applies brighter critical HUD colors and black panel backing when High Contrast is enabled.
+- `Assets/DeadSignal/Runtime/DeadSignalPalette.cs`: this run's focused convention/production refactor now creates materials once and applies either complete normal or high-contrast color roles through one centralized live-update path.
+- `Assets/DeadSignal/Runtime/DeadSignalWorld.cs`: initializes the palette from the persisted choice and applies live material, backdrop, and ambient-light updates.
+- `Assets/DeadSignal/Resources/UI/HighContrastIcon.png` and Unity-generated `.meta`: added an original 1254x1254 RGBA split mechanical-lens visibility emblem generated with the built-in image tool. The final prompt requested a centered small-size-readable dark-alloy lens with sharply separated cyan-white halves, one amber calibration diamond, genuine transparency, and no text, brands, watermark, or opaque backdrop. SHA-256: `D06D34FB5913928AAA7C815ADC4BB57EE64B207366920976D2213BA2857FD138`.
+- `Assets/DeadSignal/Tests/PlayMode/BootstrapSmokeTests.cs`: preserves any prior preference and proves icon loading, gamepad toggle, persistence, immediate shared-material remapping, restart restoration, and the existing full controller/combat/Sapper/shortcut flow.
+- `GAME_VISION.md`: adds High Contrast to first-playable acceptance without changing the core concept.
+- `BACKLOG.md`: marks the remaining accessibility-setting item complete.
+- `DEVLOG.md`: records Run 12 scope, implementation, verification, risks, and next step.
+
+No packages, package versions, assembly definitions, scenes, prefabs, shaders, audio, deterministic gameplay rules, balance values, project settings, serialized gameplay data, or generated source were intentionally changed.
+
+### Tests run and exact outcomes
+
+Matching editor: `C:\Program Files\Unity\Hub\Editor\6000.3.11f1\Editor\Unity.exe` against the live workspace.
+
+1. Initial import and compilation wrote `Logs/run12-compile.log`: Unity return code `0`; the editor imported the new PNG, generated `HighContrastIcon.png.meta`, compiled the changed runtime/test assemblies, and exited batch mode successfully.
+2. EditMode deterministic suite wrote `Logs/run12-editmode-results.xml` and `Logs/run12-editmode.log`: Unity return code `0`; `12/12` passed, `0` failed, `0` skipped, `0` inconclusive in `0.0387999` seconds.
+3. PlayMode full runtime/accessibility regression wrote `Logs/run12-playmode-results.xml` and `Logs/run12-playmode.log`: Unity return code `0`; `1/1` passed, `0` failed, `0` skipped, `0` inconclusive in `3.611451` seconds.
+4. Final warmed-project compilation wrote `Logs/run12-final-compile.log`: Unity return code `0`; batch mode exited successfully after the final runtime and documentation audit.
+5. Strict scans of both compile logs and the EditMode and PlayMode logs found no C# compiler warnings/errors, null or missing-reference exceptions, unhandled exceptions, assertion failures, or failed-test markers.
+6. The generated PNG was visually inspected at its project path. Pixel inspection reported 1254x1254 `Format32bppArgb`, transparent sampled corners (alpha 0, 0, 1, and 0), and opaque center content (alpha 252). PlayMode also proved Unity imports and loads it from Resources.
+
+### Bugs found and fixed
+
+- No gameplay, compilation, import, or automated-test defect was found during this run.
+- The PlayMode test restores or deletes all three comfort PlayerPrefs keys in `finally`, so automation cannot overwrite a player's saved accessibility choices even if the test fails.
+
+### Known limitations
+
+- Headless validation proves state changes, material remapping, persistence, and restart behavior but cannot judge icon legibility, pause-panel fit, bloom, or subjective color separation at 16:9 and ultrawide resolutions.
+- High Contrast strengthens luminance and role separation but still needs a human pass under common color-vision simulations; it is not a substitute for full accessibility review.
+- The 1254px source icon is intentionally oversized for iteration and should be resized or atlased after the pause UI direction stabilizes.
+- The fixed runtime-built arena, absent authored audio, direct input polling, and lack of a standalone build remain unchanged.
+
+### Best next step
+
+Run one keyboard/controller accessibility pass at 16:9 and ultrawide with all three comfort settings in combination, then replace direct polling with remappable Input Actions and device-aware glyphs.

@@ -8,6 +8,7 @@ namespace DeadSignal
         bool HasPauseInsignia { get; }
         bool HasCameraComfortIcon { get; }
         bool HasReducedFlashesIcon { get; }
+        bool HasHighContrastIcon { get; }
 
         void Configure(RunModel model, RunMetrics metrics, DeadSignalWorld world, DeadSignalThreatController threats);
         void ShowFeedback(string message);
@@ -34,12 +35,14 @@ namespace DeadSignal
         private Texture2D m_pauseInsignia;
         private Texture2D m_cameraComfortIcon;
         private Texture2D m_reducedFlashesIcon;
+        private Texture2D m_highContrastIcon;
         private float m_feedbackTimer;
         private string m_feedback = string.Empty;
 
         public bool HasPauseInsignia => m_pauseInsignia != null;
         public bool HasCameraComfortIcon => m_cameraComfortIcon != null;
         public bool HasReducedFlashesIcon => m_reducedFlashesIcon != null;
+        public bool HasHighContrastIcon => m_highContrastIcon != null;
 
         [Inject]
         private void _construct(ICombatFeedback combatFeedback, IComfortSettings comfortSettings)
@@ -61,6 +64,7 @@ namespace DeadSignal
             m_pauseInsignia = Resources.Load<Texture2D>("UI/MaintenanceNetworkInsignia");
             m_cameraComfortIcon = Resources.Load<Texture2D>("UI/SteadyCameraIcon");
             m_reducedFlashesIcon = Resources.Load<Texture2D>("UI/ReducedFlashesIcon");
+            m_highContrastIcon = Resources.Load<Texture2D>("UI/HighContrastIcon");
         }
 
         void IDeadSignalHud.ShowFeedback(string message)
@@ -82,6 +86,7 @@ namespace DeadSignal
             }
 
             _ensureGuiStyles();
+            _applyContrastTheme();
             _drawRunHud();
             _drawContextPrompt();
             _drawFeedback();
@@ -108,18 +113,33 @@ namespace DeadSignal
             m_reportStyle = new GUIStyle(m_centerStyle) { fontSize = 15, fontStyle = FontStyle.Normal };
         }
 
+        private void _applyContrastTheme()
+        {
+            m_titleStyle.normal.textColor = m_comfortSettings.HighContrastEnabled
+                ? Color.white
+                : new Color(0.15f, 0.95f, 1f);
+            m_labelStyle.normal.textColor = Color.white;
+            m_reportStyle.normal.textColor = m_comfortSettings.HighContrastEnabled
+                ? Color.white
+                : new Color(0.72f, 0.82f, 0.86f);
+        }
+
         private void _drawRunHud()
         {
             float signalRatio = Mathf.Clamp01(m_model.Signal / RunModel.MaximumSignal);
             var panel = new Rect(18f, 18f, 350f, 154f);
-            GUI.color = new Color(0.015f, 0.025f, 0.035f, 0.94f);
+            GUI.color = m_comfortSettings.HighContrastEnabled
+                ? new Color(0f, 0f, 0f, 0.98f)
+                : new Color(0.015f, 0.025f, 0.035f, 0.94f);
             GUI.Box(panel, GUIContent.none);
             GUI.color = Color.white;
             GUI.Label(new Rect(34f, 28f, 300f, 30f), "DEAD SIGNAL", m_titleStyle);
             GUI.Label(new Rect(34f, 61f, 280f, 24f), $"SIGNAL  {Mathf.CeilToInt(m_model.Signal):000}", m_labelStyle);
             GUI.color = new Color(0.05f, 0.09f, 0.11f, 1f);
             GUI.DrawTexture(new Rect(34f, 88f, 300f, 14f), Texture2D.whiteTexture);
-            GUI.color = signalRatio > 0.25f ? new Color(0.02f, 0.9f, 1f) : new Color(1f, 0.06f, 0.05f);
+            GUI.color = signalRatio > 0.25f
+                ? (m_comfortSettings.HighContrastEnabled ? new Color(0.25f, 1f, 1f) : new Color(0.02f, 0.9f, 1f))
+                : (m_comfortSettings.HighContrastEnabled ? new Color(1f, 0.72f, 0.05f) : new Color(1f, 0.06f, 0.05f));
             GUI.DrawTexture(new Rect(34f, 88f, 300f * signalRatio, 14f), Texture2D.whiteTexture);
             GUI.color = Color.white;
             GUI.Label(new Rect(34f, 108f, 300f, 23f), $"SALVAGE  {m_model.Salvage}/{RunModel.SalvageRequired}", m_labelStyle);
@@ -252,8 +272,28 @@ namespace DeadSignal
                     : "F / D-PAD DOWN  REDUCTION OFF",
                 m_smallStyle);
 
+            var contrastPanel = new Rect(Screen.width * 0.5f - 220f, Screen.height * 0.5f + 172f, 440f, 76f);
+            GUI.color = new Color(0.025f, 0.07f, 0.085f, 0.98f);
+            GUI.Box(contrastPanel, GUIContent.none);
             GUI.color = Color.white;
-            GUI.Label(new Rect(0f, Screen.height * 0.5f + 178f, Screen.width, 36f),
+            if (m_highContrastIcon != null)
+            {
+                GUI.DrawTexture(new Rect(contrastPanel.x + 15f, contrastPanel.y + 8f, 60f, 60f),
+                    m_highContrastIcon, ScaleMode.ScaleToFit, true);
+            }
+
+            GUI.Label(new Rect(contrastPanel.x + 88f, contrastPanel.y + 9f, 330f, 24f), "HIGH CONTRAST", m_labelStyle);
+            GUI.color = m_comfortSettings.HighContrastEnabled
+                ? new Color(0.08f, 0.96f, 1f)
+                : new Color(1f, 0.68f, 0.12f);
+            GUI.Label(new Rect(contrastPanel.x + 88f, contrastPanel.y + 35f, 330f, 26f),
+                m_comfortSettings.HighContrastEnabled
+                    ? "H / D-PAD UP  CONTRAST ON"
+                    : "H / D-PAD UP  CONTRAST OFF",
+                m_smallStyle);
+
+            GUI.color = Color.white;
+            GUI.Label(new Rect(0f, Screen.height * 0.5f + 262f, Screen.width, 36f),
                 "PRESS ESC / GAMEPAD MENU TO RESUME", m_centerStyle);
         }
 

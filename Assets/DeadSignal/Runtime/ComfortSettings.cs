@@ -7,12 +7,14 @@ namespace DeadSignal
     {
         bool CameraImpulseEnabled { get; }
         bool ReducedFlashesEnabled { get; }
+        bool HighContrastEnabled { get; }
 
         event Action<bool> CameraImpulseChanged;
         event Action<bool> ReducedFlashesChanged;
 
         void ToggleCameraImpulse();
         void ToggleReducedFlashes();
+        void ToggleHighContrast();
     }
 
     /// <summary>
@@ -22,15 +24,18 @@ namespace DeadSignal
     {
         private const string CAMERA_IMPULSE_KEY = "DeadSignal.CameraImpulseEnabled";
         private const string REDUCED_FLASHES_KEY = "DeadSignal.ReducedFlashesEnabled";
+        private const string HIGH_CONTRAST_KEY = "DeadSignal.HighContrastEnabled";
 
         public ComfortSettings()
         {
             CameraImpulseEnabled = PlayerPrefs.GetInt(CAMERA_IMPULSE_KEY, 1) != 0;
             ReducedFlashesEnabled = PlayerPrefs.GetInt(REDUCED_FLASHES_KEY, 0) != 0;
+            HighContrastEnabled = PlayerPrefs.GetInt(HIGH_CONTRAST_KEY, 0) != 0;
         }
 
         public bool CameraImpulseEnabled { get; private set; }
         public bool ReducedFlashesEnabled { get; private set; }
+        public bool HighContrastEnabled { get; private set; }
 
         public event Action<bool> CameraImpulseChanged;
         public event Action<bool> ReducedFlashesChanged;
@@ -49,6 +54,13 @@ namespace DeadSignal
             PlayerPrefs.SetInt(REDUCED_FLASHES_KEY, ReducedFlashesEnabled ? 1 : 0);
             PlayerPrefs.Save();
             ReducedFlashesChanged?.Invoke(ReducedFlashesEnabled);
+        }
+
+        public void ToggleHighContrast()
+        {
+            HighContrastEnabled = !HighContrastEnabled;
+            PlayerPrefs.SetInt(HIGH_CONTRAST_KEY, HighContrastEnabled ? 1 : 0);
+            PlayerPrefs.Save();
         }
     }
 }

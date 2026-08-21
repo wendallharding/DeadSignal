@@ -14,7 +14,7 @@ namespace DeadSignal
         public const float TOWER_POWER_RADIUS = 7.2f;
 
         private readonly Transform m_root;
-        private readonly DeadSignalPalette m_palette = new();
+        private readonly DeadSignalPalette m_palette;
         private readonly List<MovementBlocker> m_movementBlockers = new();
         private readonly List<GameObject> m_salvagePickups = new();
 
@@ -26,9 +26,11 @@ namespace DeadSignal
         public DeadSignalWorld(Transform root, IComfortSettings comfortSettings)
         {
             m_root = root;
+            m_palette = new DeadSignalPalette(comfortSettings.HighContrastEnabled);
             _buildPresentation();
             _buildArena();
             _buildActors(comfortSettings);
+            ApplyHighContrast(comfortSettings.HighContrastEnabled);
         }
 
         public Vector3 ExtractionPosition { get; } = new(-9.2f, 0f, -5.6f);
@@ -94,6 +96,13 @@ namespace DeadSignal
             Warden.gameObject.SetActive(true);
             Sapper.gameObject.SetActive(true);
             SapperTelegraph.SetThreatState(true, false, 0f, sapperPulseInterval);
+        }
+
+        public void ApplyHighContrast(bool enabled)
+        {
+            m_palette.ApplyHighContrast(enabled);
+            Camera.backgroundColor = enabled ? Color.black : new Color(0.002f, 0.004f, 0.008f);
+            RenderSettings.ambientLight = enabled ? new Color(0.055f, 0.065f, 0.08f) : new Color(0.025f, 0.035f, 0.05f);
         }
 
         public void OpenShortcut()
