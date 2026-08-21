@@ -8,16 +8,36 @@ namespace DeadSignal
     /// </summary>
     internal sealed class DeadSignalPalette
     {
-        private const string RUNTIME_MATERIAL_RESOURCE = "Materials/RuntimeLitTemplate";
-        private const string MAINTENANCE_DECK_TEXTURE_RESOURCE = "Environment/MaintenanceDeckPanel";
-        private const string MAINTENANCE_BULKHEAD_TEXTURE_RESOURCE = "Environment/MaintenanceBulkheadPanel";
-        private const string SIGNAL_TOWER_TEXTURE_RESOURCE = "Environment/SignalTowerHousingPanel";
-        private const string EXTRACTION_DOCK_TEXTURE_RESOURCE = "Environment/ExtractionDockPanel";
-        private const string SHORTCUT_GATE_TEXTURE_RESOURCE = "Environment/ShortcutGatePanel";
-        private const string SIGNAL_ROUTING_TEXTURE_RESOURCE = "Environment/SignalRoutingPanel";
-        private const string STATION_MACHINE_TEXTURE_RESOURCE = "Environment/StationMachinePanel";
-        private const string SALVAGE_CACHE_TEXTURE_RESOURCE = "Environment/SalvageCachePanel";
-        private const string PLAYER_DRONE_TEXTURE_RESOURCE = "Actors/MaintenanceDronePanel";
+        public Material Cyan { get; }
+        public Material CyanDim { get; }
+        public Material Amber { get; }
+        public Material Red { get; }
+        public Material RedDim { get; }
+        public Material Magenta { get; }
+        public Material Deck { get; }
+        public Material Bulkhead { get; }
+        public Material TowerHousing { get; }
+        public Material ExtractionHousing { get; }
+        public Material ShortcutHousing { get; }
+        public Material ShortcutLocked { get; }
+        public Material SignalRouting { get; }
+        public Material StationMachineHousing { get; }
+        public Material SalvageCacheHousing { get; }
+        public Material PlayerDroneHousing { get; }
+        public Material WardenHousing { get; }
+        public Material Dark { get; }
+        public Material Steel { get; }
+        public Material White { get; }
+        public bool HasDeckTexture { get; }
+        public bool HasBulkheadTexture { get; }
+        public bool HasTowerTexture { get; }
+        public bool HasExtractionTexture { get; }
+        public bool HasShortcutTexture { get; }
+        public bool HasSignalRoutingTexture { get; }
+        public bool HasStationMachineTexture { get; }
+        public bool HasSalvageCacheTexture { get; }
+        public bool HasPlayerDroneTexture { get; }
+        public bool HasWardenTexture { get; }
 
         public DeadSignalPalette(bool highContrastEnabled)
         {
@@ -37,6 +57,7 @@ namespace DeadSignal
             StationMachineHousing = _createMaterial("Station Machine Housing");
             SalvageCacheHousing = _createMaterial("Salvage Cache Housing");
             PlayerDroneHousing = _createMaterial("Maintenance Drone Housing");
+            WardenHousing = _createMaterial("Security Warden Housing");
             Dark = _createMaterial("Station Black");
             Steel = _createMaterial("Station Steel");
             White = _createMaterial("Drone White");
@@ -186,37 +207,24 @@ namespace DeadSignal
             }
 
             HasPlayerDroneTexture = playerDroneTexture != null;
+            var wardenTexture = Resources.Load<Texture2D>(SECURITY_WARDEN_TEXTURE_RESOURCE);
+            if (wardenTexture != null)
+            {
+                WardenHousing.mainTexture = wardenTexture;
+                if (WardenHousing.HasProperty("_BaseMap"))
+                {
+                    WardenHousing.SetTexture("_BaseMap", wardenTexture);
+                }
+
+                if (WardenHousing.HasProperty("_Smoothness"))
+                {
+                    WardenHousing.SetFloat("_Smoothness", 0.3f);
+                }
+            }
+
+            HasWardenTexture = wardenTexture != null;
             ApplyHighContrast(highContrastEnabled);
         }
-
-        public Material Cyan { get; }
-        public Material CyanDim { get; }
-        public Material Amber { get; }
-        public Material Red { get; }
-        public Material RedDim { get; }
-        public Material Magenta { get; }
-        public Material Deck { get; }
-        public Material Bulkhead { get; }
-        public Material TowerHousing { get; }
-        public Material ExtractionHousing { get; }
-        public Material ShortcutHousing { get; }
-        public Material ShortcutLocked { get; }
-        public Material SignalRouting { get; }
-        public Material StationMachineHousing { get; }
-        public Material SalvageCacheHousing { get; }
-        public Material PlayerDroneHousing { get; }
-        public Material Dark { get; }
-        public Material Steel { get; }
-        public Material White { get; }
-        public bool HasDeckTexture { get; }
-        public bool HasBulkheadTexture { get; }
-        public bool HasTowerTexture { get; }
-        public bool HasExtractionTexture { get; }
-        public bool HasShortcutTexture { get; }
-        public bool HasSignalRoutingTexture { get; }
-        public bool HasStationMachineTexture { get; }
-        public bool HasSalvageCacheTexture { get; }
-        public bool HasPlayerDroneTexture { get; }
 
         public void ApplyHighContrast(bool enabled)
         {
@@ -268,6 +276,9 @@ namespace DeadSignal
             _setMaterial(PlayerDroneHousing,
                 enabled ? Color.white : new Color(0.82f, 0.86f, 0.88f),
                 Color.black);
+            _setMaterial(WardenHousing,
+                enabled ? new Color(0.34f, 0.38f, 0.44f) : new Color(0.16f, 0.18f, 0.21f),
+                enabled ? new Color(0.16f, 0.005f, 0.005f) : new Color(0.04f, 0.002f, 0.002f));
             _setMaterial(Dark,
                 enabled ? Color.black : new Color(0.012f, 0.018f, 0.026f),
                 Color.black);
@@ -313,5 +324,17 @@ namespace DeadSignal
                 material.SetColor("_EmissionColor", emission);
             }
         }
+
+        private const string RUNTIME_MATERIAL_RESOURCE = "Materials/RuntimeLitTemplate";
+        private const string MAINTENANCE_DECK_TEXTURE_RESOURCE = "Environment/MaintenanceDeckPanel";
+        private const string MAINTENANCE_BULKHEAD_TEXTURE_RESOURCE = "Environment/MaintenanceBulkheadPanel";
+        private const string SIGNAL_TOWER_TEXTURE_RESOURCE = "Environment/SignalTowerHousingPanel";
+        private const string EXTRACTION_DOCK_TEXTURE_RESOURCE = "Environment/ExtractionDockPanel";
+        private const string SHORTCUT_GATE_TEXTURE_RESOURCE = "Environment/ShortcutGatePanel";
+        private const string SIGNAL_ROUTING_TEXTURE_RESOURCE = "Environment/SignalRoutingPanel";
+        private const string STATION_MACHINE_TEXTURE_RESOURCE = "Environment/StationMachinePanel";
+        private const string SALVAGE_CACHE_TEXTURE_RESOURCE = "Environment/SalvageCachePanel";
+        private const string PLAYER_DRONE_TEXTURE_RESOURCE = "Actors/MaintenanceDronePanel";
+        private const string SECURITY_WARDEN_TEXTURE_RESOURCE = "Actors/SecurityWardenPanel";
     }
 }

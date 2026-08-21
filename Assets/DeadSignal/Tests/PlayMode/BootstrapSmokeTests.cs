@@ -33,10 +33,22 @@ namespace DeadSignal.Tests
                 Is.Not.Null, "The authored drone chassis should render the original ceramic Signal texture.");
             Assert.That(maintenanceDrone.Find("Drone Tool").localPosition, Is.EqualTo(new Vector3(0f, 0.3f, 0.68f)),
                 "The authored tool must preserve the projectile origin and aiming silhouette.");
-            Assert.That(game.transform.Find("Security Warden"), Is.Not.Null, "Dormant security should exist before tower activation.");
+            var securityWarden = game.transform.Find("Security Warden");
+            Assert.That(Resources.Load<GameObject>("Actors/SecurityWardenAssembly"), Is.Not.Null,
+                "The authored Security Warden prefab should load from Resources.");
+            Assert.That(Resources.Load<Texture2D>("Actors/SecurityWardenPanel"), Is.Not.Null,
+                "The original Security Warden armor texture should load from Resources.");
+            Assert.That(securityWarden, Is.Not.Null, "Dormant security should exist before tower activation.");
+            Assert.That(securityWarden.GetComponentsInChildren<Renderer>(true).Length, Is.EqualTo(3));
+            Assert.That(securityWarden.GetComponentsInChildren<Collider>(true).Length, Is.Zero,
+                "The authored Warden should remain presentation-only so deterministic threat collision stays authoritative.");
+            Assert.That(securityWarden.Find("Warden Chassis").GetComponent<Renderer>().sharedMaterial.mainTexture,
+                Is.Not.Null, "The Warden chassis should render the original armored security texture.");
+            Assert.That(securityWarden.gameObject.activeSelf, Is.False,
+                "The authored Warden should remain dormant until tower activation.");
             Assert.That(game.transform.Find("Signal Sapper"), Is.Not.Null, "Dormant sapper should exist before tower activation.");
             Assert.That(game.transform.Find("Signal Sapper").gameObject.activeSelf, Is.False);
-            Transform telegraphRoot = game.transform.Find("Sapper Drain Telegraph");
+            var telegraphRoot = game.transform.Find("Sapper Drain Telegraph");
             Assert.That(telegraphRoot, Is.Not.Null, "The Sapper telegraph should be constructed with the runtime arena.");
             SignalSapperTelegraph telegraph = telegraphRoot.GetComponent<SignalSapperTelegraph>();
             Assert.That(telegraphRoot.gameObject.activeSelf, Is.False, "The Sapper telegraph should remain hidden while dormant.");
@@ -254,6 +266,8 @@ namespace DeadSignal.Tests
                 var initialMachineHousingColor = machineHousing.sharedMaterial.color;
                 var playerHousing = player.Find("Drone Chassis").GetComponent<Renderer>();
                 var initialPlayerHousingColor = playerHousing.sharedMaterial.color;
+                var wardenHousing = securityWarden.Find("Warden Chassis").GetComponent<Renderer>();
+                var initialWardenHousingColor = wardenHousing.sharedMaterial.color;
                 InputSystem.QueueStateEvent(gamepad, new GamepadState().WithButton(GamepadButton.DpadUp));
                 yield return null;
                 Assert.That(game.IsHighContrastEnabled, Is.EqualTo(!initialHighContrast),
@@ -266,6 +280,8 @@ namespace DeadSignal.Tests
                     "High Contrast should immediately remap the authored machine housing material.");
                 Assert.That(playerHousing.sharedMaterial.color, Is.Not.EqualTo(initialPlayerHousingColor),
                     "High Contrast should immediately remap the authored player housing material.");
+                Assert.That(wardenHousing.sharedMaterial.color, Is.Not.EqualTo(initialWardenHousingColor),
+                    "High Contrast should immediately remap the authored Warden housing material.");
 
                 InputSystem.QueueStateEvent(gamepad, new GamepadState());
                 yield return null;

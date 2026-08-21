@@ -1588,3 +1588,59 @@ Matching Editor: `C:\Program Files\Unity\Hub\Editor\6000.3.11f1\Editor\Unity.exe
 ### Best next step
 
 Play `Build/Windows/DeadSignal.exe` at 16:9 and ultrawide in normal and High Contrast modes, confirm the white/cyan player remains readable during Warden and Sapper pressure, then migrate the Warden into an authored threat prefab.
+
+## 2026-08-21 — Autonomous Run 28
+
+### Today's single idea — authored Security Warden assembly
+
+Player benefit: the first awakened pursuer now reads as a deliberate armored station enforcer instead of three bare primitives. Original graphite plating and controlled crimson sensor art strengthen the red-threat language and create a clearer visual opponent for the white/cyan maintenance drone without changing combat balance.
+
+Acceptance criteria:
+
+- one reusable Unity-authored, collider-free Security Warden prefab owns the existing chassis, eye, and crown at their exact prior local transforms;
+- runtime composition loads the prefab at the unchanged spawn, applies original armor art to its chassis, and preserves dormant activation, pursuit, collision damage, health, hit feedback, and purge behavior;
+- a safe primitive fallback preserves the threat if the prefab is absent, while PlayMode and packaged smoke require the authored prefab and texture;
+- High Contrast immediately remaps the live Warden housing while preserving the established red eye/crown threat language;
+- no spawn point, chase speed, collision radius, damage, health, Signal economy, threat timing, controls, audio, save data, or serialized gameplay state changes; and
+- isolated import/compile, EditMode, PlayMode, Windows build, real Direct3D 11 packaged smoke, strict scans, and repository checks pass.
+
+### Files and systems changed
+
+- `Assets/DeadSignal/Resources/Actors/SecurityWardenPanel.png` and Unity-generated `.meta`: added an original 1254x1254 RGB graphite/gunmetal/crimson security-machine texture generated with the built-in image tool. The generated preview and project copy were visually inspected; Unity imported it with sRGB, mipmaps, clamp wrapping, high-quality compression, and a 1024px default-platform cap. SHA-256: `879AEE0D1CB3D47E490BBBE058656F78030C52E644E9F0D8991C71392EAEB605`; GUID: `f1fc45dbcdf205d409670274cf7a3a2b`.
+- `Assets/DeadSignal/Resources/Actors/SecurityWardenAssembly.prefab` and Unity-generated `.meta`: added the reusable collider-free three-part threat assembly through Unity's Prefab API. GUID: `4e47ef460802b464298011beef3cfb0b`.
+- `Assets/DeadSignal/Editor/DeadSignalActorSetup.cs` and Unity-generated `.meta`: added focused, idempotent actor texture configuration and prefab authoring. Script GUID: `61097a3a91e703d4f8d43c92647ebb57`.
+- `Assets/DeadSignal/Runtime/DeadSignalWorld.cs`: replaces Warden presentation literals with validated prefab composition, retains the exact fallback and spawn invariant, and reorders the touched class to the repository's property/method/private-field layout.
+- `Assets/DeadSignal/Runtime/DeadSignalPalette.cs`: adds the generated armor texture, dedicated live High Contrast-aware Warden material, and reorders the touched class to the preferred layout.
+- `Assets/DeadSignal/Runtime/StandaloneBuildSmokeProbe.cs`: requires the authored Warden prefab and texture in the packaged-player health check.
+- `Assets/DeadSignal/Tests/PlayMode/BootstrapSmokeTests.cs`: verifies Resources loading, the three-part dormant hierarchy, absent colliders, original texture, live High Contrast remapping, tower activation, and the complete retained gameplay regression; its telegraph local now uses `var` as the focused one-class convention cleanup.
+- `GAME_VISION.md`, `BACKLOG.md`, and `DEVLOG.md`: record the completed threat-production milestone without changing the core concept.
+
+No packages, assembly definitions, scenes, project settings, gameplay tuning, deterministic rules, balance, input, audio, save data, or serialized gameplay state were intentionally changed. Reflex remains installed but this presentation-only world composition does not add a new injected lifetime. The Warden's adjustable visual transforms moved into the prefab as authored tuning; the unchanged spawn anchor remains a code invariant, so no new ScriptableObject was warranted.
+
+### Tests run and exact outcomes
+
+The live workspace was already open in Unity 6000.3.11f1 as process `189860`. It was not closed or controlled. Validation used a fresh copy at `C:\Projects\Wendall\CodexPrototype_Run28Validation` with the matching Editor `C:\Program Files\Unity\Hub\Editor\6000.3.11f1\Editor\Unity.exe`.
+
+1. The first live-workspace setup attempt wrote `Logs/run28-warden-setup.log` and exited `1` immediately after project selection because the user's Editor held the project lock. It reached neither import nor compilation and is not counted as product validation.
+2. Isolated Unity import, compilation, texture configuration, and prefab setup wrote `C:\Projects\Wendall\CodexPrototype_Run28Validation\run28-warden-setup.log`: Unity compiled the changed assemblies, imported the generated PNG, created the collider-free prefab and all three new `.meta` files, and exited `0`.
+3. Isolated EditMode regression wrote `C:\Projects\Wendall\CodexPrototype_Run28Validation\run28-editmode-results.xml` and `run28-editmode.log`: Unity exited `0`; `16/16` passed, `0` failed in `0.0478924` seconds.
+4. Isolated PlayMode regression first passed `1/1` in `3.9342983` seconds. After adding direct High Contrast coverage, the authoritative rerun wrote `run28-playmode-final-results.xml` and `run28-playmode-final.log`: Unity exited `0`; `1/1` passed, `0` failed in `3.9277048` seconds. It proved authored Warden composition and every prior input, pause, accessibility, audio, particle, warning, activation, combat, Sapper, salvage, shortcut, extraction, and restart assertion.
+5. Isolated Windows development build wrote `C:\Projects\Wendall\CodexPrototype_Run28Validation\run28-windows-build.log`: Unity exited `0`, reported `Build Finished, Result: Success`, emitted the build PASS marker, and produced 193,831,293 reported bytes in 59.55 seconds. The local artifact contains 293 files totaling 194,024,843 bytes.
+6. Real isolated packaged launch wrote `C:\Projects\Wendall\CodexPrototype_Run28Validation\run28-standalone-d3d11-smoke.log`: the player forced Direct3D 11 on the NVIDIA GeForce RTX 3060, required the authored Warden Resources, printed one PASS marker, and exited `0`.
+7. Static inspection found exactly three mesh renderers and no collider component in the prefab. The project PNG is 1254x1254 `Format24bppRgb`, byte-identical to the visually inspected generated output, and its metadata carries the intended sRGB/mipmap/clamp/HQ/1024 settings.
+8. Final isolated compilation wrote `C:\Projects\Wendall\CodexPrototype_Run28Validation\run28-final-compile.log`: Unity exited `0` with no first-party compiler error or warning. Strict scans of setup, EditMode, both PlayMode runs, build, packaged-player, and final-compile logs found no compiler errors, null or missing-reference exceptions, unhandled exceptions, failed assertions, failed tests, or failed smoke markers. Final metadata, trailing-whitespace, staged-diff, and synchronization checks passed.
+
+### Bugs found and fixed
+
+- No gameplay, compilation, import, automated-test, build, or packaged-runtime defect was found.
+- The initial setup exit was correctly identified as project-lock protection rather than a failed compile; validation moved to an isolated copy without touching the user's Editor or unsaved state.
+
+### Known limitations
+
+- Automated checks prove hierarchy, Resources loading, texture assignment, High Contrast response, dormant activation, unchanged threat flow, and packaged startup but cannot judge the Warden silhouette, cube UV projection, crimson sensor brightness, or player/threat separation at 16:9 and ultrawide.
+- The generated texture is an albedo only and the assembly preserves the proven primitive geometry; bevels, emissive masks, or normal maps should follow a human top-down composition pass.
+- The player, Warden, and major room/objective assets are authored, while the Sapper and security-edge markers remain runtime-composed. Complete room-prefab migration and economy tuning sessions remain open.
+
+### Best next step
+
+Play the Windows build at 16:9 and ultrawide in normal and High Contrast modes, confirm the graphite/red Warden stays distinct from the deck and white/cyan player during pursuit, then migrate the Sapper into an authored threat prefab.

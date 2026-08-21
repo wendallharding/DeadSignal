@@ -13,39 +13,6 @@ namespace DeadSignal
         public const float STARTING_POWER_RADIUS = 3.6f;
         public const float TOWER_POWER_RADIUS = 7.2f;
 
-        private const string MAINTENANCE_DECK_MODULE_RESOURCE = "Environment/MaintenanceDeckModule";
-        private const string MAINTENANCE_ROOM_SHELL_RESOURCE = "Environment/MaintenanceRoomShell";
-        private const string SIGNAL_TOWER_PREFAB_RESOURCE = "Environment/SignalTowerAssembly";
-        private const string EXTRACTION_PAD_PREFAB_RESOURCE = "Environment/ExtractionPadAssembly";
-        private const string SHORTCUT_GATE_PREFAB_RESOURCE = "Environment/ShortcutGateAssembly";
-        private const string SIGNAL_ROUTING_PREFAB_RESOURCE = "Environment/SignalRoutingAssembly";
-        private const string STATION_MACHINE_PREFAB_RESOURCE = "Environment/StationMachineAssembly";
-        private const string SALVAGE_CACHE_PREFAB_RESOURCE = "Environment/SalvageCacheAssembly";
-        private const string PLAYER_DRONE_PREFAB_RESOURCE = "Actors/MaintenanceDroneAssembly";
-        private const float DECK_MODULE_WIDTH = 3.9f;
-        private const float DECK_MODULE_DEPTH = 3.6f;
-
-        private readonly Transform m_root;
-        private readonly DeadSignalPalette m_palette;
-        private readonly List<MovementBlocker> m_movementBlockers = new();
-        private readonly List<GameObject> m_salvagePickups = new();
-        private readonly List<Vector3> m_machineSockets = new();
-
-        private GameObject m_towerTerritory;
-        private GameObject m_towerSignalLines;
-        private GameObject m_extractionBeacon;
-        private GameObject m_shortcutGate;
-
-        public DeadSignalWorld(Transform root, IComfortSettings comfortSettings)
-        {
-            m_root = root;
-            m_palette = new DeadSignalPalette(comfortSettings.HighContrastEnabled);
-            _buildPresentation();
-            _buildArena();
-            _buildActors(comfortSettings);
-            ApplyHighContrast(comfortSettings.HighContrastEnabled);
-        }
-
         public Vector3 ExtractionPosition { get; } = new(-9.2f, 0f, -5.6f);
         public Vector3 TowerPosition { get; } = new(-0.6f, 0f, 0.4f);
         public Vector3 ShortcutPosition { get; } = new(4f, 0f, 0.4f);
@@ -80,6 +47,16 @@ namespace DeadSignal
         public int SalvageCachePartCount { get; private set; }
         public bool HasPlayerDroneAssets { get; private set; }
         public int PlayerDronePartCount { get; private set; }
+
+        public DeadSignalWorld(Transform root, IComfortSettings comfortSettings)
+        {
+            m_root = root;
+            m_palette = new DeadSignalPalette(comfortSettings.HighContrastEnabled);
+            _buildPresentation();
+            _buildArena();
+            _buildActors(comfortSettings);
+            ApplyHighContrast(comfortSettings.HighContrastEnabled);
+        }
 
         public bool IsPowered(Vector3 position, bool towerOnline)
         {
@@ -555,14 +532,7 @@ namespace DeadSignal
         {
             _buildPlayer();
 
-            var enemyRoot = new GameObject("Security Warden");
-            enemyRoot.transform.SetParent(m_root);
-            enemyRoot.transform.position = new Vector3(6.8f, 0f, 4.7f);
-            Warden = enemyRoot.transform;
-            _createPrimitive("Warden Chassis", PrimitiveType.Cube, new Vector3(0f, 0.38f, 0f), new Vector3(1.15f, 0.55f, 1.15f), m_palette.Steel, Warden);
-            _createPrimitive("Warden Eye", PrimitiveType.Cube, new Vector3(0f, 0.48f, -0.59f), new Vector3(0.68f, 0.16f, 0.06f), m_palette.Red, Warden);
-            _createPrimitive("Warden Crown", PrimitiveType.Cylinder, new Vector3(0f, 0.76f, 0f), new Vector3(0.68f, 0.12f, 0.68f), m_palette.RedDim, Warden);
-            Warden.gameObject.SetActive(false);
+            _buildWarden();
 
             var sapperRoot = new GameObject("Signal Sapper");
             sapperRoot.transform.SetParent(m_root);
@@ -582,6 +552,41 @@ namespace DeadSignal
             _createSalvage(new Vector3(9.7f, 0f, 6.3f));
             _createSalvage(new Vector3(10.4f, 0f, -6.4f));
             _createSalvage(new Vector3(-5.8f, 0f, 7.2f));
+        }
+
+        private void _buildWarden()
+        {
+            var wardenPrefab = Resources.Load<GameObject>(SECURITY_WARDEN_PREFAB_RESOURCE);
+            var hasValidPrefab = wardenPrefab != null &&
+                                 wardenPrefab.transform.Find("Warden Chassis") != null &&
+                                 wardenPrefab.transform.Find("Warden Eye") != null &&
+                                 wardenPrefab.transform.Find("Warden Crown") != null;
+            if (hasValidPrefab)
+            {
+                var wardenRoot = Object.Instantiate(wardenPrefab, m_root);
+                wardenRoot.name = "Security Warden";
+                wardenRoot.transform.localPosition = s_securityWardenSpawn;
+                wardenRoot.transform.localRotation = Quaternion.identity;
+                Warden = wardenRoot.transform;
+                Warden.Find("Warden Chassis").GetComponent<Renderer>().sharedMaterial = m_palette.WardenHousing;
+                Warden.Find("Warden Eye").GetComponent<Renderer>().sharedMaterial = m_palette.Red;
+                Warden.Find("Warden Crown").GetComponent<Renderer>().sharedMaterial = m_palette.RedDim;
+            }
+            else
+            {
+                var fallbackRoot = new GameObject("Security Warden");
+                fallbackRoot.transform.SetParent(m_root);
+                fallbackRoot.transform.position = s_securityWardenSpawn;
+                Warden = fallbackRoot.transform;
+                _createPrimitive("Warden Chassis", PrimitiveType.Cube, new Vector3(0f, 0.38f, 0f),
+                    new Vector3(1.15f, 0.55f, 1.15f), m_palette.WardenHousing, Warden);
+                _createPrimitive("Warden Eye", PrimitiveType.Cube, new Vector3(0f, 0.48f, -0.59f),
+                    new Vector3(0.68f, 0.16f, 0.06f), m_palette.Red, Warden);
+                _createPrimitive("Warden Crown", PrimitiveType.Cylinder, new Vector3(0f, 0.76f, 0f),
+                    new Vector3(0.68f, 0.12f, 0.68f), m_palette.RedDim, Warden);
+            }
+
+            Warden.gameObject.SetActive(false);
         }
 
         private void _buildPlayer()
@@ -710,6 +715,32 @@ namespace DeadSignal
 
             return visual;
         }
+
+        private const string MAINTENANCE_DECK_MODULE_RESOURCE = "Environment/MaintenanceDeckModule";
+        private const string MAINTENANCE_ROOM_SHELL_RESOURCE = "Environment/MaintenanceRoomShell";
+        private const string SIGNAL_TOWER_PREFAB_RESOURCE = "Environment/SignalTowerAssembly";
+        private const string EXTRACTION_PAD_PREFAB_RESOURCE = "Environment/ExtractionPadAssembly";
+        private const string SHORTCUT_GATE_PREFAB_RESOURCE = "Environment/ShortcutGateAssembly";
+        private const string SIGNAL_ROUTING_PREFAB_RESOURCE = "Environment/SignalRoutingAssembly";
+        private const string STATION_MACHINE_PREFAB_RESOURCE = "Environment/StationMachineAssembly";
+        private const string SALVAGE_CACHE_PREFAB_RESOURCE = "Environment/SalvageCacheAssembly";
+        private const string PLAYER_DRONE_PREFAB_RESOURCE = "Actors/MaintenanceDroneAssembly";
+        private const string SECURITY_WARDEN_PREFAB_RESOURCE = "Actors/SecurityWardenAssembly";
+        private const float DECK_MODULE_WIDTH = 3.9f;
+        private const float DECK_MODULE_DEPTH = 3.6f;
+
+        private static readonly Vector3 s_securityWardenSpawn = new(6.8f, 0f, 4.7f);
+
+        private readonly Transform m_root;
+        private readonly DeadSignalPalette m_palette;
+        private readonly List<MovementBlocker> m_movementBlockers = new();
+        private readonly List<GameObject> m_salvagePickups = new();
+        private readonly List<Vector3> m_machineSockets = new();
+
+        private GameObject m_towerTerritory;
+        private GameObject m_towerSignalLines;
+        private GameObject m_extractionBeacon;
+        private GameObject m_shortcutGate;
 
         private sealed class MovementBlocker
         {
