@@ -1644,3 +1644,65 @@ The live workspace was already open in Unity 6000.3.11f1 as process `189860`. It
 ### Best next step
 
 Play the Windows build at 16:9 and ultrawide in normal and High Contrast modes, confirm the graphite/red Warden stays distinct from the deck and white/cyan player during pursuit, then migrate the Sapper into an authored threat prefab.
+
+## 2026-08-21 — Autonomous Run 29
+
+### Today's single idea — production maintenance-drone mesh
+
+Player benefit: the avatar now has a purpose-built miniature-machine silhouette instead of Unity cylinder and cube meshes. Beveled ceramic armor, asymmetric side pods, a raised service core, a luminous Signal torus, and an angular forward emitter make facing and identity readable immediately from the top-down camera while preserving the proven movement and combat feel.
+
+Acceptance criteria:
+
+- replace all four player primitive meshes with original low-poly Blender-authored geometry while preserving the existing gameplay root, child names, and exact tool origin;
+- provide editable `.blend` source, a deterministic Blender regeneration script, a Unity-ready FBX, complete UV0 channels, and an original commercially safe hull albedo;
+- retain exactly four presentation renderers, introduce no colliders, animations, runtime mesh generation, package dependencies, or gameplay tuning changes;
+- runtime composition continues to apply live housing, cyan Signal, graphite core, and High Contrast materials to the imported parts;
+- the packaged readiness probe requires both the model and new texture Resources; and
+- Blender generation, Unity import/compile, EditMode, PlayMode, Windows build, Direct3D 11 packaged smoke, static scans, and repository checks pass.
+
+### Files and systems changed
+
+- `ArtSource/MaintenanceDrone/create_maintenance_drone.py`: added the deterministic Blender 5.2 authoring pipeline. It builds and UV-unwraps the four named meshes, assigns preview materials, exports FBX, saves the editable source, and renders a production preview.
+- `ArtSource/MaintenanceDrone/MaintenanceDrone.blend`: added editable Blender source. Mesh statistics are: chassis `336` vertices / `324` polygons, core `308` / `292`, Signal ring `96` / `96`, and tool `308` / `294`; every object has one UV layer. SHA-256: `2DA9DA021BD695FBE54C86B0FBEED3C3ED11DA72E5C027FE71C19B66A2CF1262`.
+- `ArtSource/MaintenanceDrone/MaintenanceDronePreview.png`: added the Blender-rendered three-quarter visual-validation preview.
+- `ArtSource/MaintenanceDrone/README.md`: documents the four-name/origin integration contract and one-command regeneration workflow.
+- `Assets/DeadSignal/Resources/Actors/MaintenanceDroneModel.fbx` and Unity-generated `.meta`: added the four-object Unity model with animation, cameras, lights, colliders, and material import disabled; low mesh compression and vertex/polygon optimization remain enabled while Read/Write stays disabled. FBX SHA-256: `944EEE4A2591F278FE144D3EEDE3C3553A8CDCA4B770B39D1111D3053B6507C5`; GUID: `c2e4e612f29ff0b4caa5b362031ceaa3`.
+- `Assets/DeadSignal/Resources/Actors/MaintenanceDroneHullAlbedo.png` and Unity-generated `.meta`: added the original 1254x1254 white-ceramic, graphite-seam, and cyan-conduit albedo generated with the built-in image tool. Unity imports it as sRGB with mipmaps, repeat wrapping, high-quality compression, and a 1024px default cap. SHA-256: `43C2419CEFDBDA131195B9A8D58B4443A174F0F8C700CE4E6DD971432006CA29`; GUID: `022add7bda13ca047a4115046d3cd058`.
+- Image-generation prompt: tileable orthographic sci-fi maintenance-drone surface; large off-white ceramic panels, restrained graphite seams, worn metal inserts, sparse cyan Signal conduits; stylized hand-painted game albedo with uniform lighting; no text, logos, scene perspective, channel visualization, dense grime, or large cyan blocks.
+- `Assets/DeadSignal/Resources/Actors/MaintenanceDroneAssembly.prefab`: replaced the four primitive mesh references with a nested instance of the imported four-part FBX while preserving the existing prefab GUID.
+- `Assets/DeadSignal/Editor/DeadSignalProjectSetup.cs`: configures the texture/model importers, validates that every prefab part comes from the FBX, and idempotently rebuilds stale primitive-based player prefabs from the imported model.
+- `Assets/DeadSignal/Runtime/DeadSignalPalette.cs`: routes the player housing material to the new hull albedo; the previous panel texture remains untouched but is no longer used by the player material.
+- `Assets/DeadSignal/Runtime/StandaloneBuildSmokeProbe.cs`: now explicitly requires the Blender model and hull texture in the packaged Resources set.
+- `Assets/DeadSignal/Tests/PlayMode/BootstrapSmokeTests.cs`: adds model-resource, custom vertex-count, and UV0 coverage while retaining exact hierarchy, collider, material, tool-origin, High Contrast, and full-run assertions. The collected `playerMeshes` validation replaces repeated component access as this run's focused cleanup in the touched test class.
+- `GAME_VISION.md`, `BACKLOG.md`, and `DEVLOG.md`: record the completed production-mesh milestone without changing the DEAD SIGNAL concept.
+
+Blender 5.2.0 LTS was installed through WinGet with the user's explicit permission. No Unity packages, assembly definitions, scenes, project settings, deterministic gameplay rules, balance values, input, audio, save data, or serialized gameplay state were intentionally changed. Reflex 14.3.1 was already installed and remains unchanged.
+
+### Tests run and exact outcomes
+
+The live workspace was open in Unity 6000.3.11f1 as process `254024` and was not closed or controlled. Authoritative Unity validation used a fresh copy at `C:\Projects\Wendall\CodexPrototype_Run29Validation` with `C:\Program Files\Unity\Hub\Editor\6000.3.11f1\Editor\Unity.exe`.
+
+1. Blender 5.2.0 LTS executed `create_maintenance_drone.py` in background mode, saved the `.blend`, exported the FBX, rendered the preview, and exited `0`. A follow-up source inspection reported four named model meshes, `1,048` total vertices, `1,006` total polygons, and one UV layer per mesh.
+2. Isolated Unity import/setup wrote `run29-player-model-setup.log`: Unity rebuilt its Library, compiled the changed assemblies, imported the FBX and albedo, configured both importers, rebuilt the prefab while retaining GUID `9a5b6ffcaef50fd4eae45c14fac5b59d`, and exited `0`.
+3. Isolated EditMode regression wrote `run29-editmode-results.xml` and `run29-editmode.log`: Unity exited `0`; `16/16` passed, `0` failed, `0` skipped in `0.0453184` seconds.
+4. The first isolated PlayMode run wrote `run29-playmode-results.xml` and intentionally failed `0/1` because the new UV assertion accessed `mesh.uv` while optimized model Read/Write was disabled. This was a test defect, not a player asset or runtime failure.
+5. After correcting validation to query the UV0 vertex attribute without reading mesh data, the focused rerun passed `1/1` in `3.9419141` seconds. The authoritative full rerun wrote `run29-playmode-final-results.xml` and `run29-playmode-final.log`: Unity exited `0`; `1/1` passed, `0` failed in `3.9472732` seconds. It proved all four custom meshes, complete UV0 presence, the exact tool transform, original albedo, absent colliders, High Contrast response, and every prior input, pause, audio, particle, warning, activation, combat, Sapper, Warden, salvage, shortcut, extraction, and restart assertion.
+6. Isolated Windows development build wrote `run29-windows-build.log`: Unity exited `0`, reported `Build Finished, Result: Success`, emitted the build PASS marker, and produced `195,306,797` reported bytes in `72.50` seconds.
+7. Real packaged launch wrote `run29-standalone-d3d11-smoke.log`: the player forced Direct3D 11 on the NVIDIA GeForce RTX 3060, required the new model and albedo Resources, printed one PASS marker, and exited `0`.
+8. Final warmed isolated compilation wrote `run29-final-compile.log`: Unity exited `0` after a clean asset refresh with no first-party compiler error or warning.
+9. The generated 1254x1254 RGB texture and Blender preview were visually inspected. The model reads as a compact white/cyan maintenance drone with an unmistakable forward emitter; the albedo is visibly mapped across the hull. Static prefab inspection confirms the existing prefab GUID is preserved and now references FBX GUID `c2e4e612f29ff0b4caa5b362031ceaa3`. Strict scans of setup, EditMode, authoritative PlayMode, build, packaged-player, and final-compile logs found zero compiler errors/warnings, null or missing-reference exceptions, unhandled test logs, failed assertions, failed tests, or failed smoke markers. Final metadata, trailing-whitespace, and `git diff --check` validation passed.
+
+### Bugs found and fixed
+
+- Blender 5.2 renamed the Eevee render-engine enum from the value expected by the first script draft. The script was corrected to `BLENDER_EEVEE`; regeneration, export, save, and preview rendering then exited `0`.
+- The initial PlayMode UV assertion used `mesh.uv`, which emits an error for correctly optimized non-readable meshes. It now uses `HasVertexAttribute(TexCoord0)`, retaining production memory settings while proving the authored UV channel.
+
+### Known limitations
+
+- Blender and PlayMode validation prove silhouette, texture mapping, import structure, and gameplay invariants, but no human has yet judged the final Unity camera composition at 16:9 and ultrawide during simultaneous Warden/Sapper pressure.
+- The hull currently uses one albedo plus the existing runtime material parameters. A normal map or packed mask could add close-up richness, but the top-down camera should justify that texture-memory cost before production.
+- The old `MaintenanceDronePanel.png` remains in Resources to avoid deleting a previously shipped asset; it is no longer assigned to the player housing material and can be retired in a deliberate asset-cleanup pass after checking external references.
+
+### Best next step
+
+Open `Assets/Scenes/SampleScene.unity`, play at 16:9 and ultrawide in normal and High Contrast modes, and verify the forward emitter and cyan ring remain readable during a full tower-to-extraction run. If that composition holds, the next production-art target should be the still-primitive Signal Sapper.

@@ -27,10 +27,18 @@ namespace DeadSignal.Tests
                 "The player prefab and original maintenance-drone texture should load from Resources.");
             Assert.That(game.PlayerDronePartCount, Is.EqualTo(4));
             Assert.That(maintenanceDrone.GetComponentsInChildren<Renderer>().Length, Is.EqualTo(4));
+            Assert.That(Resources.Load<GameObject>("Actors/MaintenanceDroneModel"), Is.Not.Null,
+                "The authored Blender model should load from Resources.");
             Assert.That(maintenanceDrone.GetComponentsInChildren<Collider>().Length, Is.Zero,
                 "The authored player drone should remain presentation-only so deterministic movement stays authoritative.");
             Assert.That(maintenanceDrone.Find("Drone Chassis").GetComponent<Renderer>().sharedMaterial.mainTexture,
                 Is.Not.Null, "The authored drone chassis should render the original ceramic Signal texture.");
+            var playerMeshes = maintenanceDrone.GetComponentsInChildren<MeshFilter>().Select(filter => filter.sharedMesh).ToArray();
+            Assert.That(playerMeshes.Length, Is.EqualTo(4));
+            Assert.That(playerMeshes.All(mesh => mesh != null && mesh.vertexCount >= 24), Is.True,
+                "Every player part should use purpose-built geometry rather than a placeholder primitive.");
+            Assert.That(playerMeshes.All(mesh => mesh.HasVertexAttribute(UnityEngine.Rendering.VertexAttribute.TexCoord0)), Is.True,
+                "Every player mesh should retain complete authored UV coordinates.");
             Assert.That(maintenanceDrone.Find("Drone Tool").localPosition, Is.EqualTo(new Vector3(0f, 0.3f, 0.68f)),
                 "The authored tool must preserve the projectile origin and aiming silhouette.");
             var securityWarden = game.transform.Find("Security Warden");

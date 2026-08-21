@@ -30,7 +30,8 @@ namespace DeadSignal.Editor
         private const string STATION_MACHINE_PREFAB_PATH = ENVIRONMENT_FOLDER + "/StationMachineAssembly.prefab";
         private const string SALVAGE_CACHE_TEXTURE_PATH = ENVIRONMENT_FOLDER + "/SalvageCachePanel.png";
         private const string SALVAGE_CACHE_PREFAB_PATH = ENVIRONMENT_FOLDER + "/SalvageCacheAssembly.prefab";
-        private const string PLAYER_DRONE_TEXTURE_PATH = ACTORS_FOLDER + "/MaintenanceDronePanel.png";
+        private const string PLAYER_DRONE_TEXTURE_PATH = ACTORS_FOLDER + "/MaintenanceDroneHullAlbedo.png";
+        private const string PLAYER_DRONE_MODEL_PATH = ACTORS_FOLDER + "/MaintenanceDroneModel.fbx";
         private const string PLAYER_DRONE_PREFAB_PATH = ACTORS_FOLDER + "/MaintenanceDroneAssembly.prefab";
         private const string CREATE_REFLEX_SETTINGS_MENU = "Assets/Create/Reflex/Settings";
 
@@ -75,7 +76,8 @@ namespace DeadSignal.Editor
 
         public static bool HasPlayerDroneAssets =>
             AssetDatabase.LoadAssetAtPath<Texture2D>(PLAYER_DRONE_TEXTURE_PATH) != null &&
-            AssetDatabase.LoadAssetAtPath<GameObject>(PLAYER_DRONE_PREFAB_PATH) != null;
+            AssetDatabase.LoadAssetAtPath<GameObject>(PLAYER_DRONE_MODEL_PATH) != null &&
+            _hasPlayerDroneModelPrefab();
 
         public static void EnsureReflexSettings()
         {
@@ -456,22 +458,36 @@ namespace DeadSignal.Editor
             importer.alphaIsTransparency = false;
             importer.mipmapEnabled = true;
             importer.maxTextureSize = 1024;
-            importer.wrapMode = TextureWrapMode.Clamp;
+            importer.wrapMode = TextureWrapMode.Repeat;
             importer.textureCompression = TextureImporterCompression.CompressedHQ;
             importer.SaveAndReimport();
 
-            if (AssetDatabase.LoadAssetAtPath<GameObject>(PLAYER_DRONE_PREFAB_PATH) == null)
+            var modelImporter = AssetImporter.GetAtPath(PLAYER_DRONE_MODEL_PATH) as ModelImporter;
+            if (modelImporter == null)
             {
-                var drone = new GameObject("Maintenance Drone Assembly");
-                _createPrefabPrimitive("Drone Chassis", PrimitiveType.Cylinder, new Vector3(0f, 0.28f, 0f),
-                    new Vector3(1.05f, 0.22f, 1.05f), drone.transform);
-                _createPrefabPrimitive("Drone Signal Ring", PrimitiveType.Cylinder, new Vector3(0f, 0.42f, 0f),
-                    new Vector3(0.72f, 0.08f, 0.72f), drone.transform);
-                _createPrefabPrimitive("Drone Core", PrimitiveType.Cylinder, new Vector3(0f, 0.5f, 0f),
-                    new Vector3(0.36f, 0.09f, 0.36f), drone.transform);
-                _createPrefabCube("Drone Tool", new Vector3(0f, 0.3f, 0.68f),
-                    new Vector3(0.24f, 0.2f, 0.7f), drone.transform);
+                throw new InvalidOperationException($"Could not find the maintenance-drone model at {PLAYER_DRONE_MODEL_PATH}.");
+            }
 
+            modelImporter.addCollider = false;
+            modelImporter.importAnimation = false;
+            modelImporter.importCameras = false;
+            modelImporter.importLights = false;
+            modelImporter.materialImportMode = ModelImporterMaterialImportMode.None;
+            modelImporter.meshCompression = ModelImporterMeshCompression.Low;
+            modelImporter.optimizeMeshPolygons = true;
+            modelImporter.optimizeMeshVertices = true;
+            modelImporter.SaveAndReimport();
+
+            if (!_hasPlayerDroneModelPrefab())
+            {
+                var model = AssetDatabase.LoadAssetAtPath<GameObject>(PLAYER_DRONE_MODEL_PATH);
+                var drone = PrefabUtility.InstantiatePrefab(model) as GameObject;
+                if (drone == null)
+                {
+                    throw new InvalidOperationException("Could not instantiate the imported maintenance-drone model.");
+                }
+
+                drone.name = "Maintenance Drone Assembly";
                 PrefabUtility.SaveAsPrefabAsset(drone, PLAYER_DRONE_PREFAB_PATH);
                 UnityEngine.Object.DestroyImmediate(drone);
             }
@@ -482,6 +498,30 @@ namespace DeadSignal.Editor
             {
                 throw new InvalidOperationException("The maintenance-drone texture and assembly prefab were not created successfully.");
             }
+        }
+
+        private static bool _hasPlayerDroneModelPrefab()
+        {
+            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(PLAYER_DRONE_PREFAB_PATH);
+            if (prefab == null)
+            {
+                return false;
+            }
+
+            return _isImportedDronePart(prefab.transform.Find("Drone Chassis")) &&
+                   _isImportedDronePart(prefab.transform.Find("Drone Signal Ring")) &&
+                   _isImportedDronePart(prefab.transform.Find("Drone Core")) &&
+                   _isImportedDronePart(prefab.transform.Find("Drone Tool"));
+        }
+
+        private static bool _isImportedDronePart(Transform part)
+        {
+            if (part == null || !part.TryGetComponent<MeshFilter>(out var meshFilter) || meshFilter.sharedMesh == null)
+            {
+                return false;
+            }
+
+            return AssetDatabase.GetAssetPath(meshFilter.sharedMesh) == PLAYER_DRONE_MODEL_PATH;
         }
 
         private static void _ensureMaterial(string assetPath, string shaderName)

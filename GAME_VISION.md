@@ -43,7 +43,7 @@ This autonomous run is accepted when a fresh Play session provides all of the fo
 - The powered network's floor routing is a reusable authored assembly with original cyan conduit art while its dormant/online state remains unmistakable.
 - Six socket-driven station machines use a reusable authored console assembly with original dark-alloy control-surface art and alternating readable status lights.
 - Three salvage objectives use a reusable authored cache assembly with original amber containment art while collection and beacon guidance remain unchanged.
-- The maintenance drone uses a reusable authored four-part assembly with original white-ceramic Signal art while movement, aim, and firing remain unchanged.
+- The maintenance drone uses four purpose-built, UV-mapped low-poly meshes with original white-ceramic Signal art while movement, aim, and firing remain unchanged.
 - The pursuing Security Warden uses a reusable authored three-part assembly with original graphite/crimson armor art while threat rules remain unchanged.
 - Dead zones are visually distinct, show a warning, and drain Signal quickly.
 - Tower activation wakes two readable threats: a red Warden pursues the drone while a magenta Signal Sapper telegraphs its tower target and timed drain pulses; both can be destroyed.
