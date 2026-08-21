@@ -7,7 +7,24 @@ namespace DeadSignal
 {
     public static class DeadSignalBootstrap
     {
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
+        private static void _registerSceneBootstrap()
+        {
+            SceneManager.sceneLoaded -= _handleSceneLoaded;
+            SceneManager.sceneLoaded += _handleSceneLoaded;
+        }
+
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
+        private static void _createInitialPlayable()
+        {
+            _createFirstPlayable();
+        }
+
+        private static void _handleSceneLoaded(Scene loadedScene, LoadSceneMode loadSceneMode)
+        {
+            _createFirstPlayable();
+        }
+
         private static void _createFirstPlayable()
         {
             if (Object.FindFirstObjectByType<DeadSignalGame>() != null)

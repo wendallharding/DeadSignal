@@ -573,3 +573,31 @@ Unity logged an initial licensing-channel handshake failure on each isolated lau
 ### Best next step
 
 Run one keyboard/controller session at 16:9 and ultrawide, verify that the beacon points correctly in all quadrants without obscuring prompts, then complete five interception-focused economy sessions before changing Sapper or Signal balance.
+
+## 2026-08-20 - Completed-run restart lifecycle fix
+
+### Problem and cause
+
+Pressing restart after victory reloaded `SampleScene` but left it empty. `DeadSignalBootstrap` used `RuntimeInitializeOnLoadMethod(AfterSceneLoad)`, which creates the first runtime when the player starts but does not act as a callback for every later scene reload. The completed run was destroyed correctly, but nothing composed its replacement.
+
+### Files and systems changed
+
+- `Assets/DeadSignal/Runtime/DeadSignalBootstrap.cs`: registers one deduplicated `SceneManager.sceneLoaded` callback before the first scene load and reuses the guarded composition method after every load. The existing initial-load callback remains as a safe fallback, and the existing controller guard prevents duplicate runtimes.
+- `Assets/DeadSignal/Tests/PlayMode/BootstrapSmokeTests.cs`: now completes the run, invokes the reliable gamepad restart action, waits through the scene reload, and proves that a new `DeadSignalGame` instance plus its maintenance-drone hierarchy exists.
+- `DEVLOG.md`: records the reproduction, fix, and validation evidence.
+
+No gameplay rules, controls, balance, assets, packages, assemblies, scenes, prefabs, project settings, or serialized data changed.
+
+### Tests run and exact outcomes
+
+Matching editor: `C:\Program Files\Unity\Hub\Editor\6000.3.11f1\Editor\Unity.exe`.
+
+1. Pre-fix PlayMode reproduction wrote `Logs/restart-repro-playmode-results.xml` and `Logs/restart-repro-playmode.log`: process return code `2`; `0/1` passed and `1/1` failed in `3.54644` seconds with `DeadSignalGame` null after the completed-run reload.
+2. Corrected PlayMode regression wrote `Logs/restart-fixed-playmode-results.xml` and `Logs/restart-fixed-playmode.log`: process return code `0`; `1/1` passed, `0` failed, `0` skipped, `0` inconclusive in `3.5875548` seconds. The fresh runtime had a different instance ID and contained a new `Maintenance Drone` hierarchy.
+3. EditMode deterministic suite wrote `Logs/restart-fixed-editmode-results.xml` and `Logs/restart-fixed-editmode.log`: process return code `0`; `12/12` passed, `0` failed, `0` skipped, `0` inconclusive in `0.038899` seconds.
+4. Final regression compilation wrote `Logs/restart-fixed-final-compile.log`: process return code `0`; Unity completed batch shutdown successfully after the source, test, and documentation audit.
+
+### Known limitations and next check
+
+- The automated regression uses gamepad A because synthetic keyboard events have been unreliable in headless Unity; keyboard R and Enter execute the same restart branch and should receive one interactive confirmation.
+- Next manual check: complete or fail one run, restart once with R and once with gamepad A, and verify the HUD, objective beacon, threats, and camera all return cleanly.

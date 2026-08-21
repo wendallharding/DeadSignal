@@ -230,6 +230,26 @@ namespace DeadSignal.Tests
 
                 Assert.That(player.position.x, Is.GreaterThan(4.35f),
                     "The retracted shortcut gate should allow the drone through the bulkhead.");
+
+                InputSystem.QueueStateEvent(gamepad, new GamepadState());
+                yield return null;
+                player.position = new Vector3(-9.2f, 0f, -5.6f);
+                InputSystem.QueueStateEvent(gamepad, new GamepadState().WithButton(GamepadButton.West));
+                yield return null;
+                InputSystem.QueueStateEvent(gamepad, new GamepadState());
+                yield return null;
+
+                int completedRunInstanceId = game.GetInstanceID();
+                InputSystem.QueueStateEvent(gamepad, new GamepadState().WithButton(GamepadButton.South));
+                yield return null;
+                InputSystem.QueueStateEvent(gamepad, new GamepadState());
+                yield return null;
+
+                DeadSignalGame restartedGame = Object.FindFirstObjectByType<DeadSignalGame>();
+                Assert.That(restartedGame, Is.Not.Null,
+                    "Restarting a completed run should bootstrap a fresh playable runtime after the scene reloads.");
+                Assert.That(restartedGame.GetInstanceID(), Is.Not.EqualTo(completedRunInstanceId));
+                Assert.That(restartedGame.transform.Find("Maintenance Drone"), Is.Not.Null);
             }
             finally
             {
