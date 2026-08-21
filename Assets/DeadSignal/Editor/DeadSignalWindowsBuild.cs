@@ -30,6 +30,7 @@ namespace DeadSignal.Editor
             DeadSignalProjectSetup.EnsureStationMachineAssets();
             DeadSignalProjectSetup.EnsureSalvageCacheAssets();
             DeadSignalProjectSetup.EnsurePlayerDroneAssets();
+            DeadSignalActorSetup.EnsureSecurityWardenAssets();
             _validateBuildInputs();
             _configureWindowsPlayer();
 
@@ -127,6 +128,11 @@ namespace DeadSignal.Editor
             if (!DeadSignalProjectSetup.HasPlayerDroneAssets)
             {
                 throw new BuildFailedException("The authored maintenance-drone assets are missing.");
+            }
+
+            if (!DeadSignalActorSetup.HasSecurityWardenAssets)
+            {
+                throw new BuildFailedException("The authored Security Warden model or materials are missing.");
             }
 
             if (AssetDatabase.LoadAssetAtPath<Texture2D>(APPLICATION_ICON_PATH) == null)

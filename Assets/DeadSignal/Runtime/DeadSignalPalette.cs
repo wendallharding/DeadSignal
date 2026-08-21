@@ -335,6 +335,6 @@ namespace DeadSignal
         private const string STATION_MACHINE_TEXTURE_RESOURCE = "Environment/StationMachinePanel";
         private const string SALVAGE_CACHE_TEXTURE_RESOURCE = "Environment/SalvageCachePanel";
         private const string PLAYER_DRONE_TEXTURE_RESOURCE = "Actors/MaintenanceDroneHullAlbedo";
-        private const string SECURITY_WARDEN_TEXTURE_RESOURCE = "Actors/SecurityWardenPanel";
+        private const string SECURITY_WARDEN_TEXTURE_RESOURCE = "Actors/SecurityWardenArmorAlbedo";
     }
 }

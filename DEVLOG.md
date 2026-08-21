@@ -1758,3 +1758,66 @@ The live project remained open in Unity 6000.3.11f1 and was not controlled. Auth
 ### Best next step
 
 Reopen `MaintenanceDroneAssembly.prefab` if it was already open during import, confirm the hull shows the generated panel texture and the ring/tool show cyan materials, then verify the same appearance in `SampleScene.unity` under normal and High Contrast modes.
+
+## 2026-08-21 — Run 31: authored Security Warden
+
+### Today's single idea — production Security Warden model and materials
+
+Player benefit: the first pursuing threat now reads immediately as a compact armored hunter instead of a stack of primitives, with a mapped graphite hull and focused crimson eye/crown that remain legible during top-down play.
+
+Acceptance criteria:
+
+- replace all three Warden primitive meshes with original UV-mapped Blender geometry without changing pursuit, collision, damage, or health rules;
+- map a new original armor albedo through a persistent URP Lit chassis material;
+- persist distinct emissive eye and crown materials on the prefab so its finished appearance is visible outside Play Mode;
+- preserve the established three-part hierarchy, gameplay-facing origins, prefab GUID, collider-free presentation, and High Contrast runtime remapping; and
+- pass Blender generation, Unity import/compile, EditMode, PlayMode, Windows build, packaged-resource smoke, and repository validation.
+
+### Files and systems changed
+
+- `ArtSource/SecurityWarden/create_security_warden.py`: added the deterministic Blender 5.2 authoring pipeline for three selected export meshes, UV mapping, preview materials, FBX export, editable-source save, and preview render.
+- `ArtSource/SecurityWarden/SecurityWarden.blend`: added editable Blender source. Exported model statistics are: chassis `392` vertices / `378` polygons, eye `168` / `162`, and crown `476` / `454`; every exported object has one UV layer. SHA-256: `848B3DA25CDA8289B770F72B517CEC165CBD8939B770DEFFE84538CFDBF448CB`.
+- `ArtSource/SecurityWarden/SecurityWardenPreview.png`: added the rendered three-quarter visual-validation preview.
+- `ArtSource/SecurityWarden/README.md`: documents the three-name/origin integration contract and one-command regeneration workflow.
+- `Assets/DeadSignal/Resources/Actors/SecurityWardenModel.fbx` and Unity-generated `.meta`: added the three-part Unity model with animation, cameras, lights, colliders, and material import disabled; low mesh compression and vertex/polygon optimization remain enabled. FBX SHA-256: `B171CCBF2F7B2A15E0F3BA9113B98F0261861172E552769C59DC70BB6528597F`; GUID: `cfadfaec5f28eb24f871cd4675d1da12`.
+- `Assets/DeadSignal/Resources/Actors/SecurityWardenArmorAlbedo.png` and Unity-generated `.meta`: added the original graphite-panel and restrained crimson-trace albedo generated with OpenAI's built-in image-generation mode. Unity imports it as sRGB with mipmaps, repeat wrapping, high-quality compression, and a 1024px cap. SHA-256: `7EA43F5230AA355DAA88557B9B5359E2303590A730856D699818886FFE49DE81`; GUID: `465ebd4bf80249c479c80c424a621459`.
+- Image-generation prompt: tileable orthographic low-poly Security Warden armor albedo; layered graphite plates, gunmetal seams, restrained wear, and sparse crimson security traces below ten percent coverage; uniform lighting and a commercially safe stylized hand-painted game texture; no text, logos, perspective, channel visualization, large red blocks, or competing bright accent colors.
+- `Assets/DeadSignal/Resources/Materials/SecurityWardenArmor.mat`, `SecurityWardenEye.mat`, and `SecurityWardenCrown.mat`, plus Unity-generated `.meta` files: added persistent URP Lit materials; the armor maps the generated albedo while the eye and crown use distinct restrained crimson emission.
+- `Assets/DeadSignal/Resources/Actors/SecurityWardenAssembly.prefab`: replaced primitive mesh references with a nested instance of the imported three-part FBX and persistent material overrides while preserving prefab GUID `4e47ef460802b464298011beef3cfb0b`.
+- `Assets/DeadSignal/Editor/DeadSignalActorSetup.cs`: refactored the previously unused primitive-only helper into an idempotent Warden production-asset pipeline that configures importers, creates/configures materials, rebuilds stale prefabs, applies assignments through Prefab Contents, and validates exact imported mesh/material references.
+- `Assets/DeadSignal/Editor/DeadSignalWindowsBuild.cs`: now ensures and validates authored Warden assets before every Windows build, fixing the missing composition call for `DeadSignalActorSetup`.
+- `Assets/DeadSignal/Runtime/DeadSignalPalette.cs`: routes the runtime Warden chassis to the new armor albedo while retaining runtime High Contrast material overrides.
+- `Assets/DeadSignal/Runtime/StandaloneBuildSmokeProbe.cs`: requires the Warden model, albedo, and all three persistent materials in packaged Resources.
+- `Assets/DeadSignal/Tests/PlayMode/BootstrapSmokeTests.cs`: verifies the model resource, mapped persistent materials, custom vertex counts, UV0 coverage, exact hierarchy origins, absent colliders, and unchanged runtime palette before retaining the complete gameplay regression.
+- `GAME_VISION.md`, `BACKLOG.md`, and `DEVLOG.md`: record the completed production-art milestone without changing the DEAD SIGNAL concept.
+
+No packages, assembly definitions, scenes, project settings, deterministic gameplay rules, balance values, input, audio, save data, or serialized gameplay state changed. Reflex 14.3.1 was already installed and remains unchanged.
+
+### Tests run and exact outcomes
+
+The live workspace remained open in Unity 6000.3.11f1 as process `254024` and was not closed or controlled. Authoritative Unity validation used a fresh copy at `C:\Projects\Wendall\CodexPrototype_Run31Validation` with `C:\Program Files\Unity\Hub\Editor\6000.3.11f1\Editor\Unity.exe`.
+
+1. Blender 5.2.0 LTS executed `create_security_warden.py` in background mode twice while the crown emission was visually tuned, saved the `.blend`, exported the FBX, rendered the final preview, and exited `0`. Source inspection confirmed all three exported meshes have UV0 and total `1,036` vertices / `994` polygons. Blender emitted only API deprecation notices for `use_nodes`.
+2. Isolated Unity setup wrote `run31-warden-setup.log`: Unity rebuilt its Library, compiled the changed assemblies, imported the FBX and albedo, generated all metadata/materials, rebuilt the prefab while retaining GUID `4e47ef460802b464298011beef3cfb0b`, and exited `0` without a first-party compiler error, warning, exception, or asset-name mismatch.
+3. EditMode regression wrote `run31-editmode-results.xml` and `run31-editmode.log`: Unity exited `0`; `16/16` passed, `0` failed, `0` skipped in `0.0543907` seconds.
+4. PlayMode regression wrote `run31-playmode-results.xml` and `run31-playmode.log`: Unity exited `0`; `1/1` passed, `0` failed, `0` skipped in `3.9295397` seconds. It proved the authored Warden geometry, UVs, transforms, persistent mappings, collider contract, High Contrast response, and all prior core-loop behavior. The log contained a transient Unity licensing refresh warning after the tests; entitlement resolution and the test run both completed successfully.
+5. Windows development build wrote `run31-windows-build.log`: Unity exited `0`, emitted `[DEAD SIGNAL BUILD] PASS`, and produced `197,024,701` reported bytes in `97.36` seconds.
+6. A direct packaged launch wrote `run31-standalone-smoke.log`: the player forced Direct3D 11 on the NVIDIA GeForce RTX 3060, loaded runtime composition and every required Warden Resource, printed one `[DEAD SIGNAL STANDALONE SMOKE] PASS` marker, and exited `0`.
+7. The generated armor texture and Blender preview were visually inspected. The model reads as a low, heavily armored graphite hunter with a clear crimson eye bar and crown; the albedo is visibly mapped over the chassis. Final static scans and repository checks found no first-party compiler errors, failed assertions, failed tests, missing references, or trailing whitespace.
+
+### Bugs found and fixed
+
+- `DeadSignalActorSetup` was not called by the production build pipeline, so its former Warden setup could never ensure assets during a build. The Windows composition now calls it and fails early if any model or persistent material is missing.
+- The previous Warden prefab used primitive meshes and received its textured material only during runtime composition, leaving Prefab Mode visually incomplete. The prefab now persists the imported meshes and all three mapped/emissive materials while runtime accessibility overrides remain intact.
+- The first rendered crown was too bright and pink relative to the graphite/crimson art direction. Its preview emission was reduced and the model/preview were regenerated before Unity import.
+
+### Known limitations
+
+- Blender and PlayMode validation prove silhouette, mapping, hierarchy, and gameplay invariants, but no human has yet judged the final Warden composition at 16:9 and ultrawide during a full pressure encounter.
+- The armor currently uses one albedo plus URP material parameters. A normal or packed mask could add close-up richness, but the top-down camera should justify that memory cost first.
+- The previous `SecurityWardenPanel.png` remains in Resources to avoid deleting a shipped asset; it is no longer assigned to the Warden and can be retired after checking external references.
+- A Prefab Mode stage that was already open may need to be closed and reopened once after Unity imports the externally validated assets.
+
+### Best next step
+
+Open `Assets/Scenes/SampleScene.unity`, trigger the tower, and judge the Warden at 16:9 and ultrawide in normal and High Contrast modes. If the red eye remains readable without overpowering the Signal palette, the next production-art target should be the still-primitive Signal Sapper.

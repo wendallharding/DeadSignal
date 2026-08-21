@@ -55,14 +55,37 @@ namespace DeadSignal.Tests
             Assert.That(maintenanceDrone.Find("Drone Tool").localPosition, Is.EqualTo(new Vector3(0f, 0.3f, 0.68f)),
                 "The authored tool must preserve the projectile origin and aiming silhouette.");
             var securityWarden = game.transform.Find("Security Warden");
-            Assert.That(Resources.Load<GameObject>("Actors/SecurityWardenAssembly"), Is.Not.Null,
+            var authoredWardenPrefab = Resources.Load<GameObject>("Actors/SecurityWardenAssembly");
+            Assert.That(authoredWardenPrefab, Is.Not.Null,
                 "The authored Security Warden prefab should load from Resources.");
-            Assert.That(Resources.Load<Texture2D>("Actors/SecurityWardenPanel"), Is.Not.Null,
+            Assert.That(Resources.Load<GameObject>("Actors/SecurityWardenModel"), Is.Not.Null,
+                "The authored Blender Security Warden model should load from Resources.");
+            var wardenArmorTexture = Resources.Load<Texture2D>("Actors/SecurityWardenArmorAlbedo");
+            var wardenArmorMaterial = Resources.Load<Material>("Materials/SecurityWardenArmor");
+            Assert.That(wardenArmorTexture, Is.Not.Null,
                 "The original Security Warden armor texture should load from Resources.");
+            Assert.That(wardenArmorMaterial, Is.Not.Null);
+            Assert.That(wardenArmorMaterial.mainTexture, Is.EqualTo(wardenArmorTexture),
+                "The authored Warden armor material should persistently map the generated albedo outside Play Mode.");
+            Assert.That(authoredWardenPrefab.transform.Find("Warden Chassis").GetComponent<Renderer>().sharedMaterial,
+                Is.EqualTo(wardenArmorMaterial), "Prefab Mode should display the mapped Warden armor material.");
+            Assert.That(authoredWardenPrefab.transform.Find("Warden Eye").GetComponent<Renderer>().sharedMaterial,
+                Is.EqualTo(Resources.Load<Material>("Materials/SecurityWardenEye")));
+            Assert.That(authoredWardenPrefab.transform.Find("Warden Crown").GetComponent<Renderer>().sharedMaterial,
+                Is.EqualTo(Resources.Load<Material>("Materials/SecurityWardenCrown")));
             Assert.That(securityWarden, Is.Not.Null, "Dormant security should exist before tower activation.");
             Assert.That(securityWarden.GetComponentsInChildren<Renderer>(true).Length, Is.EqualTo(3));
+            var wardenMeshes = securityWarden.GetComponentsInChildren<MeshFilter>(true).Select(filter => filter.sharedMesh).ToArray();
+            Assert.That(wardenMeshes.Length, Is.EqualTo(3));
+            Assert.That(wardenMeshes.All(mesh => mesh != null && mesh.vertexCount >= 24), Is.True,
+                "Every Warden part should use purpose-built geometry rather than a placeholder primitive.");
+            Assert.That(wardenMeshes.All(mesh => mesh.HasVertexAttribute(UnityEngine.Rendering.VertexAttribute.TexCoord0)), Is.True,
+                "Every Warden mesh should retain complete authored UV coordinates.");
             Assert.That(securityWarden.GetComponentsInChildren<Collider>(true).Length, Is.Zero,
                 "The authored Warden should remain presentation-only so deterministic threat collision stays authoritative.");
+            Assert.That(securityWarden.Find("Warden Chassis").localPosition, Is.EqualTo(new Vector3(0f, 0.38f, 0f)));
+            Assert.That(securityWarden.Find("Warden Eye").localPosition, Is.EqualTo(new Vector3(0f, 0.48f, -0.59f)));
+            Assert.That(securityWarden.Find("Warden Crown").localPosition, Is.EqualTo(new Vector3(0f, 0.76f, 0f)));
             Assert.That(securityWarden.Find("Warden Chassis").GetComponent<Renderer>().sharedMaterial.mainTexture,
                 Is.Not.Null, "The Warden chassis should render the original armored security texture.");
             Assert.That(securityWarden.gameObject.activeSelf, Is.False,

@@ -31,6 +31,7 @@
 - [x] Replace the maintenance drone's placeholder primitive meshes with a UV-mapped Blender-authored model
 - [x] Persist the maintenance drone's mapped URP materials on its prefab outside Play Mode
 - [x] Migrate the Security Warden into a textured authored prefab without changing pursuit, damage, or health
+- [x] Replace the Security Warden's placeholder primitives with a UV-mapped Blender model and persistent URP materials
 - [x] Add a Signal-cost shortcut gate and first route choice
 - [x] Add a second enemy archetype that pressures powered territory
 - [x] Telegraph the Sapper's tower target and timed drain pulses in-world
