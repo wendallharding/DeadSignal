@@ -834,3 +834,61 @@ Matching editor: `C:\Program Files\Unity\Hub\Editor\6000.3.11f1\Editor\Unity.exe
 ### Best next step
 
 Play one complete run with headphones and speakers, balance ambience/cue levels while checking the four-option pause grid at 16:9 and ultrawide, then create the first Windows development build and build-validation test.
+
+## 2026-08-21 — Autonomous Run 15
+
+### Today's single idea
+
+Add **adaptive Signal dust**: an original, bounded ambient particle field becomes brighter and denser in powered territory, fades to sparse cold motes in the dead zone, and reinforces the shared-Signal state without changing any rule or balance value.
+
+### Player benefit and acceptance criteria
+
+Players can now read the safety boundary from motion and atmosphere as well as floor color, making the powered-territory bargain more immediate during movement. This run is accepted when:
+
+- one dedicated Reflex-composed presenter owns the complete effect and loads original transparent art from Resources;
+- powered territory emits visibly denser cyan motes than the dead zone, with brightness responding to remaining Signal and High Contrast;
+- the complete effect uses no more than 56 live particles, contains no colliders or gameplay state, and destroys its runtime material cleanly;
+- pause explicitly freezes the particle simulation and resume restarts it;
+- PlayMode coverage proves art loading, the fixed budget, pause/resume, powered/dead state transitions, and the complete existing controller/combat/objective/restart flow; and
+- Unity compilation and the deterministic EditMode suite remain green.
+
+### Files and systems changed
+
+- `Assets/DeadSignal/Runtime/SignalDustController.cs` and Unity-generated `.meta`: added `ISignalDust` plus a focused MonoBehaviour that owns a 56-particle world-space field, runtime URP particle material, powered/dead emission and tint state, Signal-level brightness, high-contrast subscription cleanup, pause control, and safe missing-shader fallback.
+- `Assets/DeadSignal/Runtime/DeadSignalBootstrap.cs`: adds and registers the presenter through the existing Reflex container.
+- `Assets/DeadSignal/Runtime/DeadSignalGame.cs`: injects/configures/ticks the presenter, exposes narrow smoke-test state, coordinates pause, and refactors the coordinator's repeated pause-option polling into `_handlePauseInput`.
+- `Assets/DeadSignal/Runtime/ComfortSettings.cs`: exposes the existing High Contrast change as an event so independently composed presentation services can respond immediately.
+- `Assets/DeadSignal/Resources/VFX/SignalDustMote.png` and Unity-generated `.meta`: added an original transparent 1254x1254 white/cyan fractured-circuit mote generated with the built-in image tool. Unity imports it clamped at 512px with alpha transparency and mipmaps; SHA-256 is `510A9D1BDE70070A28843B6D75170AE1D503A6B7A0B571E767F0F33732878FFC`.
+- `Assets/DeadSignal/Tests/PlayMode/BootstrapSmokeTests.cs`: verifies Reflex composition, resource loading, the 56-particle cap, pause/resume simulation state, and powered-versus-dead emission density inside the full regression flow.
+- `GAME_VISION.md`, `BACKLOG.md`, and `DEVLOG.md`: record the accepted presentation feature without changing the core pitch.
+
+No packages, assembly definitions, scenes, prefabs, shaders, project settings, serialized gameplay data, deterministic rules, input bindings, or balance values were intentionally changed.
+
+### Tests run and exact outcomes
+
+Matching editor: `C:\Program Files\Unity\Hub\Editor\6000.3.11f1\Editor\Unity.exe` (Unity 6000.3.11f1) against the live workspace.
+
+1. Initial import/compile wrote `Logs/run15-compile.log`: Unity returned `1`; compilation found `CS1061` because `IComfortSettings` did not yet publish its existing High Contrast state change. The interface and implementation now publish `HighContrastChanged`.
+2. Corrected import/compile wrote `Logs/run15-compile-fixed.log`: Unity returned `0`, generated both new `.meta` files, imported the PNG and compiled the changed runtime/test assemblies successfully.
+3. EditMode regression wrote `Logs/run15-editmode-results.xml` and `Logs/run15-editmode.log`: Unity returned `0`; `12/12` passed, `0` failed, `0` skipped, `0` inconclusive in `0.048886` seconds.
+4. PlayMode regression wrote `Logs/run15-playmode-results.xml` and `Logs/run15-playmode.log`: Unity returned `0`; `1/1` passed, `0` failed, `0` skipped, `0` inconclusive in `3.6848823` seconds. It directly proved Signal-dust composition, texture loading, particle budget, pause/resume, powered/dead density changes, and every prior audio, input, comfort, combat, Sapper, salvage, shortcut, extraction, and restart assertion.
+5. The generated PNG was visually inspected at its project path. Pixel inspection reported 1254x1254 `Format32bppArgb`, sampled corner alpha values `0, 0, 1`, and opaque center alpha `253`.
+6. Final metadata reimport/compilation wrote `Logs/run15-final-compile.log`: Unity returned `0` after accepting the 512px, clamped, alpha-aware particle import settings.
+7. Final PlayMode regression wrote `Logs/run15-final-playmode-results.xml` and `Logs/run15-final-playmode.log`: Unity returned `0`; `1/1` passed, `0` failed, `0` skipped, `0` inconclusive in `3.7013273` seconds.
+8. Strict corrected/final log scans and final `git diff --check` found no C# compiler errors/warnings, null or missing-reference exceptions, unhandled exceptions, assertion failures, or failed-test markers. Unity emitted the existing transient licensing handshake/access-token messages before resolving entitlements and completing every corrected/final operation.
+
+### Bugs found and fixed
+
+- Added the missing High Contrast change event after the first Unity compile proved independently composed presentation could not observe the existing persisted toggle.
+- No gameplay or automated-test regression was found.
+
+### Known limitations
+
+- Headless validation proves object construction, resource integration, simulation state, performance cap, and state transitions, but cannot judge mote scale, density, overdraw, floor contrast, or motion comfort at 16:9 and ultrawide.
+- The generated source remains intentionally oversized for iteration, but Unity now imports a 512px version. It should be considered for a future VFX atlas after the presentation direction stabilizes.
+- The effect is a single arena-wide field whose global tint/density follows the player's current zone. It does not spatially clip individual motes to irregular powered boundaries.
+- The fixed runtime-built arena, absent remappable Input Actions/platform glyphs, untested subjective audio mix, and lack of a standalone build remain unchanged.
+
+### Best next step
+
+Play one complete run at 16:9 and ultrawide to tune mote size/density alongside the new soundscape, then create the first Windows development build and build-validation test.

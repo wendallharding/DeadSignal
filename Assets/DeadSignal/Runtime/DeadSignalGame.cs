@@ -24,6 +24,7 @@ namespace DeadSignal
         private IComfortSettings m_comfortSettings;
         private IDeadSignalHud m_hud;
         private IObjectiveBeacon m_objectiveBeacon;
+        private ISignalDust m_signalDust;
         private Container m_container;
         private bool m_lastPoweredState;
         private bool m_fireBuffered;
@@ -39,6 +40,10 @@ namespace DeadSignal
         public bool HasInputLinkIcon => m_hud?.HasInputLinkIcon ?? false;
         public bool HasAudioLinkIcon => m_hud?.HasAudioLinkIcon ?? false;
         public bool HasGeneratedAudio => m_audio?.HasGeneratedClips ?? false;
+        public bool HasSignalDustTexture => m_signalDust?.HasTexture ?? false;
+        public bool IsSignalDustPowered => m_signalDust?.IsPowered ?? false;
+        public int SignalDustMaximumParticles => m_signalDust?.MaximumParticles ?? 0;
+        public float SignalDustEmissionRate => m_signalDust?.EmissionRate ?? 0f;
         public bool IsAudioEnabled => m_comfortSettings?.AudioEnabled ?? true;
         public InputPromptDevice ActiveInputPromptDevice => m_input?.ActivePromptDevice ?? InputPromptDevice.KeyboardMouse;
         public ObjectiveBeaconPhase CurrentObjectiveBeaconPhase => m_objectiveBeacon?.CurrentPhase ?? ObjectiveBeaconPhase.Tower;
@@ -99,6 +104,7 @@ namespace DeadSignal
             IDeadSignalAudio audio,
             IDeadSignalHud hud,
             IObjectiveBeacon objectiveBeacon,
+            ISignalDust signalDust,
             Container container)
         {
             m_combatFeedback = combatFeedback;
@@ -107,6 +113,7 @@ namespace DeadSignal
             m_audio = audio;
             m_hud = hud;
             m_objectiveBeacon = objectiveBeacon;
+            m_signalDust = signalDust;
             m_container = container;
         }
 
@@ -124,34 +131,13 @@ namespace DeadSignal
             m_hud.Configure(m_model, m_metrics, m_world, m_threats);
             m_objectiveBeacon.Configure(m_model, m_world);
             m_lastPoweredState = m_world.IsPowered(m_world.Player.position, m_model.TowerOnline);
+            m_signalDust.Configure();
+            m_signalDust.Tick(m_lastPoweredState, m_model.TowerOnline, m_model.Signal / RunModel.MaximumSignal);
         }
 
         private void Update()
         {
-            if (m_model.Outcome == RunOutcome.Running && m_input.PressedPause())
-            {
-                _setPaused(!IsPaused);
-            }
-
-            if (IsPaused && m_input.PressedCameraImpulseToggle())
-            {
-                ToggleCameraImpulse();
-            }
-
-            if (IsPaused && m_input.PressedReducedFlashesToggle())
-            {
-                ToggleReducedFlashes();
-            }
-
-            if (IsPaused && m_input.PressedHighContrastToggle())
-            {
-                ToggleHighContrast();
-            }
-
-            if (IsPaused && m_input.PressedAudioToggle())
-            {
-                ToggleAudio();
-            }
+            _handlePauseInput();
 
             if (m_combatFeedback.IsFrozen)
             {
@@ -187,6 +173,7 @@ namespace DeadSignal
             bool powered = m_world.IsPowered(m_world.Player.position, m_model.TowerOnline);
             m_audio.Tick(powered, m_model.TowerOnline, m_model.Signal / RunModel.MaximumSignal);
             m_model.Advance(dt, movement.sqrMagnitude > 0.01f, powered);
+            m_signalDust.Tick(powered, m_model.TowerOnline, m_model.Signal / RunModel.MaximumSignal);
             m_metrics.Advance(dt, powered);
             if (powered != m_lastPoweredState)
             {
@@ -237,6 +224,39 @@ namespace DeadSignal
                 PLAYER_COLLISION_RADIUS,
                 m_model.ShortcutOpen);
             return movement;
+        }
+
+        private void _handlePauseInput()
+        {
+            if (m_model.Outcome == RunOutcome.Running && m_input.PressedPause())
+            {
+                _setPaused(!IsPaused);
+            }
+
+            if (!IsPaused)
+            {
+                return;
+            }
+
+            if (m_input.PressedCameraImpulseToggle())
+            {
+                ToggleCameraImpulse();
+            }
+
+            if (m_input.PressedReducedFlashesToggle())
+            {
+                ToggleReducedFlashes();
+            }
+
+            if (m_input.PressedHighContrastToggle())
+            {
+                ToggleHighContrast();
+            }
+
+            if (m_input.PressedAudioToggle())
+            {
+                ToggleAudio();
+            }
         }
 
         private void _handleInteraction()
@@ -302,6 +322,7 @@ namespace DeadSignal
         {
             m_combatFeedback.SetPaused(paused);
             m_audio.SetPaused(paused);
+            m_signalDust.SetPaused(paused);
         }
     }
 }

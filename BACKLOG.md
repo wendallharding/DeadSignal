@@ -25,7 +25,7 @@
 - [x] Add a safe pause/resume overlay for keyboard and controller
 - [x] Add combat hit-stop, camera impulse, and generated impact-burst feedback
 - [x] Add adaptive procedural Signal ambience, distinct gameplay cues, and persisted mute control
-- [ ] Add broader ambient particles
+- [x] Add adaptive powered/dead-zone Signal-dust particles with a fixed performance budget
 - [ ] Tune resource economy from recorded five-minute play sessions
 - [x] Add an end-of-run performance report for balance sessions
 - [x] Add dynamic tower, nearest-salvage, and extraction objective guidance

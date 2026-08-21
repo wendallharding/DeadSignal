@@ -41,6 +41,7 @@ namespace DeadSignal
             var combatFeedback = root.AddComponent<CombatFeedbackController>();
             var hud = root.AddComponent<DeadSignalHud>();
             var objectiveBeacon = root.AddComponent<ObjectiveBeaconHud>();
+            var signalDust = root.AddComponent<SignalDustController>();
             root.AddComponent<DeadSignalGame>();
 
             Container container = new ContainerBuilder()
@@ -51,6 +52,7 @@ namespace DeadSignal
                 .RegisterValue(combatFeedback, new[] { typeof(ICombatFeedback) })
                 .RegisterValue(hud, new[] { typeof(IDeadSignalHud) })
                 .RegisterValue(objectiveBeacon, new[] { typeof(IObjectiveBeacon) })
+                .RegisterValue(signalDust, new[] { typeof(ISignalDust) })
                 .Build();
             GameObjectInjector.InjectObject(root, container);
             root.SetActive(true);

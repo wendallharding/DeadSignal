@@ -12,6 +12,7 @@ namespace DeadSignal
 
         event Action<bool> CameraImpulseChanged;
         event Action<bool> ReducedFlashesChanged;
+        event Action<bool> HighContrastChanged;
         event Action<bool> AudioEnabledChanged;
 
         void ToggleCameraImpulse();
@@ -45,6 +46,7 @@ namespace DeadSignal
 
         public event Action<bool> CameraImpulseChanged;
         public event Action<bool> ReducedFlashesChanged;
+        public event Action<bool> HighContrastChanged;
         public event Action<bool> AudioEnabledChanged;
 
         public void ToggleCameraImpulse()
@@ -65,6 +67,7 @@ namespace DeadSignal
         {
             HighContrastEnabled = !HighContrastEnabled;
             _savePreference(HIGH_CONTRAST_KEY, HighContrastEnabled);
+            HighContrastChanged?.Invoke(HighContrastEnabled);
         }
 
         public void ToggleAudio()

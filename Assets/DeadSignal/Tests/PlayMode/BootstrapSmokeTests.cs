@@ -43,6 +43,12 @@ namespace DeadSignal.Tests
             Assert.That(game.HasInputLinkIcon, Is.True, "The generated input-link icon should load from Resources.");
             Assert.That(game.HasAudioLinkIcon, Is.True, "The generated audio-link icon should load from Resources.");
             Assert.That(game.HasGeneratedAudio, Is.True, "The runtime audio service should synthesize ambience and cue clips.");
+            Assert.That(Object.FindFirstObjectByType<SignalDustController>(), Is.Not.Null,
+                "Reflex composition should provide a dedicated ambient Signal-dust presenter.");
+            Assert.That(game.HasSignalDustTexture, Is.True, "The original Signal-dust texture should load from Resources.");
+            Assert.That(game.SignalDustMaximumParticles, Is.EqualTo(56), "Ambient particles should stay within their fixed budget.");
+            Assert.That(game.IsSignalDustPowered, Is.True, "The extraction dock should begin with powered Signal dust.");
+            Assert.That(game.transform.Find("Adaptive Signal Dust Field"), Is.Not.Null);
             Assert.That(game.ActiveInputPromptDevice, Is.EqualTo(InputPromptDevice.KeyboardMouse),
                 "A fresh run should begin with keyboard-and-mouse guidance until controller input is received.");
             Assert.That(game.CurrentObjectiveBeaconPhase, Is.EqualTo(ObjectiveBeaconPhase.Tower));
@@ -77,6 +83,9 @@ namespace DeadSignal.Tests
                 Assert.That(Time.timeScale, Is.Zero);
                 yield return new WaitForSecondsRealtime(0.1f);
                 Assert.That(game.CurrentSignal, Is.EqualTo(signalBeforePause), "Signal must not drain while paused.");
+
+                ParticleSystem signalDust = game.transform.Find("Adaptive Signal Dust Field").GetComponent<ParticleSystem>();
+                Assert.That(signalDust.isPaused, Is.True, "Time-scale pause should also freeze ambient Signal dust.");
 
                 InputSystem.QueueStateEvent(gamepad, new GamepadState().WithButton(GamepadButton.DpadLeft));
                 yield return null;
@@ -175,6 +184,17 @@ namespace DeadSignal.Tests
                 yield return null;
                 Assert.That(game.IsPaused, Is.False, "Gamepad Menu should resume a paused game.");
                 Assert.That(Time.timeScale, Is.EqualTo(1f));
+                Assert.That(signalDust.isPlaying, Is.True, "Ambient Signal dust should resume with the run.");
+
+                player.position = new Vector3(7.5f, 0f, -4f);
+                yield return null;
+                Assert.That(game.IsSignalDustPowered, Is.False, "Dead zones should switch the ambient field to its sparse state.");
+                float deadDustRate = game.SignalDustEmissionRate;
+                player.position = startingPosition;
+                yield return null;
+                Assert.That(game.IsSignalDustPowered, Is.True);
+                Assert.That(game.SignalDustEmissionRate, Is.GreaterThan(deadDustRate),
+                    "Powered territory should carry a visibly denser Signal-dust field.");
 
                 Camera gameCamera = game.GetComponentInChildren<Camera>();
                 Vector3 cameraRestPosition = gameCamera.transform.position;
