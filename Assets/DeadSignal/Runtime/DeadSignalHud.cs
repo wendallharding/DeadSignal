@@ -7,6 +7,7 @@ namespace DeadSignal
     {
         bool HasPauseInsignia { get; }
         bool HasCameraComfortIcon { get; }
+        bool HasReducedFlashesIcon { get; }
 
         void Configure(RunModel model, RunMetrics metrics, DeadSignalWorld world, DeadSignalThreatController threats);
         void ShowFeedback(string message);
@@ -32,11 +33,13 @@ namespace DeadSignal
         private GUIStyle m_reportStyle;
         private Texture2D m_pauseInsignia;
         private Texture2D m_cameraComfortIcon;
+        private Texture2D m_reducedFlashesIcon;
         private float m_feedbackTimer;
         private string m_feedback = string.Empty;
 
         public bool HasPauseInsignia => m_pauseInsignia != null;
         public bool HasCameraComfortIcon => m_cameraComfortIcon != null;
+        public bool HasReducedFlashesIcon => m_reducedFlashesIcon != null;
 
         [Inject]
         private void _construct(ICombatFeedback combatFeedback, IComfortSettings comfortSettings)
@@ -57,6 +60,7 @@ namespace DeadSignal
             m_threats = threats;
             m_pauseInsignia = Resources.Load<Texture2D>("UI/MaintenanceNetworkInsignia");
             m_cameraComfortIcon = Resources.Load<Texture2D>("UI/SteadyCameraIcon");
+            m_reducedFlashesIcon = Resources.Load<Texture2D>("UI/ReducedFlashesIcon");
         }
 
         void IDeadSignalHud.ShowFeedback(string message)
@@ -212,24 +216,44 @@ namespace DeadSignal
             GUI.Label(new Rect(0f, Screen.height * 0.5f - 40f, Screen.width, 32f),
                 "Signal drain, threats, projectiles, and run time are frozen.", m_reportStyle);
 
-            var comfortPanel = new Rect(Screen.width * 0.5f - 220f, Screen.height * 0.5f + 4f, 440f, 82f);
+            var comfortPanel = new Rect(Screen.width * 0.5f - 220f, Screen.height * 0.5f + 4f, 440f, 76f);
             GUI.color = new Color(0.025f, 0.07f, 0.085f, 0.98f);
             GUI.Box(comfortPanel, GUIContent.none);
             GUI.color = Color.white;
             if (m_cameraComfortIcon != null)
             {
-                GUI.DrawTexture(new Rect(comfortPanel.x + 12f, comfortPanel.y + 9f, 64f, 64f),
+                GUI.DrawTexture(new Rect(comfortPanel.x + 15f, comfortPanel.y + 8f, 60f, 60f),
                     m_cameraComfortIcon, ScaleMode.ScaleToFit, true);
             }
 
-            GUI.Label(new Rect(comfortPanel.x + 88f, comfortPanel.y + 12f, 330f, 24f), "STEADY CAMERA", m_labelStyle);
+            GUI.Label(new Rect(comfortPanel.x + 88f, comfortPanel.y + 9f, 330f, 24f), "STEADY CAMERA", m_labelStyle);
             GUI.color = m_comfortSettings.CameraImpulseEnabled ? new Color(0.08f, 0.96f, 1f) : new Color(1f, 0.68f, 0.12f);
-            GUI.Label(new Rect(comfortPanel.x + 88f, comfortPanel.y + 38f, 330f, 26f),
+            GUI.Label(new Rect(comfortPanel.x + 88f, comfortPanel.y + 35f, 330f, 26f),
                 m_comfortSettings.CameraImpulseEnabled ? "C / Y  CAMERA IMPULSE ON" : "C / Y  CAMERA IMPULSE OFF",
                 m_smallStyle);
 
+            var flashPanel = new Rect(Screen.width * 0.5f - 220f, Screen.height * 0.5f + 88f, 440f, 76f);
+            GUI.color = new Color(0.025f, 0.07f, 0.085f, 0.98f);
+            GUI.Box(flashPanel, GUIContent.none);
             GUI.color = Color.white;
-            GUI.Label(new Rect(0f, Screen.height * 0.5f + 100f, Screen.width, 36f),
+            if (m_reducedFlashesIcon != null)
+            {
+                GUI.DrawTexture(new Rect(flashPanel.x + 15f, flashPanel.y + 8f, 60f, 60f),
+                    m_reducedFlashesIcon, ScaleMode.ScaleToFit, true);
+            }
+
+            GUI.Label(new Rect(flashPanel.x + 88f, flashPanel.y + 9f, 330f, 24f), "REDUCED FLASHES", m_labelStyle);
+            GUI.color = m_comfortSettings.ReducedFlashesEnabled
+                ? new Color(0.08f, 0.96f, 1f)
+                : new Color(1f, 0.68f, 0.12f);
+            GUI.Label(new Rect(flashPanel.x + 88f, flashPanel.y + 35f, 330f, 26f),
+                m_comfortSettings.ReducedFlashesEnabled
+                    ? "F / D-PAD DOWN  REDUCTION ON"
+                    : "F / D-PAD DOWN  REDUCTION OFF",
+                m_smallStyle);
+
+            GUI.color = Color.white;
+            GUI.Label(new Rect(0f, Screen.height * 0.5f + 178f, Screen.width, 36f),
                 "PRESS ESC / GAMEPAD MENU TO RESUME", m_centerStyle);
         }
 

@@ -12,6 +12,7 @@ namespace DeadSignal
         private readonly Transform[] m_reticleBrackets = new Transform[4];
 
         private Transform m_sapper;
+        private IComfortSettings m_comfortSettings;
         private Vector3 m_towerPosition;
         private LineRenderer m_tether;
         private GameObject m_pulseFlash;
@@ -25,10 +26,17 @@ namespace DeadSignal
         public float DisplayedCountdown => m_pulseSecondsRemaining;
         public bool PulseFlashVisible => m_pulseFlash != null && m_pulseFlash.activeSelf;
 
-        public void Configure(Transform sapper, Vector3 towerPosition, Material brightMaterial, Material dimMaterial)
+        internal void Configure(
+            Transform sapper,
+            Vector3 towerPosition,
+            Material brightMaterial,
+            Material dimMaterial,
+            IComfortSettings comfortSettings)
         {
             m_sapper = sapper;
             m_towerPosition = towerPosition;
+            m_comfortSettings = comfortSettings;
+            m_comfortSettings.ReducedFlashesChanged += _handleReducedFlashesChanged;
 
             var tetherObject = new GameObject("Sapper Target Tether");
             tetherObject.transform.SetParent(transform, false);
@@ -76,7 +84,7 @@ namespace DeadSignal
 
         public void NotifyPulse()
         {
-            if (!IsVisible)
+            if (!IsVisible || m_comfortSettings.ReducedFlashesEnabled)
             {
                 return;
             }
@@ -110,6 +118,14 @@ namespace DeadSignal
             _updatePulseFlash();
         }
 
+        private void OnDestroy()
+        {
+            if (m_comfortSettings != null)
+            {
+                m_comfortSettings.ReducedFlashesChanged -= _handleReducedFlashesChanged;
+            }
+        }
+
         private float _reticleRadius()
         {
             if (!m_isLatched)
@@ -141,19 +157,30 @@ namespace DeadSignal
 
         private GameObject _createPrimitive(string objectName, PrimitiveType type, Vector3 scale, Material material)
         {
-            GameObject visual = GameObject.CreatePrimitive(type);
+            var visual = GameObject.CreatePrimitive(type);
             visual.name = objectName;
             visual.transform.SetParent(transform, false);
             visual.transform.localScale = scale;
             visual.GetComponent<Renderer>().sharedMaterial = material;
 
-            Collider primitiveCollider = visual.GetComponent<Collider>();
+            var primitiveCollider = visual.GetComponent<Collider>();
             if (primitiveCollider != null)
             {
                 Destroy(primitiveCollider);
             }
 
             return visual;
+        }
+
+        private void _handleReducedFlashesChanged(bool enabled)
+        {
+            if (!enabled || m_pulseFlash == null)
+            {
+                return;
+            }
+
+            m_flashTimer = 0f;
+            m_pulseFlash.SetActive(false);
         }
     }
 }

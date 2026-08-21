@@ -35,6 +35,7 @@ namespace DeadSignal.Tests
             Assert.That(Camera.main != null || Object.FindFirstObjectByType<Camera>() != null, Is.True);
             Assert.That(game.HasPauseInsignia, Is.True, "The generated pause-menu insignia should load from Resources.");
             Assert.That(game.HasCameraComfortIcon, Is.True, "The generated Steady Camera icon should load from Resources.");
+            Assert.That(game.HasReducedFlashesIcon, Is.True, "The generated Reduced Flashes icon should load from Resources.");
             Assert.That(game.HasObjectiveBeaconIcon, Is.True, "The generated objective beacon icon should load from Resources.");
             Assert.That(game.CurrentObjectiveBeaconPhase, Is.EqualTo(ObjectiveBeaconPhase.Tower));
             Assert.That(game.CurrentObjectiveBeaconTarget, Is.EqualTo(new Vector3(-0.6f, 0f, 0.4f)));
@@ -47,6 +48,8 @@ namespace DeadSignal.Tests
             Vector3 startingPosition = player.position;
             bool hadCameraImpulsePreference = PlayerPrefs.HasKey("DeadSignal.CameraImpulseEnabled");
             bool initialCameraImpulse = game.IsCameraImpulseEnabled;
+            bool hadReducedFlashesPreference = PlayerPrefs.HasKey("DeadSignal.ReducedFlashesEnabled");
+            bool initialReducedFlashes = game.IsReducedFlashesEnabled;
             try
             {
                 float signalBeforePause = game.CurrentSignal;
@@ -73,6 +76,29 @@ namespace DeadSignal.Tests
                 Assert.That(game.IsCameraImpulseEnabled, Is.EqualTo(initialCameraImpulse),
                     "The pause option should restore its prior camera-impulse state.");
 
+                InputSystem.QueueStateEvent(gamepad, new GamepadState().WithButton(GamepadButton.DpadDown));
+                yield return null;
+                Assert.That(game.IsReducedFlashesEnabled, Is.EqualTo(!initialReducedFlashes),
+                    "Gamepad d-pad down should toggle Reduced Flashes while paused.");
+                Assert.That(combatFeedback.ReducedFlashesEnabled, Is.EqualTo(game.IsReducedFlashesEnabled),
+                    "Reflex-composed combat feedback should share the reduced-flashes setting.");
+                Assert.That(PlayerPrefs.GetInt("DeadSignal.ReducedFlashesEnabled", -1),
+                    Is.EqualTo(game.IsReducedFlashesEnabled ? 1 : 0), "The reduced-flashes choice should persist for future runs.");
+
+                InputSystem.QueueStateEvent(gamepad, new GamepadState());
+                yield return null;
+                game.ToggleReducedFlashes();
+                Assert.That(game.IsReducedFlashesEnabled, Is.EqualTo(initialReducedFlashes),
+                    "The pause option should restore its prior reduced-flashes state.");
+
+                if (!game.IsReducedFlashesEnabled)
+                {
+                    game.ToggleReducedFlashes();
+                }
+
+                Assert.That(game.IsReducedFlashesEnabled, Is.True,
+                    "Reduced Flashes should be active for presentation validation.");
+
                 if (game.IsCameraImpulseEnabled)
                 {
                     game.ToggleCameraImpulse();
@@ -95,6 +121,8 @@ namespace DeadSignal.Tests
                 Transform impactBurst = combatFeedback.transform.Find("Combat Impact Burst");
                 Assert.That(impactBurst, Is.Not.Null);
                 Assert.That(impactBurst.GetComponent<SpriteRenderer>().sprite, Is.Not.Null);
+                Assert.That(impactBurst.GetComponent<SpriteRenderer>().color.a, Is.LessThanOrEqualTo(0.3f),
+                    "Reduced Flashes should cap combat-burst opacity without removing the hit confirmation.");
                 Vector3 cameraFacingDirection = -game.GetComponentInChildren<Camera>().transform.forward;
                 Assert.That(Vector3.Dot(impactBurst.forward, cameraFacingDirection), Is.GreaterThan(0.99f),
                     "The impact sprite should face the overhead camera.");
@@ -163,8 +191,8 @@ namespace DeadSignal.Tests
 
                 Assert.That(game.CurrentSignal, Is.LessThanOrEqualTo(signalBeforePulse - RunModel.SapperPulseCost),
                     "A latched sapper should pulse-drain Signal until destroyed.");
-                Assert.That(telegraph.PulseFlashVisible, Is.True,
-                    "A completed drain should trigger the expanding tower-floor flash.");
+                Assert.That(telegraph.PulseFlashVisible, Is.False,
+                    "Reduced Flashes should suppress the expanding floor flash while preserving the countdown.");
 
                 sapper.position = player.position + Vector3.forward * 2f;
                 InputSystem.QueueStateEvent(gamepad,
@@ -261,6 +289,15 @@ namespace DeadSignal.Tests
                 else
                 {
                     PlayerPrefs.DeleteKey("DeadSignal.CameraImpulseEnabled");
+                }
+
+                if (hadReducedFlashesPreference)
+                {
+                    PlayerPrefs.SetInt("DeadSignal.ReducedFlashesEnabled", initialReducedFlashes ? 1 : 0);
+                }
+                else
+                {
+                    PlayerPrefs.DeleteKey("DeadSignal.ReducedFlashesEnabled");
                 }
 
                 PlayerPrefs.Save();

@@ -28,7 +28,8 @@
 - [x] Add an end-of-run performance report for balance sessions
 - [x] Add dynamic tower, nearest-salvage, and extraction objective guidance
 - [x] Add a persisted Steady Camera comfort toggle to disable combat camera impulse
-- [ ] Add remaining accessibility settings (flash reduction and high contrast)
+- [x] Add a persisted Reduced Flashes mode for combat and Sapper feedback
+- [ ] Add remaining accessibility setting (high contrast)
 - [ ] Add a build-validation test and Windows development build
 
 ## P2 — MVP production

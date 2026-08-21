@@ -29,6 +29,7 @@ namespace DeadSignal
         private const float HEAVY_HIT_STOP = 0.06f;
         private const float IMPACT_DURATION = 0.22f;
         private const float SHAKE_DURATION = 0.16f;
+        private const float REDUCED_FLASH_ALPHA = 0.3f;
 
         private static readonly Color s_signalTint = Color.white;
         private static readonly Color s_securityTint = new(1f, 0.18f, 0.14f);
@@ -52,6 +53,7 @@ namespace DeadSignal
         public bool IsHitStopped => m_hitStopEndsAt > 0f;
         public bool HasImpactTexture => m_impactTexture != null;
         public bool CameraImpulseEnabled => m_comfortSettings?.CameraImpulseEnabled ?? true;
+        public bool ReducedFlashesEnabled => m_comfortSettings?.ReducedFlashesEnabled ?? false;
         public int ActiveImpactCount => m_impacts.Count;
 
         private sealed class ImpactVisual
@@ -168,7 +170,7 @@ namespace DeadSignal
 
             var spriteRenderer = root.AddComponent<SpriteRenderer>();
             spriteRenderer.sprite = m_impactSprite;
-            spriteRenderer.color = tint;
+            spriteRenderer.color = _impactColor(tint, 0f);
             spriteRenderer.sortingOrder = 30;
 
             m_impacts.Add(new ImpactVisual
@@ -212,7 +214,7 @@ namespace DeadSignal
                 float progress = Mathf.Clamp01(impact.Age / IMPACT_DURATION);
                 float easedProgress = 1f - Mathf.Pow(1f - progress, 3f);
                 impact.Root.transform.localScale = Vector3.one * Mathf.Lerp(0.12f, impact.TargetScale, easedProgress);
-                impact.Renderer.color = new Color(impact.Tint.r, impact.Tint.g, impact.Tint.b, 1f - progress);
+                impact.Renderer.color = _impactColor(impact.Tint, progress);
 
                 if (progress < 1f)
                 {
@@ -278,6 +280,12 @@ namespace DeadSignal
             {
                 m_targetCamera.transform.position = m_cameraRestPosition;
             }
+        }
+
+        private Color _impactColor(Color tint, float progress)
+        {
+            float maximumAlpha = ReducedFlashesEnabled ? REDUCED_FLASH_ALPHA : 1f;
+            return new Color(tint.r, tint.g, tint.b, maximumAlpha * (1f - progress));
         }
     }
 }

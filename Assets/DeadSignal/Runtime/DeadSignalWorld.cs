@@ -23,12 +23,12 @@ namespace DeadSignal
         private GameObject m_extractionBeacon;
         private GameObject m_shortcutGate;
 
-        public DeadSignalWorld(Transform root)
+        public DeadSignalWorld(Transform root, IComfortSettings comfortSettings)
         {
             m_root = root;
             _buildPresentation();
             _buildArena();
-            _buildActors();
+            _buildActors(comfortSettings);
         }
 
         public Vector3 ExtractionPosition { get; } = new(-9.2f, 0f, -5.6f);
@@ -271,7 +271,7 @@ namespace DeadSignal
                 false));
         }
 
-        private void _buildActors()
+        private void _buildActors(IComfortSettings comfortSettings)
         {
             var playerRoot = new GameObject("Maintenance Drone");
             playerRoot.transform.SetParent(m_root);
@@ -304,7 +304,7 @@ namespace DeadSignal
             var telegraphRoot = new GameObject("Sapper Drain Telegraph");
             telegraphRoot.transform.SetParent(m_root);
             SapperTelegraph = telegraphRoot.AddComponent<SignalSapperTelegraph>();
-            SapperTelegraph.Configure(Sapper, TowerPosition, m_palette.Magenta, m_palette.Magenta);
+            SapperTelegraph.Configure(Sapper, TowerPosition, m_palette.Magenta, m_palette.Magenta, comfortSettings);
 
             _createSalvage(new Vector3(9.7f, 0f, 6.3f));
             _createSalvage(new Vector3(10.4f, 0f, -6.4f));

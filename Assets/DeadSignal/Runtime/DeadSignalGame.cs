@@ -31,10 +31,12 @@ namespace DeadSignal
         public bool IsPaused => m_combatFeedback?.IsPaused ?? false;
         public bool HasPauseInsignia => m_hud?.HasPauseInsignia ?? false;
         public bool HasCameraComfortIcon => m_hud?.HasCameraComfortIcon ?? false;
+        public bool HasReducedFlashesIcon => m_hud?.HasReducedFlashesIcon ?? false;
         public bool HasObjectiveBeaconIcon => m_objectiveBeacon?.HasIcon ?? false;
         public ObjectiveBeaconPhase CurrentObjectiveBeaconPhase => m_objectiveBeacon?.CurrentPhase ?? ObjectiveBeaconPhase.Tower;
         public Vector3 CurrentObjectiveBeaconTarget => m_objectiveBeacon?.CurrentTarget ?? Vector3.zero;
         public bool IsCameraImpulseEnabled => m_comfortSettings?.CameraImpulseEnabled ?? true;
+        public bool IsReducedFlashesEnabled => m_comfortSettings?.ReducedFlashesEnabled ?? false;
 
         /// <summary>
         /// Toggles the persisted camera-impulse preference while the pause overlay is authoritative.
@@ -44,6 +46,17 @@ namespace DeadSignal
             if (IsPaused)
             {
                 m_comfortSettings.ToggleCameraImpulse();
+            }
+        }
+
+        /// <summary>
+        /// Toggles the persisted reduced-flashes preference while the pause overlay is authoritative.
+        /// </summary>
+        public void ToggleReducedFlashes()
+        {
+            if (IsPaused)
+            {
+                m_comfortSettings.ToggleReducedFlashes();
             }
         }
 
@@ -69,7 +82,7 @@ namespace DeadSignal
 
             m_model = new RunModel();
             m_metrics = new RunMetrics();
-            m_world = new DeadSignalWorld(transform);
+            m_world = new DeadSignalWorld(transform, m_comfortSettings);
             m_combatFeedback.Configure(m_world.Camera);
             m_threats = new DeadSignalThreatController(m_model, m_metrics, m_world, m_combatFeedback, _showFeedback);
             m_salvage = new DeadSignalSalvageController(m_model, m_world, _showFeedback);
@@ -88,6 +101,11 @@ namespace DeadSignal
             if (IsPaused && DeadSignalInput.PressedCameraImpulseToggle())
             {
                 ToggleCameraImpulse();
+            }
+
+            if (IsPaused && DeadSignalInput.PressedReducedFlashesToggle())
+            {
+                ToggleReducedFlashes();
             }
 
             if (m_combatFeedback.IsFrozen)

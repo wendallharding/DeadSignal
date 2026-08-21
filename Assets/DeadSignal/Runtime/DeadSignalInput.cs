@@ -93,5 +93,11 @@ namespace DeadSignal
             return (Keyboard.current != null && Keyboard.current.cKey.wasPressedThisFrame) ||
                    (Gamepad.current != null && Gamepad.current.buttonNorth.wasPressedThisFrame);
         }
+
+        public static bool PressedReducedFlashesToggle()
+        {
+            return (Keyboard.current != null && Keyboard.current.fKey.wasPressedThisFrame) ||
+                   (Gamepad.current != null && Gamepad.current.dpad.down.wasPressedThisFrame);
+        }
     }
 }

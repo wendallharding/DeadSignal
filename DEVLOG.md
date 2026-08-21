@@ -601,3 +601,59 @@ Matching editor: `C:\Program Files\Unity\Hub\Editor\6000.3.11f1\Editor\Unity.exe
 
 - The automated regression uses gamepad A because synthetic keyboard events have been unreliable in headless Unity; keyboard R and Enter execute the same restart branch and should receive one interactive confirmation.
 - Next manual check: complete or fail one run, restart once with R and once with gamepad A, and verify the HUD, objective beacon, threats, and camera all return cleanly.
+## 2026-08-20 - Autonomous Run 11
+
+### Today's single idea - persisted Reduced Flashes mode
+
+Player benefit: players who are sensitive to abrupt brightness changes can keep the combat and threat information needed to play while removing the strongest floor flash and lowering impact-burst opacity. The setting does not change hit-stop, camera impulse, countdown timing, damage, Signal costs, or enemy behavior.
+
+Acceptance criteria:
+
+- The pause overlay exposes Reduced Flashes through F and gamepad d-pad down, and the choice persists between runs.
+- With reduction enabled, combat bursts remain visible at no more than 30% opacity and retain their normal hit-stop and cleanup behavior.
+- The Sapper tether and rotating countdown remain readable, but its expanding tower-floor pulse flash is suppressed.
+- The pause UI loads an original transparent comfort icon and preserves the existing Steady Camera option.
+- PlayMode coverage proves the setting, persistence, shared Reflex state, presentation changes, and complete existing controller/restart flow.
+
+### Files and systems changed
+
+- `Assets/DeadSignal/Runtime/ComfortSettings.cs`: extended the existing Reflex-composed preference service with a persisted Reduced Flashes value, change event, and toggle.
+- `Assets/DeadSignal/Runtime/DeadSignalInput.cs`: added pause-only F and gamepad d-pad-down polling for the new option.
+- `Assets/DeadSignal/Runtime/DeadSignalGame.cs`: exposes the narrow option/icon test surface, handles the pause-authoritative toggle, and passes the shared preference into world composition.
+- `Assets/DeadSignal/Runtime/DeadSignalHud.cs`: loads the generated icon and presents a second compact comfort panel without changing the in-run HUD.
+- `Assets/DeadSignal/Runtime/CombatFeedbackController.cs`: keeps impact art and hit-stop but caps burst alpha at 30% while reduction is enabled.
+- `Assets/DeadSignal/Runtime/DeadSignalWorld.cs`: passes the shared comfort service explicitly to the runtime-created Sapper telegraph.
+- `Assets/DeadSignal/Runtime/SignalSapperTelegraph.cs`: suppresses and immediately clears the expanding floor flash when reduction is enabled while retaining the tether/countdown; this run's focused convention refactor also narrows its setup API to `internal` and replaces two apparent-type locals with `var`.
+- `Assets/DeadSignal/Resources/UI/ReducedFlashesIcon.png` and Unity-generated `.meta`: added an original 1254x1254 RGBA mechanical-iris comfort emblem generated with the built-in image tool. The final prompt requested a protective maintenance-drone iris around a softened signal burst, a white/cyan/amber worn-metal palette, strong 64-pixel readability, genuine transparency, and no text, logos, trademarks, watermark, or opaque backdrop. SHA-256: `FFBFA6A0358D7921E80344B91816938F84BEBE7F503A262BC400D7DE9446BF28`.
+- `Assets/DeadSignal/Tests/PlayMode/BootstrapSmokeTests.cs`: preserves any prior player preference and proves icon loading, gamepad toggle, persistence, shared Reflex state, capped burst opacity, suppressed Sapper floor flash, retained countdown/hit-stop, and the existing full runtime/restart path.
+- `GAME_VISION.md`: adds Reduced Flashes to first-playable acceptance without changing the core concept.
+- `BACKLOG.md`: marks flash reduction complete and leaves high contrast as the remaining accessibility item.
+- `DEVLOG.md`: records Run 11 scope, implementation, validation, risks, and next step.
+
+No packages, package versions, assembly definitions, scenes, prefabs, materials, shaders, audio, deterministic gameplay rules, balance values, project settings, serialized gameplay data, or generated source were intentionally changed.
+
+### Tests run and exact outcomes
+
+Matching editor: `C:\Program Files\Unity\Hub\Editor\6000.3.11f1\Editor\Unity.exe` against the live workspace.
+
+1. Initial import and compilation wrote `Logs/run11-compile.log`: Unity imported the new source and PNG, generated `ReducedFlashesIcon.png.meta`, compiled the runtime/test assemblies, and invoked a successful batch-mode shutdown.
+2. EditMode deterministic suite wrote `Logs/run11-editmode-results.xml` and `Logs/run11-editmode.log`: Unity return code `0`; `12/12` passed, `0` failed, `0` skipped, `0` inconclusive in `0.0436309` seconds.
+3. PlayMode full runtime/accessibility regression wrote `Logs/run11-playmode-results.xml` and `Logs/run11-playmode.log`: Unity return code `0`; `1/1` passed, `0` failed, `0` skipped, `0` inconclusive in `3.5992797` seconds.
+4. Final warmed-project compilation wrote `Logs/run11-final-compile.log`: Unity return code `0`; batch mode shut down successfully after the final source, test, asset, and documentation audit.
+5. Strict scans of both compile logs and both test logs found no C# compiler warnings/errors, null or missing-reference exceptions, unhandled exceptions, assertion failures, or failed-test markers. Each launch logged an initial licensing-channel handshake/access-token failure, then resolved both installed Unity Pro entitlements and completed the requested work.
+6. The generated PNG was visually inspected at its project path. Pixel inspection reported 1254x1254 `Format32bppArgb`, transparent corners (alpha 0, 0, 1, and 0), and opaque center content (alpha 253). PlayMode also proved that Unity imports and loads it from Resources.
+
+### Bugs found and fixed
+
+- No gameplay, compilation, or automated-test defect was found during this run.
+- The preference test restores or deletes both comfort PlayerPrefs keys in `finally`, preventing automation from overwriting a player's saved choices even if the test fails.
+
+### Known limitations
+
+- Headless PlayMode proves state and renderer behavior but cannot judge icon legibility, panel hierarchy, or the subjective brightness of the 30% burst at 16:9 and ultrawide resolutions.
+- Reduced Flashes targets the two strongest abrupt presentation events currently in the prototype. It does not replace platform-level photosensitivity review, and high-contrast mode remains open.
+- The generated 1254px source icon is intentionally oversized for iteration and should be resized or atlased after the UI direction stabilizes.
+
+### Best next step
+
+Run one keyboard/controller comfort-options pass at 16:9 and ultrawide with both options in every combination, then implement the remaining high-contrast accessibility setting without changing gameplay balance.
