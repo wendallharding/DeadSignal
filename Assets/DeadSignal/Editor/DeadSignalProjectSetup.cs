@@ -11,6 +11,7 @@ namespace DeadSignal.Editor
         private const string REFLEX_SETTINGS_PATH = RESOURCES_FOLDER + "/ReflexSettings.asset";
         private const string RUNTIME_LIT_MATERIAL_PATH = MATERIALS_FOLDER + "/RuntimeLitTemplate.mat";
         private const string RUNTIME_PARTICLE_MATERIAL_PATH = MATERIALS_FOLDER + "/RuntimeParticleTemplate.mat";
+        private const string TOWER_ACTIVATION_SWEEP_PATH = RESOURCES_FOLDER + "/VFX/TowerNetworkActivationSweep.png";
         private const string CREATE_REFLEX_SETTINGS_MENU = "Assets/Create/Reflex/Settings";
 
         public static bool HasReflexSettings =>
@@ -51,6 +52,21 @@ namespace DeadSignal.Editor
             _ensureMaterial(RUNTIME_LIT_MATERIAL_PATH, "Universal Render Pipeline/Lit");
             _ensureMaterial(RUNTIME_PARTICLE_MATERIAL_PATH, "Universal Render Pipeline/Particles/Unlit");
             AssetDatabase.SaveAssets();
+        }
+
+        public static void ConfigureTowerActivationSweepTexture()
+        {
+            var importer = AssetImporter.GetAtPath(TOWER_ACTIVATION_SWEEP_PATH) as TextureImporter;
+            if (importer == null)
+            {
+                throw new InvalidOperationException($"Could not find the tower activation sweep at {TOWER_ACTIVATION_SWEEP_PATH}.");
+            }
+
+            importer.alphaIsTransparency = true;
+            importer.mipmapEnabled = false;
+            importer.maxTextureSize = 1024;
+            importer.wrapMode = TextureWrapMode.Clamp;
+            importer.SaveAndReimport();
         }
 
         private static void _ensureMaterial(string assetPath, string shaderName)

@@ -48,6 +48,12 @@ namespace DeadSignal.Tests
             Assert.That(game.HasSignalDustTexture, Is.True, "The original Signal-dust texture should load from Resources.");
             Assert.That(game.HasLowSignalWarningTexture, Is.True,
                 "The low-Signal presenter should load its original warning vignette from Resources.");
+            Assert.That(Object.FindFirstObjectByType<TowerActivationSweepController>(), Is.Not.Null,
+                "Reflex composition should provide a dedicated tower-activation presenter.");
+            Assert.That(game.HasTowerActivationSweepTexture, Is.True,
+                "The tower-activation presenter should load its original circuit-ring texture from Resources.");
+            Assert.That(game.IsTowerActivationSweepPlaying, Is.False,
+                "The activation sweep should remain hidden while the tower is dormant.");
             Assert.That(game.LowSignalWarningIntensity, Is.Zero,
                 "The emergency vignette should stay hidden while the starting Signal reserve is safe.");
             Assert.That(game.SignalDustMaximumParticles, Is.EqualTo(56), "Ambient particles should stay within their fixed budget.");
@@ -241,6 +247,30 @@ namespace DeadSignal.Tests
 
                 Assert.That(game.transform.Find("Security Warden").gameObject.activeSelf, Is.True,
                     "Gamepad west button should activate the nearby tower and awaken security.");
+                Assert.That(game.IsTowerActivationSweepPlaying, Is.True,
+                    "Tower activation should launch one visible network-expansion sweep.");
+                Assert.That(game.transform.Find("Tower Network Activation Sweep"), Is.Not.Null);
+                Assert.That(game.TowerActivationSweepAlpha, Is.LessThanOrEqualTo(0.28f),
+                    "Reduced Flashes should cap the activation sweep without removing it.");
+                var initialSweepDiameter = game.TowerActivationSweepDiameter;
+                yield return new WaitForSeconds(0.12f);
+                Assert.That(game.TowerActivationSweepDiameter, Is.GreaterThan(initialSweepDiameter),
+                    "The activation sweep should expand from the tower toward the powered boundary.");
+                Assert.That(game.TowerActivationSweepAlpha, Is.GreaterThan(0f).And.LessThanOrEqualTo(0.28f),
+                    "Reduced Flashes should preserve a visible activation cue within its opacity cap.");
+                Assert.That(game.TowerActivationSweepDiameter, Is.LessThanOrEqualTo(game.TowerActivationSweepMaximumDiameter));
+                InputSystem.QueueStateEvent(gamepad, new GamepadState().WithButton(GamepadButton.Start));
+                yield return null;
+                Assert.That(game.IsPaused, Is.True);
+                var pausedSweepDiameter = game.TowerActivationSweepDiameter;
+                yield return new WaitForSecondsRealtime(0.08f);
+                Assert.That(game.TowerActivationSweepDiameter, Is.EqualTo(pausedSweepDiameter),
+                    "Pause should freeze the activation sweep with the rest of the run.");
+                InputSystem.QueueStateEvent(gamepad, new GamepadState());
+                yield return null;
+                InputSystem.QueueStateEvent(gamepad, new GamepadState().WithButton(GamepadButton.Start));
+                yield return null;
+                Assert.That(game.IsPaused, Is.False);
                 Assert.That(audio.PlayedCueCount, Is.GreaterThan(cuesBeforeTower),
                     "Tower activation should produce an audible state-change cue when audio is enabled.");
                 Assert.That(audio.PoweredVolume, Is.GreaterThan(0f),

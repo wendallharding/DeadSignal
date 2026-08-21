@@ -42,7 +42,8 @@ namespace DeadSignal
                                 game.transform.Find("Maintenance Drone") != null &&
                                 game.transform.Find("Signal Shortcut Gate") != null &&
                                 game.HasGeneratedAudio &&
-                                game.HasLowSignalWarningTexture;
+                                game.HasLowSignalWarningTexture &&
+                                game.HasTowerActivationSweepTexture;
             if (!runtimeReady)
             {
                 Debug.LogError("[DEAD SIGNAL STANDALONE SMOKE] FAIL | Runtime composition is incomplete.");

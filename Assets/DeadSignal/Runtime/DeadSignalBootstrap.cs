@@ -43,6 +43,7 @@ namespace DeadSignal
             var objectiveBeacon = root.AddComponent<ObjectiveBeaconHud>();
             var signalDust = root.AddComponent<SignalDustController>();
             var lowSignalWarning = root.AddComponent<LowSignalWarningController>();
+            var towerActivationSweep = root.AddComponent<TowerActivationSweepController>();
             root.AddComponent<DeadSignalGame>();
 
             var container = new ContainerBuilder()
@@ -55,6 +56,7 @@ namespace DeadSignal
                 .RegisterValue(objectiveBeacon, new[] { typeof(IObjectiveBeacon) })
                 .RegisterValue(signalDust, new[] { typeof(ISignalDust) })
                 .RegisterValue(lowSignalWarning, new[] { typeof(ILowSignalWarning) })
+                .RegisterValue(towerActivationSweep, new[] { typeof(ITowerActivationSweep) })
                 .Build();
             GameObjectInjector.InjectObject(root, container);
             root.SetActive(true);

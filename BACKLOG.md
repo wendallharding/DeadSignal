@@ -26,6 +26,7 @@
 - [x] Add combat hit-stop, camera impulse, and generated impact-burst feedback
 - [x] Add adaptive procedural Signal ambience, distinct gameplay cues, and persisted mute control
 - [x] Add adaptive powered/dead-zone Signal-dust particles with a fixed performance budget
+- [x] Add a pause-safe, Reduced-Flashes-aware network activation sweep with original circuit art
 - [x] Add an adaptive low-Signal edge warning that respects Reduced Flashes
 - [ ] Tune resource economy from recorded five-minute play sessions
 - [x] Add an end-of-run performance report for balance sessions

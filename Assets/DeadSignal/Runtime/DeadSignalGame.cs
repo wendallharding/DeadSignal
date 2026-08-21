@@ -26,6 +26,7 @@ namespace DeadSignal
         private IObjectiveBeacon m_objectiveBeacon;
         private ISignalDust m_signalDust;
         private ILowSignalWarning m_lowSignalWarning;
+        private ITowerActivationSweep m_towerActivationSweep;
         private Container m_container;
         private bool m_lastPoweredState;
         private bool m_fireBuffered;
@@ -47,6 +48,11 @@ namespace DeadSignal
         public bool IsSignalDustPowered => m_signalDust?.IsPowered ?? false;
         public int SignalDustMaximumParticles => m_signalDust?.MaximumParticles ?? 0;
         public float SignalDustEmissionRate => m_signalDust?.EmissionRate ?? 0f;
+        public bool HasTowerActivationSweepTexture => m_towerActivationSweep?.HasTexture ?? false;
+        public bool IsTowerActivationSweepPlaying => m_towerActivationSweep?.IsPlaying ?? false;
+        public float TowerActivationSweepAlpha => m_towerActivationSweep?.CurrentAlpha ?? 0f;
+        public float TowerActivationSweepDiameter => m_towerActivationSweep?.CurrentDiameter ?? 0f;
+        public float TowerActivationSweepMaximumDiameter => m_towerActivationSweep?.MaximumDiameter ?? 0f;
         public bool IsAudioEnabled => m_comfortSettings?.AudioEnabled ?? true;
         public InputPromptDevice ActiveInputPromptDevice => m_input?.ActivePromptDevice ?? InputPromptDevice.KeyboardMouse;
         public ObjectiveBeaconPhase CurrentObjectiveBeaconPhase => m_objectiveBeacon?.CurrentPhase ?? ObjectiveBeaconPhase.Tower;
@@ -109,6 +115,7 @@ namespace DeadSignal
             IObjectiveBeacon objectiveBeacon,
             ISignalDust signalDust,
             ILowSignalWarning lowSignalWarning,
+            ITowerActivationSweep towerActivationSweep,
             Container container)
         {
             m_combatFeedback = combatFeedback;
@@ -119,6 +126,7 @@ namespace DeadSignal
             m_objectiveBeacon = objectiveBeacon;
             m_signalDust = signalDust;
             m_lowSignalWarning = lowSignalWarning;
+            m_towerActivationSweep = towerActivationSweep;
             m_container = container;
         }
 
@@ -140,6 +148,7 @@ namespace DeadSignal
             m_signalDust.Tick(m_lastPoweredState, m_model.TowerOnline, m_model.Signal / RunModel.MaximumSignal);
             m_lowSignalWarning.Configure(m_model);
             m_lowSignalWarning.Tick(0f);
+            m_towerActivationSweep.Configure(m_world.TowerPosition, DeadSignalWorld.TOWER_POWER_RADIUS);
         }
 
         private void Update()
@@ -156,7 +165,7 @@ namespace DeadSignal
                 return;
             }
 
-            float dt = Mathf.Min(Time.deltaTime, 0.05f);
+            var dt = Mathf.Min(Time.deltaTime, 0.05f);
             m_hud.Tick(dt);
             m_threats.TickCooldown(dt);
 
@@ -177,7 +186,7 @@ namespace DeadSignal
                 m_world.Player.rotation = Quaternion.LookRotation(aimDirection, Vector3.up);
             }
 
-            bool powered = m_world.IsPowered(m_world.Player.position, m_model.TowerOnline);
+            var powered = m_world.IsPowered(m_world.Player.position, m_model.TowerOnline);
             m_audio.Tick(powered, m_model.TowerOnline, m_model.Signal / RunModel.MaximumSignal);
             m_model.Advance(dt, movement.sqrMagnitude > 0.01f, powered);
             m_signalDust.Tick(powered, m_model.TowerOnline, m_model.Signal / RunModel.MaximumSignal);
@@ -274,6 +283,7 @@ namespace DeadSignal
                 if (m_model.TryActivateTower())
                 {
                     m_world.ActivateTower(DeadSignalThreatController.SAPPER_PULSE_INTERVAL);
+                    m_towerActivationSweep.Play();
                     m_audio.Play(DeadSignalAudioCue.TowerOnline);
                     _showFeedback("TOWER ONLINE - TWO THREATS AWAKENED");
                 }

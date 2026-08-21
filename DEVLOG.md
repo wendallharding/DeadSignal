@@ -1008,3 +1008,63 @@ Matching editor: `C:\Program Files\Unity\Hub\Editor\6000.3.11f1\Editor\Unity.exe
 ### Best next step
 
 Launch `Build/Windows/DeadSignal.exe`, complete one keyboard/mouse run and one controller run at 16:9, then repeat at ultrawide while checking the app icon, low-Signal edge warning, audio balance, and pause layout before starting modular authored rooms.
+
+## 2026-08-21 — Autonomous Run 18
+
+### Today's single idea — network activation sweep
+
+Player benefit: bringing the tower online now sends an original cyan maintenance-circuit wave across the entire newly powered radius, making DEAD SIGNAL's central “safety changes the map” bargain immediately readable before the two awakened threats arrive.
+
+Acceptance criteria:
+
+- the effect stays hidden while the tower is dormant and plays exactly when activation succeeds;
+- one bounded ring expands from the tower to the powered-territory boundary, fades out, and cleans up without changing deterministic rules or balance;
+- pause freezes the in-progress wave with the rest of the run;
+- Reduced Flashes retains the state-change cue while capping its opacity at 28%;
+- the generated texture loads in Editor and packaged-player composition; and
+- the complete EditMode, PlayMode, Windows build, and Direct3D 11 packaged-player checks pass.
+
+### Files and systems changed
+
+- `Assets/DeadSignal/Runtime/TowerActivationSweepController.cs` and Unity-generated `.meta`: added a focused Reflex-composed presenter that owns texture loading, runtime sprite creation, cubic expansion, opacity envelope, pause-safe scaled timing, Reduced Flashes adaptation, completion hiding, and sprite teardown.
+- `Assets/DeadSignal/Runtime/DeadSignalBootstrap.cs`: registers the presenter behind `ITowerActivationSweep` in the existing runtime container; Reflex 14.3.1 was already installed, so no package change was required.
+- `Assets/DeadSignal/Runtime/DeadSignalGame.cs`: configures the presenter from the authoritative tower position/radius, triggers it only after successful activation, exposes narrow smoke-test state, and completes this run's focused convention refactor by changing two apparent-type frame locals to `var`.
+- `Assets/DeadSignal/Runtime/StandaloneBuildSmokeProbe.cs`: now requires the sweep resource as part of packaged-player readiness.
+- `Assets/DeadSignal/Editor/DeadSignalProjectSetup.cs`: adds an idempotent Unity Editor import command for alpha transparency, clamp wrapping, disabled mipmaps, and a 1024px runtime cap.
+- `Assets/DeadSignal/Resources/VFX/TowerNetworkActivationSweep.png` and Unity-generated `.meta`: added an original 1254x1254 transparent cyan/white orbital-maintenance circuit ring generated with the built-in image tool. Visual inspection confirmed one centered ring with a clear center. Pixel inspection found alpha `0` at the corner and center, alpha `245` on the top ring, and alpha `251` on an inner ring sample. SHA-256: `E1EE3FF5E689CC7033C022E8AB24944FB15B613C647FA31A801620562D115E45`.
+- `Assets/DeadSignal/Tests/PlayMode/BootstrapSmokeTests.cs`: verifies Reflex composition, dormant hiding, resource loading, activation timing, outward expansion, maximum bound, Reduced Flashes opacity, and pause freezing alongside the entire prior run regression.
+- `GAME_VISION.md`, `BACKLOG.md`, and `DEVLOG.md`: record the accepted presentation beat without changing the core concept.
+
+No gameplay costs, drain rates, enemy behavior, input bindings, audio, packages, assembly definitions, scenes, prefabs, project settings, save data, or serialized gameplay data were intentionally changed. Unity's automatic build rewrites to URP assets, Graphics settings, batching, and Unity Services were removed from the final diff.
+
+### Tests run and exact outcomes
+
+Matching Editor: `C:\Program Files\Unity\Hub\Editor\6000.3.11f1\Editor\Unity.exe` (Unity 6000.3.11f1) against the live workspace.
+
+1. Import and compilation wrote `Logs/run18-compile.log`: Unity generated both new `.meta` files, imported the PNG, compiled the runtime and test assemblies, and logged final return code `0`.
+2. Editor-driven texture configuration wrote `Logs/run18-texture-import.log`: Unity returned `0` and reimported the generated source with alpha transparency, clamp wrapping, no mipmaps, and a 1024px cap.
+3. EditMode regression wrote `Logs/run18-editmode-results.xml` and `Logs/run18-editmode.log`: Unity returned `0`; `16/16` passed, `0` failed, `0` skipped, `0` inconclusive in `0.0508234` seconds.
+4. The first PlayMode run wrote `Logs/run18-playmode-results.xml` and `Logs/run18-playmode.log`: Unity returned `2`; `0/1` passed because the new pause assertion sampled diameter before the same frame's pause input became authoritative. Sampling after the pause frame corrected the test without changing production behavior.
+5. Final corrected PlayMode regression wrote `Logs/run18-final-playmode-results.xml` and `Logs/run18-final-playmode.log`: Unity returned `0`; `1/1` passed, `0` failed, `0` skipped, `0` inconclusive in `3.9403596` seconds. It proved visible reduced-flash output and retained every prior input, pause, accessibility, audio, particles, warning, combat, Sapper, salvage, shortcut, extraction, and restart assertion.
+6. Windows development build wrote `Logs/run18-windows-build.log`: Unity returned `0`, reported `Build Finished, Result: Success`, and produced 179,786,937 reported bytes in 50.56 seconds. The ignored local artifact contains 293 files totaling 179,980,279 bytes.
+7. Real Direct3D 11 packaged launch wrote `Logs/run18-standalone-d3d11-smoke.log`: the player initialized on the NVIDIA GeForce RTX 3060, found the expanded runtime composition and Resources, printed one PASS marker, and exited `0`.
+8. Final warmed-project compilation after documentation and settings cleanup wrote `Logs/run18-final-compile.log`: Unity logged return code `0` and shut down successfully.
+9. Metadata hygiene validation after normalizing Unity's empty YAML values wrote `Logs/run18-meta-validation.log`: Unity returned `0`, preserved GUID `e685412b192d69440b93119f5d0cdca4`, and accepted the texture import settings.
+10. Strict scans of the corrected compile/import, EditMode, final PlayMode, build, Direct3D, and metadata logs found no first-party compiler warnings/errors, null or missing-reference exceptions, unhandled exceptions, failed assertions, or failed smoke markers. Unity's transient licensing handshake warning resolved before successful operations; the successful development build separately noted that no Unity Cloud access token was available for native-symbol upload. Final `git diff --check` passed.
+
+### Bugs found and fixed
+
+- No production gameplay or presentation defect was found after implementation.
+- Fixed the new PlayMode pause check's frame-order assumption: the first version captured the sweep diameter before queued pause input was processed, so one legitimate activation frame appeared as paused motion. The corrected test captures after pause becomes authoritative and proves no movement during real-time waiting.
+- Normalized trailing spaces on Unity-generated empty texture-metadata values and verified the same GUID/import through Unity before push.
+- Removed unrelated Unity build-time settings rewrites from the final source diff.
+
+### Known limitations
+
+- Headless and two-frame packaged checks prove state, timing, resource, and build integration but cannot judge the ring's apparent thickness, bloom, ground occlusion, or pacing at 16:9 and ultrawide.
+- The ring is a runtime-created transparent sprite rather than a custom distortion shader, keeping the effect portable and inexpensive but limiting spatial interaction with machinery.
+- The source remains 1254px for iteration and is capped to 1024px at import; atlas/downsize work should follow an interactive presentation pass.
+
+### Best next step
+
+Play the Windows build at 16:9 and ultrawide, activate the tower with Reduced Flashes both off and on, and tune the sweep's size/opacity only if it obscures threats; then begin migrating the fixed arena into modular authored room prefabs.
