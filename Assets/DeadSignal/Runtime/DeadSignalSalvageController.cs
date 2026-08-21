@@ -10,12 +10,18 @@ namespace DeadSignal
     {
         private readonly RunModel m_model;
         private readonly DeadSignalWorld m_world;
+        private readonly IDeadSignalAudio m_audio;
         private readonly Action<string> m_showFeedback;
 
-        public DeadSignalSalvageController(RunModel model, DeadSignalWorld world, Action<string> showFeedback)
+        public DeadSignalSalvageController(
+            RunModel model,
+            DeadSignalWorld world,
+            IDeadSignalAudio audio,
+            Action<string> showFeedback)
         {
             m_model = model;
             m_world = world;
+            m_audio = audio;
             m_showFeedback = showFeedback;
         }
 
@@ -41,6 +47,7 @@ namespace DeadSignal
 
                 pickup.SetActive(false);
                 m_model.CollectSalvage();
+                m_audio.Play(DeadSignalAudioCue.Salvage);
                 m_showFeedback($"SALVAGE SECURED  {m_model.Salvage}/{RunModel.SalvageRequired}");
             }
         }

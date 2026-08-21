@@ -770,3 +770,67 @@ Matching editor: `C:\Program Files\Unity\Hub\Editor\6000.3.11f1\Editor\Unity.exe
 ### Best next step
 
 Run one keyboard/mouse-to-controller handoff session at 16:9 and ultrawide, confirm no prompt flicker from idle devices, then move the retained bindings into a dedicated remappable Input Action asset with platform-specific glyph sets.
+
+## 2026-08-21 — Autonomous Run 14
+
+### Today's single idea
+
+Add an adaptive **Signal soundscape**: original synthesized machinery/network ambience changes with powered-state and remaining Signal, eight gameplay events have distinct cues, pause freezes audio, and M or gamepad d-pad left toggles one persisted mute control.
+
+### Player benefit and acceptance criteria
+
+Audio now communicates territory, pressure, successful actions, damage, and objective progress without requiring another HUD read. This run is accepted when:
+
+- two continuously generated ambience layers crossfade between dead-zone machinery and powered network states;
+- firing, Signal impacts, security impacts, Sapper drains, tower activation, salvage, shortcut opening, and extraction each trigger a distinct generated cue;
+- pause suspends all audio and resume restores it without advancing gameplay;
+- M and gamepad d-pad left toggle all sound only while paused, and that choice persists across restart;
+- the pause overlay presents the audio state with original generated art and still fits as a compact two-by-two option grid;
+- the runtime camera owns exactly one enabled audio listener; and
+- existing deterministic rules and the complete runtime/controller/combat/restart regression remain green.
+
+### Files and systems changed
+
+- `Assets/DeadSignal/Runtime/DeadSignalAudio.cs` and Unity-generated `.meta`: added a Reflex-composed audio service that creates two seamless low-cost ambience clips and eight cue clips from deterministic waveforms at runtime; owns three AudioSources, adaptive mix/pitch, pause, mute, playback counts, subscription cleanup, and clip destruction.
+- `Assets/DeadSignal/Runtime/ComfortSettings.cs`: added the locally persisted Signal Audio preference/event and refactored this one class's repeated PlayerPrefs writes through `_savePreference`.
+- `Assets/DeadSignal/Runtime/DeadSignalBootstrap.cs`: composes and registers the audio service through the existing Reflex container; Reflex was already installed at 14.3.1, so no package change was needed.
+- `Assets/DeadSignal/Runtime/DeadSignalGame.cs`: injects/ticks audio, coordinates pause state, exposes narrow verification state, and publishes tower, shortcut, and extraction cues.
+- `Assets/DeadSignal/Runtime/DeadSignalThreatController.cs` and `DeadSignalSalvageController.cs`: publish fire, hit, drain, and collection cues through the injected audio abstraction.
+- `Assets/DeadSignal/Runtime/DeadSignalInput.cs`: adds M and gamepad d-pad-left polling through the existing adaptive device service.
+- `Assets/DeadSignal/Runtime/DeadSignalWorld.cs`: disables template listeners with template cameras and attaches one AudioListener to the authoritative runtime camera.
+- `Assets/DeadSignal/Runtime/DeadSignalHud.cs`: loads the new art, adds the Signal Audio state, and refactors the pause options into a reusable compact two-by-two grid.
+- `Assets/DeadSignal/Resources/UI/AudioLinkIcon.png` and Unity-generated `.meta`: added an original 1254x1254 RGBA dark-alloy transducer and cyan waveform emblem generated with the built-in image tool. Visual inspection confirmed the intended hard-surface style and readable silhouette; pixel inspection found alpha 0 at the top-left corner and alpha 253 at center. SHA-256: `0985F9A6B0EC0205AEB5F15E20418368A09EBE58C4747C20F63A3FE478F43194`.
+- `Assets/DeadSignal/Tests/PlayMode/BootstrapSmokeTests.cs`: verifies generated clip construction, Reflex composition, the audio icon/listener, gamepad mute toggle, shared persisted state, adaptive layer activity, a tower cue, and restart persistence alongside every previous smoke path.
+- `GAME_VISION.md`, `BACKLOG.md`, and `DEVLOG.md`: record the accepted audio identity without changing the core pitch, deterministic rules, or balance.
+
+No package versions, assembly definitions, scenes, prefabs, shaders, project settings, serialized gameplay data, input-action assets, or deterministic balance values were intentionally changed.
+
+### Tests run and exact outcomes
+
+Matching editor: `C:\Program Files\Unity\Hub\Editor\6000.3.11f1\Editor\Unity.exe` against the live workspace.
+
+1. Initial import/compile wrote `Logs/run14-compile.log`: Unity returned `1`; compilation correctly failed on `CS0051` because the public audio component temporarily exposed an internal cue enum. The enum was made public and the corrected compile wrote `Logs/run14-compile-fixed.log`: Unity returned `0`, generated both new `.meta` files, imported the PNG, compiled the changed runtime/test assemblies, and shut down cleanly.
+2. Initial EditMode regression wrote `Logs/run14-editmode-results.xml` and `Logs/run14-editmode.log`: Unity returned `0`; `12/12` passed, `0` failed, `0` skipped in `0.0429433` seconds.
+3. Initial PlayMode regression wrote `Logs/run14-playmode-results.xml` and `Logs/run14-playmode.log`: Unity returned `0`; `1/1` passed in `3.6615256` seconds, but strict inspection found repeated missing-AudioListener warnings. This exposed a real inaudible-game defect despite the passing assertions.
+4. Listener-fix compilation wrote `Logs/run14-listener-compile.log`: Unity returned `0`; clean batch shutdown.
+5. Final EditMode regression wrote `Logs/run14-final-editmode-results.xml` and `Logs/run14-final-editmode.log`: Unity returned `0`; `12/12` passed, `0` failed, `0` skipped in `0.0505028` seconds.
+6. Final PlayMode regression wrote `Logs/run14-final-playmode-results.xml` and `Logs/run14-final-playmode.log`: Unity returned `0`; `1/1` passed, `0` failed, `0` skipped in `3.6426` seconds. It directly proved generated audio, one listener, pause/mute persistence, tower cue playback, adaptive powered volume, controller input, accessibility controls, combat, Sapper behavior, salvage, shortcut, extraction, and restart.
+7. Strict final scans found no C# compiler errors/warnings, null or missing-reference exceptions, unhandled exceptions, assertion failures, failed-test markers, or missing/duplicate AudioListener warnings. Unity emitted the existing transient licensing handshake error at startup, then resolved entitlements and returned `0` for every corrected/final operation.
+8. Final `git diff --check` passed. The generated PNG was visually inspected and its dimensions, RGBA format, transparency sample, and SHA-256 were verified from the project copy.
+
+### Bugs found and fixed
+
+- Fixed the initial public/internal cue-enum accessibility mismatch found by Unity compilation.
+- Fixed the runtime world's missing AudioListener. The first PlayMode assertions passed because clips and calls existed, but the strict log proved players would hear nothing; the authoritative camera now owns the listener and final logs contain no listener warnings.
+- Audio sources now live on named child objects rather than renaming the runtime root through `Component.name` semantics.
+
+### Known limitations
+
+- Headless validation proves waveform generation, routing, state transitions, and warning-free listener setup, but cannot judge loudness, fatigue, mix balance, clipping on consumer devices, or whether each cue is sufficiently distinct by ear.
+- The generated ambience is deliberately lightweight mono synthesis, not final mastered audio. It has no per-category sliders, spatial enemy positioning, music, reverb, or dynamic-range presets.
+- The compact two-by-two pause grid and 54-pixel audio emblem require interactive visual inspection at 16:9, ultrawide, and low resolutions.
+- The fixed runtime-built arena, absent broader ambient particles, lack of remapping/platform-specific glyphs, and lack of a standalone build remain unchanged.
+
+### Best next step
+
+Play one complete run with headphones and speakers, balance ambience/cue levels while checking the four-option pause grid at 16:9 and ultrawide, then create the first Windows development build and build-validation test.

@@ -159,6 +159,11 @@ namespace DeadSignal
                 existing.enabled = false;
             }
 
+            foreach (var existing in Object.FindObjectsByType<AudioListener>(FindObjectsSortMode.None))
+            {
+                existing.enabled = false;
+            }
+
             foreach (var existing in Object.FindObjectsByType<Light>(FindObjectsSortMode.None))
             {
                 existing.enabled = false;
@@ -175,6 +180,7 @@ namespace DeadSignal
             Camera.backgroundColor = new Color(0.002f, 0.004f, 0.008f);
             Camera.nearClipPlane = 0.1f;
             Camera.farClipPlane = 40f;
+            cameraObject.AddComponent<AudioListener>();
 
             var lightObject = new GameObject("Cold Overhead Light");
             lightObject.transform.SetParent(m_root);

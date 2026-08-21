@@ -23,6 +23,7 @@ namespace DeadSignal
         bool PressedCameraImpulseToggle();
         bool PressedReducedFlashesToggle();
         bool PressedHighContrastToggle();
+        bool PressedAudioToggle();
     }
 
     /// <summary>
@@ -154,6 +155,11 @@ namespace DeadSignal
         public bool PressedHighContrastToggle()
         {
             return _pressed(Keyboard.current?.hKey, Gamepad.current?.dpad.up);
+        }
+
+        public bool PressedAudioToggle()
+        {
+            return _pressed(Keyboard.current?.mKey, Gamepad.current?.dpad.left);
         }
 
         private bool _pressed(ButtonControl keyboardButton, ButtonControl gamepadButton)

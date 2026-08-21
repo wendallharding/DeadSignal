@@ -19,6 +19,7 @@ namespace DeadSignal
         private DeadSignalThreatController m_threats;
         private DeadSignalSalvageController m_salvage;
         private IDeadSignalInput m_input;
+        private IDeadSignalAudio m_audio;
         private ICombatFeedback m_combatFeedback;
         private IComfortSettings m_comfortSettings;
         private IDeadSignalHud m_hud;
@@ -36,6 +37,9 @@ namespace DeadSignal
         public bool HasHighContrastIcon => m_hud?.HasHighContrastIcon ?? false;
         public bool HasObjectiveBeaconIcon => m_objectiveBeacon?.HasIcon ?? false;
         public bool HasInputLinkIcon => m_hud?.HasInputLinkIcon ?? false;
+        public bool HasAudioLinkIcon => m_hud?.HasAudioLinkIcon ?? false;
+        public bool HasGeneratedAudio => m_audio?.HasGeneratedClips ?? false;
+        public bool IsAudioEnabled => m_comfortSettings?.AudioEnabled ?? true;
         public InputPromptDevice ActiveInputPromptDevice => m_input?.ActivePromptDevice ?? InputPromptDevice.KeyboardMouse;
         public ObjectiveBeaconPhase CurrentObjectiveBeaconPhase => m_objectiveBeacon?.CurrentPhase ?? ObjectiveBeaconPhase.Tower;
         public Vector3 CurrentObjectiveBeaconTarget => m_objectiveBeacon?.CurrentTarget ?? Vector3.zero;
@@ -79,11 +83,20 @@ namespace DeadSignal
             m_world.ApplyHighContrast(m_comfortSettings.HighContrastEnabled);
         }
 
+        public void ToggleAudio()
+        {
+            if (IsPaused)
+            {
+                m_comfortSettings.ToggleAudio();
+            }
+        }
+
         [Inject]
         private void _construct(
             ICombatFeedback combatFeedback,
             IComfortSettings comfortSettings,
             IDeadSignalInput input,
+            IDeadSignalAudio audio,
             IDeadSignalHud hud,
             IObjectiveBeacon objectiveBeacon,
             Container container)
@@ -91,6 +104,7 @@ namespace DeadSignal
             m_combatFeedback = combatFeedback;
             m_comfortSettings = comfortSettings;
             m_input = input;
+            m_audio = audio;
             m_hud = hud;
             m_objectiveBeacon = objectiveBeacon;
             m_container = container;
@@ -105,8 +119,8 @@ namespace DeadSignal
             m_metrics = new RunMetrics();
             m_world = new DeadSignalWorld(transform, m_comfortSettings);
             m_combatFeedback.Configure(m_world.Camera);
-            m_threats = new DeadSignalThreatController(m_model, m_metrics, m_world, m_combatFeedback, _showFeedback);
-            m_salvage = new DeadSignalSalvageController(m_model, m_world, _showFeedback);
+            m_threats = new DeadSignalThreatController(m_model, m_metrics, m_world, m_combatFeedback, m_audio, _showFeedback);
+            m_salvage = new DeadSignalSalvageController(m_model, m_world, m_audio, _showFeedback);
             m_hud.Configure(m_model, m_metrics, m_world, m_threats);
             m_objectiveBeacon.Configure(m_model, m_world);
             m_lastPoweredState = m_world.IsPowered(m_world.Player.position, m_model.TowerOnline);
@@ -132,6 +146,11 @@ namespace DeadSignal
             if (IsPaused && m_input.PressedHighContrastToggle())
             {
                 ToggleHighContrast();
+            }
+
+            if (IsPaused && m_input.PressedAudioToggle())
+            {
+                ToggleAudio();
             }
 
             if (m_combatFeedback.IsFrozen)
@@ -166,6 +185,7 @@ namespace DeadSignal
             }
 
             bool powered = m_world.IsPowered(m_world.Player.position, m_model.TowerOnline);
+            m_audio.Tick(powered, m_model.TowerOnline, m_model.Signal / RunModel.MaximumSignal);
             m_model.Advance(dt, movement.sqrMagnitude > 0.01f, powered);
             m_metrics.Advance(dt, powered);
             if (powered != m_lastPoweredState)
@@ -226,6 +246,7 @@ namespace DeadSignal
                 if (m_model.TryActivateTower())
                 {
                     m_world.ActivateTower(DeadSignalThreatController.SAPPER_PULSE_INTERVAL);
+                    m_audio.Play(DeadSignalAudioCue.TowerOnline);
                     _showFeedback("TOWER ONLINE - TWO THREATS AWAKENED");
                 }
                 else
@@ -241,6 +262,7 @@ namespace DeadSignal
                 if (m_model.TryOpenShortcut())
                 {
                     m_world.OpenShortcut();
+                    m_audio.Play(DeadSignalAudioCue.Shortcut);
                     _showFeedback($"SHORTCUT OPEN  -{RunModel.ShortcutCost:0} SIGNAL");
                 }
                 else if (!m_model.TowerOnline)
@@ -262,6 +284,7 @@ namespace DeadSignal
 
             if (m_model.TryExtract())
             {
+                m_audio.Play(DeadSignalAudioCue.Extraction);
                 _showFeedback("EXTRACTION COMPLETE");
             }
             else
@@ -278,6 +301,7 @@ namespace DeadSignal
         private void _setPaused(bool paused)
         {
             m_combatFeedback.SetPaused(paused);
+            m_audio.SetPaused(paused);
         }
     }
 }

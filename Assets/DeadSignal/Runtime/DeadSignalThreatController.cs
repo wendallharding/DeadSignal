@@ -20,6 +20,7 @@ namespace DeadSignal
         private readonly RunMetrics m_metrics;
         private readonly DeadSignalWorld m_world;
         private readonly ICombatFeedback m_combatFeedback;
+        private readonly IDeadSignalAudio m_audio;
         private readonly Action<string> m_showFeedback;
         private readonly List<Projectile> m_projectiles = new();
 
@@ -35,12 +36,14 @@ namespace DeadSignal
             RunMetrics metrics,
             DeadSignalWorld world,
             ICombatFeedback combatFeedback,
+            IDeadSignalAudio audio,
             Action<string> showFeedback)
         {
             m_model = model;
             m_metrics = metrics;
             m_world = world;
             m_combatFeedback = combatFeedback;
+            m_audio = audio;
             m_showFeedback = showFeedback;
         }
 
@@ -76,6 +79,7 @@ namespace DeadSignal
 
             m_shotCooldown = 0.16f;
             m_metrics.RecordShot();
+            m_audio.Play(DeadSignalAudioCue.Fire);
             var shot = m_world.CreateSignalBolt(direction);
             m_projectiles.Add(new Projectile(shot, direction.normalized));
         }
@@ -111,6 +115,7 @@ namespace DeadSignal
                 m_model.TakeSecurityHit();
                 m_metrics.RecordSecurityHit();
                 m_combatFeedback.PlaySecurityImpact(m_world.Player.position + Vector3.up * 0.58f);
+                m_audio.Play(DeadSignalAudioCue.SecurityImpact);
                 m_showFeedback("SECURITY IMPACT  −18 SIGNAL");
             }
         }
@@ -164,6 +169,7 @@ namespace DeadSignal
             m_model.TakeSapperPulse();
             m_metrics.RecordSapperPulse();
             m_combatFeedback.PlaySapperImpact(m_world.TowerPosition + Vector3.up * 0.65f);
+            m_audio.Play(DeadSignalAudioCue.SapperPulse);
             m_world.SapperTelegraph.SetThreatState(true, true, m_sapperPulseCooldown, SAPPER_PULSE_INTERVAL);
             m_world.SapperTelegraph.NotifyPulse();
             m_showFeedback($"SAPPER DRAIN  -{RunModel.SapperPulseCost:0} SIGNAL");
@@ -203,6 +209,7 @@ namespace DeadSignal
         {
             m_wardenHealth -= 1f;
             m_combatFeedback.PlaySignalImpact(m_world.Warden.position + Vector3.up * 0.65f, m_wardenHealth <= 0f);
+            m_audio.Play(DeadSignalAudioCue.SignalImpact);
             if (m_wardenHealth <= 0f)
             {
                 m_world.PurgeWarden();
@@ -217,6 +224,7 @@ namespace DeadSignal
         {
             m_sapperHealth -= 1f;
             m_combatFeedback.PlaySignalImpact(m_world.Sapper.position + Vector3.up * 0.58f, m_sapperHealth <= 0f);
+            m_audio.Play(DeadSignalAudioCue.SignalImpact);
             if (m_sapperHealth <= 0f)
             {
                 m_world.PurgeSapper();

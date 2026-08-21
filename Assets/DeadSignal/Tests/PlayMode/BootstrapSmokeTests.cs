@@ -33,12 +33,16 @@ namespace DeadSignal.Tests
             Assert.That(game.transform.Find("Extraction Beacon"), Is.Not.Null);
             Assert.That(game.transform.Find("Signal Shortcut Gate"), Is.Not.Null);
             Assert.That(Camera.main != null || Object.FindFirstObjectByType<Camera>() != null, Is.True);
+            Assert.That(Object.FindFirstObjectByType<AudioListener>(), Is.Not.Null,
+                "The runtime camera should provide the listener required by the synthesized soundscape.");
             Assert.That(game.HasPauseInsignia, Is.True, "The generated pause-menu insignia should load from Resources.");
             Assert.That(game.HasCameraComfortIcon, Is.True, "The generated Steady Camera icon should load from Resources.");
             Assert.That(game.HasReducedFlashesIcon, Is.True, "The generated Reduced Flashes icon should load from Resources.");
             Assert.That(game.HasHighContrastIcon, Is.True, "The generated High Contrast icon should load from Resources.");
             Assert.That(game.HasObjectiveBeaconIcon, Is.True, "The generated objective beacon icon should load from Resources.");
             Assert.That(game.HasInputLinkIcon, Is.True, "The generated input-link icon should load from Resources.");
+            Assert.That(game.HasAudioLinkIcon, Is.True, "The generated audio-link icon should load from Resources.");
+            Assert.That(game.HasGeneratedAudio, Is.True, "The runtime audio service should synthesize ambience and cue clips.");
             Assert.That(game.ActiveInputPromptDevice, Is.EqualTo(InputPromptDevice.KeyboardMouse),
                 "A fresh run should begin with keyboard-and-mouse guidance until controller input is received.");
             Assert.That(game.CurrentObjectiveBeaconPhase, Is.EqualTo(ObjectiveBeaconPhase.Tower));
@@ -46,6 +50,9 @@ namespace DeadSignal.Tests
             CombatFeedbackController combatFeedback = Object.FindFirstObjectByType<CombatFeedbackController>();
             Assert.That(combatFeedback, Is.Not.Null, "Reflex composition should provide the combat-feedback controller.");
             Assert.That(combatFeedback.HasImpactTexture, Is.True, "The generated impact texture should load from Resources.");
+            DeadSignalAudio audio = Object.FindFirstObjectByType<DeadSignalAudio>();
+            Assert.That(audio, Is.Not.Null, "Reflex composition should provide the adaptive audio controller.");
+            Assert.That(audio.HasGeneratedClips, Is.True);
 
             Gamepad gamepad = InputSystem.AddDevice<Gamepad>();
             Transform player = game.transform.Find("Maintenance Drone");
@@ -56,6 +63,8 @@ namespace DeadSignal.Tests
             bool initialReducedFlashes = game.IsReducedFlashesEnabled;
             bool hadHighContrastPreference = PlayerPrefs.HasKey("DeadSignal.HighContrastEnabled");
             bool initialHighContrast = game.IsHighContrastEnabled;
+            bool hadAudioPreference = PlayerPrefs.HasKey("DeadSignal.AudioEnabled");
+            bool initialAudio = game.IsAudioEnabled;
             try
             {
                 float signalBeforePause = game.CurrentSignal;
@@ -68,6 +77,25 @@ namespace DeadSignal.Tests
                 Assert.That(Time.timeScale, Is.Zero);
                 yield return new WaitForSecondsRealtime(0.1f);
                 Assert.That(game.CurrentSignal, Is.EqualTo(signalBeforePause), "Signal must not drain while paused.");
+
+                InputSystem.QueueStateEvent(gamepad, new GamepadState().WithButton(GamepadButton.DpadLeft));
+                yield return null;
+                Assert.That(game.IsAudioEnabled, Is.EqualTo(!initialAudio),
+                    "Gamepad d-pad left should toggle Signal Audio while paused.");
+                Assert.That(audio.AudioEnabled, Is.EqualTo(game.IsAudioEnabled),
+                    "The Reflex-composed audio service should share the persisted presentation setting.");
+                Assert.That(PlayerPrefs.GetInt("DeadSignal.AudioEnabled", -1), Is.EqualTo(game.IsAudioEnabled ? 1 : 0),
+                    "The audio choice should persist for future runs.");
+
+                InputSystem.QueueStateEvent(gamepad, new GamepadState());
+                yield return null;
+                game.ToggleAudio();
+                Assert.That(game.IsAudioEnabled, Is.EqualTo(initialAudio),
+                    "The pause option should restore its prior audio state.");
+                if (!game.IsAudioEnabled)
+                {
+                    game.ToggleAudio();
+                }
 
                 InputSystem.QueueStateEvent(gamepad, new GamepadState().WithButton(GamepadButton.North));
                 yield return null;
@@ -183,11 +211,16 @@ namespace DeadSignal.Tests
                 Assert.That(Vector3.Dot(player.forward, Vector3.forward), Is.GreaterThan(0.9f), "Right stick should aim the drone.");
 
                 player.position = new Vector3(-0.6f, 0f, 0.4f);
+                int cuesBeforeTower = audio.PlayedCueCount;
                 InputSystem.QueueStateEvent(gamepad, new GamepadState().WithButton(GamepadButton.West));
                 yield return null;
 
                 Assert.That(game.transform.Find("Security Warden").gameObject.activeSelf, Is.True,
                     "Gamepad west button should activate the nearby tower and awaken security.");
+                Assert.That(audio.PlayedCueCount, Is.GreaterThan(cuesBeforeTower),
+                    "Tower activation should produce an audible state-change cue when audio is enabled.");
+                Assert.That(audio.PoweredVolume, Is.GreaterThan(0f),
+                    "The powered network layer should remain active after the tower comes online.");
                 Transform sapper = game.transform.Find("Signal Sapper");
                 Assert.That(sapper.gameObject.activeSelf, Is.True,
                     "Tower activation should awaken the Signal Sapper.");
@@ -314,6 +347,8 @@ namespace DeadSignal.Tests
                 Assert.That(restartedGame.transform.Find("Maintenance Drone"), Is.Not.Null);
                 Assert.That(restartedGame.IsHighContrastEnabled, Is.True,
                     "A restarted run should apply the persisted high-contrast palette during construction.");
+                Assert.That(restartedGame.IsAudioEnabled, Is.True,
+                    "A restarted run should apply the persisted Signal Audio choice during construction.");
             }
             finally
             {
@@ -343,6 +378,15 @@ namespace DeadSignal.Tests
                 else
                 {
                     PlayerPrefs.DeleteKey("DeadSignal.HighContrastEnabled");
+                }
+
+                if (hadAudioPreference)
+                {
+                    PlayerPrefs.SetInt("DeadSignal.AudioEnabled", initialAudio ? 1 : 0);
+                }
+                else
+                {
+                    PlayerPrefs.DeleteKey("DeadSignal.AudioEnabled");
                 }
 
                 PlayerPrefs.Save();

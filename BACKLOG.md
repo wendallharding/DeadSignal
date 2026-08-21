@@ -24,7 +24,8 @@
 - [x] Telegraph the Sapper's tower target and timed drain pulses in-world
 - [x] Add a safe pause/resume overlay for keyboard and controller
 - [x] Add combat hit-stop, camera impulse, and generated impact-burst feedback
-- [ ] Add layered procedural audio and broader ambient particles
+- [x] Add adaptive procedural Signal ambience, distinct gameplay cues, and persisted mute control
+- [ ] Add broader ambient particles
 - [ ] Tune resource economy from recorded five-minute play sessions
 - [x] Add an end-of-run performance report for balance sessions
 - [x] Add dynamic tower, nearest-salvage, and extraction objective guidance

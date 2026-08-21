@@ -10,6 +10,7 @@ namespace DeadSignal
         bool HasReducedFlashesIcon { get; }
         bool HasHighContrastIcon { get; }
         bool HasInputLinkIcon { get; }
+        bool HasAudioLinkIcon { get; }
 
         void Configure(RunModel model, RunMetrics metrics, DeadSignalWorld world, DeadSignalThreatController threats);
         void ShowFeedback(string message);
@@ -39,6 +40,7 @@ namespace DeadSignal
         private Texture2D m_reducedFlashesIcon;
         private Texture2D m_highContrastIcon;
         private Texture2D m_inputLinkIcon;
+        private Texture2D m_audioLinkIcon;
         private float m_feedbackTimer;
         private string m_feedback = string.Empty;
 
@@ -47,6 +49,7 @@ namespace DeadSignal
         public bool HasReducedFlashesIcon => m_reducedFlashesIcon != null;
         public bool HasHighContrastIcon => m_highContrastIcon != null;
         public bool HasInputLinkIcon => m_inputLinkIcon != null;
+        public bool HasAudioLinkIcon => m_audioLinkIcon != null;
 
         [Inject]
         private void _construct(
@@ -74,6 +77,7 @@ namespace DeadSignal
             m_reducedFlashesIcon = Resources.Load<Texture2D>("UI/ReducedFlashesIcon");
             m_highContrastIcon = Resources.Load<Texture2D>("UI/HighContrastIcon");
             m_inputLinkIcon = Resources.Load<Texture2D>("UI/InputLinkIcon");
+            m_audioLinkIcon = Resources.Load<Texture2D>("UI/AudioLinkIcon");
         }
 
         void IDeadSignalHud.ShowFeedback(string message)
@@ -247,67 +251,56 @@ namespace DeadSignal
             GUI.Label(new Rect(0f, Screen.height * 0.5f - 40f, Screen.width, 32f),
                 "Signal drain, threats, projectiles, and run time are frozen.", m_reportStyle);
 
-            var comfortPanel = new Rect(Screen.width * 0.5f - 220f, Screen.height * 0.5f + 4f, 440f, 76f);
-            GUI.color = new Color(0.025f, 0.07f, 0.085f, 0.98f);
-            GUI.Box(comfortPanel, GUIContent.none);
-            GUI.color = Color.white;
-            if (m_cameraComfortIcon != null)
-            {
-                GUI.DrawTexture(new Rect(comfortPanel.x + 15f, comfortPanel.y + 8f, 60f, 60f),
-                    m_cameraComfortIcon, ScaleMode.ScaleToFit, true);
-            }
-
-            GUI.Label(new Rect(comfortPanel.x + 88f, comfortPanel.y + 9f, 330f, 24f), "STEADY CAMERA", m_labelStyle);
-            GUI.color = m_comfortSettings.CameraImpulseEnabled ? new Color(0.08f, 0.96f, 1f) : new Color(1f, 0.68f, 0.12f);
-            GUI.Label(new Rect(comfortPanel.x + 88f, comfortPanel.y + 35f, 330f, 26f),
-                m_comfortSettings.CameraImpulseEnabled
-                    ? $"{_binding("C", "Y")}  CAMERA IMPULSE ON"
-                    : $"{_binding("C", "Y")}  CAMERA IMPULSE OFF",
-                m_smallStyle);
-
-            var flashPanel = new Rect(Screen.width * 0.5f - 220f, Screen.height * 0.5f + 88f, 440f, 76f);
-            GUI.color = new Color(0.025f, 0.07f, 0.085f, 0.98f);
-            GUI.Box(flashPanel, GUIContent.none);
-            GUI.color = Color.white;
-            if (m_reducedFlashesIcon != null)
-            {
-                GUI.DrawTexture(new Rect(flashPanel.x + 15f, flashPanel.y + 8f, 60f, 60f),
-                    m_reducedFlashesIcon, ScaleMode.ScaleToFit, true);
-            }
-
-            GUI.Label(new Rect(flashPanel.x + 88f, flashPanel.y + 9f, 330f, 24f), "REDUCED FLASHES", m_labelStyle);
-            GUI.color = m_comfortSettings.ReducedFlashesEnabled
-                ? new Color(0.08f, 0.96f, 1f)
-                : new Color(1f, 0.68f, 0.12f);
-            GUI.Label(new Rect(flashPanel.x + 88f, flashPanel.y + 35f, 330f, 26f),
-                m_comfortSettings.ReducedFlashesEnabled
-                    ? $"{_binding("F", "D-PAD DOWN")}  REDUCTION ON"
-                    : $"{_binding("F", "D-PAD DOWN")}  REDUCTION OFF",
-                m_smallStyle);
-
-            var contrastPanel = new Rect(Screen.width * 0.5f - 220f, Screen.height * 0.5f + 172f, 440f, 76f);
-            GUI.color = new Color(0.025f, 0.07f, 0.085f, 0.98f);
-            GUI.Box(contrastPanel, GUIContent.none);
-            GUI.color = Color.white;
-            if (m_highContrastIcon != null)
-            {
-                GUI.DrawTexture(new Rect(contrastPanel.x + 15f, contrastPanel.y + 8f, 60f, 60f),
-                    m_highContrastIcon, ScaleMode.ScaleToFit, true);
-            }
-
-            GUI.Label(new Rect(contrastPanel.x + 88f, contrastPanel.y + 9f, 330f, 24f), "HIGH CONTRAST", m_labelStyle);
-            GUI.color = m_comfortSettings.HighContrastEnabled
-                ? new Color(0.08f, 0.96f, 1f)
-                : new Color(1f, 0.68f, 0.12f);
-            GUI.Label(new Rect(contrastPanel.x + 88f, contrastPanel.y + 35f, 330f, 26f),
-                m_comfortSettings.HighContrastEnabled
-                    ? $"{_binding("H", "D-PAD UP")}  CONTRAST ON"
-                    : $"{_binding("H", "D-PAD UP")}  CONTRAST OFF",
-                m_smallStyle);
+            const float panelWidth = 340f;
+            const float panelHeight = 72f;
+            const float panelGap = 12f;
+            var left = Screen.width * 0.5f - panelWidth - panelGap * 0.5f;
+            var right = Screen.width * 0.5f + panelGap * 0.5f;
+            var firstRow = Screen.height * 0.5f + 4f;
+            var secondRow = firstRow + panelHeight + panelGap;
+            _drawOptionPanel(
+                new Rect(left, firstRow, panelWidth, panelHeight),
+                m_cameraComfortIcon,
+                "STEADY CAMERA",
+                m_comfortSettings.CameraImpulseEnabled,
+                $"{_binding("C", "Y")}  IMPULSE {(m_comfortSettings.CameraImpulseEnabled ? "ON" : "OFF")}");
+            _drawOptionPanel(
+                new Rect(right, firstRow, panelWidth, panelHeight),
+                m_reducedFlashesIcon,
+                "REDUCED FLASHES",
+                m_comfortSettings.ReducedFlashesEnabled,
+                $"{_binding("F", "D-PAD DOWN")}  REDUCTION {(m_comfortSettings.ReducedFlashesEnabled ? "ON" : "OFF")}");
+            _drawOptionPanel(
+                new Rect(left, secondRow, panelWidth, panelHeight),
+                m_highContrastIcon,
+                "HIGH CONTRAST",
+                m_comfortSettings.HighContrastEnabled,
+                $"{_binding("H", "D-PAD UP")}  CONTRAST {(m_comfortSettings.HighContrastEnabled ? "ON" : "OFF")}");
+            _drawOptionPanel(
+                new Rect(right, secondRow, panelWidth, panelHeight),
+                m_audioLinkIcon,
+                "SIGNAL AUDIO",
+                m_comfortSettings.AudioEnabled,
+                $"{_binding("M", "D-PAD LEFT")}  AUDIO {(m_comfortSettings.AudioEnabled ? "ON" : "MUTED")}");
 
             GUI.color = Color.white;
-            GUI.Label(new Rect(0f, Screen.height * 0.5f + 262f, Screen.width, 36f),
+            GUI.Label(new Rect(0f, secondRow + panelHeight + 14f, Screen.width, 36f),
                 $"PRESS {_binding("ESC", "GAMEPAD MENU")} TO RESUME", m_centerStyle);
+        }
+
+        private void _drawOptionPanel(Rect panel, Texture2D icon, string title, bool enabled, string state)
+        {
+            GUI.color = new Color(0.025f, 0.07f, 0.085f, 0.98f);
+            GUI.Box(panel, GUIContent.none);
+            GUI.color = Color.white;
+            if (icon != null)
+            {
+                GUI.DrawTexture(new Rect(panel.x + 10f, panel.y + 9f, 54f, 54f), icon, ScaleMode.ScaleToFit, true);
+            }
+
+            GUI.Label(new Rect(panel.x + 74f, panel.y + 9f, panel.width - 84f, 24f), title, m_labelStyle);
+            m_smallStyle.normal.textColor = enabled ? new Color(0.08f, 0.96f, 1f) : new Color(1f, 0.68f, 0.12f);
+            GUI.Label(new Rect(panel.x + 74f, panel.y + 36f, panel.width - 84f, 25f), state, m_smallStyle);
         }
 
         private string _currentObjective()
