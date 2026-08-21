@@ -32,6 +32,7 @@ namespace DeadSignal.Editor
             DeadSignalProjectSetup.EnsurePlayerDroneAssets();
             DeadSignalActorSetup.EnsureSecurityWardenAssets();
             DeadSignalActorSetup.EnsureSignalSapperAssets();
+            DeadSignalSapperTelegraphSetup.EnsureAssets();
             _validateBuildInputs();
             _configureWindowsPlayer();
 
@@ -139,6 +140,11 @@ namespace DeadSignal.Editor
             if (!DeadSignalActorSetup.HasSignalSapperAssets)
             {
                 throw new BuildFailedException("The authored Signal Sapper model or materials are missing.");
+            }
+
+            if (!DeadSignalSapperTelegraphSetup.HasAssets)
+            {
+                throw new BuildFailedException("The authored Signal Sapper telegraph assets are missing.");
             }
 
             if (AssetDatabase.LoadAssetAtPath<Texture2D>(APPLICATION_ICON_PATH) == null)

@@ -1890,3 +1890,59 @@ The live workspace was open in Unity 6000.3.11f1 as process `254024` and was not
 ### Best next step
 
 Open `Assets/Scenes/SampleScene.unity`, activate the tower, allow the Sapper to latch, and judge its fork/core readability in normal and High Contrast modes at 16:9 and ultrawide. If it remains distinct from the Warden under pressure, prioritize an in-game presentation pass for the Sapper tether and pulse timing rather than another model replacement.
+
+## 2026-08-21 — Run 33: authored Sapper drain pulse
+
+### Today's single idea — readable authored drain glyph
+
+Player benefit: a successful Sapper drain now produces a distinctive inward-pulling magenta floor glyph instead of a generic cylinder, making the source and meaning of sudden Signal loss easier to understand without changing its timing or damage.
+
+Acceptance criteria:
+
+- load one original transparent drain-glyph texture from Resources and present it as a horizontal world-space sprite;
+- expand, rotate, and fade the glyph on a successful drain while preserving the existing countdown, tether, pulse timing, and Signal cost;
+- keep Reduced Flashes behavior unchanged by suppressing the expanding glyph entirely;
+- move presentation values touched by this pass into designer-facing validated tuning data; and
+- pass Unity import/compile, EditMode, PlayMode, Windows build, packaged-resource smoke, and repository checks.
+
+### Files and systems changed
+
+- `Assets/DeadSignal/Resources/VFX/SapperDrainGlyph.png` and Unity-generated `.meta`: added an original transparent hot-magenta/dark-violet inward-siphon glyph generated with OpenAI's built-in image-generation mode and imported with alpha transparency, mipmaps, clamp wrapping, high-quality compression, and a 1024px cap. SHA-256: `F9CA737B8E9129615C97C0BC23C6A931F3F85FA5F09891F7ECA6B4144D096B4B`; GUID: `3737b61e4cf213b4f9ef357774f4e53c`.
+- Image-generation prompt: centered transparent world-space VFX texture with four inward hooked arcs, a broken outer ring, and hollow center; crisp stylized sci-fi energy in hot magenta/dark violet with minimal white highlights; no text, logos, characters, opaque background, scene, or competing colors.
+- `Assets/DeadSignal/Runtime/SignalSapperTelegraph.cs`: replaced the primitive pulse cylinder with a SpriteRenderer-backed floor glyph, added eased expansion/rotation/fade, retained a missing-texture primitive fallback, exposed texture readiness, and now owns generated Sprite cleanup.
+- `Assets/DeadSignal/Runtime/SignalSapperTelegraphTuning.cs` and Unity-generated `.meta`: added focused ScriptableObject tuning for countdown radii, rotation speeds, pulse duration, diameters, and maximum alpha with range validation.
+- `Assets/DeadSignal/Resources/Tuning/SignalSapperTelegraphTuning.asset`, folder metadata, and asset metadata: added the designer-facing default tuning resource.
+- `Assets/DeadSignal/Editor/DeadSignalSapperTelegraphSetup.cs` and Unity-generated `.meta`: added idempotent texture-import and tuning-asset setup.
+- `Assets/DeadSignal/Editor/DeadSignalWindowsBuild.cs`: ensures and validates telegraph assets before Windows builds.
+- `Assets/DeadSignal/Runtime/StandaloneBuildSmokeProbe.cs`: requires the glyph and tuning resource in packaged content.
+- `Assets/DeadSignal/Tests/PlayMode/BootstrapSmokeTests.cs`: verifies texture/tuning readiness and proves the pulse object uses the authored SpriteRenderer while retaining the full gameplay regression.
+- `GAME_VISION.md`, `BACKLOG.md`, and `DEVLOG.md`: record the completed presentation milestone.
+
+No gameplay timing, Signal cost, enemy behavior, scene, package, project setting, input, audio, save data, or existing art/material asset changed.
+
+### Tests run and exact outcomes
+
+The live project remained open in Unity 6000.3.11f1 and was not controlled. Authoritative validation used `C:\Projects\Wendall\CodexPrototype_Run33Validation` with the pinned Editor.
+
+1. Built-in image generation produced the transparent glyph, which was copied into project Resources and visually inspected for centered inward motion, readable negative space, and absence of text/logos.
+2. Unity setup wrote `run33-telegraph-setup.log`: Unity compiled the changed assemblies, imported the glyph, created the tuning folder/asset, and exited `0` without first-party compiler errors or warnings.
+3. EditMode regression wrote `run33-editmode-results.xml`: `16/16` passed, `0` failed, `0` skipped in `0.0388094` seconds.
+4. PlayMode regression wrote `run33-playmode-results.xml`: `1/1` passed, `0` failed, `0` skipped in `3.9556844` seconds. It proved the texture, tuning, SpriteRenderer pulse, Reduced Flashes suppression, countdown, Sapper behavior, and every prior core-loop assertion.
+5. Windows development build wrote `run33-build.log`: Unity exited `0`, reported `Build Finished, Result: Success`, emitted one build PASS marker, and produced `199,925,633` reported bytes in `61.39` seconds.
+6. The first graphical packaged launch forced Direct3D 11 on the NVIDIA GeForce RTX 3060 but did not advance while hidden because `runInBackground` is disabled; the owned process was stopped and is not counted as a smoke pass. The authoritative `-batchmode -nographics` packaged launch wrote `run33-standalone-final2.log`, loaded all required Resources, emitted one standalone PASS marker, and exited.
+7. Strict final log and repository scans found no first-party compiler errors/warnings, failed assertions, missing references, failed build markers, or failed smoke markers.
+
+### Bugs found and fixed
+
+- The old pulse was a scaled primitive cylinder and could not communicate inward energy flow. It is now an authored transparent sprite with explicit lifecycle cleanup and a safe primitive fallback.
+- The touched telegraph values were hardcoded in the presenter. They now live in a validated ScriptableObject suitable for playtesting without code edits.
+- A hidden graphical smoke launch stalls when `runInBackground` is disabled. Packaged automation now uses batchmode/nographics for reliable unattended verification; interactive GPU validation remains a separate manual check.
+
+### Known limitations
+
+- Automated tests prove the asset and animation path but do not replace a human judgment of glyph brightness against the live floor materials at 16:9 and ultrawide.
+- The glyph intentionally disappears in Reduced Flashes mode; countdown brackets and tether remain the accessible timing channel.
+
+### Best next step
+
+Trigger a Sapper drain in `Assets/Scenes/SampleScene.unity` with Reduced Flashes both off and on, then judge glyph brightness and size against the tower floor at 16:9 and ultrawide.

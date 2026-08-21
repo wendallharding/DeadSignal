@@ -4,27 +4,31 @@ namespace DeadSignal
 {
     public sealed class SignalSapperTelegraph : MonoBehaviour
     {
-        private const float FLASH_DURATION = 0.32f;
-        private const float APPROACH_RADIUS = 1.65f;
-        private const float COUNTDOWN_START_RADIUS = 2.25f;
-        private const float COUNTDOWN_END_RADIUS = 0.82f;
+        private const string PULSE_TEXTURE_RESOURCE = "VFX/SapperDrainGlyph";
+        private const string TUNING_RESOURCE = "Tuning/SignalSapperTelegraphTuning";
 
         private readonly Transform[] m_reticleBrackets = new Transform[4];
 
         private Transform m_sapper;
         private IComfortSettings m_comfortSettings;
+        private SignalSapperTelegraphTuning m_tuning;
         private Vector3 m_towerPosition;
         private LineRenderer m_tether;
-        private GameObject m_pulseFlash;
+        private GameObject m_pulseFlashRoot;
+        private Texture2D m_pulseTexture;
+        private Sprite m_pulseSprite;
+        private SpriteRenderer m_pulseRenderer;
         private float m_pulseSecondsRemaining;
         private float m_pulseInterval;
         private float m_flashTimer;
         private bool m_isLatched;
+        private bool m_ownsFallbackTuning;
 
         public bool IsVisible { get; private set; }
         public bool IsLatched => m_isLatched;
         public float DisplayedCountdown => m_pulseSecondsRemaining;
-        public bool PulseFlashVisible => m_pulseFlash != null && m_pulseFlash.activeSelf;
+        public bool HasPulseTexture => m_pulseTexture != null;
+        public bool PulseFlashVisible => m_pulseFlashRoot != null && m_pulseFlashRoot.activeSelf;
 
         internal void Configure(
             Transform sapper,
@@ -37,6 +41,13 @@ namespace DeadSignal
             m_towerPosition = towerPosition;
             m_comfortSettings = comfortSettings;
             m_comfortSettings.ReducedFlashesChanged += _handleReducedFlashesChanged;
+            m_tuning = Resources.Load<SignalSapperTelegraphTuning>(TUNING_RESOURCE);
+            if (m_tuning == null)
+            {
+                m_tuning = ScriptableObject.CreateInstance<SignalSapperTelegraphTuning>();
+                m_ownsFallbackTuning = true;
+                Debug.LogWarning($"Sapper telegraph tuning was not found at Resources/{TUNING_RESOURCE}.", this);
+            }
 
             var tetherObject = new GameObject("Sapper Target Tether");
             tetherObject.transform.SetParent(transform, false);
@@ -59,13 +70,7 @@ namespace DeadSignal
                     brightMaterial).transform;
             }
 
-            m_pulseFlash = _createPrimitive(
-                "Sapper Pulse Flash",
-                PrimitiveType.Cylinder,
-                new Vector3(1f, 0.012f, 1f),
-                brightMaterial);
-            m_pulseFlash.transform.position = m_towerPosition + Vector3.up * 0.025f;
-            m_pulseFlash.SetActive(false);
+            _createPulseFlash(brightMaterial);
             SetThreatState(false, false, 0f, 1f);
         }
 
@@ -89,8 +94,8 @@ namespace DeadSignal
                 return;
             }
 
-            m_flashTimer = FLASH_DURATION;
-            m_pulseFlash.SetActive(true);
+            m_flashTimer = m_tuning.FlashDuration;
+            m_pulseFlashRoot.SetActive(true);
         }
 
         private void Update()
@@ -103,7 +108,8 @@ namespace DeadSignal
             m_tether.SetPosition(0, m_sapper.position + Vector3.up * 0.55f);
             m_tether.SetPosition(1, m_towerPosition + Vector3.up * 0.24f);
 
-            float rotationOffset = Time.time * (m_isLatched ? 34f : 58f);
+            float rotationSpeed = m_isLatched ? m_tuning.LatchedRotationSpeed : m_tuning.ApproachRotationSpeed;
+            float rotationOffset = Time.time * rotationSpeed;
             float radius = _reticleRadius();
             for (int index = 0; index < m_reticleBrackets.Length; index++)
             {
@@ -124,35 +130,85 @@ namespace DeadSignal
             {
                 m_comfortSettings.ReducedFlashesChanged -= _handleReducedFlashesChanged;
             }
+
+            if (m_pulseSprite != null)
+            {
+                Destroy(m_pulseSprite);
+            }
+
+            if (m_ownsFallbackTuning && m_tuning != null)
+            {
+                Destroy(m_tuning);
+            }
         }
 
         private float _reticleRadius()
         {
             if (!m_isLatched)
             {
-                return APPROACH_RADIUS + Mathf.Sin(Time.time * 5f) * 0.12f;
+                return m_tuning.ApproachRadius + Mathf.Sin(Time.time * 5f) * 0.12f;
             }
 
             float remainingRatio = Mathf.Clamp01(m_pulseSecondsRemaining / m_pulseInterval);
-            return Mathf.Lerp(COUNTDOWN_END_RADIUS, COUNTDOWN_START_RADIUS, remainingRatio);
+            return Mathf.Lerp(m_tuning.CountdownEndRadius, m_tuning.CountdownStartRadius, remainingRatio);
         }
 
         private void _updatePulseFlash()
         {
             if (m_flashTimer <= 0f)
             {
-                m_pulseFlash.SetActive(false);
+                m_pulseFlashRoot.SetActive(false);
                 return;
             }
 
             m_flashTimer = Mathf.Max(0f, m_flashTimer - Time.deltaTime);
-            float progress = 1f - m_flashTimer / FLASH_DURATION;
-            float diameter = Mathf.Lerp(0.9f, 4.8f, progress);
-            m_pulseFlash.transform.localScale = new Vector3(diameter, 0.012f, diameter);
+            float progress = 1f - m_flashTimer / m_tuning.FlashDuration;
+            float easedProgress = 1f - Mathf.Pow(1f - progress, 2f);
+            float diameter = Mathf.Lerp(m_tuning.FlashStartingDiameter, m_tuning.FlashEndingDiameter, easedProgress);
+            m_pulseFlashRoot.transform.localScale = Vector3.one * diameter;
+            if (m_pulseRenderer != null)
+            {
+                float alpha = (1f - progress) * m_tuning.FlashMaximumAlpha;
+                m_pulseRenderer.color = new Color(1f, 1f, 1f, alpha);
+                m_pulseFlashRoot.transform.rotation = Quaternion.Euler(90f, progress * 110f, 0f);
+            }
+
             if (m_flashTimer <= 0f)
             {
-                m_pulseFlash.SetActive(false);
+                m_pulseFlashRoot.SetActive(false);
             }
+        }
+
+        private void _createPulseFlash(Material fallbackMaterial)
+        {
+            m_pulseTexture = Resources.Load<Texture2D>(PULSE_TEXTURE_RESOURCE);
+            if (m_pulseTexture == null)
+            {
+                Debug.LogWarning($"Sapper drain glyph was not found at Resources/{PULSE_TEXTURE_RESOURCE}.", this);
+                m_pulseFlashRoot = _createPrimitive(
+                    "Sapper Pulse Flash",
+                    PrimitiveType.Cylinder,
+                    new Vector3(1f, 0.012f, 1f),
+                    fallbackMaterial);
+                m_pulseFlashRoot.transform.position = m_towerPosition + Vector3.up * 0.025f;
+                m_pulseFlashRoot.SetActive(false);
+                return;
+            }
+
+            m_pulseSprite = Sprite.Create(
+                m_pulseTexture,
+                new Rect(0f, 0f, m_pulseTexture.width, m_pulseTexture.height),
+                new Vector2(0.5f, 0.5f),
+                m_pulseTexture.width);
+            m_pulseSprite.name = "Sapper Drain Glyph Sprite";
+            m_pulseFlashRoot = new GameObject("Sapper Pulse Flash");
+            m_pulseFlashRoot.transform.SetParent(transform, false);
+            m_pulseFlashRoot.transform.position = m_towerPosition + Vector3.up * 0.075f;
+            m_pulseFlashRoot.transform.rotation = Quaternion.Euler(90f, 0f, 0f);
+            m_pulseRenderer = m_pulseFlashRoot.AddComponent<SpriteRenderer>();
+            m_pulseRenderer.sprite = m_pulseSprite;
+            m_pulseRenderer.sortingOrder = 24;
+            m_pulseFlashRoot.SetActive(false);
         }
 
         private GameObject _createPrimitive(string objectName, PrimitiveType type, Vector3 scale, Material material)
@@ -174,13 +230,13 @@ namespace DeadSignal
 
         private void _handleReducedFlashesChanged(bool enabled)
         {
-            if (!enabled || m_pulseFlash == null)
+            if (!enabled || m_pulseFlashRoot == null)
             {
                 return;
             }
 
             m_flashTimer = 0f;
-            m_pulseFlash.SetActive(false);
+            m_pulseFlashRoot.SetActive(false);
         }
     }
 }

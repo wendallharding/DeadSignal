@@ -70,6 +70,8 @@ namespace DeadSignal
                                 Resources.Load<Material>("Materials/SignalSapperArmor") != null &&
                                 Resources.Load<Material>("Materials/SignalSapperFork") != null &&
                                 Resources.Load<Material>("Materials/SignalSapperCore") != null &&
+                                Resources.Load<Texture2D>("VFX/SapperDrainGlyph") != null &&
+                                Resources.Load<SignalSapperTelegraphTuning>("Tuning/SignalSapperTelegraphTuning") != null &&
                                 game.HasLowSignalWarningTexture &&
                                 game.HasTowerActivationSweepTexture;
             if (!runtimeReady)

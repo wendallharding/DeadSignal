@@ -48,6 +48,7 @@ This autonomous run is accepted when a fresh Play session provides all of the fo
 - The tower-draining Signal Sapper uses four purpose-built, UV-mapped low-poly meshes with original black-violet/magenta siphon art while drain rules remain unchanged.
 - Dead zones are visually distinct, show a warning, and drain Signal quickly.
 - Tower activation wakes two readable threats: a red Warden pursues the drone while a magenta Signal Sapper telegraphs its tower target and timed drain pulses; both can be destroyed.
+- The Sapper's successful drain uses an authored inward-pulling floor glyph whose expansion remains optional under Reduced Flashes while timing stays readable through the countdown reticle.
 - Three warm salvage pickups can be collected outside the safe starting area.
 - Returning to the extraction pad with all salvage and pressing E wins.
 - A central powered gate offers a readable choice: spend Signal for a direct salvage route or detour through the dead zone.

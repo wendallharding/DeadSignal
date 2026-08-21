@@ -134,6 +134,14 @@ namespace DeadSignal.Tests
             SignalSapperTelegraph telegraph = telegraphRoot.GetComponent<SignalSapperTelegraph>();
             Assert.That(telegraphRoot.gameObject.activeSelf, Is.False, "The Sapper telegraph should remain hidden while dormant.");
             Assert.That(telegraph.IsVisible, Is.False);
+            Assert.That(telegraph.HasPulseTexture, Is.True,
+                "The Sapper telegraph should load its original drain-glyph texture.");
+            Assert.That(Resources.Load<SignalSapperTelegraphTuning>("Tuning/SignalSapperTelegraphTuning"), Is.Not.Null,
+                "The Sapper telegraph should load designer-facing presentation tuning.");
+            var sapperPulseFlash = telegraphRoot.Find("Sapper Pulse Flash");
+            Assert.That(sapperPulseFlash, Is.Not.Null);
+            Assert.That(sapperPulseFlash.GetComponent<SpriteRenderer>(), Is.Not.Null,
+                "The expanding drain pulse should render the authored transparent glyph instead of a primitive cylinder.");
             Assert.That(game.transform.Find("Tower Power Territory"), Is.Not.Null);
             Transform extractionPad = game.transform.Find("Extraction Pad Assembly");
             Assert.That(extractionPad, Is.Not.Null, "The start and finish objective should load from the authored extraction-pad prefab.");
