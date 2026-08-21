@@ -1821,3 +1821,72 @@ The live workspace remained open in Unity 6000.3.11f1 as process `254024` and wa
 ### Best next step
 
 Open `Assets/Scenes/SampleScene.unity`, trigger the tower, and judge the Warden at 16:9 and ultrawide in normal and High Contrast modes. If the red eye remains readable without overpowering the Signal palette, the next production-art target should be the still-primitive Signal Sapper.
+
+## 2026-08-21 — Run 32: authored Signal Sapper
+
+### Today's single idea — production Signal Sapper model and materials
+
+Player benefit: the tower-draining enemy now reads as a purpose-built parasitic siphon instead of four primitives, with a low black-violet chassis, two grasping magenta forks, and a distinct rotating drain rotor that clearly supports its approach-and-latch behavior.
+
+Acceptance criteria:
+
+- replace all four Sapper primitive meshes with original UV-mapped Blender geometry without changing movement, collision, health, latch timing, or Signal-drain rules;
+- map a new original black-violet armor albedo through a persistent URP Lit chassis material;
+- persist separate fork and drain-core materials so the finished appearance is visible outside Play Mode;
+- preserve the established four-part hierarchy, exact gameplay-facing origins, collider-free presentation, rotating/scaling drain core, and High Contrast runtime remapping; and
+- pass Blender generation, Unity import/compile, EditMode, PlayMode, Windows build, packaged-resource smoke, and repository validation.
+
+### Files and systems changed
+
+- `ArtSource/SignalSapper/create_signal_sapper.py`: added a deterministic Blender 5.2 pipeline that generates and UV-unwraps four named meshes, assigns preview materials, exports FBX, saves editable source, and renders a production preview.
+- `ArtSource/SignalSapper/SignalSapper.blend`: added editable source. Mesh statistics are: chassis `336` vertices / `324` polygons, left fork `308` / `294`, right fork `308` / `294`, and drain core `392` / `374`; every object has one UV layer. SHA-256: `04969FF54EBC497037698FDFCDF063A13D91E8AF56FE0629ADB26D5E71324B72`.
+- `ArtSource/SignalSapper/SignalSapperPreview.png`: added the visually inspected three-quarter render.
+- `ArtSource/SignalSapper/README.md`: documents the four-name/origin contract and regeneration workflow.
+- `Assets/DeadSignal/Resources/Actors/SignalSapperModel.fbx` and Unity-generated `.meta`: added the four-part Unity model with collider, animation, camera, light, and material import disabled and production mesh optimization enabled. FBX SHA-256: `3208B3290CB102A75F482DB332CC5F2AECA96F496DB1908135B54322E6B89DE7`; GUID: `dc3ca18ed62f23044b3f683db7bdc11b`.
+- `Assets/DeadSignal/Resources/Actors/SignalSapperArmorAlbedo.png` and Unity-generated `.meta`: added the original 1254x1254 charcoal ceramic, dark-violet seam, and sparse hot-magenta circuit albedo generated with OpenAI's built-in image-generation mode. Unity imports it as sRGB with mipmaps, repeat wrapping, high-quality compression, and a 1024px cap. SHA-256: `8D1F5663CB94B9395A697BCD0CA773A6E3DAF8B4F007F1044F5D31789D50F29B`; GUID: `af73ea4a1d84c57418b09ac9f2273ce7`.
+- Image-generation prompt: seamless orthographic low-poly Signal Sapper albedo with charcoal-black ceramic panels, dark-violet alloy seams, directional abrasion, and hot-magenta circuit filaments below ten percent coverage; commercially safe stylized hand-painted game art with uniform neutral presentation; no text, logos, protected designs, perspective, baked lighting, channel visualization, large magenta blocks, or competing bright colors.
+- `Assets/DeadSignal/Resources/Materials/SignalSapperArmor.mat`, `SignalSapperFork.mat`, and `SignalSapperCore.mat`, plus Unity-generated `.meta` files: added persistent URP Lit materials; the armor maps the generated albedo and the two functional materials use restrained magenta emission. GUIDs: `7a578b06ae874984b803f8865c7707cf`, `23c7f7b708ad4ff498a52032e66e13a9`, and `4187bf0200ef3f24cbc4195b60d68dd0`.
+- `Assets/DeadSignal/Resources/Actors/SignalSapperAssembly.prefab` and Unity-generated `.meta`: added the imported nested model with exact persistent material overrides. Prefab GUID: `a7ff5c981c7fd84429ac7ac28e769a57`.
+- `Assets/DeadSignal/Editor/DeadSignalActorSetup.cs`: added idempotent Sapper texture/model import, material creation, prefab construction, exact reference validation, and build readiness. Material defaults now initialize only new assets so later artist tuning is preserved.
+- `Assets/DeadSignal/Editor/DeadSignalProjectSetup.cs`: changed player-material setup to initialize tuning only for new materials, preventing builds from undoing the user's latest player material edits while retaining required hull texture repair.
+- `Assets/DeadSignal/Editor/DeadSignalWindowsBuild.cs`: ensures and validates authored Sapper assets before building.
+- `Assets/DeadSignal/Runtime/DeadSignalWorld.cs`: replaced the inline Sapper primitives with prefab-first composition and retained an exact primitive fallback; exposes the core's authored base scale and asset-readiness evidence.
+- `Assets/DeadSignal/Runtime/DeadSignalThreatController.cs`: applies the latch pulse as a multiplier of the core's authored base scale, preserving the old fallback appearance while preventing imported geometry from collapsing to primitive-only dimensions.
+- `Assets/DeadSignal/Runtime/DeadSignalPalette.cs`: adds mapped Sapper housing material state and normal/High Contrast colors.
+- `Assets/DeadSignal/Runtime/DeadSignalGame.cs`: exposes Sapper asset readiness and part count for runtime verification.
+- `Assets/DeadSignal/Runtime/StandaloneBuildSmokeProbe.cs`: requires the Sapper model, albedo, prefab, and all three materials in packaged Resources.
+- `Assets/DeadSignal/Tests/PlayMode/BootstrapSmokeTests.cs`: verifies persistent material mapping, all four imported meshes, UV0, exact origins, absent colliders, dormant/activation behavior, and authored core thickness through latch/pulse behavior.
+- `GAME_VISION.md`, `BACKLOG.md`, and `DEVLOG.md`: record the completed Sapper production-art milestone without changing the DEAD SIGNAL concept.
+
+No existing material asset, package, assembly definition, scene, project setting, deterministic gameplay rule, balance value, input, audio, save data, or serialized gameplay state was intentionally changed. Reflex 14.3.1 remains installed and unchanged.
+
+### Tests run and exact outcomes
+
+The live workspace was open in Unity 6000.3.11f1 as process `254024` and was not closed or controlled. Authoritative validation used the fresh copy `C:\Projects\Wendall\CodexPrototype_Run32Validation` with the pinned Editor.
+
+1. OpenAI's built-in image-generation mode produced the 1254x1254 armor albedo, which was copied into project Resources and visually inspected for seamless panel language, sparse magenta accents, and absence of text/logos.
+2. Blender 5.2.0 LTS ran `create_signal_sapper.py` three times while emission and the FBX side contract were corrected. The final generation saved the `.blend`, exported the FBX, rendered the preview, and exited `0`; only Blender 6.0 API deprecation notices for `use_nodes` were emitted. Source inspection confirmed four exported meshes, `1,344` vertices, `1,286` polygons, and one UV layer per mesh.
+3. Isolated Unity setup wrote `run32-sapper-setup-final.log`: import and asset construction exited `0`, preserved the model GUID, and reported zero first-party compiler errors/warnings, unhandled exceptions, or asset-name mismatches.
+4. Initial EditMode regression passed `16/16`. The authoritative final regression wrote `run32-editmode-final-results.xml` and `run32-editmode-final.log`: Unity exited `0`; `16/16` passed, `0` failed, `0` skipped in `0.0553489` seconds.
+5. The first PlayMode run intentionally failed `0/1` in `0.0847726` seconds because FBX conversion mirrored X, placing the object named left fork at the right-hand origin. The Blender source-side assignment was corrected and all assets were regenerated/reimported.
+6. The authoritative PlayMode rerun wrote `run32-playmode-final-results.xml` and `run32-playmode-final.log`: Unity exited `0`; `1/1` passed, `0` failed, `0` skipped in `3.9488551` seconds. It proved all new Sapper presentation contracts and every prior core-loop assertion.
+7. The final warmed Windows development build wrote `run32-windows-build-final.log`: Unity exited `0`, reported `Build Finished, Result: Success`, emitted one build PASS marker, and produced `198,522,885` reported bytes in `5.23` seconds. SHA-256 comparisons before and after build proved the user's five edited player/Warden material files remained byte-for-byte unchanged.
+8. A direct packaged launch wrote `run32-standalone-final.log`: the player forced Direct3D 11 on the NVIDIA GeForce RTX 3060, loaded the required Sapper Resources, printed one `[DEAD SIGNAL STANDALONE SMOKE] PASS` marker, and exited `0`.
+9. Strict scans of the final setup, EditMode, PlayMode, build, and packaged-player logs found zero compiler errors/warnings, null or missing-reference exceptions, unhandled exceptions, failed assertions, failed smoke markers, or first-party build failures.
+
+### Bugs found and fixed
+
+- FBX conversion mirrored Blender X, initially swapping the named left/right fork origins. The source-side assignment now deliberately compensates for that conversion; the final PlayMode test proves exact Unity positions.
+- The existing primitive pulse wrote absolute scale values into the drain core. It now multiplies the captured base scale, retaining identical fallback behavior while preserving the authored rotor's thickness.
+- Actor and player material setup reapplied default tuning on every build, which would silently undo the user's latest material edits. Defaults now apply only when creating a material; required texture mappings and prefab assignments remain repairable. Five source-material hashes were identical before and after the final build.
+- The first preview overexposed the forks and rotor into flat pink shapes. Emission was reduced and the preview regenerated so surface form remains visible.
+
+### Known limitations
+
+- Blender and automated PlayMode validation prove silhouette, mapping, hierarchy, and behavior, but no human has yet judged the final Sapper at both 16:9 and ultrawide during simultaneous Warden pressure.
+- The armor uses one albedo plus URP material parameters; normal/packed maps remain optional and should be justified by the top-down camera.
+- A Prefab Mode stage already open during external import may need to be closed and reopened once to refresh.
+
+### Best next step
+
+Open `Assets/Scenes/SampleScene.unity`, activate the tower, allow the Sapper to latch, and judge its fork/core readability in normal and High Contrast modes at 16:9 and ultrawide. If it remains distinct from the Warden under pressure, prioritize an in-game presentation pass for the Sapper tether and pulse timing rather than another model replacement.

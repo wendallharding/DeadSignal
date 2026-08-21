@@ -159,7 +159,9 @@ namespace DeadSignal
             m_sapperPulseCooldown = Mathf.Max(0f, m_sapperPulseCooldown - dt);
             m_world.SapperTelegraph.SetThreatState(true, true, m_sapperPulseCooldown, SAPPER_PULSE_INTERVAL);
             float pulse = 1f + Mathf.Sin(Time.time * 10f) * 0.18f;
-            m_world.SapperCore.localScale = new Vector3(0.42f * pulse, 0.1f, 0.42f * pulse);
+            m_world.SapperCore.localScale = Vector3.Scale(
+                m_world.SapperCoreBaseScale,
+                new Vector3(pulse, 1f, pulse));
             if (m_sapperPulseCooldown > 0f)
             {
                 return;

@@ -65,6 +65,8 @@ namespace DeadSignal
         public int SalvageCachePartCount => m_world?.SalvageCachePartCount ?? 0;
         public bool HasPlayerDroneAssets => m_world?.HasPlayerDroneAssets ?? false;
         public int PlayerDronePartCount => m_world?.PlayerDronePartCount ?? 0;
+        public bool HasSignalSapperAssets => m_world?.HasSignalSapperAssets ?? false;
+        public int SignalSapperPartCount => m_world?.SignalSapperPartCount ?? 0;
         public float LowSignalWarningIntensity => m_lowSignalWarning?.CurrentIntensity ?? 0f;
         public bool IsSignalDustPowered => m_signalDust?.IsPowered ?? false;
         public int SignalDustMaximumParticles => m_signalDust?.MaximumParticles ?? 0;

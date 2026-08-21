@@ -23,6 +23,7 @@ namespace DeadSignal
         public Transform Warden { get; private set; }
         public Transform Sapper { get; private set; }
         public Transform SapperCore { get; private set; }
+        public Vector3 SapperCoreBaseScale { get; private set; }
         public Transform TowerCore { get; private set; }
         public SignalSapperTelegraph SapperTelegraph { get; private set; }
         public IReadOnlyList<GameObject> SalvagePickups => m_salvagePickups;
@@ -47,6 +48,8 @@ namespace DeadSignal
         public int SalvageCachePartCount { get; private set; }
         public bool HasPlayerDroneAssets { get; private set; }
         public int PlayerDronePartCount { get; private set; }
+        public bool HasSignalSapperAssets { get; private set; }
+        public int SignalSapperPartCount { get; private set; }
 
         public DeadSignalWorld(Transform root, IComfortSettings comfortSettings)
         {
@@ -534,15 +537,7 @@ namespace DeadSignal
 
             _buildWarden();
 
-            var sapperRoot = new GameObject("Signal Sapper");
-            sapperRoot.transform.SetParent(m_root);
-            sapperRoot.transform.position = new Vector3(-10.8f, 0f, 5.7f);
-            Sapper = sapperRoot.transform;
-            _createPrimitive("Sapper Chassis", PrimitiveType.Cube, new Vector3(0f, 0.32f, 0f), new Vector3(0.72f, 0.34f, 1.25f), m_palette.Steel, Sapper);
-            _createPrimitive("Sapper Fork Left", PrimitiveType.Cube, new Vector3(-0.43f, 0.28f, 0.28f), new Vector3(0.18f, 0.18f, 0.92f), m_palette.Magenta, Sapper);
-            _createPrimitive("Sapper Fork Right", PrimitiveType.Cube, new Vector3(0.43f, 0.28f, 0.28f), new Vector3(0.18f, 0.18f, 0.92f), m_palette.Magenta, Sapper);
-            SapperCore = _createPrimitive("Sapper Drain Core", PrimitiveType.Cylinder, new Vector3(0f, 0.55f, -0.12f), new Vector3(0.42f, 0.1f, 0.42f), m_palette.Magenta, Sapper).transform;
-            Sapper.gameObject.SetActive(false);
+            _buildSapper();
 
             var telegraphRoot = new GameObject("Sapper Drain Telegraph");
             telegraphRoot.transform.SetParent(m_root);
@@ -552,6 +547,51 @@ namespace DeadSignal
             _createSalvage(new Vector3(9.7f, 0f, 6.3f));
             _createSalvage(new Vector3(10.4f, 0f, -6.4f));
             _createSalvage(new Vector3(-5.8f, 0f, 7.2f));
+        }
+
+        private void _buildSapper()
+        {
+            var sapperPrefab = Resources.Load<GameObject>(SIGNAL_SAPPER_PREFAB_RESOURCE);
+            var hasValidPrefab = sapperPrefab != null &&
+                                 sapperPrefab.transform.Find("Sapper Chassis") != null &&
+                                 sapperPrefab.transform.Find("Sapper Fork Left") != null &&
+                                 sapperPrefab.transform.Find("Sapper Fork Right") != null &&
+                                 sapperPrefab.transform.Find("Sapper Drain Core") != null;
+            if (hasValidPrefab)
+            {
+                var sapperRoot = Object.Instantiate(sapperPrefab, m_root);
+                sapperRoot.name = "Signal Sapper";
+                sapperRoot.transform.localPosition = s_signalSapperSpawn;
+                sapperRoot.transform.localRotation = Quaternion.identity;
+                Sapper = sapperRoot.transform;
+                Sapper.Find("Sapper Chassis").GetComponent<Renderer>().sharedMaterial = m_palette.SapperHousing;
+                Sapper.Find("Sapper Fork Left").GetComponent<Renderer>().sharedMaterial = m_palette.Magenta;
+                Sapper.Find("Sapper Fork Right").GetComponent<Renderer>().sharedMaterial = m_palette.Magenta;
+                SapperCore = Sapper.Find("Sapper Drain Core");
+                SapperCore.GetComponent<Renderer>().sharedMaterial = m_palette.Magenta;
+                HasSignalSapperAssets = m_palette.HasSapperTexture;
+                SignalSapperPartCount = 4;
+            }
+            else
+            {
+                var fallbackRoot = new GameObject("Signal Sapper");
+                fallbackRoot.transform.SetParent(m_root);
+                fallbackRoot.transform.position = s_signalSapperSpawn;
+                Sapper = fallbackRoot.transform;
+                _createPrimitive("Sapper Chassis", PrimitiveType.Cube, new Vector3(0f, 0.32f, 0f),
+                    new Vector3(0.72f, 0.34f, 1.25f), m_palette.SapperHousing, Sapper);
+                _createPrimitive("Sapper Fork Left", PrimitiveType.Cube, new Vector3(-0.43f, 0.28f, 0.28f),
+                    new Vector3(0.18f, 0.18f, 0.92f), m_palette.Magenta, Sapper);
+                _createPrimitive("Sapper Fork Right", PrimitiveType.Cube, new Vector3(0.43f, 0.28f, 0.28f),
+                    new Vector3(0.18f, 0.18f, 0.92f), m_palette.Magenta, Sapper);
+                SapperCore = _createPrimitive("Sapper Drain Core", PrimitiveType.Cylinder, new Vector3(0f, 0.55f, -0.12f),
+                    new Vector3(0.42f, 0.1f, 0.42f), m_palette.Magenta, Sapper).transform;
+                HasSignalSapperAssets = false;
+                SignalSapperPartCount = 4;
+            }
+
+            SapperCoreBaseScale = SapperCore.localScale;
+            Sapper.gameObject.SetActive(false);
         }
 
         private void _buildWarden()
@@ -726,10 +766,12 @@ namespace DeadSignal
         private const string SALVAGE_CACHE_PREFAB_RESOURCE = "Environment/SalvageCacheAssembly";
         private const string PLAYER_DRONE_PREFAB_RESOURCE = "Actors/MaintenanceDroneAssembly";
         private const string SECURITY_WARDEN_PREFAB_RESOURCE = "Actors/SecurityWardenAssembly";
+        private const string SIGNAL_SAPPER_PREFAB_RESOURCE = "Actors/SignalSapperAssembly";
         private const float DECK_MODULE_WIDTH = 3.9f;
         private const float DECK_MODULE_DEPTH = 3.6f;
 
         private static readonly Vector3 s_securityWardenSpawn = new(6.8f, 0f, 4.7f);
+        private static readonly Vector3 s_signalSapperSpawn = new(-10.8f, 0f, 5.7f);
 
         private readonly Transform m_root;
         private readonly DeadSignalPalette m_palette;

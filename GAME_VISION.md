@@ -45,6 +45,7 @@ This autonomous run is accepted when a fresh Play session provides all of the fo
 - Three salvage objectives use a reusable authored cache assembly with original amber containment art while collection and beacon guidance remain unchanged.
 - The maintenance drone uses four purpose-built, UV-mapped low-poly meshes with original white-ceramic Signal art while movement, aim, and firing remain unchanged.
 - The pursuing Security Warden uses three purpose-built, UV-mapped low-poly meshes with original graphite/crimson armor art while threat rules remain unchanged.
+- The tower-draining Signal Sapper uses four purpose-built, UV-mapped low-poly meshes with original black-violet/magenta siphon art while drain rules remain unchanged.
 - Dead zones are visually distinct, show a warning, and drain Signal quickly.
 - Tower activation wakes two readable threats: a red Warden pursues the drone while a magenta Signal Sapper telegraphs its tower target and timed drain pulses; both can be destroyed.
 - Three warm salvage pickups can be collected outside the safe starting area.

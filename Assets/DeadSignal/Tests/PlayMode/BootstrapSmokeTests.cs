@@ -90,8 +90,45 @@ namespace DeadSignal.Tests
                 Is.Not.Null, "The Warden chassis should render the original armored security texture.");
             Assert.That(securityWarden.gameObject.activeSelf, Is.False,
                 "The authored Warden should remain dormant until tower activation.");
-            Assert.That(game.transform.Find("Signal Sapper"), Is.Not.Null, "Dormant sapper should exist before tower activation.");
-            Assert.That(game.transform.Find("Signal Sapper").gameObject.activeSelf, Is.False);
+            var signalSapper = game.transform.Find("Signal Sapper");
+            var authoredSapperPrefab = Resources.Load<GameObject>("Actors/SignalSapperAssembly");
+            var sapperArmorTexture = Resources.Load<Texture2D>("Actors/SignalSapperArmorAlbedo");
+            var sapperArmorMaterial = Resources.Load<Material>("Materials/SignalSapperArmor");
+            Assert.That(authoredSapperPrefab, Is.Not.Null,
+                "The authored Signal Sapper prefab should load from Resources.");
+            Assert.That(Resources.Load<GameObject>("Actors/SignalSapperModel"), Is.Not.Null,
+                "The authored Blender Signal Sapper model should load from Resources.");
+            Assert.That(sapperArmorTexture, Is.Not.Null);
+            Assert.That(sapperArmorMaterial, Is.Not.Null);
+            Assert.That(sapperArmorMaterial.mainTexture, Is.EqualTo(sapperArmorTexture),
+                "The Sapper armor material should persistently map the generated albedo outside Play Mode.");
+            Assert.That(authoredSapperPrefab.transform.Find("Sapper Chassis").GetComponent<Renderer>().sharedMaterial,
+                Is.EqualTo(sapperArmorMaterial), "Prefab Mode should display the mapped Sapper armor material.");
+            Assert.That(authoredSapperPrefab.transform.Find("Sapper Fork Left").GetComponent<Renderer>().sharedMaterial,
+                Is.EqualTo(Resources.Load<Material>("Materials/SignalSapperFork")));
+            Assert.That(authoredSapperPrefab.transform.Find("Sapper Fork Right").GetComponent<Renderer>().sharedMaterial,
+                Is.EqualTo(Resources.Load<Material>("Materials/SignalSapperFork")));
+            Assert.That(authoredSapperPrefab.transform.Find("Sapper Drain Core").GetComponent<Renderer>().sharedMaterial,
+                Is.EqualTo(Resources.Load<Material>("Materials/SignalSapperCore")));
+            Assert.That(signalSapper, Is.Not.Null, "Dormant sapper should exist before tower activation.");
+            Assert.That(game.HasSignalSapperAssets, Is.True);
+            Assert.That(game.SignalSapperPartCount, Is.EqualTo(4));
+            Assert.That(signalSapper.GetComponentsInChildren<Renderer>(true).Length, Is.EqualTo(4));
+            var sapperMeshes = signalSapper.GetComponentsInChildren<MeshFilter>(true).Select(filter => filter.sharedMesh).ToArray();
+            Assert.That(sapperMeshes.Length, Is.EqualTo(4));
+            Assert.That(sapperMeshes.All(mesh => mesh != null && mesh.vertexCount >= 24), Is.True,
+                "Every Sapper part should use purpose-built geometry rather than a placeholder primitive.");
+            Assert.That(sapperMeshes.All(mesh => mesh.HasVertexAttribute(UnityEngine.Rendering.VertexAttribute.TexCoord0)), Is.True,
+                "Every Sapper mesh should retain complete authored UV coordinates.");
+            Assert.That(signalSapper.GetComponentsInChildren<Collider>(true).Length, Is.Zero,
+                "The authored Sapper should remain presentation-only so deterministic threat collision stays authoritative.");
+            Assert.That(signalSapper.Find("Sapper Chassis").localPosition, Is.EqualTo(new Vector3(0f, 0.32f, 0f)));
+            Assert.That(signalSapper.Find("Sapper Fork Left").localPosition, Is.EqualTo(new Vector3(-0.43f, 0.28f, 0.28f)));
+            Assert.That(signalSapper.Find("Sapper Fork Right").localPosition, Is.EqualTo(new Vector3(0.43f, 0.28f, 0.28f)));
+            Assert.That(signalSapper.Find("Sapper Drain Core").localPosition, Is.EqualTo(new Vector3(0f, 0.55f, -0.12f)));
+            Assert.That(signalSapper.Find("Sapper Chassis").GetComponent<Renderer>().sharedMaterial.mainTexture, Is.Not.Null,
+                "The Sapper chassis should render the original parasitic armor texture.");
+            Assert.That(signalSapper.gameObject.activeSelf, Is.False);
             var telegraphRoot = game.transform.Find("Sapper Drain Telegraph");
             Assert.That(telegraphRoot, Is.Not.Null, "The Sapper telegraph should be constructed with the runtime arena.");
             SignalSapperTelegraph telegraph = telegraphRoot.GetComponent<SignalSapperTelegraph>();
@@ -468,6 +505,8 @@ namespace DeadSignal.Tests
 
                 Assert.That(game.IsSapperLatched, Is.True, "The sapper should latch onto the powered tower.");
                 Assert.That(telegraph.IsLatched, Is.True, "The telegraph should switch to its countdown presentation when latched.");
+                Assert.That(sapper.Find("Sapper Drain Core").localScale.y, Is.GreaterThan(0.5f),
+                    "The drain pulse should preserve the authored core thickness instead of applying primitive-only scale values.");
                 float initialCountdown = telegraph.DisplayedCountdown;
                 Assert.That(initialCountdown, Is.GreaterThan(1f));
                 yield return new WaitForSeconds(0.2f);

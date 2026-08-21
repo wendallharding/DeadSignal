@@ -31,6 +31,7 @@ namespace DeadSignal.Editor
             DeadSignalProjectSetup.EnsureSalvageCacheAssets();
             DeadSignalProjectSetup.EnsurePlayerDroneAssets();
             DeadSignalActorSetup.EnsureSecurityWardenAssets();
+            DeadSignalActorSetup.EnsureSignalSapperAssets();
             _validateBuildInputs();
             _configureWindowsPlayer();
 
@@ -133,6 +134,11 @@ namespace DeadSignal.Editor
             if (!DeadSignalActorSetup.HasSecurityWardenAssets)
             {
                 throw new BuildFailedException("The authored Security Warden model or materials are missing.");
+            }
+
+            if (!DeadSignalActorSetup.HasSignalSapperAssets)
+            {
+                throw new BuildFailedException("The authored Signal Sapper model or materials are missing.");
             }
 
             if (AssetDatabase.LoadAssetAtPath<Texture2D>(APPLICATION_ICON_PATH) == null)

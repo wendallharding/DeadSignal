@@ -550,7 +550,8 @@ namespace DeadSignal.Editor
             Texture2D texture)
         {
             var material = AssetDatabase.LoadAssetAtPath<Material>(assetPath);
-            if (material == null)
+            var isNewMaterial = material == null;
+            if (isNewMaterial)
             {
                 var shader = Shader.Find("Universal Render Pipeline/Lit");
                 if (shader == null)
@@ -562,38 +563,47 @@ namespace DeadSignal.Editor
                 AssetDatabase.CreateAsset(material, assetPath);
             }
 
-            material.name = materialName;
-            material.color = baseColor;
-            material.mainTexture = texture;
-            if (material.HasProperty("_BaseColor"))
+            if (isNewMaterial)
             {
-                material.SetColor("_BaseColor", baseColor);
-            }
-
-            if (material.HasProperty("_BaseMap"))
-            {
-                material.SetTexture("_BaseMap", texture);
-            }
-
-            if (material.HasProperty("_Smoothness"))
-            {
-                material.SetFloat("_Smoothness", smoothness);
-            }
-
-            if (material.HasProperty("_EmissionColor"))
-            {
-                material.SetColor("_EmissionColor", emissionColor);
-                if (emissionColor.maxColorComponent > 0f)
+                material.name = materialName;
+                material.color = baseColor;
+                if (material.HasProperty("_BaseColor"))
                 {
-                    material.EnableKeyword("_EMISSION");
+                    material.SetColor("_BaseColor", baseColor);
                 }
-                else
+
+                if (material.HasProperty("_Smoothness"))
                 {
-                    material.DisableKeyword("_EMISSION");
+                    material.SetFloat("_Smoothness", smoothness);
+                }
+
+                if (material.HasProperty("_EmissionColor"))
+                {
+                    material.SetColor("_EmissionColor", emissionColor);
+                    if (emissionColor.maxColorComponent > 0f)
+                    {
+                        material.EnableKeyword("_EMISSION");
+                    }
+                    else
+                    {
+                        material.DisableKeyword("_EMISSION");
+                    }
                 }
             }
 
-            EditorUtility.SetDirty(material);
+            if (texture != null)
+            {
+                material.mainTexture = texture;
+                if (material.HasProperty("_BaseMap"))
+                {
+                    material.SetTexture("_BaseMap", texture);
+                }
+            }
+
+            if (isNewMaterial || texture != null)
+            {
+                EditorUtility.SetDirty(material);
+            }
         }
 
         private static void _assignPlayerDroneMaterials()

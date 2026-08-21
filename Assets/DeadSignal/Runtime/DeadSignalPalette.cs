@@ -25,6 +25,7 @@ namespace DeadSignal
         public Material SalvageCacheHousing { get; }
         public Material PlayerDroneHousing { get; }
         public Material WardenHousing { get; }
+        public Material SapperHousing { get; }
         public Material Dark { get; }
         public Material Steel { get; }
         public Material White { get; }
@@ -38,6 +39,7 @@ namespace DeadSignal
         public bool HasSalvageCacheTexture { get; }
         public bool HasPlayerDroneTexture { get; }
         public bool HasWardenTexture { get; }
+        public bool HasSapperTexture { get; }
 
         public DeadSignalPalette(bool highContrastEnabled)
         {
@@ -58,6 +60,7 @@ namespace DeadSignal
             SalvageCacheHousing = _createMaterial("Salvage Cache Housing");
             PlayerDroneHousing = _createMaterial("Maintenance Drone Housing");
             WardenHousing = _createMaterial("Security Warden Housing");
+            SapperHousing = _createMaterial("Signal Sapper Housing");
             Dark = _createMaterial("Station Black");
             Steel = _createMaterial("Station Steel");
             White = _createMaterial("Drone White");
@@ -223,6 +226,22 @@ namespace DeadSignal
             }
 
             HasWardenTexture = wardenTexture != null;
+            var sapperTexture = Resources.Load<Texture2D>(SIGNAL_SAPPER_TEXTURE_RESOURCE);
+            if (sapperTexture != null)
+            {
+                SapperHousing.mainTexture = sapperTexture;
+                if (SapperHousing.HasProperty("_BaseMap"))
+                {
+                    SapperHousing.SetTexture("_BaseMap", sapperTexture);
+                }
+
+                if (SapperHousing.HasProperty("_Smoothness"))
+                {
+                    SapperHousing.SetFloat("_Smoothness", 0.38f);
+                }
+            }
+
+            HasSapperTexture = sapperTexture != null;
             ApplyHighContrast(highContrastEnabled);
         }
 
@@ -279,6 +298,9 @@ namespace DeadSignal
             _setMaterial(WardenHousing,
                 enabled ? new Color(0.34f, 0.38f, 0.44f) : new Color(0.16f, 0.18f, 0.21f),
                 enabled ? new Color(0.16f, 0.005f, 0.005f) : new Color(0.04f, 0.002f, 0.002f));
+            _setMaterial(SapperHousing,
+                enabled ? new Color(0.54f, 0.48f, 0.62f) : new Color(0.21f, 0.17f, 0.25f),
+                enabled ? new Color(0.14f, 0.005f, 0.09f) : new Color(0.035f, 0.001f, 0.02f));
             _setMaterial(Dark,
                 enabled ? Color.black : new Color(0.012f, 0.018f, 0.026f),
                 Color.black);
@@ -336,5 +358,6 @@ namespace DeadSignal
         private const string SALVAGE_CACHE_TEXTURE_RESOURCE = "Environment/SalvageCachePanel";
         private const string PLAYER_DRONE_TEXTURE_RESOURCE = "Actors/MaintenanceDroneHullAlbedo";
         private const string SECURITY_WARDEN_TEXTURE_RESOURCE = "Actors/SecurityWardenArmorAlbedo";
+        private const string SIGNAL_SAPPER_TEXTURE_RESOURCE = "Actors/SignalSapperArmorAlbedo";
     }
 }
