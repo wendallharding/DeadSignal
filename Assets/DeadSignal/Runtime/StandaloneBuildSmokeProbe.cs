@@ -70,6 +70,11 @@ namespace DeadSignal
                                 Resources.Load<Material>("Materials/SignalSapperArmor") != null &&
                                 Resources.Load<Material>("Materials/SignalSapperFork") != null &&
                                 Resources.Load<Material>("Materials/SignalSapperCore") != null &&
+                                game.HasSignalBoltAssets &&
+                                Resources.Load<GameObject>("Projectiles/SignalBoltModel") != null &&
+                                Resources.Load<Texture2D>("Projectiles/SignalBoltAlbedo") != null &&
+                                Resources.Load<Material>("Materials/SignalBoltShell") != null &&
+                                Resources.Load<Material>("Materials/SignalBoltEnergy") != null &&
                                 Resources.Load<Texture2D>("VFX/SapperDrainGlyph") != null &&
                                 Resources.Load<Texture2D>("VFX/SapperTetherFlow") != null &&
                                 Resources.Load<SignalSapperTelegraphTuning>("Tuning/SignalSapperTelegraphTuning") != null &&

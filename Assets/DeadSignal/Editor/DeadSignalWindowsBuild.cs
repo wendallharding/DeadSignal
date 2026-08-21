@@ -32,6 +32,7 @@ namespace DeadSignal.Editor
             DeadSignalProjectSetup.EnsurePlayerDroneAssets();
             DeadSignalActorSetup.EnsureSecurityWardenAssets();
             DeadSignalActorSetup.EnsureSignalSapperAssets();
+            DeadSignalProjectileSetup.EnsureAssets();
             DeadSignalSapperTelegraphSetup.EnsureAssets();
             _validateBuildInputs();
             _configureWindowsPlayer();
@@ -140,6 +141,11 @@ namespace DeadSignal.Editor
             if (!DeadSignalActorSetup.HasSignalSapperAssets)
             {
                 throw new BuildFailedException("The authored Signal Sapper model or materials are missing.");
+            }
+
+            if (!DeadSignalProjectileSetup.HasAssets)
+            {
+                throw new BuildFailedException("The authored Signal bolt model or materials are missing.");
             }
 
             if (!DeadSignalSapperTelegraphSetup.HasAssets)

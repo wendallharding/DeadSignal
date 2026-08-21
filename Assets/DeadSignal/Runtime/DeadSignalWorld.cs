@@ -48,6 +48,8 @@ namespace DeadSignal
         public int SalvageCachePartCount { get; private set; }
         public bool HasPlayerDroneAssets { get; private set; }
         public int PlayerDronePartCount { get; private set; }
+        public bool HasSignalBoltAssets { get; }
+        public bool LastSignalBoltUsedAuthoredPrefab { get; private set; }
         public bool HasSignalSapperAssets { get; private set; }
         public int SignalSapperPartCount { get; private set; }
 
@@ -55,6 +57,10 @@ namespace DeadSignal
         {
             m_root = root;
             m_palette = new DeadSignalPalette(comfortSettings.HighContrastEnabled);
+            m_signalBoltPrefab = Resources.Load<GameObject>(SIGNAL_BOLT_PREFAB_RESOURCE);
+            HasSignalBoltAssets = m_signalBoltPrefab != null &&
+                                  m_signalBoltPrefab.transform.Find("Bolt Shell") != null &&
+                                  m_signalBoltPrefab.transform.Find("Bolt Energy") != null;
             _buildPresentation();
             _buildArena();
             _buildActors(comfortSettings);
@@ -137,12 +143,26 @@ namespace DeadSignal
 
         public GameObject CreateSignalBolt(Vector3 direction)
         {
-            var bolt = _createPrimitive(
-                "Signal Bolt",
-                PrimitiveType.Cube,
-                Player.position + direction * 0.9f + Vector3.up * 0.25f,
-                new Vector3(0.16f, 0.16f, 0.55f),
-                m_palette.Cyan);
+            GameObject bolt;
+            var spawnPosition = Player.position + direction * 0.9f + Vector3.up * 0.25f;
+            if (HasSignalBoltAssets)
+            {
+                bolt = Object.Instantiate(m_signalBoltPrefab, m_root);
+                bolt.name = "Signal Bolt";
+                bolt.transform.localPosition = spawnPosition;
+                LastSignalBoltUsedAuthoredPrefab = true;
+            }
+            else
+            {
+                bolt = _createPrimitive(
+                    "Signal Bolt",
+                    PrimitiveType.Cube,
+                    spawnPosition,
+                    new Vector3(0.16f, 0.16f, 0.55f),
+                    m_palette.Cyan);
+                LastSignalBoltUsedAuthoredPrefab = false;
+            }
+
             bolt.transform.rotation = Quaternion.LookRotation(direction, Vector3.up);
             return bolt;
         }
@@ -767,6 +787,7 @@ namespace DeadSignal
         private const string PLAYER_DRONE_PREFAB_RESOURCE = "Actors/MaintenanceDroneAssembly";
         private const string SECURITY_WARDEN_PREFAB_RESOURCE = "Actors/SecurityWardenAssembly";
         private const string SIGNAL_SAPPER_PREFAB_RESOURCE = "Actors/SignalSapperAssembly";
+        private const string SIGNAL_BOLT_PREFAB_RESOURCE = "Projectiles/SignalBoltAssembly";
         private const float DECK_MODULE_WIDTH = 3.9f;
         private const float DECK_MODULE_DEPTH = 3.6f;
 
@@ -775,6 +796,7 @@ namespace DeadSignal
 
         private readonly Transform m_root;
         private readonly DeadSignalPalette m_palette;
+        private readonly GameObject m_signalBoltPrefab;
         private readonly List<MovementBlocker> m_movementBlockers = new();
         private readonly List<GameObject> m_salvagePickups = new();
         private readonly List<Vector3> m_machineSockets = new();

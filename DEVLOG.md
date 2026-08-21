@@ -2000,3 +2000,64 @@ The live project and the user's other Unity projects remained untouched. Authori
 ### Best next step
 
 Activate the tower in `Assets/Scenes/SampleScene.unity`, watch the Sapper approach and latch, and judge whether packet speed remains readable during simultaneous Warden pressure in normal and High Contrast modes.
+
+## 2026-08-21 — Run 35: authored Signal bolt projectile
+
+### Today's single idea — readable authored maintenance pulse
+
+Player benefit: every shot now looks like a piece of the maintenance drone rather than a stretched engine cube, giving the most frequently repeated combat action a distinctive white-ceramic/cyan silhouette without changing how shooting plays.
+
+Acceptance criteria:
+
+- create one original, low-poly, UV-mapped two-part Signal bolt model with editable Blender source and an art preview;
+- create one original albedo, persistently map it to an authored URP material, and persist both shell/energy material assignments on a reusable prefab;
+- instantiate that prefab for every shot with a primitive fallback while preserving Signal cost, spawn point, direction, speed, lifetime, hit radii, damage, and input;
+- keep the prefab collider-free so existing deterministic projectile rules remain authoritative; and
+- pass Blender generation, Unity import/compile, EditMode, PlayMode, Windows build, packaged-resource smoke, visual inspection, and repository checks.
+
+### Files and systems changed
+
+- `Assets/DeadSignal/Resources/Projectiles/SignalBoltAlbedo.png` and Unity-generated `.meta`: added an original generated ceramic/cyan projectile albedo configured for repeat wrapping, mipmaps, high-quality compression, and a 1024px cap. SHA-256: `52A29B7A7796DF6138489BC0F5BD1D42A8E89F252874EDFA3F26B2E2DA85BB96`.
+- Image-generation prompt: seamless square UV albedo for a low-poly maintenance pulse with off-white ceramic micro-panels, graphite centerline, compact cyan circuit traces and energy bands; no text, logos, UI, scene, perspective, border, red, magenta, orange, or yellow. Generated with OpenAI's built-in image-generation mode.
+- `ArtSource/SignalBolt/create_signal_bolt.py`, `SignalBolt.blend`, `SignalBoltPreview.png`, and `README.md`: added the reproducible Blender 5.2 source pipeline, editable model, rendered art proof, and regeneration contract.
+- `Assets/DeadSignal/Resources/Projectiles/SignalBoltModel.fbx` and Unity-generated `.meta`: added the two-part `Bolt Shell`/`Bolt Energy` production mesh with authored UV0 and no colliders or animation payload.
+- `Assets/DeadSignal/Resources/Projectiles/SignalBoltAssembly.prefab` and Unity-generated `.meta`: added the reusable gameplay-facing projectile prefab.
+- `Assets/DeadSignal/Resources/Materials/SignalBoltShell.mat`, `SignalBoltEnergy.mat`, and Unity-generated `.meta`: added persistent URP Lit ceramic/albedo and cyan-emissive material assignments.
+- `Assets/DeadSignal/Editor/DeadSignalProjectileSetup.cs` and Unity-generated `.meta`: added focused idempotent texture/model import, material creation, prefab construction, assignment repair, and build-readiness validation while preserving later artist material tuning.
+- `Assets/DeadSignal/Runtime/DeadSignalWorld.cs`: refactored Signal-bolt composition to cache and instantiate the authored prefab, with the exact prior cube retained as a missing-asset fallback.
+- `Assets/DeadSignal/Runtime/DeadSignalGame.cs`: exposes projectile-asset readiness for validation.
+- `Assets/DeadSignal/Editor/DeadSignalWindowsBuild.cs` and `Assets/DeadSignal/Runtime/StandaloneBuildSmokeProbe.cs`: require the new production assets before build and in packaged Resources.
+- `Assets/DeadSignal/Tests/PlayMode/BootstrapSmokeTests.cs`: verifies Resources, exact persistent mappings, mesh/UV/collider contracts, and a live fired prefab while retaining the full core-loop regression.
+- `GAME_VISION.md`, `BACKLOG.md`, and `DEVLOG.md`: record the completed production-art milestone.
+
+No gameplay timing, Signal cost, projectile speed/lifetime/hit radii/damage, enemy behavior, scene, package, project setting, input, audio, save data, or existing art/material asset changed.
+
+### Tests run and exact outcomes
+
+The live project remained open in Unity `6000.3.11f1` and was not closed or controlled. Authoritative validation used Blender `5.2.0 LTS` and `C:\Projects\Wendall\CodexPrototype_Run35Validation` with the pinned Unity Editor.
+
+1. OpenAI built-in image generation produced the `1254x1254` 32-bit ARGB albedo. It was copied into project Resources and visually inspected for the requested ceramic/graphite/cyan language, useful UV-scale variation, and absence of text/logos. SHA-256 is recorded above; texture GUID: `79175e9769e75ab469af103d5392e685`.
+2. Blender ran `create_signal_bolt.py`, saved the `.blend`, exported the FBX, rendered the `1024x1024` preview, and exited `0` in `10.7` seconds. Only Blender 6.0 API deprecation notices for `use_nodes` were emitted. Source inspection reported `Bolt Shell` at `328` vertices/`294` polygons and `Bolt Energy` at `260` vertices/`244` polygons, each with exactly one UV layer. FBX SHA-256: `567EED2B932EEB8848632425C27BE2C3E6CDDD96E7D20D7C5320A23260CE8685`.
+3. The Blender preview was visually inspected at original resolution: the model has a distinct armored capsule, cyan core/nose, and ring silhouette with visible generated panel mapping and no unintended scene content.
+4. Unity setup wrote `run35-setup.log`: the pinned Editor compiled the changed assemblies, imported the model with GUID `8e2cf56dc63d21442b71332dc835d453`, created prefab GUID `614bdf970fdad5e41b75e7a6074c08cc`, persisted both material assignments, and exited `0` with zero first-party compiler errors or warnings.
+5. The authoritative final EditMode regression wrote `run35-editmode-final-results.xml` and `run35-editmode-final.log`: `16/16` passed, `0` failed, `0` skipped in `0.0490391` seconds, exit `0`.
+6. The first PlayMode validation failed `0/1` in `2.5921757` seconds because the test expected a visual to survive the firing frame; deterministic hit processing can destroy it immediately. A second run failed `0/1` in `2.6023188` seconds because active combat hit-stop buffered the shot beyond that immediate assertion. Neither failed run is counted as a pass.
+7. The corrected authoritative PlayMode run wrote `run35-playmode-final3-results.xml` and `run35-playmode-final3.log`: `1/1` passed, `0` failed, `0` skipped in `3.9721497` seconds, exit `0`. It proved exact Resources/material mappings, two imported meshes, UV0, no colliders, the authored firing path after hit-stop, and every prior core-loop assertion.
+8. The Windows development build wrote `run35-build.log`: Unity exited `0`, reported `Build Finished, Result: Success`, emitted one build PASS marker, and produced `201,718,165` reported bytes in `72.74` seconds.
+9. The packaged `-batchmode -nographics -deadSignalBuildSmoke` launch wrote `run35-standalone.log`, loaded all required projectile Resources, emitted one standalone PASS marker, and exited normally.
+10. Strict scans of the final setup, EditMode, PlayMode, build, and packaged-player logs found zero compiler errors/warnings, failed assertions, missing-reference exceptions, unhandled exceptions, failed build markers, or failed smoke markers. `git diff --check` also passed.
+
+### Bugs found and fixed
+
+- The player's most frequent combat visual was still a stretched built-in cube. It now uses a cached prefab resource and two purpose-built render meshes, while the cube remains an explicit missing-asset fallback.
+- The previous projectile visual depended on a runtime palette material and could not be inspected as a finished asset in Prefab Mode. Both new material mappings are serialized on the prefab and validated before every build.
+- A live projectile is not guaranteed to survive its creation frame when a target is already in range, and firing may be buffered during combat hit-stop. Validation now records the actual authored/fallback creation path and waits through the existing buffer instead of weakening collision timing or relying on transient hierarchy state.
+
+### Known limitations
+
+- The texture carries color and panel variation only; normal/packed maps remain deliberately omitted at the projectile's small on-screen size.
+- Automated tests can prove geometry and integration contracts but cannot replace human judgment of bolt scale and brightness during dense simultaneous threat feedback.
+
+### Best next step
+
+Fire repeatedly at the Warden and Sapper in `Assets/Scenes/SampleScene.unity`, then judge the bolt silhouette, cyan brightness, and visual ownership at 16:9 and ultrawide in normal and High Contrast modes.

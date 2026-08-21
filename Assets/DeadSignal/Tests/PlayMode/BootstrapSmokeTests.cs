@@ -54,6 +54,29 @@ namespace DeadSignal.Tests
                 "Every player mesh should retain complete authored UV coordinates.");
             Assert.That(maintenanceDrone.Find("Drone Tool").localPosition, Is.EqualTo(new Vector3(0f, 0.3f, 0.68f)),
                 "The authored tool must preserve the projectile origin and aiming silhouette.");
+            Assert.That(game.HasSignalBoltAssets, Is.True,
+                "The authored Signal bolt prefab should be ready before the player fires.");
+            var authoredBoltPrefab = Resources.Load<GameObject>("Projectiles/SignalBoltAssembly");
+            var authoredBoltModel = Resources.Load<GameObject>("Projectiles/SignalBoltModel");
+            var boltAlbedo = Resources.Load<Texture2D>("Projectiles/SignalBoltAlbedo");
+            var boltShellMaterial = Resources.Load<Material>("Materials/SignalBoltShell");
+            Assert.That(authoredBoltPrefab, Is.Not.Null);
+            Assert.That(authoredBoltModel, Is.Not.Null);
+            Assert.That(boltAlbedo, Is.Not.Null);
+            Assert.That(boltShellMaterial.mainTexture, Is.EqualTo(boltAlbedo),
+                "The projectile shell material should persistently map the generated albedo outside Play Mode.");
+            Assert.That(authoredBoltPrefab.transform.Find("Bolt Shell").GetComponent<Renderer>().sharedMaterial,
+                Is.EqualTo(boltShellMaterial));
+            Assert.That(authoredBoltPrefab.transform.Find("Bolt Energy").GetComponent<Renderer>().sharedMaterial,
+                Is.EqualTo(Resources.Load<Material>("Materials/SignalBoltEnergy")));
+            var boltMeshes = authoredBoltPrefab.GetComponentsInChildren<MeshFilter>().Select(filter => filter.sharedMesh).ToArray();
+            Assert.That(boltMeshes.Length, Is.EqualTo(2));
+            Assert.That(boltMeshes.All(mesh => mesh != null && mesh.vertexCount >= 24), Is.True,
+                "Both Signal bolt parts should use purpose-built geometry rather than a placeholder cube.");
+            Assert.That(boltMeshes.All(mesh => mesh.HasVertexAttribute(UnityEngine.Rendering.VertexAttribute.TexCoord0)), Is.True,
+                "Both Signal bolt meshes should retain complete authored UV coordinates.");
+            Assert.That(authoredBoltPrefab.GetComponentsInChildren<Collider>().Length, Is.Zero,
+                "The authored projectile should remain presentation-only so deterministic hit rules stay authoritative.");
             var securityWarden = game.transform.Find("Security Warden");
             var authoredWardenPrefab = Resources.Load<GameObject>("Actors/SecurityWardenAssembly");
             Assert.That(authoredWardenPrefab, Is.Not.Null,
@@ -547,6 +570,15 @@ namespace DeadSignal.Tests
                     new GamepadState { rightStick = Vector2.up }.WithButton(GamepadButton.RightShoulder));
                 yield return null;
                 InputSystem.QueueStateEvent(gamepad, new GamepadState { rightStick = Vector2.up });
+                float boltSpawnTimeout = 0.4f;
+                while (!game.LastSignalBoltUsedAuthoredPrefab && boltSpawnTimeout > 0f)
+                {
+                    boltSpawnTimeout -= Time.unscaledDeltaTime;
+                    yield return null;
+                }
+
+                Assert.That(game.LastSignalBoltUsedAuthoredPrefab, Is.True,
+                    "Firing should instantiate the authored Signal bolt before deterministic hit processing.");
                 yield return new WaitForSeconds(0.22f);
                 InputSystem.QueueStateEvent(gamepad,
                     new GamepadState { rightStick = Vector2.up }.WithButton(GamepadButton.RightShoulder));
