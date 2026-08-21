@@ -172,29 +172,38 @@ namespace DeadSignal.Editor
 
         private static void _ensureAnnexPrefab()
         {
-            if (AssetDatabase.LoadAssetAtPath<GameObject>(ANNEX_PREFAB_PATH) != null)
+            if (AssetDatabase.LoadAssetAtPath<GameObject>(ANNEX_PREFAB_PATH) == null)
             {
-                return;
+                var emptyAnnex = new GameObject("SalvageAnnex");
+                try
+                {
+                    PrefabUtility.SaveAsPrefabAsset(emptyAnnex, ANNEX_PREFAB_PATH);
+                }
+                finally
+                {
+                    UnityEngine.Object.DestroyImmediate(emptyAnnex);
+                }
             }
 
             var barrierPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(BARRIER_PREFAB_PATH);
-            var annex = new GameObject("SalvageAnnex");
+            var annex = PrefabUtility.LoadPrefabContents(ANNEX_PREFAB_PATH);
             try
             {
-                _addBarrier(annex.transform, barrierPrefab, "North Cargo Barrier", new Vector3(0f, 0f, 1.35f), 0f, Vector3.one);
-                _addBarrier(annex.transform, barrierPrefab, "East Cargo Barrier", new Vector3(1.72f, 0f, 0f), 90f,
+                _ensureBarrier(annex.transform, barrierPrefab, "North Cargo Barrier", new Vector3(0.75f, 0f, 1.55f), 0f,
+                    new Vector3(0.65f, 1f, 1f));
+                _ensureBarrier(annex.transform, barrierPrefab, "East Cargo Barrier", new Vector3(1.72f, 0f, 0f), 90f,
                     new Vector3(0.62f, 1f, 1f));
-                _addBarrier(annex.transform, barrierPrefab, "South Cargo Barrier", new Vector3(0.75f, 0f, -1.35f), 0f,
+                _ensureBarrier(annex.transform, barrierPrefab, "South Cargo Barrier", new Vector3(0.75f, 0f, -1.35f), 0f,
                     new Vector3(0.65f, 1f, 1f));
                 PrefabUtility.SaveAsPrefabAsset(annex, ANNEX_PREFAB_PATH);
             }
             finally
             {
-                UnityEngine.Object.DestroyImmediate(annex);
+                PrefabUtility.UnloadPrefabContents(annex);
             }
         }
 
-        private static void _addBarrier(
+        private static void _ensureBarrier(
             Transform parent,
             GameObject barrierPrefab,
             string objectName,
@@ -202,17 +211,23 @@ namespace DeadSignal.Editor
             float rotationY,
             Vector3 localScale)
         {
-            var barrier = PrefabUtility.InstantiatePrefab(barrierPrefab) as GameObject;
+            var barrier = parent.Find(objectName);
             if (barrier == null)
             {
-                throw new InvalidOperationException($"Could not instantiate {objectName} for the salvage annex.");
+                var instance = PrefabUtility.InstantiatePrefab(barrierPrefab) as GameObject;
+                if (instance == null)
+                {
+                    throw new InvalidOperationException($"Could not instantiate {objectName} for the salvage annex.");
+                }
+
+                instance.name = objectName;
+                instance.transform.SetParent(parent, false);
+                barrier = instance.transform;
             }
 
-            barrier.name = objectName;
-            barrier.transform.SetParent(parent, false);
-            barrier.transform.localPosition = localPosition;
-            barrier.transform.localRotation = Quaternion.Euler(0f, rotationY, 0f);
-            barrier.transform.localScale = localScale;
+            barrier.localPosition = localPosition;
+            barrier.localRotation = Quaternion.Euler(0f, rotationY, 0f);
+            barrier.localScale = localScale;
         }
 
         private static void _ensureScenePlacement()

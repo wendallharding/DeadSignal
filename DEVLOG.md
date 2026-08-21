@@ -2593,3 +2593,61 @@ The live Unity project remained open and was not closed or controlled. Authorita
 ### Best next step
 
 Cross the shortcut gate, follow the cyan arrows around the bay's north side toward the northeast salvage annex, and confirm the route reads before the Warden activates and remains useful while kiting afterward.
+
+## 2026-08-21 - Northeast Salvage Route Correction
+
+### Today's single idea
+
+**Open and visibly mark the Warden-bay-to-annex entrance.** Treat the neighboring Warden bay and northeast salvage annex as one authored encounter layout, withdraw their overlapping walls from a deliberate west entrance, and replace the edge-on arrows with broad top-facing double chevrons.
+
+Player benefit: the northeast salvage cache is now physically reachable by the maintenance drone through a route that is visible from the normal overhead camera. The player no longer has to infer a nonexistent squeeze or wonder whether a mechanic is missing.
+
+Acceptance criteria:
+
+- preserve the Warden spawn, salvage coordinate, shortcut decision, six authored blockers, and all gameplay rules;
+- provide one continuously sampled player-radius-clear path from the main arena to the northeast cache while evaluating both neighboring prefabs together;
+- keep comfortable turning space between the bay shields and annex walls instead of relying on exact-radius contact;
+- present the route with large cyan double chevrons whose broad face lies on Unity's XZ floor; and
+- prevent regression if either prefab later moves, closes the shared route, turns markers edge-on, changes their material, or gives them colliders.
+
+### Files and systems changed
+
+- `ArtSource/WardenBay/create_bypass_marker.py`, `SecurityBayRouteMarker.blend`, `SecurityBayRouteMarkerPreview.png`, and `README.md`: rebuilt the original marker as two large beveled chevrons, authored its broad face in Unity's floor orientation, regenerated the editable source and preview, and documented that import constraint.
+- `Assets/DeadSignal/Resources/Environment/SecurityBayRouteMarkerModel.fbx` and `SecurityBayRouteMarker.prefab`: replaced the thin arrow geometry with the corrected top-facing double-chevron model. Final model SHA-256: `7D4BC84ACB46ADA40457CC9C419AE779A45DEAD491A96BBBADA73348F09603DD`.
+- `Assets/DeadSignal/Resources/Environment/WardenStagingBay.prefab`: shortened and repositioned the north shield, shortened the east shield's northward reach, and enlarged/repositioned both chevron instances along the actual entrance path.
+- `Assets/DeadSignal/Resources/Environment/SalvageAnnex.prefab`: shortened and shifted the north cargo wall to open a deliberate west entrance while preserving the established cache coordinate and three-sided annex identity.
+- `Assets/DeadSignal/Editor/DeadSignalWardenBaySetup.cs`: now enforces the corrected shield and marker transforms.
+- `Assets/DeadSignal/Editor/DeadSignalSalvageAnnexSetup.cs`: replaced create-once behavior with idempotent prefab-child enforcement so future setup runs preserve iterative level-layout corrections.
+- `Assets/DeadSignal/Tests/PlayMode/BootstrapSmokeTests.cs`: replaced the flawed bay-only clearance samples with a continuously sampled route evaluated against all six bay and annex obstacles, and added transform plus top-facing mesh-bounds assertions.
+- `GAME_VISION.md`, `BACKLOG.md`, and `DEVLOG.md`: record the corrected combined-space design, acceptance criteria, validation, and limitation.
+
+No Warden spawn, threat behavior, salvage coordinate, objective rule, Signal economy, shortcut cost, input, audio, package, project setting, or save data changed.
+
+### Tests run and exact outcomes
+
+The live Unity project remained open and was not closed or controlled. Authoritative validation used `C:\Projects\Wendall\CodexPrototype_Run40CleanValidation` with Unity `6000.3.11f1`.
+
+1. Blender `5.2.0 LTS` regenerated the double-chevron model, editable `.blend`, and `900x520` preview and exited `0`. The final preview was visually inspected for two broad, separated, beveled directional marks. Blender emitted two forward-looking `use_nodes` deprecation warnings only.
+2. Unity salvage-annex setup wrote `northeast-route-annex-setup.log`; corrected Warden-bay setup wrote `northeast-route-bay-setup-corrected.log`. Both compiled/imported and exited `0` with no critical log hits.
+3. The first focused PlayMode run failed `0/1` because the new bounds assertion proved the marker's broad face imported vertically, reproducing the user's readability report. The Blender source orientation was corrected rather than weakening the rule.
+4. Corrected PlayMode regression wrote `northeast-route-playmode-corrected.xml` and `.log`: `1/1` passed, `0` failed, `0` skipped in `4.8307291` seconds, exit `0`. It proves the dense combined-obstacle route reaches `(9.7, 0, 6.3)` and both markers have broad X/Z bounds with less than `0.2` units of vertical thickness.
+5. EditMode regression wrote `northeast-route-editmode.xml` and `.log`: `18/18` passed, `0` failed, `0` skipped in `0.040937` seconds, exit `0`.
+6. Windows development build wrote `northeast-route-build.log`: Unity exited `0`, reported `Build Finished, Result: Success`, emitted one PASS marker, and produced `212,453,017` reported bytes in `12.30` seconds.
+7. Packaged `-batchmode -nographics -deadSignalBuildSmoke` wrote `northeast-route-standalone.log`, emitted one standalone PASS marker, and exited `0`.
+
+### Bugs found and fixed
+
+- The earlier clearance test evaluated only the Warden bay. The annex north wall and bay shields jointly left less room than the drone's collision diameter, making the required cache unreachable. The corrected test evaluates both prefabs as one layout.
+- The route-marker mesh imported with its broad face vertical, leaving only a thin edge visible from above. The source geometry is now authored on the required XZ floor plane and guarded by a mesh-bounds assertion.
+- The salvage-annex setup returned early once its prefab existed, preventing layout corrections from being reproduced. It now enforces the three child transforms idempotently.
+- No compiler, assertion, resource, build, or packaged-player defect remained after correction.
+
+### Known limitations
+
+- Automated validation proves geometry, route clearance, rendering orientation, materials, and packaging, but final chevron brightness and composition still need a human look in the user's normal Game view.
+- Projectile collision still ignores authored map obstacles, matching the rest of the current map.
+- The chevrons remain static rather than responding to the active objective.
+
+### Best next step
+
+Approach the northeast annex from the shortcut wall, follow the floor chevrons through its west entrance, collect the cache, and repeat with the Warden awake to assess whether the new turning space is comfortable under pressure.

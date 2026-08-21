@@ -44,7 +44,7 @@
 - [x] Add a second enemy archetype that pressures powered territory
 - [x] Add an authored, proximity-driven Warden strike warning that respects Reduced Flashes
 - [x] Place the dormant Warden inside an authored security bay that becomes post-activation kiting cover
-- [x] Widen and mark the Warden bay's northern bypass so its combat pocket cannot be mistaken for the onward route
+- [x] Open and mark a verified player-width route between the Warden bay and northeast salvage annex
 - [x] Telegraph the Sapper's tower target and timed drain pulses in-world
 - [x] Replace the Sapper's primitive pulse flash with an authored, tunable drain glyph
 - [x] Give the Sapper tether an authored directional energy flow without changing its threat rules

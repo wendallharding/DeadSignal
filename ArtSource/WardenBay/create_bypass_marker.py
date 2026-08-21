@@ -18,22 +18,24 @@ def clear_scene():
 
 
 def create_marker():
-    outline = [
-        (-0.95, -0.20),
-        (0.25, -0.20),
-        (0.25, -0.48),
-        (1.00, 0.00),
-        (0.25, 0.48),
-        (0.25, 0.20),
-        (-0.95, 0.20),
+    outlines = [
+        [(-1.15, -0.52), (-0.72, -0.52), (-0.05, 0.0), (-0.72, 0.52), (-1.15, 0.52), (-0.48, 0.0)],
+        [(-0.15, -0.52), (0.28, -0.52), (0.95, 0.0), (0.28, 0.52), (-0.15, 0.52), (0.52, 0.0)],
     ]
-    height = 0.055
-    vertices = [(x, y, 0.0) for x, y in outline] + [(x, y, height) for x, y in outline]
-    count = len(outline)
-    faces = [tuple(range(count - 1, -1, -1)), tuple(range(count, count * 2))]
-    for index in range(count):
-        next_index = (index + 1) % count
-        faces.append((index, next_index, next_index + count, index + count))
+    height = 0.07
+    vertices = []
+    faces = []
+    for outline in outlines:
+        start = len(vertices)
+        count = len(outline)
+        # The established FBX import keeps this source orientation, so author the broad face in XZ for Unity's floor.
+        vertices.extend((x, 0.0, y) for x, y in outline)
+        vertices.extend((x, height, y) for x, y in outline)
+        faces.append(tuple(start + index for index in range(count - 1, -1, -1)))
+        faces.append(tuple(start + count + index for index in range(count)))
+        for index in range(count):
+            next_index = (index + 1) % count
+            faces.append((start + index, start + next_index, start + next_index + count, start + index + count))
 
     mesh = bpy.data.meshes.new("Security Bay Route Marker Mesh")
     mesh.from_pydata(vertices, [], faces)

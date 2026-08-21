@@ -244,15 +244,15 @@ namespace DeadSignal.Editor
             try
             {
                 _ensurePrefabChild(bay.transform, shieldPrefab, "North Security Shield",
-                    new Vector3(0.75f, 0f, 1.35f), 0f, new Vector3(0.72f, 1f, 1f));
+                    new Vector3(-0.2f, 0f, 1.15f), 0f, new Vector3(0.45f, 1f, 1f));
                 _ensurePrefabChild(bay.transform, shieldPrefab, "South Security Shield",
                     new Vector3(0.65f, 0f, -1.35f), 0f, new Vector3(0.82f, 1f, 1f));
                 _ensurePrefabChild(bay.transform, shieldPrefab, "East Security Shield",
-                    new Vector3(1.8f, 0f, 0f), 90f, Vector3.one);
+                    new Vector3(1.8f, 0f, 0f), 90f, new Vector3(0.72f, 1f, 1f));
                 _ensurePrefabChild(bay.transform, markerPrefab, "North Bypass Entry Marker",
-                    new Vector3(-1.55f, 0.025f, 2.05f), 32f, new Vector3(0.8f, 0.8f, 0.8f));
+                    new Vector3(-1.45f, 0.08f, 2.15f), 8f, new Vector3(0.9f, 0.9f, 0.9f));
                 _ensurePrefabChild(bay.transform, markerPrefab, "North Bypass Exit Marker",
-                    new Vector3(0.25f, 0.025f, 2.25f), 0f, new Vector3(0.8f, 0.8f, 0.8f));
+                    new Vector3(0.95f, 0.08f, 1.95f), 0f, new Vector3(0.9f, 0.9f, 0.9f));
                 PrefabUtility.SaveAsPrefabAsset(bay, BAY_PREFAB_PATH);
             }
             finally

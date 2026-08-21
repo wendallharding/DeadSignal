@@ -163,6 +163,10 @@ namespace DeadSignal.Tests
             Assert.That(annexObstacles.Sum(obstacle => obstacle.GetComponentsInChildren<Renderer>().Length), Is.EqualTo(9));
             Assert.That(annexObstacles.Sum(obstacle => obstacle.GetComponentsInChildren<Collider>().Length), Is.Zero,
                 "The annex should use serialized movement bounds without duplicate physics colliders.");
+            var northCargoBarrier = salvageAnnex.transform.Find("North Cargo Barrier");
+            Assert.That(northCargoBarrier.localPosition, Is.EqualTo(new Vector3(0.75f, 0f, 1.55f)));
+            Assert.That(northCargoBarrier.localScale, Is.EqualTo(new Vector3(0.65f, 1f, 1f)),
+                "The annex north wall must preserve the widened west entrance shared with the Warden bay.");
             var annexTexture = Resources.Load<Texture2D>("Environment/SalvageAnnexAlbedo");
             var annexArmor = Resources.Load<Material>("Materials/SalvageAnnexArmor");
             Assert.That(annexTexture, Is.Not.Null);
@@ -277,18 +281,35 @@ namespace DeadSignal.Tests
             Assert.That(bayObstacles.All(obstacle => !obstacle.OverlapsCircle(new Vector3(5.1f, 0f, 4.7f), 0.48f)), Is.True,
                 "The west-facing bay mouth must preserve a traversable Warden exit toward the tower.");
             var northShield = wardenBay.transform.Find("North Security Shield");
-            Assert.That(northShield.localPosition, Is.EqualTo(new Vector3(0.75f, 0f, 1.35f)));
-            Assert.That(northShield.localScale, Is.EqualTo(new Vector3(0.72f, 1f, 1f)),
-                "The north shield must remain shortened so the player has a generous bypass around the bay.");
-            var northBypassSamples = new[]
+            Assert.That(northShield.localPosition, Is.EqualTo(new Vector3(-0.2f, 0f, 1.15f)));
+            Assert.That(northShield.localScale, Is.EqualTo(new Vector3(0.45f, 1f, 1f)),
+                "The north shield must leave a generous turning area into the neighboring salvage annex.");
+            Assert.That(wardenBay.transform.Find("East Security Shield").localScale,
+                Is.EqualTo(new Vector3(0.72f, 1f, 1f)),
+                "The east shield must not extend into the annex entrance corridor.");
+            var annexRouteWaypoints = new[]
             {
-                new Vector3(5.25f, 0f, 7f),
-                new Vector3(6.4f, 0f, 7.25f),
-                new Vector3(8.3f, 0f, 7.25f)
+                new Vector3(5f, 0f, 6.9f),
+                new Vector3(6.2f, 0f, 6.9f),
+                new Vector3(7.5f, 0f, 7.15f),
+                new Vector3(8.2f, 0f, 7f),
+                new Vector3(8.45f, 0f, 6.7f),
+                new Vector3(8.75f, 0f, 6.55f),
+                new Vector3(9.2f, 0f, 6.4f),
+                new Vector3(9.7f, 0f, 6.3f)
             };
-            Assert.That(northBypassSamples.All(sample =>
-                    bayObstacles.All(obstacle => !obstacle.OverlapsCircle(sample, 0.48f))), Is.True,
-                "The marked northern bypass must preserve player-radius clearance around every bay shield.");
+            var annexRouteSamples = annexRouteWaypoints
+                .SelectMany((start, index) => index == annexRouteWaypoints.Length - 1
+                    ? Enumerable.Empty<Vector3>()
+                    : Enumerable.Range(0, 11).Select(step =>
+                        Vector3.Lerp(start, annexRouteWaypoints[index + 1], step / 10f)))
+                .Append(annexRouteWaypoints[^1])
+                .ToArray();
+            var combinedNortheastObstacles = bayObstacles.Concat(annexObstacles).ToArray();
+            Assert.That(annexRouteSamples.All(sample =>
+                    combinedNortheastObstacles.All(obstacle => !obstacle.OverlapsCircle(sample, 0.48f))), Is.True,
+                "A continuous player-radius-clear route must connect the main arena to the northeast salvage cache " +
+                "when the Warden bay and annex obstacles are evaluated together.");
             var bypassMarkers = new[]
             {
                 wardenBay.transform.Find("North Bypass Entry Marker"),
@@ -302,6 +323,14 @@ namespace DeadSignal.Tests
                 "Bay route arrows should use the established cyan navigation language.");
             Assert.That(bypassMarkers.Sum(marker => marker.GetComponentsInChildren<Collider>().Length), Is.Zero,
                 "Route markers must remain presentation-only and never obstruct their marked path.");
+            var bypassMarkerMeshes = bypassMarkers
+                .SelectMany(marker => marker.GetComponentsInChildren<MeshFilter>())
+                .Select(filter => filter.sharedMesh)
+                .ToArray();
+            Assert.That(bypassMarkerMeshes.Length, Is.EqualTo(2));
+            Assert.That(bypassMarkerMeshes.All(mesh =>
+                    mesh.bounds.size.x > 1.8f && mesh.bounds.size.z > 0.8f && mesh.bounds.size.y < 0.2f), Is.True,
+                "Route chevrons must import as broad top-facing floor geometry rather than edge-on arrows.");
             var bayTexture = Resources.Load<Texture2D>("Environment/WardenBayAlbedo");
             var bayArmor = Resources.Load<Material>("Materials/SecurityShieldArmor");
             Assert.That(bayTexture, Is.Not.Null);
