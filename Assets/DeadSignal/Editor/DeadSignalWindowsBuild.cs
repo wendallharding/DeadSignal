@@ -21,6 +21,7 @@ namespace DeadSignal.Editor
         {
             DeadSignalProjectSetup.EnsureReflexSettings();
             DeadSignalProjectSetup.EnsureRuntimeMaterialTemplates();
+            DeadSignalProjectSetup.EnsureMaintenanceDeckAssets();
             _validateBuildInputs();
             _configureWindowsPlayer();
 
@@ -73,6 +74,11 @@ namespace DeadSignal.Editor
             if (!DeadSignalProjectSetup.HasRuntimeMaterialTemplates)
             {
                 throw new BuildFailedException("Runtime material templates are missing.");
+            }
+
+            if (!DeadSignalProjectSetup.HasMaintenanceDeckAssets)
+            {
+                throw new BuildFailedException("The authored maintenance deck assets are missing.");
             }
 
             if (AssetDatabase.LoadAssetAtPath<Texture2D>(APPLICATION_ICON_PATH) == null)

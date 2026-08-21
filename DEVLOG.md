@@ -1068,3 +1068,62 @@ Matching Editor: `C:\Program Files\Unity\Hub\Editor\6000.3.11f1\Editor\Unity.exe
 ### Best next step
 
 Play the Windows build at 16:9 and ultrawide, activate the tower with Reduced Flashes both off and on, and tune the sweep's size/opacity only if it obscures threats; then begin migrating the fixed arena into modular authored room prefabs.
+
+## 2026-08-21 â€” Autonomous Run 19
+
+### Today's single idea â€” authored modular maintenance deck
+
+Player benefit: the arena now reads as one deliberately manufactured orbital-station space instead of a prototype slab, while the repeated floor modules establish the first production-ready building block for future authored rooms without changing the proven run rules.
+
+Acceptance criteria:
+
+- one Unity-authored prefab replaces the monolithic deck and procedural seam grid with a bounded 7-by-5, 35-module floor layout;
+- every module uses original top-down dark-alloy plating art through a dedicated runtime material while cyan powered territory and High Contrast remain authoritative overlays;
+- missing prefab or texture assets are detected by PlayMode, Windows-build input validation, and the packaged-player smoke probe;
+- no collider, gameplay cost, balance value, input, threat, salvage, or objective behavior changes; and
+- import/compile, EditMode, PlayMode, Windows build, Direct3D 11 packaged smoke, strict log scans, and repository checks pass.
+
+### Files and systems changed
+
+- `Assets/DeadSignal/Resources/Environment/MaintenanceDeckPanel.png`, its Unity-generated `.meta`, and the folder `.meta`: added an original 1254x1254 RGB dark-alloy station plating texture generated with the built-in image tool. It was visually inspected from the project copy and imported as sRGB with mipmaps, clamp wrapping, high-quality compression, and a 1024px default-platform cap. SHA-256: `DE00DD06065AD7C8CE236F478178F448E4F2CE46BB8900991BCE09BFF7418893`; GUID: `f18a63eee8ca53942b0273b919fa06ae`.
+- `Assets/DeadSignal/Resources/Environment/MaintenanceDeckModule.prefab` and Unity-generated `.meta`: added the first authored room component, a collider-free reusable cube-mesh floor module created through Unity's Prefab API. GUID: `58549610818e64f4f99f089d3ec16cec`.
+- `Assets/DeadSignal/Runtime/DeadSignalWorld.cs`: replaced the single deck slab and procedural seam objects with 35 prefab instances under one owned root, retained a safe primitive fallback, and exposes narrow asset/module health state.
+- `Assets/DeadSignal/Runtime/DeadSignalPalette.cs`: added a dedicated textured deck material that participates in live High Contrast remapping; this run's focused convention refactor also replaced its remaining explicit apparent-type material local with `var`.
+- `Assets/DeadSignal/Runtime/DeadSignalGame.cs`: exposes narrow deck readiness and module-count state for validation.
+- `Assets/DeadSignal/Editor/DeadSignalProjectSetup.cs`: added idempotent Unity-driven texture import and collider-free prefab creation/validation.
+- `Assets/DeadSignal/Editor/DeadSignalWindowsBuild.cs`: requires and prepares the authored deck assets before packaging.
+- `Assets/DeadSignal/Runtime/StandaloneBuildSmokeProbe.cs`: now includes the authored deck in packaged-player readiness.
+- `Assets/DeadSignal/Tests/PlayMode/BootstrapSmokeTests.cs`: verifies the 35-module hierarchy, original texture assignment, and prefab/resource readiness alongside the complete run regression.
+- `GAME_VISION.md`, `BACKLOG.md`, and `DEVLOG.md`: record this first modular-room milestone without changing the core concept.
+
+No deterministic gameplay rules, resource costs, balance, controls, audio, packages, assembly definitions, scenes, project settings, save data, or serialized gameplay data were intentionally changed. The full bootstrap arena is not yet an authored room prefab; this run establishes and deploys its first reusable authored component. Unity's automatic build rewrites to URP assets, Graphics settings, batching, and Unity Services were removed from the final diff.
+
+### Tests run and exact outcomes
+
+Matching Editor: `C:\Program Files\Unity\Hub\Editor\6000.3.11f1\Editor\Unity.exe` (Unity 6000.3.11f1) against the live workspace.
+
+1. Import and compilation wrote `Logs/run19-compile.log`: Unity generated the new folder/texture metadata, imported the PNG, compiled the changed runtime, Editor, and test assemblies, and exited `0`.
+2. Editor asset setup wrote `Logs/run19-deck-setup.log`: Unity exited `0`, applied the intended texture settings, created/imported the collider-free prefab through `PrefabUtility`, and generated its `.meta`.
+3. EditMode regression wrote `Logs/run19-editmode-results.xml` and `Logs/run19-editmode.log`: Unity exited `0`; `16/16` passed, `0` failed, `0` skipped, `0` inconclusive in `0.0534947` seconds.
+4. Final PlayMode full runtime regression wrote `Logs/run19-final-playmode-results.xml` and `Logs/run19-final-playmode.log`: Unity exited `0`; `1/1` passed, `0` failed, `0` skipped, `0` inconclusive in `3.9351982` seconds. It proved the bounded 35-module layout, resource/texture readiness, and every prior input, pause, accessibility, audio, particles, warning, activation sweep, combat, Sapper, salvage, shortcut, extraction, and restart assertion.
+5. Final Windows development build wrote `Logs/run19-final-windows-build.log`: Unity exited `0`, reported `Build Finished, Result: Success`, and produced 181,189,993 reported bytes in 31.56 seconds. The ignored local artifact contains 293 files totaling 181,383,335 bytes.
+6. The first window-hidden Direct3D 11 smoke attempt initialized the NVIDIA GeForce RTX 3060 but did not advance past scene unload and emitted neither PASS nor FAIL; only its exact test PID `245892` was terminated. The final deterministic retry wrote `Logs/run19-final-standalone-batch-d3d11-smoke.log`: forced Direct3D 11 initialized on the same GPU, the packaged runtime found the prefab, texture, and expanded composition, printed one PASS marker, and exited `0`.
+7. Strict scans of the compile/setup, EditMode, PlayMode, build, and successful standalone logs found no first-party compiler errors, null or missing-reference exceptions, unhandled exceptions, failed assertions, or failed smoke markers. Unity's successful batch shutdown emitted its existing harmless `Curl error 42: Callback aborted` after the PASS marker.
+8. The generated project PNG was visually inspected and verified as 1254x1254 `Format24bppRgb`. Final repository checks found no unrelated settings changes or whitespace errors.
+9. Final warmed-project compilation after documentation, metadata normalization, and settings cleanup wrote `Logs/run19-final-compile.log`: Unity exited `0` with no first-party compiler warning or error.
+
+### Bugs found and fixed
+
+- No gameplay, compilation, asset-import, automated-test, or packaged-runtime defect was found after implementation.
+- The first smoke wrapper exposed a validation-harness issue: a fully hidden interactive Windows player initialized graphics but stopped advancing before the probe. The retry uses Unity's noninteractive batch mode with forced Direct3D 11, retained real GPU initialization, and exited cleanly with the required PASS marker.
+- Removed unrelated automatic URP, Graphics, batching, and Unity Services serialization changes produced during build processing.
+
+### Known limitations
+
+- Automated checks prove composition, resource assignment, palette remapping, and packaged startup but cannot judge deck brightness, texture repetition, moirÃ©, or whether the large central plate motifs distract from actors at 16:9 and ultrawide.
+- The source art intentionally repeats once per roughly four-meter module, so visible module boundaries are part of the mechanical floor language; a human presentation pass may justify a small set of rotated or alternate plates.
+- Machines, bulkheads, tower, extraction, shortcut, and gameplay markers are still runtime-composed. The broader backlog item to replace the complete bootstrap arena with modular authored room prefabs remains open.
+
+### Best next step
+
+Play the Windows build at 16:9 and ultrawide, check actor/threat readability over the new deck in normal and High Contrast modes, then author one complete room-shell prefab from the validated floor module plus bulkhead and machine sockets.

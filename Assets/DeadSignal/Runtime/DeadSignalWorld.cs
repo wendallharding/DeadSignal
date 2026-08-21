@@ -13,6 +13,10 @@ namespace DeadSignal
         public const float STARTING_POWER_RADIUS = 3.6f;
         public const float TOWER_POWER_RADIUS = 7.2f;
 
+        private const string MAINTENANCE_DECK_MODULE_RESOURCE = "Environment/MaintenanceDeckModule";
+        private const float DECK_MODULE_WIDTH = 3.9f;
+        private const float DECK_MODULE_DEPTH = 3.6f;
+
         private readonly Transform m_root;
         private readonly DeadSignalPalette m_palette;
         private readonly List<MovementBlocker> m_movementBlockers = new();
@@ -46,6 +50,8 @@ namespace DeadSignal
         public Transform TowerCore { get; private set; }
         public SignalSapperTelegraph SapperTelegraph { get; private set; }
         public IReadOnlyList<GameObject> SalvagePickups => m_salvagePickups;
+        public bool HasMaintenanceDeckAssets { get; private set; }
+        public int MaintenanceDeckModuleCount { get; private set; }
 
         public bool IsPowered(Vector3 position, bool towerOnline)
         {
@@ -194,17 +200,7 @@ namespace DeadSignal
 
         private void _buildArena()
         {
-            _createPrimitive("Station Deck", PrimitiveType.Cube, new Vector3(0f, -0.45f, 0f), new Vector3(27.5f, 0.6f, 18.5f), m_palette.Dark);
-
-            for (int x = -12; x <= 12; x += 2)
-            {
-                _createPrimitive("Deck Seam", PrimitiveType.Cube, new Vector3(x, -0.12f, 0f), new Vector3(0.025f, 0.015f, 17.6f), m_palette.Steel);
-            }
-
-            for (int z = -8; z <= 8; z += 2)
-            {
-                _createPrimitive("Deck Seam", PrimitiveType.Cube, new Vector3(0f, -0.115f, z), new Vector3(26.4f, 0.015f, 0.025f), m_palette.Steel);
-            }
+            _buildMaintenanceDeck();
 
             _createPrimitive("North Bulkhead", PrimitiveType.Cube, new Vector3(0f, 0.25f, 9.1f), new Vector3(27.8f, 0.8f, 0.5f), m_palette.Steel);
             _createPrimitive("South Bulkhead", PrimitiveType.Cube, new Vector3(0f, 0.25f, -9.1f), new Vector3(27.8f, 0.8f, 0.5f), m_palette.Steel);
@@ -224,6 +220,45 @@ namespace DeadSignal
             _buildTower();
             _buildStationMachines();
             _buildSignalShortcut();
+        }
+
+        private void _buildMaintenanceDeck()
+        {
+            var modulePrefab = Resources.Load<GameObject>(MAINTENANCE_DECK_MODULE_RESOURCE);
+            var deckRoot = new GameObject("Maintenance Deck Modules");
+            deckRoot.transform.SetParent(m_root);
+
+            for (int gridX = -3; gridX <= 3; gridX++)
+            {
+                for (int gridZ = -2; gridZ <= 2; gridZ++)
+                {
+                    var position = new Vector3(gridX * DECK_MODULE_WIDTH, -0.45f, gridZ * DECK_MODULE_DEPTH);
+                    GameObject module;
+                    if (modulePrefab != null)
+                    {
+                        module = Object.Instantiate(modulePrefab, deckRoot.transform);
+                        module.name = $"Maintenance Deck Module {gridX},{gridZ}";
+                        module.transform.localPosition = position;
+                        module.transform.localRotation = Quaternion.identity;
+                        module.transform.localScale = new Vector3(DECK_MODULE_WIDTH, 0.6f, DECK_MODULE_DEPTH);
+                        module.GetComponent<Renderer>().sharedMaterial = m_palette.Deck;
+                    }
+                    else
+                    {
+                        module = _createPrimitive(
+                            $"Maintenance Deck Module {gridX},{gridZ}",
+                            PrimitiveType.Cube,
+                            position,
+                            new Vector3(DECK_MODULE_WIDTH, 0.6f, DECK_MODULE_DEPTH),
+                            m_palette.Deck,
+                            deckRoot.transform);
+                    }
+
+                    MaintenanceDeckModuleCount++;
+                }
+            }
+
+            HasMaintenanceDeckAssets = modulePrefab != null && m_palette.HasDeckTexture;
         }
 
         private void _buildExtraction()

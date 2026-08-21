@@ -35,6 +35,7 @@ This autonomous run is accepted when a fresh Play session provides all of the fo
 - Movement in dead zones, attacks, tower activation, and enemy impacts visibly consume Signal.
 - One nearby tower can be activated with E, replenishes Signal, and produces obvious cyan powered territory.
 - Tower activation launches a cyan circuit sweep from the tower to the powered boundary, visibly selling the network's expansion while respecting pause and Reduced Flashes.
+- The station deck is assembled from reusable authored floor modules carrying original dark-alloy plating art while powered/dead-zone overlays remain readable.
 - Dead zones are visually distinct, show a warning, and drain Signal quickly.
 - Tower activation wakes two readable threats: a red Warden pursues the drone while a magenta Signal Sapper telegraphs its tower target and timed drain pulses; both can be destroyed.
 - Three warm salvage pickups can be collected outside the safe starting area.

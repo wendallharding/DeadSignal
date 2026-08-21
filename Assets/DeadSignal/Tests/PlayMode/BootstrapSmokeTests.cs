@@ -32,6 +32,14 @@ namespace DeadSignal.Tests
             Assert.That(game.transform.Find("Tower Power Territory"), Is.Not.Null);
             Assert.That(game.transform.Find("Extraction Beacon"), Is.Not.Null);
             Assert.That(game.transform.Find("Signal Shortcut Gate"), Is.Not.Null);
+            Transform maintenanceDeck = game.transform.Find("Maintenance Deck Modules");
+            Assert.That(maintenanceDeck, Is.Not.Null, "The arena should be assembled from authored maintenance-deck modules.");
+            Assert.That(game.MaintenanceDeckModuleCount, Is.EqualTo(35));
+            Assert.That(maintenanceDeck.childCount, Is.EqualTo(35));
+            Assert.That(game.HasMaintenanceDeckAssets, Is.True,
+                "The authored deck prefab and original plating texture should load from Resources.");
+            Assert.That(maintenanceDeck.GetChild(0).GetComponent<Renderer>().sharedMaterial.mainTexture, Is.Not.Null,
+                "Every deck module should render the original plating texture.");
             Assert.That(Camera.main != null || Object.FindFirstObjectByType<Camera>() != null, Is.True);
             Assert.That(Object.FindFirstObjectByType<AudioListener>(), Is.Not.Null,
                 "The runtime camera should provide the listener required by the synthesized soundscape.");

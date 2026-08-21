@@ -19,6 +19,7 @@
 - [x] Add adaptive keyboard/mouse and gamepad guidance with generated input-link art
 - [ ] Add remappable Input Actions and platform-specific button glyph sets
 - [ ] Replace bootstrap arena with modular authored room prefabs
+- [x] Establish the first reusable authored room component with a textured maintenance-deck prefab
 - [x] Add a Signal-cost shortcut gate and first route choice
 - [x] Add a second enemy archetype that pressures powered territory
 - [x] Telegraph the Sapper's tower target and timed drain pulses in-world
