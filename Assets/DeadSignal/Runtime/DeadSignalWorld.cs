@@ -54,6 +54,8 @@ namespace DeadSignal
         public bool HasSignalSapperAssets { get; private set; }
         public int SignalSapperPartCount { get; private set; }
         public int AuthoredMapObstacleCount { get; private set; }
+        public bool HasPlayerCameraTuning { get; private set; }
+        public PlayerFollowCamera PlayerCamera { get; private set; }
 
         public DeadSignalWorld(Transform root, IComfortSettings comfortSettings)
         {
@@ -67,6 +69,7 @@ namespace DeadSignal
             _buildArena();
             _registerAuthoredMapObstacles();
             _buildActors(comfortSettings);
+            _configurePlayerCamera();
             ApplyHighContrast(comfortSettings.HighContrastEnabled);
         }
 
@@ -206,9 +209,13 @@ namespace DeadSignal
                 existing.enabled = false;
             }
 
+            var cameraRigObject = new GameObject("Player Camera Rig");
+            cameraRigObject.transform.SetParent(m_root);
+            m_cameraRig = cameraRigObject.transform;
+
             var cameraObject = new GameObject("Dead Signal Camera");
-            cameraObject.transform.SetParent(m_root);
-            cameraObject.transform.position = new Vector3(0f, 20f, 0f);
+            cameraObject.transform.SetParent(m_cameraRig, false);
+            cameraObject.transform.localPosition = new Vector3(0f, 20f, 0f);
             cameraObject.transform.rotation = Quaternion.Euler(90f, 0f, 0f);
             Camera = cameraObject.AddComponent<Camera>();
             Camera.orthographic = true;
@@ -227,6 +234,24 @@ namespace DeadSignal
             key.color = new Color(0.38f, 0.52f, 0.65f);
             key.intensity = 1.2f;
             RenderSettings.ambientLight = new Color(0.025f, 0.035f, 0.05f);
+        }
+
+        private void _configurePlayerCamera()
+        {
+            var tuning = Resources.Load<PlayerCameraTuning>(PLAYER_CAMERA_TUNING_RESOURCE);
+            HasPlayerCameraTuning = tuning != null;
+            if (!HasPlayerCameraTuning)
+            {
+                Debug.LogWarning($"Player camera tuning was not found at Resources/{PLAYER_CAMERA_TUNING_RESOURCE}.");
+                return;
+            }
+
+            PlayerCamera = m_cameraRig.gameObject.AddComponent<PlayerFollowCamera>();
+            PlayerCamera.Configure(
+                Camera,
+                Player,
+                tuning,
+                new Vector2(ARENA_HALF_WIDTH, ARENA_HALF_HEIGHT));
         }
 
         private void _buildArena()
@@ -811,6 +836,7 @@ namespace DeadSignal
         private const string SECURITY_WARDEN_PREFAB_RESOURCE = "Actors/SecurityWardenAssembly";
         private const string SIGNAL_SAPPER_PREFAB_RESOURCE = "Actors/SignalSapperAssembly";
         private const string SIGNAL_BOLT_PREFAB_RESOURCE = "Projectiles/SignalBoltAssembly";
+        private const string PLAYER_CAMERA_TUNING_RESOURCE = "Tuning/PlayerCameraTuning";
         private const float DECK_MODULE_WIDTH = 3.9f;
         private const float DECK_MODULE_DEPTH = 3.6f;
 
@@ -828,6 +854,7 @@ namespace DeadSignal
         private GameObject m_towerSignalLines;
         private GameObject m_extractionBeacon;
         private GameObject m_shortcutGate;
+        private Transform m_cameraRig;
 
         private sealed class MovementBlocker
         {

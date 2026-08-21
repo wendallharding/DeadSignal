@@ -54,12 +54,15 @@ namespace DeadSignal
                                 game.HasStationMachineAssets &&
                                 game.HasSalvageCacheAssets &&
                                 game.HasPlayerDroneAssets &&
+                                game.HasPlayerCameraTuning &&
+                                game.IsPlayerCameraFollowing &&
                                 Resources.Load<GameObject>("Actors/MaintenanceDroneModel") != null &&
                                 Resources.Load<Texture2D>("Actors/MaintenanceDroneHullAlbedo") != null &&
                                 Resources.Load<Material>("Materials/MaintenanceDroneHull") != null &&
                                 Resources.Load<Material>("Materials/MaintenanceDroneSignal") != null &&
                                 Resources.Load<Material>("Materials/MaintenanceDroneCore") != null &&
                                 Resources.Load<Material>("Materials/MaintenanceDroneTool") != null &&
+                                Resources.Load<PlayerCameraTuning>("Tuning/PlayerCameraTuning") != null &&
                                 Resources.Load<GameObject>("Actors/SecurityWardenAssembly") != null &&
                                 Resources.Load<GameObject>("Actors/SecurityWardenModel") != null &&
                                 Resources.Load<Texture2D>("Actors/SecurityWardenArmorAlbedo") != null &&

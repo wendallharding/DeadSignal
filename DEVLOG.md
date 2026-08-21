@@ -2714,3 +2714,68 @@ The live Unity project remained open and was not closed or controlled. Authorita
 ### Best next step
 
 Activate the tower, watch the Sapper leave the northwest cradle, then intercept it near the pylons and approach the northwest salvage fork from both sides to assess whether the new cover improves pressure without obstructing navigation.
+
+## 2026-08-21 - Autonomous Run 45
+
+### Today's single idea
+
+**Player-follow tactical camera.** Replace the fixed full-arena view with a closer, tunable camera rig that follows the maintenance drone, looks gently along its movement direction, and clamps against the authored arena bounds.
+
+Player benefit: the drone, floor routes, threat telegraphs, and authored machinery are approximately 1.8 times larger on screen, while the camera reveals nearby decisions as the player moves instead of flattening the entire map into one static overview. This also establishes the presentation foundation needed before future modular rooms extend the station.
+
+Alternatives considered: immediately adding another room would increase floor area without addressing the current screen-scale/readability problem; adding another static landmark would deepen one location but leave the camera foundation unchanged; converting the whole level to additive scenes now would add useful production architecture but no immediate player-facing benefit. The follow camera was selected because it improves every existing encounter and safely unlocks later authored expansion.
+
+Acceptance criteria:
+
+- frame the player at an orthographic size of `5.8` instead of the former `10.4` full-map view;
+- follow after gameplay movement with smooth, frame-rate-independent damping and restrained directional look-ahead;
+- clamp the camera focus so no authored arena edge exposes empty off-map space at any display aspect;
+- freeze naturally with gameplay time during pause and hit-stop;
+- preserve mouse world aiming, controller aiming, audio-listener ownership, and the existing Steady Camera comfort option;
+- isolate follow movement on a parent rig while combat impulse remains a local child-camera offset; and
+- guard tuning, edge clamping, runtime composition, player framing, and packaged Resources with automated tests.
+
+### Files and systems changed
+
+- `Assets/DeadSignal/Runtime/PlayerCameraTuning.cs` and `Assets/DeadSignal/Resources/Tuning/PlayerCameraTuning.asset`: added designer-facing orthographic scale, follow response, look-ahead, and arena-edge tuning with safe validation.
+- `Assets/DeadSignal/Runtime/PlayerFollowCamera.cs`: added the focused LateUpdate camera-rig presenter, exponential smoothing, movement look-ahead, and aspect-aware arena clamping.
+- `Assets/DeadSignal/Runtime/DeadSignalWorld.cs`: replaced direct camera parenting with a dedicated follow rig and explicitly configured it after the authored player is built.
+- `Assets/DeadSignal/Runtime/CombatFeedbackController.cs`: refactored camera impulse from world position to child-local position so combat shake composes with moving follow-camera ownership.
+- `Assets/DeadSignal/Runtime/DeadSignalGame.cs`: exposed follow-camera readiness for validation without leaking mutable references.
+- `Assets/DeadSignal/Runtime/StandaloneBuildSmokeProbe.cs`: now requires the tuning Resource and configured follow presenter in packaged builds.
+- `Assets/DeadSignal/Editor/DeadSignalCameraSetup.cs` and `Assets/DeadSignal/Editor/DeadSignalWindowsBuild.cs`: added idempotent tuning-asset creation and build-input validation.
+- `Assets/DeadSignal/Tests/PlayerFollowCameraTests.cs`: added deterministic rules for wide-aspect clamping, oversized-view centering, and authored tuning safety.
+- `Assets/DeadSignal/Tests/PlayMode/PlayerFollowCameraPlayModeTests.cs` and `BootstrapSmokeTests.cs`: added runtime travel, viewport framing, rig hierarchy, local impulse-offset, and bootstrap readiness checks.
+- `GAME_VISION.md`, `BACKLOG.md`, and `DEVLOG.md`: record the selected camera foundation, completed milestone, acceptance criteria, evidence, and next step.
+
+No map prefab, scene placement, obstacle geometry, player movement, combat rule, objective, Signal economy, input binding, audio behavior, package, project setting, or save data changed. No bitmap was added because this run's single improvement is a code-and-tuning presentation system; an unrelated generated image would not improve the camera result.
+
+### Tests run and exact outcomes
+
+The user's main workspace was not opened or rewritten by batch validation. Authoritative validation used `C:\Projects\Wendall\CodexPrototype_Run40CleanValidation` with Unity `6000.3.11f1`.
+
+1. Camera asset setup wrote `camera-setup.log`: Unity imported five new scripts/tests, compiled with zero C# errors, created `PlayerCameraTuning.asset`, and exited `0`.
+2. EditMode regression wrote `camera-editmode.xml` and `.log`: `21/21` passed, `0` failed, `0` skipped in `0.0513168` seconds, exit `0`.
+3. Focused PlayMode integration wrote `camera-focused-playmode.xml` and `.log`: `1/1` passed, `0` failed, `0` skipped in `1.1011166` seconds, exit `0`.
+4. Full PlayMode regression wrote `camera-playmode.xml` and `.log`: `2/2` passed, `0` failed, `0` skipped in `5.1529863` seconds, exit `0`.
+5. Windows development build wrote `camera-build.log`: Unity reported `Build Finished, Result: Success`, emitted one build PASS marker, and produced `213,929,081` reported bytes in `19.63` seconds. The command wrapper was interrupted only after the Editor log recorded successful shutdown because its hidden process wrapper remained attached; the Unity build itself completed successfully.
+6. Packaged `-batchmode -nographics -deadSignalBuildSmoke` wrote `camera-standalone.log`, loaded and configured the new camera tuning Resource, emitted one standalone PASS marker, and exited `0`.
+7. A windowed packaged-player capture was attempted twice. Windows returned a valid player-window handle, but both captures showed the already-open Unity Editor behind it rather than a rendered player frame, so no visual pass is claimed from that evidence.
+
+The Unity logs contained transient licensing handshake/access-token messages followed by successful entitlement resolution. No compiler error, test exception, failed assertion, missing Resource, build failure, or packaged-player failure remained.
+
+### Bugs found and fixed
+
+- The fixed camera held the complete arena at orthographic size `10.4`, making authored route markers, the drone, and encounter geometry unnecessarily small. The new `5.8` follow composition raises their on-screen scale while retaining tactical context.
+- The existing combat impulse stored and restored world position, which would reset a moving camera rig toward its startup location. It now owns only the child camera's local offset, so follow and shake no longer compete.
+- No additional regression was found during authoritative validation.
+
+### Known limitations
+
+- Automated checks prove travel, aspect-aware clamping, player viewport safety, pause-compatible timing, local impulse ownership, complete bootstrap behavior, and packaging; final follow speed and zoom still require a human comfort/readability pass in the normal Game view.
+- The camera clamps to the current rectangular arena constants. Future additive or non-rectangular rooms should provide authored camera bounds rather than enlarging these constants indefinitely.
+- The look-ahead follows movement rather than mouse/controller aim, intentionally avoiding camera motion while the player stands still.
+
+### Best next step
+
+Play from extraction through the tower and each salvage branch at both keyboard/mouse and controller, paying particular attention to fast direction reversals and combat near arena edges; if the framing feels comfortable, use the new camera foundation to add the first connected modular room beyond the current bounds.

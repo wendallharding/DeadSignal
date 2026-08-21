@@ -37,6 +37,7 @@ This autonomous run is accepted when a fresh Play session provides all of the fo
 - Tower activation launches a cyan circuit sweep from the tower to the powered boundary, visibly selling the network's expansion while respecting pause and Reduced Flashes.
 - The station deck is assembled from reusable authored floor modules carrying original dark-alloy plating art while powered/dead-zone overlays remain readable.
 - The playable room perimeter is an authored reusable shell with textured bulkheads and explicit machine sockets rather than hard-coded wall and prop placement.
+- A closer tactical camera follows the maintenance drone with restrained movement look-ahead while clamping to authored arena edges, keeping navigation readable now and supporting future modular room expansion.
 - The central tower approach is a scene-placed modular junction whose authored coolant-manifold obstacles create distinct safe and exposed lanes for the player and awakened threats.
 - The extraction dock opens into a scene-placed capacitor channel aligned toward the tower, creating a readable first movement lane and a clear powered-to-dead-zone threshold.
 - The northeast salvage cache sits inside a scene-placed cargo annex whose single readable entrance turns an optional reward into a positioning commitment without moving the objective.
@@ -85,6 +86,8 @@ The salvage-area layout deliberately gives each cache a different spatial verb: 
 The first threat encounter is anchored by the Warden bay rather than another objective room: visible containment architecture promises danger before tower activation, then converts into combat cover. A comfortably wide west entrance now joins the bay approach to the northeast salvage annex, with large cyan floor chevrons distinguishing the onward route from the bay's combat pocket. This was selected over a Sapper cradle or shortcut checkpoint because the Warden is the player's most immediate post-activation threat and therefore gives the landmark the clearest first-minute payoff.
 
 The second threat is now anchored by a Sapper service cradle at the northwest edge: an L-shaped pair of magenta siphon pylons makes the dormant saboteur legible before tower activation, then leaves it a clear southeast emergence path and gives the player cover if combat returns to that corner. This was selected over a central debris pinch or southwest optional pocket because it turns an existing open-floor enemy spawn into anticipation, navigation, and tactical positioning without adding a new mechanic or objective.
+
+The camera now prioritizes local tactical readability over displaying the entire station at once: a tunable follow rig frames the drone at roughly 1.8 times the previous scale, adds gentle movement-direction look-ahead, and clamps so the current arena never exposes empty space beyond its authored edges. This was selected before another room expansion because new geometry would remain hard to read at the old full-map scale; a static room landmark would not solve that foundation, while an immediate additive-scene conversion would add production architecture without improving the current minute-to-minute play experience.
 
 ## Experience target
 

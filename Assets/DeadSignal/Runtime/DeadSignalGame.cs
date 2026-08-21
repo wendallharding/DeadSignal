@@ -73,6 +73,8 @@ namespace DeadSignal
         public bool HasSignalSapperAssets => m_world?.HasSignalSapperAssets ?? false;
         public int SignalSapperPartCount => m_world?.SignalSapperPartCount ?? 0;
         public int AuthoredMapObstacleCount => m_world?.AuthoredMapObstacleCount ?? 0;
+        public bool HasPlayerCameraTuning => m_world?.HasPlayerCameraTuning ?? false;
+        public bool IsPlayerCameraFollowing => m_world?.PlayerCamera?.IsConfigured ?? false;
         public float LowSignalWarningIntensity => m_lowSignalWarning?.CurrentIntensity ?? 0f;
         public bool IsSignalDustPowered => m_signalDust?.IsPowered ?? false;
         public int SignalDustMaximumParticles => m_signalDust?.MaximumParticles ?? 0;

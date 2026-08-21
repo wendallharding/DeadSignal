@@ -42,6 +42,7 @@ namespace DeadSignal.Editor
             DeadSignalRelayForkSetup.EnsureAssets();
             DeadSignalWardenBaySetup.EnsureAssets();
             DeadSignalSapperCradleSetup.EnsureAssets();
+            DeadSignalCameraSetup.EnsureAssets();
             _validateBuildInputs();
             _configureWindowsPlayer();
 
@@ -199,6 +200,11 @@ namespace DeadSignal.Editor
             if (!DeadSignalSapperCradleSetup.HasAssets)
             {
                 throw new BuildFailedException("The scene-authored Signal Sapper service-cradle assets are missing.");
+            }
+
+            if (!DeadSignalCameraSetup.HasAssets)
+            {
+                throw new BuildFailedException("The player follow-camera tuning asset is missing.");
             }
 
             if (AssetDatabase.LoadAssetAtPath<Texture2D>(APPLICATION_ICON_PATH) == null)

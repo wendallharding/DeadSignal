@@ -77,7 +77,7 @@ namespace DeadSignal
             m_targetCamera = targetCamera;
             if (m_targetCamera != null)
             {
-                m_cameraRestPosition = m_targetCamera.transform.position;
+                m_cameraRestPosition = m_targetCamera.transform.localPosition;
             }
 
             m_impactTexture = Resources.Load<Texture2D>(IMPACT_TEXTURE_PATH);
@@ -250,7 +250,7 @@ namespace DeadSignal
             float remainingRatio = m_shakeRemaining / SHAKE_DURATION;
             float magnitude = m_shakeIntensity * remainingRatio;
             var offset = new Vector3(Mathf.Sin(m_shakePhase), 0f, Mathf.Cos(m_shakePhase * 1.37f)) * magnitude;
-            m_targetCamera.transform.position = m_cameraRestPosition + offset;
+            m_targetCamera.transform.localPosition = m_cameraRestPosition + offset;
 
             if (m_shakeRemaining <= 0f)
             {
@@ -278,7 +278,7 @@ namespace DeadSignal
         {
             if (m_targetCamera != null)
             {
-                m_targetCamera.transform.position = m_cameraRestPosition;
+                m_targetCamera.transform.localPosition = m_cameraRestPosition;
             }
         }
 

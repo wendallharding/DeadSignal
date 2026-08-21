@@ -528,6 +528,10 @@ namespace DeadSignal.Tests
             Assert.That(signalTower.Find("Tower Base").GetComponent<Renderer>().sharedMaterial.mainTexture, Is.Not.Null,
                 "The authored tower housing should render the original control-panel texture.");
             Assert.That(Camera.main != null || Object.FindFirstObjectByType<Camera>() != null, Is.True);
+            Assert.That(game.HasPlayerCameraTuning, Is.True,
+                "The authored tactical-camera tuning should load from Resources.");
+            Assert.That(game.IsPlayerCameraFollowing, Is.True,
+                "The player camera should be configured on its independent follow rig.");
             Assert.That(Object.FindFirstObjectByType<AudioListener>(), Is.Not.Null,
                 "The runtime camera should provide the listener required by the synthesized soundscape.");
             Assert.That(game.HasPauseInsignia, Is.True, "The generated pause-menu insignia should load from Resources.");
