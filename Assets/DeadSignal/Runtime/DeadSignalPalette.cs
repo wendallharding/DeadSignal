@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 namespace DeadSignal
@@ -7,6 +8,8 @@ namespace DeadSignal
     /// </summary>
     internal sealed class DeadSignalPalette
     {
+        private const string RUNTIME_MATERIAL_RESOURCE = "Materials/RuntimeLitTemplate";
+
         public DeadSignalPalette(bool highContrastEnabled)
         {
             Cyan = _createMaterial("Signal Cyan");
@@ -64,8 +67,26 @@ namespace DeadSignal
 
         private static Material _createMaterial(string materialName)
         {
-            var shader = Shader.Find("Universal Render Pipeline/Lit") ?? Shader.Find("Standard");
-            return new Material(shader) { name = materialName, enableInstancing = true };
+            var template = Resources.Load<Material>(RUNTIME_MATERIAL_RESOURCE);
+            Material material;
+            if (template != null)
+            {
+                material = new Material(template);
+            }
+            else
+            {
+                var shader = Shader.Find("Universal Render Pipeline/Lit") ?? Shader.Find("Standard");
+                if (shader == null)
+                {
+                    throw new InvalidOperationException("DEAD SIGNAL could not load its runtime Lit material or fallback shader.");
+                }
+
+                material = new Material(shader);
+            }
+
+            material.name = materialName;
+            material.enableInstancing = true;
+            return material;
         }
 
         private static void _setMaterial(Material material, Color baseColor, Color emission)

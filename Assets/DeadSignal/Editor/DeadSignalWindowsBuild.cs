@@ -1,0 +1,111 @@
+using System;
+using System.IO;
+using System.Linq;
+using UnityEditor;
+using UnityEditor.Build;
+using UnityEditor.Build.Reporting;
+using UnityEngine;
+
+namespace DeadSignal.Editor
+{
+    public static class DeadSignalWindowsBuild
+    {
+        public const string OUTPUT_DIRECTORY = "Build/Windows";
+        public const string EXECUTABLE_PATH = OUTPUT_DIRECTORY + "/DeadSignal.exe";
+
+        private const string APPLICATION_ICON_PATH = "Assets/DeadSignal/Branding/DeadSignalAppIcon.png";
+        private const string BUILD_MENU = "DEAD SIGNAL/Build Windows Development";
+
+        [MenuItem(BUILD_MENU)]
+        public static void BuildDevelopmentPlayer()
+        {
+            DeadSignalProjectSetup.EnsureReflexSettings();
+            DeadSignalProjectSetup.EnsureRuntimeMaterialTemplates();
+            _validateBuildInputs();
+            _configureWindowsPlayer();
+
+            var enabledScenes = EditorBuildSettings.scenes
+                .Where(scene => scene.enabled)
+                .Select(scene => scene.path)
+                .ToArray();
+            var options = new BuildPlayerOptions
+            {
+                scenes = enabledScenes,
+                locationPathName = Path.GetFullPath(EXECUTABLE_PATH),
+                target = BuildTarget.StandaloneWindows64,
+                options = BuildOptions.Development
+            };
+
+            var report = BuildPipeline.BuildPlayer(options);
+            if (report.summary.result != BuildResult.Succeeded)
+            {
+                throw new BuildFailedException(
+                    $"DEAD SIGNAL Windows build failed with {report.summary.totalErrors} errors. " +
+                    $"Result: {report.summary.result}.");
+            }
+
+            Debug.Log(
+                $"[DEAD SIGNAL BUILD] PASS | {Path.GetFullPath(EXECUTABLE_PATH)} | " +
+                $"{report.summary.totalSize} bytes | {report.summary.totalTime.TotalSeconds:0.00}s");
+        }
+
+        private static void _validateBuildInputs()
+        {
+            var enabledScenes = EditorBuildSettings.scenes.Where(scene => scene.enabled).ToArray();
+            if (enabledScenes.Length == 0)
+            {
+                throw new BuildFailedException("DEAD SIGNAL requires at least one enabled build scene.");
+            }
+
+            foreach (var scene in enabledScenes)
+            {
+                if (string.IsNullOrWhiteSpace(scene.path) || !File.Exists(scene.path))
+                {
+                    throw new BuildFailedException($"Enabled build scene is missing: {scene.path}");
+                }
+            }
+
+            if (!DeadSignalProjectSetup.HasReflexSettings)
+            {
+                throw new BuildFailedException("The Reflex settings resource is missing.");
+            }
+
+            if (!DeadSignalProjectSetup.HasRuntimeMaterialTemplates)
+            {
+                throw new BuildFailedException("Runtime material templates are missing.");
+            }
+
+            if (AssetDatabase.LoadAssetAtPath<Texture2D>(APPLICATION_ICON_PATH) == null)
+            {
+                throw new BuildFailedException($"The application icon is missing or invalid: {APPLICATION_ICON_PATH}");
+            }
+        }
+
+        private static void _configureWindowsPlayer()
+        {
+            var applicationIcon = AssetDatabase.LoadAssetAtPath<Texture2D>(APPLICATION_ICON_PATH);
+            var iconKind = IconKind.Application;
+            var iconSizes = PlayerSettings.GetIconSizes(NamedBuildTarget.Standalone, iconKind);
+            if (iconSizes.Length == 0)
+            {
+                iconKind = IconKind.Any;
+                iconSizes = PlayerSettings.GetIconSizes(NamedBuildTarget.Standalone, iconKind);
+            }
+
+            if (iconSizes.Length == 0)
+            {
+                throw new BuildFailedException("Unity reported no Windows application icon slots.");
+            }
+
+            PlayerSettings.SetIcons(
+                NamedBuildTarget.Standalone,
+                Enumerable.Repeat(applicationIcon, iconSizes.Length).ToArray(),
+                iconKind);
+            PlayerSettings.defaultScreenWidth = 1280;
+            PlayerSettings.defaultScreenHeight = 720;
+            PlayerSettings.fullScreenMode = FullScreenMode.Windowed;
+            PlayerSettings.resizableWindow = true;
+            AssetDatabase.SaveAssets();
+        }
+    }
+}

@@ -946,3 +946,65 @@ Unity launches logged the existing transient licensing-channel handshake/access-
 ### Best next step
 
 Drain below 30 Signal at 16:9 and ultrawide with Reduced Flashes both off and on, confirm the center stays clear and the warning is urgent without distraction, then create the first Windows development build and build-validation test.
+
+## 2026-08-21 — Autonomous Run 17
+
+### Today's single idea — repeatable Windows development build
+
+Player benefit: the complete first playable can now be launched and shared as a recognizable 64-bit Windows game instead of requiring the Unity Editor. A packaged-player health check catches failures that Editor-only validation cannot see.
+
+Acceptance criteria:
+
+- one menu/batch entry point validates enabled scenes, Reflex settings, runtime material templates, and original application branding before building;
+- the development player opens in a resizable 1280x720 window and carries the DEAD SIGNAL icon at every Windows icon size;
+- a dedicated command-line smoke argument boots the packaged player, waits for runtime composition, verifies representative world objects, synthesized audio, and core Resources, then exits with an explicit pass/fail code;
+- the built player survives shader stripping by loading retained URP Lit and particle material templates;
+- the final Windows build, standalone smoke launch, EditMode suite, PlayMode regression, strict log scan, and repository checks all pass.
+
+### Files and systems changed
+
+- `Assets/DeadSignal/Editor/DeadSignalWindowsBuild.cs` and Unity-generated `.meta`: added the validated `DEAD SIGNAL/Build Windows Development` command and batch entry point. It builds the enabled scene to ignored `Build/Windows/DeadSignal.exe` as a 64-bit development player and assigns the complete Windows icon-size set.
+- `Assets/DeadSignal/Editor/DeadSignalProjectSetup.cs`: refactored Reflex presence into a reusable property and added idempotent Editor creation/validation for the two retained runtime material templates.
+- `Assets/DeadSignal/Runtime/StandaloneBuildSmokeProbe.cs` and Unity-generated `.meta`: added the opt-in `-deadSignalBuildSmoke` packaged-player probe. Ordinary launches do not create or run it.
+- `Assets/DeadSignal/Runtime/DeadSignalPalette.cs`: now clones a retained URP Lit material resource, preventing runtime world materials from depending only on stripped name-based shader lookup.
+- `Assets/DeadSignal/Runtime/SignalDustController.cs`: now clones the retained URP particle material resource while preserving its safe Editor fallback and existing fixed-budget behavior.
+- `Assets/DeadSignal/Resources/Materials/RuntimeLitTemplate.mat`, `RuntimeParticleTemplate.mat`, their Unity-generated `.meta` files, and the folder `.meta`: added Unity-created material assets so the required shaders are retained in packaged players.
+- `Assets/DeadSignal/Branding/DeadSignalAppIcon.png`, its Unity-generated `.meta`, and the folder `.meta`: added an original transparent 1254x1254 dark-alloy Signal-core emblem generated with the built-in image tool. Unity assigns it to 1024, 512, 256, 128, 64, 48, 32, and 16-pixel Windows application-icon slots. SHA-256: `3BB90C66CC6DB596CF2D64E9C422A15BFDBC8B31DAF9856C6EB23B8C0031BAD0`.
+- `Assets/DeadSignal/Tests/StandaloneBuildSmokeProbeTests.cs` and Unity-generated `.meta`: added two deterministic tests for dedicated smoke-argument recognition and ordinary-launch isolation.
+- `ProjectSettings/ProjectSettings.asset`: intentionally changed the standalone default from fixed 1024x768 fullscreen-window presentation to a resizable 1280x720 window and serialized the original icon across all Windows sizes.
+- `GAME_VISION.md`, `BACKLOG.md`, and `DEVLOG.md`: record the accepted standalone milestone without changing the core pitch or gameplay.
+
+No packages, package versions, assembly definitions, scenes, prefabs, input bindings, deterministic gameplay rules, balance values, save data, or generated source were changed. Unity's build-time rewrites of unrelated URP settings, Graphics settings, and Unity Services enablement were explicitly removed from the final diff.
+
+### Tests run and exact outcomes
+
+Matching editor: `C:\Program Files\Unity\Hub\Editor\6000.3.11f1\Editor\Unity.exe` (Unity 6000.3.11f1) against the live workspace.
+
+1. Initial import/compile wrote `Logs/run17-compile.log`: Unity generated the new script and branding metadata, compiled successfully, and exited `0`.
+2. Initial EditMode suite wrote `Logs/run17-editmode-results.xml` and `Logs/run17-editmode.log`: Unity exited `0`; `16/16` passed, `0` failed, `0` skipped, `0` inconclusive in `0.0412699` seconds.
+3. Initial PlayMode regression wrote `Logs/run17-playmode-results.xml` and `Logs/run17-playmode.log`: Unity exited `0`; `1/1` passed, `0` failed, `0` skipped, `0` inconclusive in `3.6785992` seconds.
+4. The first Windows build wrote `Logs/run17-windows-build.log`: Unity exited `0` and produced the player, but the first standalone launches exited `2`. Both the null-graphics and Direct3D 11 logs proved `Shader.Find` returned null after packaging, so `DeadSignalPalette` could not construct the world. This was a real build-only defect not covered by the passing Editor suites.
+5. The corrected build retained Unity-created Lit and particle material templates. `Logs/run17-final-windows-build.log` records Unity exit `0`, `BuildResult.Succeeded`, 178,733,061 reported bytes, and 9.59 seconds. The ignored `Build/Windows` artifact contains 293 files totaling 178,926,403 bytes.
+6. The final executable launch wrote `Logs/run17-final-standalone-smoke.log`: Direct3D 11 initialized on the installed NVIDIA GeForce RTX 3060, the probe found complete runtime composition and core Resources, printed exactly one `[DEAD SIGNAL STANDALONE SMOKE] PASS` marker, and exited `0` in about two seconds.
+7. Final EditMode regression wrote `Logs/run17-final-editmode-results.xml` and `Logs/run17-final-editmode.log`: Unity exited `0`; `16/16` passed, `0` failed, `0` skipped in `0.0427929` seconds.
+8. Final PlayMode regression wrote `Logs/run17-final-playmode-results.xml` and `Logs/run17-final-playmode.log`: Unity exited `0`; `1/1` passed, `0` failed, `0` skipped in `3.6875593` seconds and retained every prior input, pause, accessibility, audio, particles, warning, combat, Sapper, salvage, extraction, and restart assertion.
+9. The generated icon was visually inspected at the project path. Pixel inspection reported 1254x1254 `Format32bppArgb`, four transparent corners with alpha `0`, and opaque center content with alpha `253`. The final Player settings reference its Unity GUID for all eight Windows icon sizes.
+10. Strict scans of the final build, standalone, EditMode, and PlayMode logs found no C# compiler warnings/errors, null or missing-reference exceptions, unhandled exceptions, failed assertions, failed-test markers, or audio-listener warnings. The build logged one `Hidden/Core/DebugOccluder` implicit-truncation shader warning inside Unity's Render Pipeline Core package; it does not reference first-party code and did not affect the successful Direct3D smoke launch. Final `git diff --check` passed.
+11. Final warmed-project compilation after the complete source and documentation audit wrote `Logs/run17-final-compile.log`: Unity exited `0` with no first-party compiler warning or error.
+
+### Bugs found and fixed
+
+- Fixed a packaged-player startup failure caused by relying on `Shader.Find` for URP shaders that Unity stripped from the build. Explicit material resources now retain both required shaders and the corrected executable smoke test passes.
+- Corrected the first icon-assignment attempt, which created no standalone icon slots. The builder now queries Unity's supported icon sizes and repeats the source texture across all eight slots before building.
+- Removed unrelated automatic URP serialization changes and Unity Services enablement produced during Windows build processing.
+
+### Known limitations
+
+- The standalone probe validates a real Direct3D 11 startup and complete runtime composition, but exits after two frames; it is not a long soak test or a substitute for playing the complete build.
+- The development artifact is intentionally ignored by Git and remains local at `Build/Windows`; only its repeatable source pipeline, retained materials, settings, tests, and branding are committed.
+- The original 1254px icon has transparent padding and strong 32px silhouette intent, but Windows Explorer/taskbar appearance still needs a subjective human check at each display scale.
+- Headless Editor tests still cannot judge game feel, the low-Signal vignette at ultrawide aspect ratios, audio balance, or the new window presentation.
+
+### Best next step
+
+Launch `Build/Windows/DeadSignal.exe`, complete one keyboard/mouse run and one controller run at 16:9, then repeat at ultrawide while checking the app icon, low-Signal edge warning, audio balance, and pause layout before starting modular authored rooms.

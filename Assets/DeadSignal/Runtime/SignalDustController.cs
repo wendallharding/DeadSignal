@@ -20,6 +20,7 @@ namespace DeadSignal
     /// </summary>
     public sealed class SignalDustController : MonoBehaviour, ISignalDust
     {
+        private const string RUNTIME_PARTICLE_MATERIAL_RESOURCE = "Materials/RuntimeParticleTemplate";
         private const int MAXIMUM_PARTICLES = 56;
         private const float DEAD_EMISSION_RATE = 2.5f;
         private const float POWERED_EMISSION_RATE = 9f;
@@ -149,24 +150,26 @@ namespace DeadSignal
 
         private void _createMaterial(ParticleSystemRenderer particleRenderer, Texture2D texture)
         {
-            var shader = Shader.Find("Universal Render Pipeline/Particles/Unlit");
-            if (shader == null)
+            var template = Resources.Load<Material>(RUNTIME_PARTICLE_MATERIAL_RESOURCE);
+            if (template != null)
             {
-                shader = Shader.Find("Particles/Standard Unlit");
+                m_material = new Material(template);
+            }
+            else
+            {
+                var shader = Shader.Find("Universal Render Pipeline/Particles/Unlit") ?? Shader.Find("Particles/Standard Unlit");
+                if (shader == null)
+                {
+                    Debug.LogWarning("DEAD SIGNAL could not find a particle shader; Signal dust will use Unity's default material.");
+                    return;
+                }
+
+                m_material = new Material(shader);
             }
 
-            if (shader == null)
-            {
-                Debug.LogWarning("DEAD SIGNAL could not find a particle shader; Signal dust will use Unity's default material.");
-                return;
-            }
-
-            m_material = new Material(shader)
-            {
-                name = "Signal Dust Runtime Material",
-                mainTexture = texture,
-                renderQueue = 3000
-            };
+            m_material.name = "Signal Dust Runtime Material";
+            m_material.mainTexture = texture;
+            m_material.renderQueue = 3000;
             m_material.SetFloat("_Surface", 1f);
             m_material.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
             particleRenderer.sharedMaterial = m_material;
