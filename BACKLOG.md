@@ -16,7 +16,8 @@
 
 - [x] Split runtime orchestration into focused input, world, combat, salvage, and HUD classes
 - [x] Add controller support for the complete run loop
-- [ ] Add remappable input actions and button-glyph detection
+- [x] Add adaptive keyboard/mouse and gamepad guidance with generated input-link art
+- [ ] Add remappable Input Actions and platform-specific button glyph sets
 - [ ] Replace bootstrap arena with modular authored room prefabs
 - [x] Add a Signal-cost shortcut gate and first route choice
 - [x] Add a second enemy archetype that pressures powered territory

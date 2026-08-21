@@ -49,6 +49,7 @@ This autonomous run is accepted when a fresh Play session provides all of the fo
 - The pause overlay offers a persisted Reduced Flashes option that softens impact bursts and removes the Sapper's expanding pulse flash while preserving combat timing and countdown readability.
 - The pause overlay offers a persisted High Contrast option that immediately separates Signal, salvage, and threats with brighter world materials and clearer HUD values without changing gameplay.
 - A directional objective beacon always identifies the tower, nearest remaining salvage, or extraction target with live distance.
+- Control legends, contextual interactions, pause options, and restart guidance immediately follow the player's latest keyboard/mouse or gamepad input.
 - Core resource/objective transitions have deterministic EditMode tests, and the Unity project compiles in batch mode.
 
 ## Experience target

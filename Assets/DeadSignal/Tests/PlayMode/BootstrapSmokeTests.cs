@@ -38,6 +38,9 @@ namespace DeadSignal.Tests
             Assert.That(game.HasReducedFlashesIcon, Is.True, "The generated Reduced Flashes icon should load from Resources.");
             Assert.That(game.HasHighContrastIcon, Is.True, "The generated High Contrast icon should load from Resources.");
             Assert.That(game.HasObjectiveBeaconIcon, Is.True, "The generated objective beacon icon should load from Resources.");
+            Assert.That(game.HasInputLinkIcon, Is.True, "The generated input-link icon should load from Resources.");
+            Assert.That(game.ActiveInputPromptDevice, Is.EqualTo(InputPromptDevice.KeyboardMouse),
+                "A fresh run should begin with keyboard-and-mouse guidance until controller input is received.");
             Assert.That(game.CurrentObjectiveBeaconPhase, Is.EqualTo(ObjectiveBeaconPhase.Tower));
             Assert.That(game.CurrentObjectiveBeaconTarget, Is.EqualTo(new Vector3(-0.6f, 0f, 0.4f)));
             CombatFeedbackController combatFeedback = Object.FindFirstObjectByType<CombatFeedbackController>();
@@ -60,6 +63,8 @@ namespace DeadSignal.Tests
                 yield return null;
 
                 Assert.That(game.IsPaused, Is.True, "Gamepad Menu should pause a running game.");
+                Assert.That(game.ActiveInputPromptDevice, Is.EqualTo(InputPromptDevice.Gamepad),
+                    "A meaningful controller action should immediately switch every adaptive prompt to gamepad guidance.");
                 Assert.That(Time.timeScale, Is.Zero);
                 yield return new WaitForSecondsRealtime(0.1f);
                 Assert.That(game.CurrentSignal, Is.EqualTo(signalBeforePause), "Signal must not drain while paused.");

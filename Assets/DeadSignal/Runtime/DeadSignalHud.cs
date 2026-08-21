@@ -9,6 +9,7 @@ namespace DeadSignal
         bool HasCameraComfortIcon { get; }
         bool HasReducedFlashesIcon { get; }
         bool HasHighContrastIcon { get; }
+        bool HasInputLinkIcon { get; }
 
         void Configure(RunModel model, RunMetrics metrics, DeadSignalWorld world, DeadSignalThreatController threats);
         void ShowFeedback(string message);
@@ -26,6 +27,7 @@ namespace DeadSignal
         private DeadSignalThreatController m_threats;
         private ICombatFeedback m_combatFeedback;
         private IComfortSettings m_comfortSettings;
+        private IDeadSignalInput m_input;
         private GUIStyle m_titleStyle;
         private GUIStyle m_labelStyle;
         private GUIStyle m_smallStyle;
@@ -36,6 +38,7 @@ namespace DeadSignal
         private Texture2D m_cameraComfortIcon;
         private Texture2D m_reducedFlashesIcon;
         private Texture2D m_highContrastIcon;
+        private Texture2D m_inputLinkIcon;
         private float m_feedbackTimer;
         private string m_feedback = string.Empty;
 
@@ -43,12 +46,17 @@ namespace DeadSignal
         public bool HasCameraComfortIcon => m_cameraComfortIcon != null;
         public bool HasReducedFlashesIcon => m_reducedFlashesIcon != null;
         public bool HasHighContrastIcon => m_highContrastIcon != null;
+        public bool HasInputLinkIcon => m_inputLinkIcon != null;
 
         [Inject]
-        private void _construct(ICombatFeedback combatFeedback, IComfortSettings comfortSettings)
+        private void _construct(
+            ICombatFeedback combatFeedback,
+            IComfortSettings comfortSettings,
+            IDeadSignalInput input)
         {
             m_combatFeedback = combatFeedback;
             m_comfortSettings = comfortSettings;
+            m_input = input;
         }
 
         void IDeadSignalHud.Configure(
@@ -65,6 +73,7 @@ namespace DeadSignal
             m_cameraComfortIcon = Resources.Load<Texture2D>("UI/SteadyCameraIcon");
             m_reducedFlashesIcon = Resources.Load<Texture2D>("UI/ReducedFlashesIcon");
             m_highContrastIcon = Resources.Load<Texture2D>("UI/HighContrastIcon");
+            m_inputLinkIcon = Resources.Load<Texture2D>("UI/InputLinkIcon");
         }
 
         void IDeadSignalHud.ShowFeedback(string message)
@@ -149,7 +158,7 @@ namespace DeadSignal
             GUI.Label(new Rect(34f, 134f, 300f, 24f), zone, m_smallStyle);
 
             GUI.color = new Color(0.015f, 0.025f, 0.035f, 0.86f);
-            GUI.Box(new Rect(Screen.width - 374f, 18f, 356f, 176f), GUIContent.none);
+            GUI.Box(new Rect(Screen.width - 374f, 18f, 356f, 190f), GUIContent.none);
             GUI.color = Color.white;
             GUI.Label(new Rect(Screen.width - 358f, 28f, 330f, 22f), _currentObjective(), m_labelStyle);
             m_smallStyle.normal.textColor = m_model.TowerOnline && m_threats.IsSapperAlive
@@ -157,10 +166,12 @@ namespace DeadSignal
                 : new Color(0.5f, 0.68f, 0.7f);
             GUI.Label(new Rect(Screen.width - 358f, 54f, 330f, 22f), _sapperStatus(), m_smallStyle);
             m_smallStyle.normal.textColor = new Color(0.72f, 0.82f, 0.86f);
-            GUI.Label(new Rect(Screen.width - 358f, 78f, 330f, 94f),
-                "KEYS  WASD Move | Mouse Aim | LMB Fire | E Use\n" +
-                "PAD  LS Move | RS Aim | RT/RB Fire | X Use\n" +
-                "PAUSE  Esc / Menu\nRESTART  R / Enter / A", m_smallStyle);
+            if (m_inputLinkIcon != null)
+            {
+                GUI.DrawTexture(new Rect(Screen.width - 358f, 84f, 72f, 72f), m_inputLinkIcon, ScaleMode.ScaleToFit, true);
+            }
+
+            GUI.Label(new Rect(Screen.width - 278f, 78f, 244f, 104f), _activeControlLegend(), m_smallStyle);
         }
 
         private void _drawContextPrompt()
@@ -211,7 +222,7 @@ namespace DeadSignal
             GUI.Label(new Rect(0f, Screen.height * 0.5f + 28f, Screen.width, 54f), _runReport(), m_reportStyle);
             GUI.color = Color.white;
             GUI.Label(new Rect(0f, Screen.height * 0.5f + 88f, Screen.width, 36f),
-                "PRESS R / ENTER / GAMEPAD A TO RESTART", m_centerStyle);
+                $"PRESS {_binding("R / ENTER", "GAMEPAD A")} TO RESTART", m_centerStyle);
         }
 
         private void _drawPauseOverlay()
@@ -249,7 +260,9 @@ namespace DeadSignal
             GUI.Label(new Rect(comfortPanel.x + 88f, comfortPanel.y + 9f, 330f, 24f), "STEADY CAMERA", m_labelStyle);
             GUI.color = m_comfortSettings.CameraImpulseEnabled ? new Color(0.08f, 0.96f, 1f) : new Color(1f, 0.68f, 0.12f);
             GUI.Label(new Rect(comfortPanel.x + 88f, comfortPanel.y + 35f, 330f, 26f),
-                m_comfortSettings.CameraImpulseEnabled ? "C / Y  CAMERA IMPULSE ON" : "C / Y  CAMERA IMPULSE OFF",
+                m_comfortSettings.CameraImpulseEnabled
+                    ? $"{_binding("C", "Y")}  CAMERA IMPULSE ON"
+                    : $"{_binding("C", "Y")}  CAMERA IMPULSE OFF",
                 m_smallStyle);
 
             var flashPanel = new Rect(Screen.width * 0.5f - 220f, Screen.height * 0.5f + 88f, 440f, 76f);
@@ -268,8 +281,8 @@ namespace DeadSignal
                 : new Color(1f, 0.68f, 0.12f);
             GUI.Label(new Rect(flashPanel.x + 88f, flashPanel.y + 35f, 330f, 26f),
                 m_comfortSettings.ReducedFlashesEnabled
-                    ? "F / D-PAD DOWN  REDUCTION ON"
-                    : "F / D-PAD DOWN  REDUCTION OFF",
+                    ? $"{_binding("F", "D-PAD DOWN")}  REDUCTION ON"
+                    : $"{_binding("F", "D-PAD DOWN")}  REDUCTION OFF",
                 m_smallStyle);
 
             var contrastPanel = new Rect(Screen.width * 0.5f - 220f, Screen.height * 0.5f + 172f, 440f, 76f);
@@ -288,13 +301,13 @@ namespace DeadSignal
                 : new Color(1f, 0.68f, 0.12f);
             GUI.Label(new Rect(contrastPanel.x + 88f, contrastPanel.y + 35f, 330f, 26f),
                 m_comfortSettings.HighContrastEnabled
-                    ? "H / D-PAD UP  CONTRAST ON"
-                    : "H / D-PAD UP  CONTRAST OFF",
+                    ? $"{_binding("H", "D-PAD UP")}  CONTRAST ON"
+                    : $"{_binding("H", "D-PAD UP")}  CONTRAST OFF",
                 m_smallStyle);
 
             GUI.color = Color.white;
             GUI.Label(new Rect(0f, Screen.height * 0.5f + 262f, Screen.width, 36f),
-                "PRESS ESC / GAMEPAD MENU TO RESUME", m_centerStyle);
+                $"PRESS {_binding("ESC", "GAMEPAD MENU")} TO RESUME", m_centerStyle);
         }
 
         private string _currentObjective()
@@ -344,23 +357,35 @@ namespace DeadSignal
             if (!m_model.ShortcutOpen && DeadSignalWorld.FlatDistance(m_world.Player.position, m_world.ShortcutPosition) < 1.9f)
             {
                 return m_model.TowerOnline
-                    ? $"[E / GAMEPAD X]  BURN {RunModel.ShortcutCost:0} SIGNAL FOR SHORTCUT"
+                    ? $"[{_binding("E", "GAMEPAD X")}]  BURN {RunModel.ShortcutCost:0} SIGNAL FOR SHORTCUT"
                     : "SHORTCUT OFFLINE - ACTIVATE TOWER FIRST";
             }
 
             if (!m_model.TowerOnline && DeadSignalWorld.FlatDistance(m_world.Player.position, m_world.TowerPosition) < 1.8f)
             {
-                return "[E / GAMEPAD X]  ACTIVATE SIGNAL TOWER  —  COST 10";
+                return $"[{_binding("E", "GAMEPAD X")}]  ACTIVATE SIGNAL TOWER  —  COST 10";
             }
 
             if (DeadSignalWorld.FlatDistance(m_world.Player.position, m_world.ExtractionPosition) < 1.65f)
             {
                 return m_model.CanExtract
-                    ? "[E / GAMEPAD X]  EXTRACT SALVAGE"
+                    ? $"[{_binding("E", "GAMEPAD X")}]  EXTRACT SALVAGE"
                     : $"EXTRACTION LOCKED  —  {RunModel.SalvageRequired - m_model.Salvage} SALVAGE MISSING";
             }
 
             return string.Empty;
+        }
+
+        private string _activeControlLegend()
+        {
+            return m_input.ActivePromptDevice == InputPromptDevice.Gamepad
+                ? "GAMEPAD LINK\nLS Move  |  RS Aim\nRT / RB Fire  |  X Use\nMenu Pause  |  A Restart"
+                : "KEYBOARD + MOUSE\nWASD Move  |  Mouse Aim\nLMB / Space Fire  |  E Use\nEsc Pause  |  R Restart";
+        }
+
+        private string _binding(string keyboardMouse, string gamepad)
+        {
+            return m_input.ActivePromptDevice == InputPromptDevice.Gamepad ? gamepad : keyboardMouse;
         }
     }
 }

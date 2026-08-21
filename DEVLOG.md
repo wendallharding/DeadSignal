@@ -714,3 +714,57 @@ Matching editor: `C:\Program Files\Unity\Hub\Editor\6000.3.11f1\Editor\Unity.exe
 ### Best next step
 
 Run one keyboard/controller accessibility pass at 16:9 and ultrawide with all three comfort settings in combination, then replace direct polling with remappable Input Actions and device-aware glyphs.
+## 2026-08-21 - Autonomous Run 13
+
+### Today's single idea - adaptive device-aware control prompts
+
+Player benefit: players can start with either keyboard/mouse or controller and see only the relevant controls everywhere they need them, without mentally translating a permanently mixed legend. Any meaningful movement, aim, action, pause, or comfort-option input switches the guidance immediately; gameplay rules and bindings are unchanged.
+
+Acceptance criteria:
+
+- A fresh run begins with concise keyboard-and-mouse guidance.
+- Meaningful gamepad stick or button input immediately changes the HUD legend and all actionable prompts to controller guidance.
+- Context interactions, pause comfort controls, resume guidance, and outcome restart guidance all use the same shared active-device state.
+- Tiny stick drift and stationary mouse position do not cause prompt flicker.
+- The HUD loads one original transparent input-link emblem, and PlayMode coverage proves icon loading plus the device transition inside the complete runtime flow.
+
+### Files and systems changed
+
+- `Assets/DeadSignal/Runtime/DeadSignalInput.cs`: refactored the former static polling utility into a focused `IDeadSignalInput` service. It retains every existing keyboard/controller binding, filters stick drift and insignificant mouse delta, and owns the shared latest-meaningful-device state.
+- `Assets/DeadSignal/Runtime/DeadSignalBootstrap.cs`: creates and registers the input service through the existing Reflex runtime container.
+- `Assets/DeadSignal/Runtime/DeadSignalGame.cs`: receives input through Reflex, delegates all polling to the service, and exposes a narrow read-only verification surface for device state and icon loading.
+- `Assets/DeadSignal/Runtime/DeadSignalHud.cs`: replaces the mixed always-visible legend with adaptive keyboard/mouse or controller copy; interaction, pause-option, resume, and restart prompts use the same device; the generated emblem is integrated beside the active legend.
+- `Assets/DeadSignal/Resources/UI/InputLinkIcon.png` and Unity-generated `.meta`: added an original 1254x1254 RGBA dark-alloy keyboard/mouse-to-gamepad control-uplink emblem generated with the built-in image tool. Visual inspection confirmed the intended industrial cyan/amber presentation. Pixel inspection found transparent sampled corners and opaque center content. SHA-256: `A3A4ACB3EED8AE4C6066A30F0321FB00408F88C7AAD380E3C6D81206300EBFBA`.
+- `Assets/DeadSignal/Tests/PlayMode/BootstrapSmokeTests.cs`: proves the generated resource loads, a fresh run defaults to keyboard/mouse guidance, gamepad Menu switches the shared state immediately, and the existing complete controller/combat/accessibility/restart flow remains intact.
+- `GAME_VISION.md`: adds adaptive control guidance to first-playable acceptance without changing the core concept.
+- `BACKLOG.md`: marks adaptive device guidance complete and narrows the remaining input task to rebinding and platform-specific glyph sets.
+- `DEVLOG.md`: records Run 13 scope, implementation, exact evidence, risks, and next step.
+
+No gameplay balance, deterministic rules, bindings, package versions, assembly definitions, scenes, prefabs, materials, shaders, audio, project settings, or serialized gameplay data were intentionally changed.
+
+### Tests run and exact outcomes
+
+Matching editor: `C:\Program Files\Unity\Hub\Editor\6000.3.11f1\Editor\Unity.exe` against the live workspace.
+
+1. Import and compilation wrote `Logs/run13-compile.log`: Unity return code `0`; Unity generated `InputLinkIcon.png.meta`, imported the PNG, compiled the changed runtime/test assemblies, and exited batch mode successfully.
+2. EditMode deterministic suite wrote `Logs/run13-editmode-results.xml` and `Logs/run13-editmode.log`: Unity return code `0`; `12/12` passed, `0` failed, `0` skipped in `0.0542899` seconds.
+3. PlayMode full runtime/input regression wrote `Logs/run13-playmode-results.xml` and `Logs/run13-playmode.log`: Unity return code `0`; `1/1` passed, `0` failed, `0` skipped in `3.6270884` seconds.
+4. Final warmed-project compilation wrote `Logs/run13-final-compile.log`: Unity return code `0`; batch mode exited successfully after the final source, asset, test, and documentation audit.
+5. Strict scans of both compile logs plus the EditMode and PlayMode logs found no C# compiler warnings/errors, null or missing-reference exceptions, unhandled exceptions, assertion failures, or failed-test markers. Unity's initial licensing channel reported the same transient handshake/access-token messages as prior runs, then resolved both installed Unity Pro entitlements and completed every requested operation.
+6. The generated PNG was visually inspected at its project path. Pixel inspection reported 1254x1254 `Format32bppArgb`, sampled corner alpha values `0, 0, 1, 0`, and opaque center alpha `253`. PlayMode also proved Unity imports and loads it from Resources.
+
+### Bugs found and fixed
+
+- No gameplay, compilation, import, or automated-test regression was found.
+- Device arbitration deliberately ignores stick input below the existing 0.18 deadzone and mouse delta below 0.5 pixels so ordinary controller drift or a stationary pointer cannot steal the prompt mode.
+
+### Known limitations
+
+- Headless validation proves state arbitration and resource integration but cannot judge the 72-pixel icon, four-line legend fit, or prompt switching feel at 16:9 and ultrawide resolutions.
+- The generated source is intentionally oversized for iteration and should be resized or atlased after the immediate-mode HUD direction stabilizes.
+- Guidance uses generic Xbox-style labels for the current controller path. Platform-specific glyph detection and player-facing Input Action rebinding remain open.
+- The fixed runtime-built arena, absent authored audio, and lack of a standalone build remain unchanged.
+
+### Best next step
+
+Run one keyboard/mouse-to-controller handoff session at 16:9 and ultrawide, confirm no prompt flicker from idle devices, then move the retained bindings into a dedicated remappable Input Action asset with platform-specific glyph sets.

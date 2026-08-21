@@ -36,6 +36,7 @@ namespace DeadSignal
             root.SetActive(false);
 
             var comfortSettings = new ComfortSettings();
+            var input = new DeadSignalInput();
             var combatFeedback = root.AddComponent<CombatFeedbackController>();
             var hud = root.AddComponent<DeadSignalHud>();
             var objectiveBeacon = root.AddComponent<ObjectiveBeaconHud>();
@@ -44,6 +45,7 @@ namespace DeadSignal
             Container container = new ContainerBuilder()
                 .SetName("DEAD SIGNAL Runtime")
                 .RegisterValue(comfortSettings, new[] { typeof(IComfortSettings) })
+                .RegisterValue(input, new[] { typeof(IDeadSignalInput) })
                 .RegisterValue(combatFeedback, new[] { typeof(ICombatFeedback) })
                 .RegisterValue(hud, new[] { typeof(IDeadSignalHud) })
                 .RegisterValue(objectiveBeacon, new[] { typeof(IObjectiveBeacon) })

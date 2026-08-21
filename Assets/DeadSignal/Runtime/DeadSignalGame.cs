@@ -18,6 +18,7 @@ namespace DeadSignal
         private DeadSignalWorld m_world;
         private DeadSignalThreatController m_threats;
         private DeadSignalSalvageController m_salvage;
+        private IDeadSignalInput m_input;
         private ICombatFeedback m_combatFeedback;
         private IComfortSettings m_comfortSettings;
         private IDeadSignalHud m_hud;
@@ -34,6 +35,8 @@ namespace DeadSignal
         public bool HasReducedFlashesIcon => m_hud?.HasReducedFlashesIcon ?? false;
         public bool HasHighContrastIcon => m_hud?.HasHighContrastIcon ?? false;
         public bool HasObjectiveBeaconIcon => m_objectiveBeacon?.HasIcon ?? false;
+        public bool HasInputLinkIcon => m_hud?.HasInputLinkIcon ?? false;
+        public InputPromptDevice ActiveInputPromptDevice => m_input?.ActivePromptDevice ?? InputPromptDevice.KeyboardMouse;
         public ObjectiveBeaconPhase CurrentObjectiveBeaconPhase => m_objectiveBeacon?.CurrentPhase ?? ObjectiveBeaconPhase.Tower;
         public Vector3 CurrentObjectiveBeaconTarget => m_objectiveBeacon?.CurrentTarget ?? Vector3.zero;
         public bool IsCameraImpulseEnabled => m_comfortSettings?.CameraImpulseEnabled ?? true;
@@ -80,12 +83,14 @@ namespace DeadSignal
         private void _construct(
             ICombatFeedback combatFeedback,
             IComfortSettings comfortSettings,
+            IDeadSignalInput input,
             IDeadSignalHud hud,
             IObjectiveBeacon objectiveBeacon,
             Container container)
         {
             m_combatFeedback = combatFeedback;
             m_comfortSettings = comfortSettings;
+            m_input = input;
             m_hud = hud;
             m_objectiveBeacon = objectiveBeacon;
             m_container = container;
@@ -109,29 +114,29 @@ namespace DeadSignal
 
         private void Update()
         {
-            if (m_model.Outcome == RunOutcome.Running && DeadSignalInput.PressedPause())
+            if (m_model.Outcome == RunOutcome.Running && m_input.PressedPause())
             {
                 _setPaused(!IsPaused);
             }
 
-            if (IsPaused && DeadSignalInput.PressedCameraImpulseToggle())
+            if (IsPaused && m_input.PressedCameraImpulseToggle())
             {
                 ToggleCameraImpulse();
             }
 
-            if (IsPaused && DeadSignalInput.PressedReducedFlashesToggle())
+            if (IsPaused && m_input.PressedReducedFlashesToggle())
             {
                 ToggleReducedFlashes();
             }
 
-            if (IsPaused && DeadSignalInput.PressedHighContrastToggle())
+            if (IsPaused && m_input.PressedHighContrastToggle())
             {
                 ToggleHighContrast();
             }
 
             if (m_combatFeedback.IsFrozen)
             {
-                if (!IsPaused && DeadSignalInput.PressedFire())
+                if (!IsPaused && m_input.PressedFire())
                 {
                     m_fireBuffered = true;
                 }
@@ -145,7 +150,7 @@ namespace DeadSignal
 
             if (m_model.Outcome != RunOutcome.Running)
             {
-                if (DeadSignalInput.PressedRestart())
+                if (m_input.PressedRestart())
                 {
                     SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
                 }
@@ -154,7 +159,7 @@ namespace DeadSignal
             }
 
             var movement = _updatePlayer(dt);
-            var aimDirection = DeadSignalInput.ReadAimDirection(m_world.Camera, m_world.Player);
+            var aimDirection = m_input.ReadAimDirection(m_world.Camera, m_world.Player);
             if (aimDirection.sqrMagnitude > 0.01f)
             {
                 m_world.Player.rotation = Quaternion.LookRotation(aimDirection, Vector3.up);
@@ -169,13 +174,13 @@ namespace DeadSignal
                 m_lastPoweredState = powered;
             }
 
-            if ((m_fireBuffered || DeadSignalInput.PressedFire()) && m_threats.CanFire)
+            if ((m_fireBuffered || m_input.PressedFire()) && m_threats.CanFire)
             {
                 m_fireBuffered = false;
                 m_threats.TryFire(aimDirection);
             }
 
-            if (DeadSignalInput.PressedInteract())
+            if (m_input.PressedInteract())
             {
                 _handleInteraction();
             }
@@ -197,7 +202,7 @@ namespace DeadSignal
 
         private Vector3 _updatePlayer(float dt)
         {
-            var moveInput = DeadSignalInput.ReadMovement();
+            var moveInput = m_input.ReadMovement();
             var movement = new Vector3(moveInput.x, 0f, moveInput.y);
             if (movement.sqrMagnitude > 1f)
             {
