@@ -2477,3 +2477,64 @@ The live Unity project remained open and was not closed or controlled. Authorita
 ### Best next step
 
 Approach the northwest cache from the tower with both threats awake, compare the central throat against both outside routes, and tune the bank transforms in `NorthwestRelayFork.prefab` if one choice dominates.
+
+## 2026-08-21 - Autonomous Run 43
+
+### Today's single idea
+
+**Scene-authored Security Warden staging bay.** Place the dormant Warden inside a three-shield containment bay with a west-facing mouth toward the tower, turning its activation into a readable emergence beat and leaving reusable cover for the chase.
+
+Player benefit: the first awakened pursuer is now foreshadowed by an unmistakable red security landmark before activation. Once awake, it must emerge through a clear opening and the bay's shields create immediate positioning and kiting decisions instead of releasing the threat from empty floor.
+
+Alternatives considered: a Sapper cradle would clarify the slower secondary threat, while a shortcut checkpoint would reinforce an existing route decision. The Warden bay was selected because the Warden is the most immediate post-activation pressure and therefore gives a scene landmark the strongest first-minute payoff.
+
+Acceptance criteria:
+
+- place one reusable staging-bay prefab directly in `SampleScene` around the existing Warden spawn;
+- use three original Blender-authored, textured security shields with a clear west-facing exit;
+- register all shields through serialized, object-aligned `AuthoredMapObstacle` bounds with no physics colliders;
+- prove the Warden spawn and exit path do not overlap the new blockers while preserving every threat rule and coordinate; and
+- pass Unity import/compile, EditMode, PlayMode, Windows build, packaged-resource smoke, and repository checks.
+
+### Files and systems changed
+
+- `OWNER_NOTES.md`: remained the primary product direction and was read without modification.
+- `Assets/DeadSignal/Resources/Environment/WardenBayAlbedo.png` and Unity-generated `.meta`: added an original charcoal, blackened-steel, off-white, and crimson containment texture generated with OpenAI's built-in image-generation mode. SHA-256: `C80FC9A6C1862A1AD13340B8CE7267E2240A56F3D79D466616487FE842EA2641`; texture GUID: `61fe574d0c460ba4c9665eabc9c87fec`.
+- Final image-generation prompt: square low-poly Unity orbital-station security blast-shield texture atlas with broad charcoal/blackened-steel armor, off-white institutional ceramic panels, restrained crimson channels and warning lenses, and cool-gray seams; large UV regions; no perspective scene, text, numbers, logos, characters, UI, watermark, cyan, magenta, or orange focal colors.
+- `ArtSource/WardenBay/create_security_shield.py`, `SecurityBlastShield.blend`, `SecurityBlastShieldPreview.png`, and `README.md`: added reproducible Blender 5.2 source, editable geometry, and a visually inspected preview.
+- `Assets/DeadSignal/Resources/Environment/SecurityBlastShieldModel.fbx`, `SecurityBlastShield.prefab`, `WardenStagingBay.prefab`, and Unity-generated `.meta` files: added a three-part UV-mapped blast shield, reusable object-aligned blocker, and three-wall containment layout. Model SHA-256: `6C4D7F718B15769F4E35D176CFD9D54275DB77157B3E075E896074B618FF13DE`; bay prefab GUID: `a907adda09b395348a408fc9ca0569cd`.
+- `Assets/DeadSignal/Resources/Materials/SecurityShieldArmor.mat`, `SecurityShieldBraces.mat`, and `SecurityShieldWarnings.mat`, with Unity-generated `.meta`: added persistent URP materials for mapped armor, ceramic bracing, and crimson emission.
+- `Assets/Scenes/SampleScene.unity`: now places `Security Warden Staging Bay` at the unchanged Warden spawn coordinate.
+- `Assets/DeadSignal/Editor/DeadSignalWardenBaySetup.cs` and Unity-generated `.meta`, plus `DeadSignalWindowsBuild.cs`: added idempotent import, material, prefab, scene-placement, and build-readiness validation.
+- `Assets/DeadSignal/Runtime/StandaloneBuildSmokeProbe.cs`: now requires the packaged Warden-bay Resources and validates fifteen authored movement blockers.
+- `Assets/DeadSignal/Tests/PlayMode/BootstrapSmokeTests.cs`: verifies scene placement, three serialized blockers, nine purpose-built UV-mapped mesh parts, mapped armor, zero colliders, a clear Warden spawn, and a traversable west exit.
+- `GAME_VISION.md`, `BACKLOG.md`, and `DEVLOG.md`: record the selected encounter-space rationale and completed Warden-bay milestone.
+
+No Warden spawn, activation, pursuit speed, collision radius, damage, health, cooldown, objective, Signal economy, shortcut behavior, input, audio, package, project setting, or save data changed.
+
+### Tests run and exact outcomes
+
+The live Unity project remained open and was not closed or controlled. Authoritative validation used `C:\Projects\Wendall\CodexPrototype_Run40CleanValidation` with Unity `6000.3.11f1`.
+
+1. OpenAI built-in image generation produced the original albedo, which was copied into project Resources and visually inspected for large mapped regions, dark security armor, off-white bracing, crimson lenses, and absence of text/logos. Its hash and GUID are recorded above.
+2. Blender `5.2.0 LTS` ran `create_security_shield.py`, exported the `48,492`-byte UV-mapped FBX, saved the editable `.blend`, rendered the `1280x720` preview, and exited `0`. The preview was visually inspected for a strong blast-shield silhouette, mapped dark armor, white frame, three red lenses, and complete geometry. Blender emitted two forward-looking `use_nodes` deprecation warnings only.
+3. Unity setup wrote `run43-setup.log`: the pinned Editor compiled the changes, imported the texture/model, created three persistent materials and two prefabs, placed the bay in `SampleScene`, saved the scene, and exited `0`.
+4. EditMode regression wrote `run43-editmode-results.xml` and `run43-editmode.log`: `18/18` passed, `0` failed, `0` skipped in `0.0735952` seconds, exit `0`.
+5. PlayMode regression wrote `run43-playmode-results.xml` and `run43-playmode.log`: `1/1` passed, `0` failed, `0` skipped in `4.4423748` seconds, exit `0`.
+6. Windows development build wrote `run43-build.log`: Unity exited `0`, reported `Build Finished, Result: Success`, emitted one PASS marker, and produced `212,436,665` reported bytes in `12.19` seconds.
+7. Packaged `-batchmode -nographics -deadSignalBuildSmoke` wrote `run43-standalone.log`, loaded the Warden-bay Resources, emitted one standalone PASS marker, and exited `0`.
+
+### Bugs found and fixed
+
+- The dormant Warden previously occupied open floor with no environmental foreshadowing or emergence beat. The bay now identifies its origin and becomes combat cover after activation.
+- No implementation defect was found during the Unity suites or packaged launch; focused assertions confirm neither the spawn circle nor west exit overlaps a shield.
+
+### Known limitations
+
+- Automated checks prove composition, UVs, collision clearance, and packaged readiness, but cannot determine whether the bay makes the Warden's first approach too easy to kite.
+- Projectile collision still ignores authored map obstacles, so shots pass through the security shields.
+- The bay's warning lenses remain lit before and after activation rather than changing with the Warden state.
+
+### Best next step
+
+Activate the tower while facing the northeast bay, watch the Warden emerge, then kite around all three shields; tune the shield transforms in `WardenStagingBay.prefab` if escape or cover feels dominant.

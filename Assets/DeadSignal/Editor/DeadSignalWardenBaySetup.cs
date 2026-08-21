@@ -1,0 +1,260 @@
+using System;
+using System.Linq;
+using UnityEditor;
+using UnityEditor.SceneManagement;
+using UnityEngine;
+using UnityEngine.SceneManagement;
+
+namespace DeadSignal.Editor
+{
+    public static class DeadSignalWardenBaySetup
+    {
+        private const string TEXTURE_PATH = "Assets/DeadSignal/Resources/Environment/WardenBayAlbedo.png";
+        private const string MODEL_PATH = "Assets/DeadSignal/Resources/Environment/SecurityBlastShieldModel.fbx";
+        private const string ARMOR_MATERIAL_PATH = "Assets/DeadSignal/Resources/Materials/SecurityShieldArmor.mat";
+        private const string BRACE_MATERIAL_PATH = "Assets/DeadSignal/Resources/Materials/SecurityShieldBraces.mat";
+        private const string WARNING_MATERIAL_PATH = "Assets/DeadSignal/Resources/Materials/SecurityShieldWarnings.mat";
+        private const string SHIELD_PREFAB_PATH = "Assets/DeadSignal/Resources/Environment/SecurityBlastShield.prefab";
+        private const string BAY_PREFAB_PATH = "Assets/DeadSignal/Resources/Environment/WardenStagingBay.prefab";
+        private const string SCENE_PATH = "Assets/Scenes/SampleScene.unity";
+
+        private static readonly Vector3 s_wardenPosition = new(6.8f, 0f, 4.7f);
+
+        public static bool HasAssets
+        {
+            get
+            {
+                var shield = AssetDatabase.LoadAssetAtPath<GameObject>(SHIELD_PREFAB_PATH);
+                var bay = AssetDatabase.LoadAssetAtPath<GameObject>(BAY_PREFAB_PATH);
+                return AssetDatabase.LoadAssetAtPath<Texture2D>(TEXTURE_PATH) != null &&
+                       AssetDatabase.LoadAssetAtPath<GameObject>(MODEL_PATH) != null &&
+                       AssetDatabase.LoadAssetAtPath<Material>(ARMOR_MATERIAL_PATH) != null &&
+                       AssetDatabase.LoadAssetAtPath<Material>(BRACE_MATERIAL_PATH) != null &&
+                       AssetDatabase.LoadAssetAtPath<Material>(WARNING_MATERIAL_PATH) != null &&
+                       _hasValidShield(shield) &&
+                       bay != null &&
+                       bay.GetComponentsInChildren<AuthoredMapObstacle>().Length == 3;
+            }
+        }
+
+        public static void EnsureAssets()
+        {
+            _configureTextureImport();
+            _configureModelImport();
+            _ensureMaterials();
+            _ensureShieldPrefab();
+            _ensureBayPrefab();
+            _ensureScenePlacement();
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
+            if (!HasAssets)
+            {
+                throw new InvalidOperationException("The Security Warden staging-bay assets are incomplete.");
+            }
+        }
+
+        private static void _configureTextureImport()
+        {
+            var importer = AssetImporter.GetAtPath(TEXTURE_PATH) as TextureImporter;
+            if (importer == null)
+            {
+                throw new InvalidOperationException($"Could not find the Warden-bay texture at {TEXTURE_PATH}.");
+            }
+
+            importer.alphaIsTransparency = false;
+            importer.mipmapEnabled = true;
+            importer.maxTextureSize = 1024;
+            importer.wrapMode = TextureWrapMode.Clamp;
+            importer.textureCompression = TextureImporterCompression.CompressedHQ;
+            importer.SaveAndReimport();
+        }
+
+        private static void _configureModelImport()
+        {
+            var importer = AssetImporter.GetAtPath(MODEL_PATH) as ModelImporter;
+            if (importer == null)
+            {
+                throw new InvalidOperationException($"Could not find the security-shield model at {MODEL_PATH}.");
+            }
+
+            importer.addCollider = false;
+            importer.importAnimation = false;
+            importer.importCameras = false;
+            importer.importLights = false;
+            importer.materialImportMode = ModelImporterMaterialImportMode.None;
+            importer.meshCompression = ModelImporterMeshCompression.Low;
+            importer.optimizeMeshPolygons = true;
+            importer.optimizeMeshVertices = true;
+            importer.SaveAndReimport();
+        }
+
+        private static void _ensureMaterials()
+        {
+            var texture = AssetDatabase.LoadAssetAtPath<Texture2D>(TEXTURE_PATH);
+            var armor = _loadOrCreateMaterial(ARMOR_MATERIAL_PATH, "SecurityShieldArmor");
+            armor.SetColor("_BaseColor", Color.white);
+            armor.SetTexture("_BaseMap", texture);
+            armor.SetFloat("_Metallic", 0.5f);
+            armor.SetFloat("_Smoothness", 0.38f);
+            EditorUtility.SetDirty(armor);
+
+            var braces = _loadOrCreateMaterial(BRACE_MATERIAL_PATH, "SecurityShieldBraces");
+            braces.SetColor("_BaseColor", new Color(0.78f, 0.76f, 0.7f));
+            braces.SetFloat("_Metallic", 0.1f);
+            braces.SetFloat("_Smoothness", 0.32f);
+            EditorUtility.SetDirty(braces);
+
+            var warnings = _loadOrCreateMaterial(WARNING_MATERIAL_PATH, "SecurityShieldWarnings");
+            var warningColor = new Color(0.78f, 0.01f, 0.02f);
+            warnings.SetColor("_BaseColor", warningColor);
+            warnings.SetColor("_EmissionColor", warningColor * 1.6f);
+            warnings.SetFloat("_Metallic", 0.08f);
+            warnings.SetFloat("_Smoothness", 0.72f);
+            warnings.EnableKeyword("_EMISSION");
+            EditorUtility.SetDirty(warnings);
+        }
+
+        private static Material _loadOrCreateMaterial(string path, string materialName)
+        {
+            var material = AssetDatabase.LoadAssetAtPath<Material>(path);
+            if (material != null)
+            {
+                return material;
+            }
+
+            var shader = Shader.Find("Universal Render Pipeline/Lit");
+            if (shader == null)
+            {
+                throw new InvalidOperationException("Could not find the URP Lit shader for the Warden-bay materials.");
+            }
+
+            material = new Material(shader) { name = materialName };
+            AssetDatabase.CreateAsset(material, path);
+            return material;
+        }
+
+        private static void _ensureShieldPrefab()
+        {
+            if (AssetDatabase.LoadAssetAtPath<GameObject>(SHIELD_PREFAB_PATH) == null)
+            {
+                var model = AssetDatabase.LoadAssetAtPath<GameObject>(MODEL_PATH);
+                var instance = PrefabUtility.InstantiatePrefab(model) as GameObject;
+                if (instance == null)
+                {
+                    throw new InvalidOperationException("Could not instantiate the imported security blast-shield model.");
+                }
+
+                instance.name = "SecurityBlastShield";
+                PrefabUtility.SaveAsPrefabAsset(instance, SHIELD_PREFAB_PATH);
+                UnityEngine.Object.DestroyImmediate(instance);
+            }
+
+            var root = PrefabUtility.LoadPrefabContents(SHIELD_PREFAB_PATH);
+            try
+            {
+                var obstacle = root.GetComponent<AuthoredMapObstacle>();
+                if (obstacle == null)
+                {
+                    obstacle = root.AddComponent<AuthoredMapObstacle>();
+                }
+
+                obstacle.Configure(new Vector2(1.6f, 0.45f));
+                _assignMaterial(root.transform, "Security Shield Armor", ARMOR_MATERIAL_PATH);
+                _assignMaterial(root.transform, "Security Shield Braces", BRACE_MATERIAL_PATH);
+                _assignMaterial(root.transform, "Security Shield Warning Lenses", WARNING_MATERIAL_PATH);
+                PrefabUtility.SaveAsPrefabAsset(root, SHIELD_PREFAB_PATH);
+            }
+            finally
+            {
+                PrefabUtility.UnloadPrefabContents(root);
+            }
+        }
+
+        private static void _ensureBayPrefab()
+        {
+            if (AssetDatabase.LoadAssetAtPath<GameObject>(BAY_PREFAB_PATH) != null)
+            {
+                return;
+            }
+
+            var shieldPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(SHIELD_PREFAB_PATH);
+            var bay = new GameObject("WardenStagingBay");
+            try
+            {
+                _addShield(bay.transform, shieldPrefab, "North Security Shield", new Vector3(0.35f, 0f, 1.35f), 0f);
+                _addShield(bay.transform, shieldPrefab, "South Security Shield", new Vector3(0.35f, 0f, -1.35f), 0f);
+                _addShield(bay.transform, shieldPrefab, "East Security Shield", new Vector3(1.8f, 0f, 0f), 90f);
+                PrefabUtility.SaveAsPrefabAsset(bay, BAY_PREFAB_PATH);
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(bay);
+            }
+        }
+
+        private static void _addShield(
+            Transform parent,
+            GameObject prefab,
+            string objectName,
+            Vector3 localPosition,
+            float rotationY)
+        {
+            var shield = PrefabUtility.InstantiatePrefab(prefab) as GameObject;
+            if (shield == null)
+            {
+                throw new InvalidOperationException($"Could not instantiate {objectName} for the Warden bay.");
+            }
+
+            shield.name = objectName;
+            shield.transform.SetParent(parent, false);
+            shield.transform.localPosition = localPosition;
+            shield.transform.localRotation = Quaternion.Euler(0f, rotationY, 0f);
+        }
+
+        private static void _ensureScenePlacement()
+        {
+            var scene = EditorSceneManager.OpenScene(SCENE_PATH, OpenSceneMode.Single);
+            var existing = scene.GetRootGameObjects().FirstOrDefault(root => root.name == "Security Warden Staging Bay");
+            if (existing == null)
+            {
+                var bayPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(BAY_PREFAB_PATH);
+                existing = PrefabUtility.InstantiatePrefab(bayPrefab, scene) as GameObject;
+                if (existing == null)
+                {
+                    throw new InvalidOperationException("Could not place the Security Warden staging bay in SampleScene.");
+                }
+
+                existing.name = "Security Warden Staging Bay";
+                existing.transform.position = s_wardenPosition;
+                EditorSceneManager.SaveScene(scene);
+            }
+
+            if (existing.transform.position != s_wardenPosition ||
+                existing.GetComponentsInChildren<AuthoredMapObstacle>().Length != 3)
+            {
+                throw new InvalidOperationException("The SampleScene staging bay is not placed around the Warden spawn.");
+            }
+        }
+
+        private static void _assignMaterial(Transform root, string partName, string materialPath)
+        {
+            var part = root.Find(partName);
+            var material = AssetDatabase.LoadAssetAtPath<Material>(materialPath);
+            if (part == null || material == null || !part.TryGetComponent<Renderer>(out var renderer))
+            {
+                throw new InvalidOperationException($"Could not assign {materialPath} to {partName}.");
+            }
+
+            renderer.sharedMaterial = material;
+        }
+
+        private static bool _hasValidShield(GameObject shield)
+        {
+            return shield != null &&
+                   shield.GetComponent<AuthoredMapObstacle>() != null &&
+                   shield.transform.Find("Security Shield Armor") != null &&
+                   shield.transform.Find("Security Shield Braces") != null &&
+                   shield.transform.Find("Security Shield Warning Lenses") != null;
+        }
+    }
+}

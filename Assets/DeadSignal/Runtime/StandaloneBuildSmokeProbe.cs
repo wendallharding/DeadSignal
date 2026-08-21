@@ -12,7 +12,7 @@ namespace DeadSignal
         public const string COMMAND_LINE_ARGUMENT = "-deadSignalBuildSmoke";
         public const string PASS_MARKER = "[DEAD SIGNAL STANDALONE SMOKE] PASS";
 
-        private const int EXPECTED_AUTHORED_OBSTACLE_COUNT = 12;
+        private const int EXPECTED_AUTHORED_OBSTACLE_COUNT = 15;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         private static void _startWhenRequested()
@@ -85,6 +85,9 @@ namespace DeadSignal
                                 Resources.Load<GameObject>("Environment/RelayBank") != null &&
                                 Resources.Load<GameObject>("Environment/NorthwestRelayFork") != null &&
                                 Resources.Load<Texture2D>("Environment/RelayForkAlbedo") != null &&
+                                Resources.Load<GameObject>("Environment/SecurityBlastShield") != null &&
+                                Resources.Load<GameObject>("Environment/WardenStagingBay") != null &&
+                                Resources.Load<Texture2D>("Environment/WardenBayAlbedo") != null &&
                                 Resources.Load<GameObject>("Actors/SignalSapperAssembly") != null &&
                                 Resources.Load<GameObject>("Actors/SignalSapperModel") != null &&
                                 Resources.Load<Texture2D>("Actors/SignalSapperArmorAlbedo") != null &&

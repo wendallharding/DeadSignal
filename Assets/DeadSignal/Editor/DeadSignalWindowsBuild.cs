@@ -40,6 +40,7 @@ namespace DeadSignal.Editor
             DeadSignalDepartureChannelSetup.EnsureAssets();
             DeadSignalCoolantGauntletSetup.EnsureAssets();
             DeadSignalRelayForkSetup.EnsureAssets();
+            DeadSignalWardenBaySetup.EnsureAssets();
             _validateBuildInputs();
             _configureWindowsPlayer();
 
@@ -187,6 +188,11 @@ namespace DeadSignal.Editor
             if (!DeadSignalRelayForkSetup.HasAssets)
             {
                 throw new BuildFailedException("The scene-authored northwest relay-fork assets are missing.");
+            }
+
+            if (!DeadSignalWardenBaySetup.HasAssets)
+            {
+                throw new BuildFailedException("The scene-authored Security Warden staging-bay assets are missing.");
             }
 
             if (AssetDatabase.LoadAssetAtPath<Texture2D>(APPLICATION_ICON_PATH) == null)

@@ -143,8 +143,8 @@ namespace DeadSignal.Tests
                 "The tower approach should be placed as scene-authored prefab content rather than runtime layout code.");
             var authoredObstacles = towerJunction.GetComponentsInChildren<AuthoredMapObstacle>();
             Assert.That(authoredObstacles.Length, Is.EqualTo(3));
-            Assert.That(game.AuthoredMapObstacleCount, Is.EqualTo(12),
-                "Every authored junction, annex, departure-channel, coolant-gauntlet, and relay-fork obstacle should participate in movement resolution.");
+            Assert.That(game.AuthoredMapObstacleCount, Is.EqualTo(15),
+                "Every authored junction, salvage area, departure channel, and Warden-bay obstacle should participate in movement resolution.");
             Assert.That(authoredObstacles.Sum(obstacle => obstacle.GetComponentsInChildren<Renderer>().Length), Is.EqualTo(6));
             Assert.That(authoredObstacles.Sum(obstacle => obstacle.GetComponentsInChildren<Collider>().Length), Is.Zero,
                 "The non-physics movement controller should use authored obstacle bounds without duplicate physics colliders.");
@@ -251,6 +251,36 @@ namespace DeadSignal.Tests
             Assert.That(relayTexture, Is.Not.Null);
             Assert.That(relayArmor.mainTexture, Is.EqualTo(relayTexture),
                 "The relay banks should persistently map their original signal-yard albedo.");
+            var wardenBay = GameObject.Find("Security Warden Staging Bay");
+            Assert.That(wardenBay, Is.Not.Null,
+                "The dormant Warden should be foreshadowed by a scene-authored security bay.");
+            Assert.That(wardenBay.transform.position, Is.EqualTo(new Vector3(6.8f, 0f, 4.7f)),
+                "The bay should preserve the established Warden spawn coordinate.");
+            var bayObstacles = wardenBay.GetComponentsInChildren<AuthoredMapObstacle>();
+            Assert.That(bayObstacles.Length, Is.EqualTo(3));
+            Assert.That(bayObstacles.Sum(obstacle => obstacle.GetComponentsInChildren<Renderer>().Length), Is.EqualTo(9));
+            Assert.That(bayObstacles.Sum(obstacle => obstacle.GetComponentsInChildren<Collider>().Length), Is.Zero,
+                "The security shields should use serialized movement bounds without duplicate physics colliders.");
+            var bayMeshes = bayObstacles
+                .SelectMany(obstacle => obstacle.GetComponentsInChildren<MeshFilter>())
+                .Select(filter => filter.sharedMesh)
+                .ToArray();
+            Assert.That(bayMeshes.Length, Is.EqualTo(9));
+            Assert.That(bayMeshes.All(mesh => mesh != null && mesh.vertexCount >= 24), Is.True,
+                "Every security-shield part should use purpose-built geometry rather than a placeholder primitive.");
+            Assert.That(
+                bayMeshes.All(mesh => mesh.HasVertexAttribute(UnityEngine.Rendering.VertexAttribute.TexCoord0)),
+                Is.True,
+                "Every security-shield mesh should retain authored UV coordinates.");
+            Assert.That(bayObstacles.All(obstacle => !obstacle.OverlapsCircle(securityWarden.position, 0.48f)), Is.True,
+                "The staging bay must not trap or overlap the dormant Warden at activation.");
+            Assert.That(bayObstacles.All(obstacle => !obstacle.OverlapsCircle(new Vector3(5.1f, 0f, 4.7f), 0.48f)), Is.True,
+                "The west-facing bay mouth must preserve a traversable Warden exit toward the tower.");
+            var bayTexture = Resources.Load<Texture2D>("Environment/WardenBayAlbedo");
+            var bayArmor = Resources.Load<Material>("Materials/SecurityShieldArmor");
+            Assert.That(bayTexture, Is.Not.Null);
+            Assert.That(bayArmor.mainTexture, Is.EqualTo(bayTexture),
+                "The security shields should persistently map their original containment-bay albedo.");
             var signalSapper = game.transform.Find("Signal Sapper");
             var authoredSapperPrefab = Resources.Load<GameObject>("Actors/SignalSapperAssembly");
             var sapperArmorTexture = Resources.Load<Texture2D>("Actors/SignalSapperArmorAlbedo");
