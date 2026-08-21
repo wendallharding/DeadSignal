@@ -8,8 +8,6 @@ The current map feels too small, linear, and uneventful. A player can complete i
 
 For the next several development runs, prioritize expanding and improving the playable map. The goal is not simply to make the level larger; it should become more engaging to navigate, replay, and master. As we build out the level to be larger we should do it in a modular way. Creating new rooms in separate scenes or prefabs makes sense to me. And additive loading (if in scenes) makes sense. Tile prefabs also makes sense. So use your discression.
 
-As the map size grows, we will need to adjust the camera so it follows the drown.
-
 ### Desired player experience
 
 - Create a clearer sense of progression from the starting area to the final objective.
