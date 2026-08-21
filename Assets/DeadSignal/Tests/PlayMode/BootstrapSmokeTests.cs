@@ -143,8 +143,8 @@ namespace DeadSignal.Tests
                 "The tower approach should be placed as scene-authored prefab content rather than runtime layout code.");
             var authoredObstacles = towerJunction.GetComponentsInChildren<AuthoredMapObstacle>();
             Assert.That(authoredObstacles.Length, Is.EqualTo(3));
-            Assert.That(game.AuthoredMapObstacleCount, Is.EqualTo(10),
-                "Every authored junction, annex, departure-channel, and coolant-gauntlet obstacle should participate in movement resolution.");
+            Assert.That(game.AuthoredMapObstacleCount, Is.EqualTo(12),
+                "Every authored junction, annex, departure-channel, coolant-gauntlet, and relay-fork obstacle should participate in movement resolution.");
             Assert.That(authoredObstacles.Sum(obstacle => obstacle.GetComponentsInChildren<Renderer>().Length), Is.EqualTo(6));
             Assert.That(authoredObstacles.Sum(obstacle => obstacle.GetComponentsInChildren<Collider>().Length), Is.Zero,
                 "The non-physics movement controller should use authored obstacle bounds without duplicate physics colliders.");
@@ -217,6 +217,40 @@ namespace DeadSignal.Tests
             Assert.That(coolantTexture, Is.Not.Null);
             Assert.That(coolantArmor.mainTexture, Is.EqualTo(coolantTexture),
                 "The coolant baffles should persistently map their original reclamation-yard albedo.");
+            var relayFork = GameObject.Find("Northwest Relay Fork");
+            Assert.That(relayFork, Is.Not.Null,
+                "The northwest cache should sit beyond a scene-authored relay route fork.");
+            Assert.That(relayFork.transform.position, Is.EqualTo(new Vector3(-5.8f, 0f, 7.2f)),
+                "The relay fork should preserve the established northwest cache coordinate.");
+            var relayObstacles = relayFork.GetComponentsInChildren<AuthoredMapObstacle>();
+            Assert.That(relayObstacles.Length, Is.EqualTo(2));
+            Assert.That(relayObstacles.Sum(obstacle => obstacle.GetComponentsInChildren<Renderer>().Length), Is.EqualTo(8));
+            Assert.That(relayObstacles.Sum(obstacle => obstacle.GetComponentsInChildren<Collider>().Length), Is.Zero,
+                "The relay banks should use serialized movement bounds without duplicate physics colliders.");
+            var relayMeshes = relayObstacles
+                .SelectMany(obstacle => obstacle.GetComponentsInChildren<MeshFilter>())
+                .Select(filter => filter.sharedMesh)
+                .ToArray();
+            Assert.That(relayMeshes.Length, Is.EqualTo(8));
+            Assert.That(relayMeshes.All(mesh => mesh != null && mesh.vertexCount >= 24), Is.True,
+                "Every relay-bank part should use purpose-built geometry rather than a placeholder primitive.");
+            Assert.That(
+                relayMeshes.All(mesh => mesh.HasVertexAttribute(UnityEngine.Rendering.VertexAttribute.TexCoord0)),
+                Is.True,
+                "Every relay-bank mesh should retain authored UV coordinates.");
+            Assert.That(relayObstacles.Select(obstacle => obstacle.transform.localPosition), Is.EquivalentTo(new[]
+            {
+                new Vector3(-2.1f, 0f, -0.55f),
+                new Vector3(2.1f, 0f, -0.55f)
+            }), "The relay banks should preserve the authored central throat and outside routes.");
+            Assert.That(relayFork.transform.Find("West Relay Bank").localEulerAngles.y, Is.EqualTo(22f).Within(0.01f));
+            Assert.That(relayFork.transform.Find("East Relay Bank").localEulerAngles.y, Is.EqualTo(338f).Within(0.01f),
+                "The relay banks should angle outward into a readable route fork.");
+            var relayTexture = Resources.Load<Texture2D>("Environment/RelayForkAlbedo");
+            var relayArmor = Resources.Load<Material>("Materials/RelayBankArmor");
+            Assert.That(relayTexture, Is.Not.Null);
+            Assert.That(relayArmor.mainTexture, Is.EqualTo(relayTexture),
+                "The relay banks should persistently map their original signal-yard albedo.");
             var signalSapper = game.transform.Find("Signal Sapper");
             var authoredSapperPrefab = Resources.Load<GameObject>("Actors/SignalSapperAssembly");
             var sapperArmorTexture = Resources.Load<Texture2D>("Actors/SignalSapperArmorAlbedo");

@@ -24,6 +24,7 @@
 - [x] Place a reusable authored tower-approach junction in the scene with obstacle-driven movement lanes
 - [x] Enclose the northeast salvage cache in a reusable authored annex with one tactical entrance
 - [x] Frame the southeast salvage cache with a reusable authored coolant gauntlet and staggered tactical lane
+- [x] Split the northwest salvage approach with a reusable authored relay fork and direct-versus-wide routes
 - [x] Frame the extraction-to-tower opening with a reusable authored departure channel
 - [x] Migrate the central Signal tower into a textured authored prefab without changing its interaction or animation
 - [x] Migrate the extraction dock into a textured authored prefab without changing its safe-zone or extraction rules

@@ -41,6 +41,7 @@ This autonomous run is accepted when a fresh Play session provides all of the fo
 - The extraction dock opens into a scene-placed capacitor channel aligned toward the tower, creating a readable first movement lane and a clear powered-to-dead-zone threshold.
 - The northeast salvage cache sits inside a scene-placed cargo annex whose single readable entrance turns an optional reward into a positioning commitment without moving the objective.
 - The southeast salvage cache sits inside a scene-placed coolant reclamation gauntlet whose staggered baffles create a pressured collection lane without moving the objective.
+- The northwest salvage cache sits beyond a scene-placed relay fork whose tight central throat and longer outside approaches create a readable route decision without moving the objective.
 - The central Signal tower is a reusable authored assembly with original control-panel housing art while its dormant/online state remains unmistakable.
 - The extraction dock is a reusable authored assembly with original radial docking art while its safe-home and final-objective read remains unmistakable.
 - The optional Signal-cost shortcut is a reusable authored assembly with original powered-lock art while both free detours and its closed/open state remain unmistakable.
@@ -76,6 +77,8 @@ This autonomous run is accepted when a fresh Play session provides all of the fo
 - Below 30 Signal, an original amber-red screen-edge warning intensifies toward failure, stays clear of the playfield center, and respects pause, outcomes, and Reduced Flashes.
 - A branded 64-bit Windows development build launches the complete runtime outside the Editor and provides an automated packaged-player health check.
 - Core resource/objective transitions have deterministic EditMode tests, and the Unity project compiles in batch mode.
+
+The salvage-area layout deliberately gives each cache a different spatial verb: commit through the annex entrance, thread the coolant lane, then choose direct or wide at the relay fork. This was selected over another enclosure or a purely decorative landmark because variety in navigation decisions adds more replay value than repeating the same room pattern or merely enlarging the arena.
 
 ## Experience target
 

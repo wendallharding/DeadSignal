@@ -2416,3 +2416,64 @@ The live Unity project remained open and was not closed or controlled. Authorita
 ### Best next step
 
 Approach the southeast cache from the tower with both threats awake, collect it inside the staggered lane, and retreat west; then tune the two child transforms in `SoutheastCoolantGauntlet.prefab` if turning clearance or pressure feels unfair.
+
+## 2026-08-21 - Autonomous Run 42
+
+### Today's single idea
+
+**Scene-authored northwest relay fork.** Angle two Signal relay banks ahead of the established northwest salvage cache so players can risk a tight central throat or take either longer outside approach while threats pursue.
+
+Player benefit: the final open-floor salvage approach now asks for a readable route choice. The direct line is short and constricted, while the outside paths offer more turning room at the cost of extra dead-zone exposure; midnight-blue relay armor, pale insulators, brass coils, and cyan windows make the area recognizable at a glance.
+
+Alternatives considered: another single-entry enclosure would repeat the northeast annex, while a decorative relay landmark would add identity but no decision. The fork was selected because it gives the third salvage site a distinct navigation verb and adds replay value without enlarging the arena.
+
+Acceptance criteria:
+
+- place one reusable relay-fork prefab directly in `SampleScene` at the existing northwest cache;
+- use two original Blender-authored, textured relay banks angled into a narrow central route and two wider outside routes;
+- register both banks through serialized, object-aligned `AuthoredMapObstacle` bounds with no physics colliders;
+- preserve the cache at `(-5.8, 0, 7.2)` and preserve every objective, Signal, enemy, shortcut, and salvage rule; and
+- pass Unity import/compile, EditMode, PlayMode, Windows build, packaged-resource smoke, and repository checks.
+
+### Files and systems changed
+
+- `OWNER_NOTES.md`: remained the primary product direction and was read without modification.
+- `Assets/DeadSignal/Resources/Environment/RelayForkAlbedo.png` and Unity-generated `.meta`: added an original midnight-blue graphite, ceramic, brass, amber, and cyan relay texture generated with OpenAI's built-in image-generation mode. SHA-256: `1EAC3316F79D1F2E404421D3D5EFFB107B19AB461F6B4574D6646D3EC273E99E`; texture GUID: `4b15f7b4c6da73e4fbc4059e88d445b6`.
+- Final image-generation prompt: square low-poly Unity orbital-station relay-pylon texture atlas with broad midnight-blue graphite armor, pale ceramic insulators, oxidized brass induction coils, restrained amber route markers, and sparse cyan windows; large UV regions; no perspective scene, text, numbers, logos, characters, UI, watermark, red, or magenta focal colors.
+- `ArtSource/RelayFork/create_relay_bank.py`, `RelayBank.blend`, `RelayBankPreview.png`, and `README.md`: added reproducible Blender 5.2 source, editable geometry, and a visually inspected preview.
+- `Assets/DeadSignal/Resources/Environment/RelayBankModel.fbx`, `RelayBank.prefab`, `NorthwestRelayFork.prefab`, and Unity-generated `.meta` files: added a four-part UV-mapped relay bank, reusable object-aligned blocker, and two-bank route fork. Model SHA-256: `30523A77CFA39AD86B24B8F75A81C011FCB607B039061753001789B6047210A8`; fork prefab GUID: `11c42ec9d02907142894486f8444e51f`.
+- `Assets/DeadSignal/Resources/Materials/RelayBankArmor.mat`, `RelayBankInsulators.mat`, `RelayBankCoils.mat`, and `RelayBankSignals.mat`, with Unity-generated `.meta`: added persistent URP materials for mapped armor, ceramic, brass, and restrained cyan emission.
+- `Assets/Scenes/SampleScene.unity`: now places `Northwest Relay Fork` at the unchanged northwest cache coordinate.
+- `Assets/DeadSignal/Editor/DeadSignalRelayForkSetup.cs` and Unity-generated `.meta`, plus `DeadSignalWindowsBuild.cs`: added idempotent import, material, prefab, scene-placement, and build-readiness validation.
+- `Assets/DeadSignal/Runtime/StandaloneBuildSmokeProbe.cs`: now requires the packaged relay-fork Resources and validates twelve authored movement blockers.
+- `Assets/DeadSignal/Tests/PlayMode/BootstrapSmokeTests.cs`: verifies scene placement, angled transforms, two serialized blockers, eight purpose-built UV-mapped mesh parts, mapped armor, zero colliders, and twelve total authored obstacles.
+- `GAME_VISION.md`, `BACKLOG.md`, and `DEVLOG.md`: record the selected route-fork rationale and completed northwest map milestone.
+
+No salvage position, objective rule, powered radius, Signal economy, enemy tuning, shortcut behavior, input, audio, package, project setting, or save data changed.
+
+### Tests run and exact outcomes
+
+The live Unity project remained open and was not closed or controlled. Authoritative validation used `C:\Projects\Wendall\CodexPrototype_Run40CleanValidation` with Unity `6000.3.11f1`.
+
+1. OpenAI built-in image generation produced the original albedo, which was copied into project Resources and visually inspected for large mapped regions, midnight-blue armor, pale insulators, brass coils, cyan windows, and absence of text/logos. Its hash and GUID are recorded above.
+2. Blender `5.2.0 LTS` ran `create_relay_bank.py`, exported the `104,460`-byte UV-mapped FBX, saved the editable `.blend`, rendered the `1280x720` preview, and exited `0`. The preview was visually inspected for a readable relay-bank silhouette, three ceramic coil towers, brass buswork, cyan route windows, and complete geometry. Blender emitted two forward-looking `use_nodes` deprecation warnings only.
+3. Unity setup wrote `run42-setup.log`: the pinned Editor compiled the changes, imported the texture/model, created four persistent materials and two prefabs, placed the fork in `SampleScene`, saved the scene, and exited `0`.
+4. EditMode regression wrote `run42-editmode-results.xml` and `run42-editmode.log`: `18/18` passed, `0` failed, `0` skipped in `0.0485959` seconds, exit `0`.
+5. PlayMode regression wrote `run42-playmode-results.xml` and `run42-playmode.log`: `1/1` passed, `0` failed, `0` skipped in `4.8517617` seconds, exit `0`.
+6. Windows development build wrote `run42-build.log`: Unity exited `0`, reported `Build Finished, Result: Success`, emitted one PASS marker, and produced `210,968,760` reported bytes in `24.21` seconds.
+7. Packaged `-batchmode -nographics -deadSignalBuildSmoke` wrote `run42-standalone.log`, loaded the relay-fork Resources, emitted one standalone PASS marker, and exited `0`.
+
+### Bugs found and fixed
+
+- The northwest cache was the last salvage objective on unobstructed open floor. The relay fork now makes its approach a direct-versus-wide route decision while keeping the reward and economy unchanged.
+- No implementation defect was found during the final Unity suites or packaged launch.
+
+### Known limitations
+
+- Automated tests prove composition, UVs, object-aligned collision registration, and packaged readiness, but cannot determine whether the central throat feels enticing rather than frustrating under threat pressure.
+- Projectile collision still ignores authored map obstacles, matching the existing room shell and other authored map sections.
+- The relay banks are static landmarks and do not react to nearby Signal state.
+
+### Best next step
+
+Approach the northwest cache from the tower with both threats awake, compare the central throat against both outside routes, and tune the bank transforms in `NorthwestRelayFork.prefab` if one choice dominates.

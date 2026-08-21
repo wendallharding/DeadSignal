@@ -39,6 +39,7 @@ namespace DeadSignal.Editor
             DeadSignalSalvageAnnexSetup.EnsureAssets();
             DeadSignalDepartureChannelSetup.EnsureAssets();
             DeadSignalCoolantGauntletSetup.EnsureAssets();
+            DeadSignalRelayForkSetup.EnsureAssets();
             _validateBuildInputs();
             _configureWindowsPlayer();
 
@@ -181,6 +182,11 @@ namespace DeadSignal.Editor
             if (!DeadSignalCoolantGauntletSetup.HasAssets)
             {
                 throw new BuildFailedException("The scene-authored southeast coolant-gauntlet assets are missing.");
+            }
+
+            if (!DeadSignalRelayForkSetup.HasAssets)
+            {
+                throw new BuildFailedException("The scene-authored northwest relay-fork assets are missing.");
             }
 
             if (AssetDatabase.LoadAssetAtPath<Texture2D>(APPLICATION_ICON_PATH) == null)
