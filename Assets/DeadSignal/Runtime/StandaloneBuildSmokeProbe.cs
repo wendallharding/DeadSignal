@@ -86,6 +86,8 @@ namespace DeadSignal
                                 Resources.Load<GameObject>("Environment/NorthwestRelayFork") != null &&
                                 Resources.Load<Texture2D>("Environment/RelayForkAlbedo") != null &&
                                 Resources.Load<GameObject>("Environment/SecurityBlastShield") != null &&
+                                Resources.Load<GameObject>("Environment/SecurityBayRouteMarkerModel") != null &&
+                                Resources.Load<GameObject>("Environment/SecurityBayRouteMarker") != null &&
                                 Resources.Load<GameObject>("Environment/WardenStagingBay") != null &&
                                 Resources.Load<Texture2D>("Environment/WardenBayAlbedo") != null &&
                                 Resources.Load<GameObject>("Actors/SignalSapperAssembly") != null &&

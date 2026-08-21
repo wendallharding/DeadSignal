@@ -276,6 +276,32 @@ namespace DeadSignal.Tests
                 "The staging bay must not trap or overlap the dormant Warden at activation.");
             Assert.That(bayObstacles.All(obstacle => !obstacle.OverlapsCircle(new Vector3(5.1f, 0f, 4.7f), 0.48f)), Is.True,
                 "The west-facing bay mouth must preserve a traversable Warden exit toward the tower.");
+            var northShield = wardenBay.transform.Find("North Security Shield");
+            Assert.That(northShield.localPosition, Is.EqualTo(new Vector3(0.75f, 0f, 1.35f)));
+            Assert.That(northShield.localScale, Is.EqualTo(new Vector3(0.72f, 1f, 1f)),
+                "The north shield must remain shortened so the player has a generous bypass around the bay.");
+            var northBypassSamples = new[]
+            {
+                new Vector3(5.25f, 0f, 7f),
+                new Vector3(6.4f, 0f, 7.25f),
+                new Vector3(8.3f, 0f, 7.25f)
+            };
+            Assert.That(northBypassSamples.All(sample =>
+                    bayObstacles.All(obstacle => !obstacle.OverlapsCircle(sample, 0.48f))), Is.True,
+                "The marked northern bypass must preserve player-radius clearance around every bay shield.");
+            var bypassMarkers = new[]
+            {
+                wardenBay.transform.Find("North Bypass Entry Marker"),
+                wardenBay.transform.Find("North Bypass Exit Marker")
+            };
+            Assert.That(bypassMarkers.All(marker => marker != null), Is.True,
+                "Two authored floor arrows should make the northern bypass readable before the player commits.");
+            var routeMaterial = Resources.Load<Material>("Materials/DepartureThresholdBeacons");
+            Assert.That(bypassMarkers.SelectMany(marker => marker.GetComponentsInChildren<Renderer>())
+                .All(renderer => renderer.sharedMaterial == routeMaterial), Is.True,
+                "Bay route arrows should use the established cyan navigation language.");
+            Assert.That(bypassMarkers.Sum(marker => marker.GetComponentsInChildren<Collider>().Length), Is.Zero,
+                "Route markers must remain presentation-only and never obstruct their marked path.");
             var bayTexture = Resources.Load<Texture2D>("Environment/WardenBayAlbedo");
             var bayArmor = Resources.Load<Material>("Materials/SecurityShieldArmor");
             Assert.That(bayTexture, Is.Not.Null);

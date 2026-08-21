@@ -2538,3 +2538,58 @@ The live Unity project remained open and was not closed or controlled. Authorita
 ### Best next step
 
 Activate the tower while facing the northeast bay, watch the Warden emerge, then kite around all three shields; tune the shield transforms in `WardenStagingBay.prefab` if escape or cover feels dominant.
+
+## 2026-08-21 - Warden Bay Route Readability Follow-up
+
+### Today's single idea
+
+**Widened, marked northern Warden-bay bypass.** Shorten the bay's side shields and place two cyan floor arrows along the open northern route so the containment pocket no longer reads as the only way forward.
+
+Player benefit: after crossing the shortcut wall, the player can identify the safe onward route at a glance instead of entering the Warden's three-sided combat pocket and assuming the level is blocked.
+
+Acceptance criteria:
+
+- preserve the Warden spawn, shortcut decision, three authored shield blockers, and all combat rules;
+- provide a player-radius-clear route around the north side of the bay;
+- mark that bypass using reusable, Blender-authored scene/prefab geometry in the established cyan navigation language;
+- keep both markers presentation-only with no colliders or movement obstacles; and
+- prevent regression with PlayMode clearance, composition, material, and collision assertions.
+
+### Files and systems changed
+
+- `ArtSource/WardenBay/create_bypass_marker.py`, `SecurityBayRouteMarker.blend`, `SecurityBayRouteMarkerPreview.png`, and `README.md`: added reproducible Blender 5.2 source, editable geometry, a visually inspected preview, and regeneration instructions for the beveled arrow.
+- `Assets/DeadSignal/Resources/Environment/SecurityBayRouteMarkerModel.fbx`, `SecurityBayRouteMarker.prefab`, and Unity-generated `.meta` files: added the original purpose-built route-marker mesh and a persistent, collider-free prefab using the existing cyan navigation material. Model SHA-256: `228DF016B305474C658696AE43CB9B0979B430761C27D82CA47E81F628DD7857`.
+- `Assets/DeadSignal/Resources/Environment/WardenStagingBay.prefab`: shortened and shifted the north and south shields to widen the western approach and added two prefab-authored arrows across the northern bypass.
+- `Assets/DeadSignal/Editor/DeadSignalWardenBaySetup.cs`: made bay setup idempotently enforce the revised shield transforms, route-marker import/prefab, material assignment, and route-marker children.
+- `Assets/DeadSignal/Runtime/StandaloneBuildSmokeProbe.cs`: now requires the two packaged route-marker Resources.
+- `Assets/DeadSignal/Tests/PlayMode/BootstrapSmokeTests.cs`: now enforces the shortened north shield, three player-radius-clear bypass samples, two cyan marker instances, and zero marker colliders.
+- `GAME_VISION.md`, `BACKLOG.md`, and `DEVLOG.md`: record the route-readability decision and completed improvement.
+
+No Warden spawn, activation, pursuit, damage, health, objective, Signal economy, shortcut cost, input, audio, package, project setting, or save data changed.
+
+### Tests run and exact outcomes
+
+The live Unity project remained open and was not closed or controlled. Authoritative validation used `C:\Projects\Wendall\CodexPrototype_Run40CleanValidation` with Unity `6000.3.11f1`.
+
+1. Blender `5.2.0 LTS` ran `create_bypass_marker.py`, exported the `19,708`-byte UV-mapped FBX, saved the editable `.blend`, rendered the `900x520` preview, and exited `0`. The preview was visually inspected for a clean, beveled, immediately recognizable arrow silhouette. Blender emitted two forward-looking `use_nodes` deprecation warnings only.
+2. Unity setup wrote `warden-bypass-setup.log`: the pinned Editor compiled the changes, imported the marker model, created the route-marker prefab, updated the bay prefab, and exited `0`.
+3. EditMode regression wrote `warden-bypass-editmode.xml` and `warden-bypass-editmode.log`: `18/18` passed, `0` failed, `0` skipped in `0.048041` seconds, exit `0`.
+4. PlayMode regression wrote `warden-bypass-playmode.xml` and `warden-bypass-playmode.log`: `1/1` passed, `0` failed, `0` skipped in `4.6152532` seconds, exit `0`.
+5. Windows development build wrote `warden-bypass-build.log`: Unity exited `0`, reported `Build Finished, Result: Success`, emitted one PASS marker, and produced `212,447,944` reported bytes in `17.74` seconds.
+6. Packaged `-batchmode -nographics -deadSignalBuildSmoke` wrote `warden-bypass-standalone.log`, loaded the new route-marker Resources, emitted one standalone PASS marker, and exited `0`.
+
+### Bugs found and fixed
+
+- The west-facing Warden pocket visually implied that it was the onward route even though it terminated at the east shield. The shortened side shields and cyan northern arrows now expose the intended bypass before commitment.
+- The original setup returned early once the bay prefab existed, preventing safe iterative layout updates. It now enforces all child transforms and marker instances idempotently.
+- No compiler error, failed assertion, missing Resource, or packaged-player regression remained after validation.
+
+### Known limitations
+
+- Automated checks prove player-radius clearance, authored composition, material assignment, and packaged readiness, but the final in-game arrow scale and camera readability still benefit from a human play pass in the user's live Editor.
+- Projectile collision still ignores authored map obstacles, matching the rest of the current map.
+- The route arrows are static and do not react to objective state.
+
+### Best next step
+
+Cross the shortcut gate, follow the cyan arrows around the bay's north side toward the northeast salvage annex, and confirm the route reads before the Warden activates and remains useful while kiting afterward.

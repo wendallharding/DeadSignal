@@ -11,10 +11,15 @@ namespace DeadSignal.Editor
     {
         private const string TEXTURE_PATH = "Assets/DeadSignal/Resources/Environment/WardenBayAlbedo.png";
         private const string MODEL_PATH = "Assets/DeadSignal/Resources/Environment/SecurityBlastShieldModel.fbx";
+        private const string ROUTE_MARKER_MODEL_PATH =
+            "Assets/DeadSignal/Resources/Environment/SecurityBayRouteMarkerModel.fbx";
         private const string ARMOR_MATERIAL_PATH = "Assets/DeadSignal/Resources/Materials/SecurityShieldArmor.mat";
         private const string BRACE_MATERIAL_PATH = "Assets/DeadSignal/Resources/Materials/SecurityShieldBraces.mat";
         private const string WARNING_MATERIAL_PATH = "Assets/DeadSignal/Resources/Materials/SecurityShieldWarnings.mat";
+        private const string ROUTE_MATERIAL_PATH = "Assets/DeadSignal/Resources/Materials/DepartureThresholdBeacons.mat";
         private const string SHIELD_PREFAB_PATH = "Assets/DeadSignal/Resources/Environment/SecurityBlastShield.prefab";
+        private const string ROUTE_MARKER_PREFAB_PATH =
+            "Assets/DeadSignal/Resources/Environment/SecurityBayRouteMarker.prefab";
         private const string BAY_PREFAB_PATH = "Assets/DeadSignal/Resources/Environment/WardenStagingBay.prefab";
         private const string SCENE_PATH = "Assets/Scenes/SampleScene.unity";
 
@@ -25,24 +30,31 @@ namespace DeadSignal.Editor
             get
             {
                 var shield = AssetDatabase.LoadAssetAtPath<GameObject>(SHIELD_PREFAB_PATH);
+                var routeMarker = AssetDatabase.LoadAssetAtPath<GameObject>(ROUTE_MARKER_PREFAB_PATH);
                 var bay = AssetDatabase.LoadAssetAtPath<GameObject>(BAY_PREFAB_PATH);
                 return AssetDatabase.LoadAssetAtPath<Texture2D>(TEXTURE_PATH) != null &&
                        AssetDatabase.LoadAssetAtPath<GameObject>(MODEL_PATH) != null &&
+                       AssetDatabase.LoadAssetAtPath<GameObject>(ROUTE_MARKER_MODEL_PATH) != null &&
                        AssetDatabase.LoadAssetAtPath<Material>(ARMOR_MATERIAL_PATH) != null &&
                        AssetDatabase.LoadAssetAtPath<Material>(BRACE_MATERIAL_PATH) != null &&
                        AssetDatabase.LoadAssetAtPath<Material>(WARNING_MATERIAL_PATH) != null &&
                        _hasValidShield(shield) &&
+                       routeMarker != null &&
                        bay != null &&
-                       bay.GetComponentsInChildren<AuthoredMapObstacle>().Length == 3;
+                       bay.GetComponentsInChildren<AuthoredMapObstacle>().Length == 3 &&
+                       bay.transform.Find("North Bypass Entry Marker") != null &&
+                       bay.transform.Find("North Bypass Exit Marker") != null;
             }
         }
 
         public static void EnsureAssets()
         {
             _configureTextureImport();
-            _configureModelImport();
+            _configureModelImport(MODEL_PATH, "security-shield");
+            _configureModelImport(ROUTE_MARKER_MODEL_PATH, "bay route-marker");
             _ensureMaterials();
             _ensureShieldPrefab();
+            _ensureRouteMarkerPrefab();
             _ensureBayPrefab();
             _ensureScenePlacement();
             AssetDatabase.SaveAssets();
@@ -69,12 +81,12 @@ namespace DeadSignal.Editor
             importer.SaveAndReimport();
         }
 
-        private static void _configureModelImport()
+        private static void _configureModelImport(string assetPath, string assetDescription)
         {
-            var importer = AssetImporter.GetAtPath(MODEL_PATH) as ModelImporter;
+            var importer = AssetImporter.GetAtPath(assetPath) as ModelImporter;
             if (importer == null)
             {
-                throw new InvalidOperationException($"Could not find the security-shield model at {MODEL_PATH}.");
+                throw new InvalidOperationException($"Could not find the {assetDescription} model at {assetPath}.");
             }
 
             importer.addCollider = false;
@@ -170,45 +182,110 @@ namespace DeadSignal.Editor
             }
         }
 
+        private static void _ensureRouteMarkerPrefab()
+        {
+            if (AssetDatabase.LoadAssetAtPath<GameObject>(ROUTE_MARKER_PREFAB_PATH) == null)
+            {
+                var model = AssetDatabase.LoadAssetAtPath<GameObject>(ROUTE_MARKER_MODEL_PATH);
+                var instance = PrefabUtility.InstantiatePrefab(model) as GameObject;
+                if (instance == null)
+                {
+                    throw new InvalidOperationException("Could not instantiate the imported bay route-marker model.");
+                }
+
+                instance.name = "SecurityBayRouteMarker";
+                PrefabUtility.SaveAsPrefabAsset(instance, ROUTE_MARKER_PREFAB_PATH);
+                UnityEngine.Object.DestroyImmediate(instance);
+            }
+
+            var root = PrefabUtility.LoadPrefabContents(ROUTE_MARKER_PREFAB_PATH);
+            try
+            {
+                var routeMaterial = AssetDatabase.LoadAssetAtPath<Material>(ROUTE_MATERIAL_PATH);
+                var renderers = root.GetComponentsInChildren<Renderer>();
+                if (routeMaterial == null || renderers.Length == 0)
+                {
+                    throw new InvalidOperationException("The bay route marker is missing its renderer or Signal material.");
+                }
+
+                foreach (var renderer in renderers)
+                {
+                    renderer.sharedMaterial = routeMaterial;
+                    renderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+                    renderer.receiveShadows = false;
+                }
+
+                PrefabUtility.SaveAsPrefabAsset(root, ROUTE_MARKER_PREFAB_PATH);
+            }
+            finally
+            {
+                PrefabUtility.UnloadPrefabContents(root);
+            }
+        }
+
         private static void _ensureBayPrefab()
         {
-            if (AssetDatabase.LoadAssetAtPath<GameObject>(BAY_PREFAB_PATH) != null)
+            if (AssetDatabase.LoadAssetAtPath<GameObject>(BAY_PREFAB_PATH) == null)
             {
-                return;
+                var emptyBay = new GameObject("WardenStagingBay");
+                try
+                {
+                    PrefabUtility.SaveAsPrefabAsset(emptyBay, BAY_PREFAB_PATH);
+                }
+                finally
+                {
+                    UnityEngine.Object.DestroyImmediate(emptyBay);
+                }
             }
 
             var shieldPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(SHIELD_PREFAB_PATH);
-            var bay = new GameObject("WardenStagingBay");
+            var markerPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(ROUTE_MARKER_PREFAB_PATH);
+            var bay = PrefabUtility.LoadPrefabContents(BAY_PREFAB_PATH);
             try
             {
-                _addShield(bay.transform, shieldPrefab, "North Security Shield", new Vector3(0.35f, 0f, 1.35f), 0f);
-                _addShield(bay.transform, shieldPrefab, "South Security Shield", new Vector3(0.35f, 0f, -1.35f), 0f);
-                _addShield(bay.transform, shieldPrefab, "East Security Shield", new Vector3(1.8f, 0f, 0f), 90f);
+                _ensurePrefabChild(bay.transform, shieldPrefab, "North Security Shield",
+                    new Vector3(0.75f, 0f, 1.35f), 0f, new Vector3(0.72f, 1f, 1f));
+                _ensurePrefabChild(bay.transform, shieldPrefab, "South Security Shield",
+                    new Vector3(0.65f, 0f, -1.35f), 0f, new Vector3(0.82f, 1f, 1f));
+                _ensurePrefabChild(bay.transform, shieldPrefab, "East Security Shield",
+                    new Vector3(1.8f, 0f, 0f), 90f, Vector3.one);
+                _ensurePrefabChild(bay.transform, markerPrefab, "North Bypass Entry Marker",
+                    new Vector3(-1.55f, 0.025f, 2.05f), 32f, new Vector3(0.8f, 0.8f, 0.8f));
+                _ensurePrefabChild(bay.transform, markerPrefab, "North Bypass Exit Marker",
+                    new Vector3(0.25f, 0.025f, 2.25f), 0f, new Vector3(0.8f, 0.8f, 0.8f));
                 PrefabUtility.SaveAsPrefabAsset(bay, BAY_PREFAB_PATH);
             }
             finally
             {
-                UnityEngine.Object.DestroyImmediate(bay);
+                PrefabUtility.UnloadPrefabContents(bay);
             }
         }
 
-        private static void _addShield(
+        private static void _ensurePrefabChild(
             Transform parent,
             GameObject prefab,
             string objectName,
             Vector3 localPosition,
-            float rotationY)
+            float rotationY,
+            Vector3 localScale)
         {
-            var shield = PrefabUtility.InstantiatePrefab(prefab) as GameObject;
-            if (shield == null)
+            var child = parent.Find(objectName);
+            if (child == null)
             {
-                throw new InvalidOperationException($"Could not instantiate {objectName} for the Warden bay.");
+                var instance = PrefabUtility.InstantiatePrefab(prefab) as GameObject;
+                if (instance == null)
+                {
+                    throw new InvalidOperationException($"Could not instantiate {objectName} for the Warden bay.");
+                }
+
+                instance.name = objectName;
+                instance.transform.SetParent(parent, false);
+                child = instance.transform;
             }
 
-            shield.name = objectName;
-            shield.transform.SetParent(parent, false);
-            shield.transform.localPosition = localPosition;
-            shield.transform.localRotation = Quaternion.Euler(0f, rotationY, 0f);
+            child.localPosition = localPosition;
+            child.localRotation = Quaternion.Euler(0f, rotationY, 0f);
+            child.localScale = localScale;
         }
 
         private static void _ensureScenePlacement()
