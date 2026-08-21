@@ -45,6 +45,7 @@
 - [x] Add an authored, proximity-driven Warden strike warning that respects Reduced Flashes
 - [x] Place the dormant Warden inside an authored security bay that becomes post-activation kiting cover
 - [x] Open and mark a verified player-width route between the Warden bay and northeast salvage annex
+- [x] Place the dormant Signal Sapper inside an authored, southeast-open service cradle that becomes combat cover
 - [x] Telegraph the Sapper's tower target and timed drain pulses in-world
 - [x] Replace the Sapper's primitive pulse flash with an authored, tunable drain glyph
 - [x] Give the Sapper tether an authored directional energy flow without changing its threat rules

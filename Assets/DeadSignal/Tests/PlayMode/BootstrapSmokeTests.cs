@@ -143,8 +143,9 @@ namespace DeadSignal.Tests
                 "The tower approach should be placed as scene-authored prefab content rather than runtime layout code.");
             var authoredObstacles = towerJunction.GetComponentsInChildren<AuthoredMapObstacle>();
             Assert.That(authoredObstacles.Length, Is.EqualTo(3));
-            Assert.That(game.AuthoredMapObstacleCount, Is.EqualTo(15),
-                "Every authored junction, salvage area, departure channel, and Warden-bay obstacle should participate in movement resolution.");
+            Assert.That(game.AuthoredMapObstacleCount, Is.EqualTo(17),
+                "Every authored junction, salvage area, departure channel, and threat-bay obstacle should participate " +
+                "in movement resolution.");
             Assert.That(authoredObstacles.Sum(obstacle => obstacle.GetComponentsInChildren<Renderer>().Length), Is.EqualTo(6));
             Assert.That(authoredObstacles.Sum(obstacle => obstacle.GetComponentsInChildren<Collider>().Length), Is.Zero,
                 "The non-physics movement controller should use authored obstacle bounds without duplicate physics colliders.");
@@ -337,6 +338,46 @@ namespace DeadSignal.Tests
             Assert.That(bayArmor.mainTexture, Is.EqualTo(bayTexture),
                 "The security shields should persistently map their original containment-bay albedo.");
             var signalSapper = game.transform.Find("Signal Sapper");
+            var sapperCradle = GameObject.Find("Signal Sapper Service Cradle");
+            Assert.That(sapperCradle, Is.Not.Null,
+                "The dormant Sapper should be foreshadowed by a scene-authored service cradle.");
+            Assert.That(sapperCradle.transform.position, Is.EqualTo(new Vector3(-10.8f, 0f, 5.7f)),
+                "The cradle should preserve the established Sapper spawn coordinate.");
+            var cradleObstacles = sapperCradle.GetComponentsInChildren<AuthoredMapObstacle>();
+            Assert.That(cradleObstacles.Length, Is.EqualTo(2));
+            Assert.That(cradleObstacles.Sum(obstacle => obstacle.GetComponentsInChildren<Renderer>().Length), Is.EqualTo(6));
+            Assert.That(cradleObstacles.Sum(obstacle => obstacle.GetComponentsInChildren<Collider>().Length), Is.Zero,
+                "The siphon pylons should use serialized movement bounds without duplicate physics colliders.");
+            Assert.That(sapperCradle.transform.Find("North Siphon Pylon").localPosition,
+                Is.EqualTo(new Vector3(0f, 0f, 1.3f)));
+            Assert.That(sapperCradle.transform.Find("West Siphon Pylon").localPosition,
+                Is.EqualTo(new Vector3(-1.3f, 0f, 0f)));
+            Assert.That(sapperCradle.transform.Find("West Siphon Pylon").localEulerAngles.y,
+                Is.EqualTo(90f).Within(0.01f), "The two pylons should form an L-shaped cradle open toward the tower.");
+            var cradleMeshes = cradleObstacles
+                .SelectMany(obstacle => obstacle.GetComponentsInChildren<MeshFilter>())
+                .Select(filter => filter.sharedMesh)
+                .ToArray();
+            Assert.That(cradleMeshes.Length, Is.EqualTo(6));
+            Assert.That(cradleMeshes.All(mesh => mesh != null && mesh.vertexCount >= 24), Is.True,
+                "Every siphon-pylon part should use purpose-built geometry rather than placeholder primitives.");
+            Assert.That(cradleMeshes.All(mesh =>
+                    mesh.HasVertexAttribute(UnityEngine.Rendering.VertexAttribute.TexCoord0)), Is.True,
+                "Every siphon-pylon mesh should retain authored UV coordinates.");
+            var cradleTexture = Resources.Load<Texture2D>("Environment/SapperCradleAlbedo");
+            var cradleArmor = Resources.Load<Material>("Materials/SapperCradleArmor");
+            Assert.That(cradleTexture, Is.Not.Null);
+            Assert.That(cradleArmor.mainTexture, Is.EqualTo(cradleTexture),
+                "The siphon pylons should persistently map their original black-violet cradle albedo.");
+            Assert.That(cradleObstacles.All(obstacle => !obstacle.OverlapsCircle(signalSapper.position, 0.54f)), Is.True,
+                "The service cradle must not overlap or trap the dormant Sapper.");
+            var sapperEmergenceSamples = Enumerable.Range(0, 31)
+                .Select(step => Vector3.Lerp(signalSapper.position, new Vector3(-8.3f, 0f, 3.5f), step / 30f))
+                .ToArray();
+            var completeAuthoredLayout = Object.FindObjectsByType<AuthoredMapObstacle>(FindObjectsSortMode.None);
+            Assert.That(sapperEmergenceSamples.All(sample =>
+                    completeAuthoredLayout.All(obstacle => !obstacle.OverlapsCircle(sample, 0.54f))), Is.True,
+                "A continuous Sapper-radius-clear emergence route must leave the cradle toward the tower.");
             var authoredSapperPrefab = Resources.Load<GameObject>("Actors/SignalSapperAssembly");
             var sapperArmorTexture = Resources.Load<Texture2D>("Actors/SignalSapperArmorAlbedo");
             var sapperArmorMaterial = Resources.Load<Material>("Materials/SignalSapperArmor");

@@ -2651,3 +2651,66 @@ The live Unity project remained open and was not closed or controlled. Authorita
 ### Best next step
 
 Approach the northeast annex from the shortcut wall, follow the floor chevrons through its west entrance, collect the cache, and repeat with the Warden awake to assess whether the new turning space is comfortable under pressure.
+
+## 2026-08-21 - Autonomous Run 44
+
+### Today's single idea
+
+**Scene-authored Signal Sapper service cradle.** Place two original siphon pylons in an L-shaped maintenance cradle around the dormant northwest Sapper, open southeast toward the tower so activation becomes a readable emergence beat and the structure later functions as combat cover.
+
+Player benefit: the second threat is now foreshadowed by a distinct black-violet, ceramic, and magenta landmark instead of appearing on empty floor. The cradle adds anticipation before activation, a recognizable northwest encounter space, and positioning options if the player fights or retreats through that corner.
+
+Alternatives considered: a central debris pinch would add immediate navigation pressure but further congest the already authored tower approach; a southwest optional pocket would add exploration but needs a reward and progression decision beyond this run's scope. The Sapper cradle was selected because it deepens an existing enemy encounter using only current movement, combat, and cover rules.
+
+Acceptance criteria:
+
+- place one reusable service-cradle prefab directly in `SampleScene` around the unchanged Sapper spawn;
+- use two original Blender-authored, UV-mapped, textured siphon pylons in an L shape open southeast toward the tower;
+- register both pylons through serialized, object-aligned `AuthoredMapObstacle` bounds with no physics colliders;
+- prove the Sapper spawn does not overlap either pylon and a continuously sampled Sapper-radius-clear emergence path reaches the open arena against the complete authored layout;
+- preserve the northwest salvage route, all Sapper timing/drain/combat rules, and existing gameplay coordinates; and
+- pass Unity import/compile, EditMode, PlayMode, Windows build, packaged-resource smoke, and repository checks.
+
+### Files and systems changed
+
+- `OWNER_NOTES.md`: the owner's concurrent modular-room/prefab and future follow-camera guidance was detected and preserved without modification or attribution to this run; the new cradle follows the requested prefab-first direction.
+- `Assets/DeadSignal/Resources/Environment/SapperCradleAlbedo.png` and Unity-generated `.meta`: added an original `1254x1254` RGB black-violet, graphite, pale-ceramic, and magenta siphon atlas generated with OpenAI's built-in image-generation mode. SHA-256: `A3B75BBAE23BFC3EEDAE7C2650E180041800AA0673D94327607CD80D90CC151B`.
+- Final image-generation prompt: square low-poly Unity orbital-station Sapper service-cradle albedo atlas with broad UV-friendly black-violet armor, graphite machinery, pale institutional ceramic fork housings, restrained magenta siphon conduits/windows, cool-gray seams, and subtle service wear; flat atlas; no text, numbers, logos, characters, UI, watermark, franchise design, perspective scene, cyan focal accents, or orange focal accents.
+- `ArtSource/SapperCradle/create_siphon_pylon.py`, `SapperSiphonPylon.blend`, `SapperSiphonPylonPreview.png`, and `README.md`: added reproducible Blender 5.2 source, editable geometry, regeneration instructions, and a visually inspected preview.
+- `Assets/DeadSignal/Resources/Environment/SapperSiphonPylonModel.fbx`, `SapperSiphonPylon.prefab`, `SignalSapperCradle.prefab`, and Unity-generated `.meta`: added a three-part purpose-built pylon, reusable object-aligned blocker, and L-shaped two-pylon cradle. Model SHA-256: `D7B95947B93E8FF7A9CA06F75F0E6236882D7881E1B66204B57B55F56FC03954`.
+- `Assets/DeadSignal/Resources/Materials/SapperCradleArmor.mat`, `SapperCradleCeramic.mat`, and `SapperCradleEnergy.mat`, with Unity-generated `.meta`: added persistent URP materials for mapped armor, pale restraint forks, and magenta emission.
+- `Assets/Scenes/SampleScene.unity`: now places `Signal Sapper Service Cradle` at the unchanged Sapper spawn coordinate.
+- `Assets/DeadSignal/Editor/DeadSignalSapperCradleSetup.cs` and Unity-generated `.meta`, plus `DeadSignalWindowsBuild.cs`: added idempotent import, material, prefab, scene-placement, and build-readiness validation.
+- `Assets/DeadSignal/Runtime/StandaloneBuildSmokeProbe.cs`: now requires the packaged cradle Resources and validates seventeen authored movement blockers.
+- `Assets/DeadSignal/Tests/PlayMode/BootstrapSmokeTests.cs`: verifies scene placement, two serialized blockers, six purpose-built UV-mapped mesh parts, mapped armor, zero colliders, clear Sapper spawn, correct L shape, and a dense emergence route checked against the complete authored layout.
+- `GAME_VISION.md`, `BACKLOG.md`, and `DEVLOG.md`: record the selected encounter-space rationale and completed cradle milestone.
+
+No Sapper spawn, approach speed, latch range, drain timing, pulse cost, health, projectile rules, salvage coordinate, objective rule, Signal economy, shortcut behavior, input, audio, package, project setting, or save data changed.
+
+### Tests run and exact outcomes
+
+The live Unity project remained open and was not closed or controlled. Authoritative validation used `C:\Projects\Wendall\CodexPrototype_Run40CleanValidation` with Unity `6000.3.11f1`.
+
+1. OpenAI built-in image generation produced the original atlas, which was copied into project Resources and visually inspected for broad black-violet armor, pale ceramic yokes, magenta siphon elements, useful UV regions, and absence of text/logos. Its hash is recorded above.
+2. Blender `5.2.0 LTS` ran `create_siphon_pylon.py`, exported the `52,604`-byte UV-mapped FBX, saved the editable `.blend`, rendered the `1280x720` preview, and exited `0`. The preview was visually inspected for a strong low cover silhouette, mapped violet armor, readable pale restraint frame, three magenta coils, and complete geometry. Blender emitted two forward-looking `use_nodes` deprecation warnings only.
+3. Unity setup wrote `sapper-cradle-setup.log`: the pinned Editor compiled the changes, imported the texture/model, created three persistent materials and two prefabs, placed the cradle in `SampleScene`, saved the scene, and exited `0` with no critical log hits.
+4. EditMode regression wrote `sapper-cradle-editmode.xml` and `.log`: `18/18` passed, `0` failed, `0` skipped in `0.0855252` seconds, exit `0`.
+5. PlayMode regression wrote `sapper-cradle-playmode.xml` and `.log`: `1/1` passed, `0` failed, `0` skipped in `4.6929521` seconds, exit `0`.
+6. Windows development build wrote `sapper-cradle-build.log`: Unity exited `0`, reported `Build Finished, Result: Success`, emitted one PASS marker, and produced `213,923,497` reported bytes in `18.60` seconds.
+7. Packaged `-batchmode -nographics -deadSignalBuildSmoke` wrote `sapper-cradle-standalone.log`, loaded the cradle Resources, emitted one standalone PASS marker, and exited `0`.
+
+### Bugs found and fixed
+
+- The dormant Sapper previously occupied empty floor with no environmental foreshadowing or authored emergence space. The service cradle now identifies its origin and becomes northwest combat cover after activation.
+- No compiler error, failed assertion, spawn overlap, blocked emergence route, missing Resource, or packaged-player regression remained after validation.
+
+### Known limitations
+
+- Automated validation proves composition, UVs, object-aligned collision, spawn/emergence clearance, and packaged readiness, but cannot determine whether the cradle makes the Sapper too easy to intercept or whether magenta emission is balanced in the user's Game view.
+- Projectile collision still ignores authored map obstacles, so shots pass through the siphon pylons.
+- The cradle's energy elements remain lit before and after tower activation rather than changing with Sapper state.
+- The current fixed camera still shows the complete arena; the owner's newly added follow-camera direction becomes relevant when a later modular expansion exceeds the current frame.
+
+### Best next step
+
+Activate the tower, watch the Sapper leave the northwest cradle, then intercept it near the pylons and approach the northwest salvage fork from both sides to assess whether the new cover improves pressure without obstructing navigation.

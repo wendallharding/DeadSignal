@@ -41,6 +41,7 @@ namespace DeadSignal.Editor
             DeadSignalCoolantGauntletSetup.EnsureAssets();
             DeadSignalRelayForkSetup.EnsureAssets();
             DeadSignalWardenBaySetup.EnsureAssets();
+            DeadSignalSapperCradleSetup.EnsureAssets();
             _validateBuildInputs();
             _configureWindowsPlayer();
 
@@ -193,6 +194,11 @@ namespace DeadSignal.Editor
             if (!DeadSignalWardenBaySetup.HasAssets)
             {
                 throw new BuildFailedException("The scene-authored Security Warden staging-bay assets are missing.");
+            }
+
+            if (!DeadSignalSapperCradleSetup.HasAssets)
+            {
+                throw new BuildFailedException("The scene-authored Signal Sapper service-cradle assets are missing.");
             }
 
             if (AssetDatabase.LoadAssetAtPath<Texture2D>(APPLICATION_ICON_PATH) == null)
