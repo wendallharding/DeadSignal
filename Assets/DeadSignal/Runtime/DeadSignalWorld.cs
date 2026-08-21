@@ -86,14 +86,14 @@ namespace DeadSignal
             return canMoveZ ? zOnly : current;
         }
 
-        public void ActivateTower()
+        public void ActivateTower(float sapperPulseInterval)
         {
             m_towerTerritory.GetComponent<Renderer>().sharedMaterial = m_palette.CyanDim;
             TowerCore.GetComponent<Renderer>().sharedMaterial = m_palette.Cyan;
             m_towerSignalLines.SetActive(true);
             Warden.gameObject.SetActive(true);
             Sapper.gameObject.SetActive(true);
-            SapperTelegraph.SetThreatState(true, false, 0f, DeadSignalThreatController.SAPPER_PULSE_INTERVAL);
+            SapperTelegraph.SetThreatState(true, false, 0f, sapperPulseInterval);
         }
 
         public void OpenShortcut()

@@ -18,6 +18,8 @@ namespace DeadSignal.Tests
             Assert.That(game, Is.Not.Null, "Runtime bootstrap did not create the game controller.");
             Assert.That(Object.FindFirstObjectByType<DeadSignalHud>(), Is.Not.Null,
                 "Runtime bootstrap should compose a dedicated HUD presenter.");
+            Assert.That(Object.FindFirstObjectByType<ObjectiveBeaconHud>(), Is.Not.Null,
+                "Runtime bootstrap should compose a dedicated objective beacon presenter.");
             Assert.That(game.transform.Find("Maintenance Drone"), Is.Not.Null);
             Assert.That(game.transform.Find("Security Warden"), Is.Not.Null, "Dormant security should exist before tower activation.");
             Assert.That(game.transform.Find("Signal Sapper"), Is.Not.Null, "Dormant sapper should exist before tower activation.");
@@ -33,6 +35,9 @@ namespace DeadSignal.Tests
             Assert.That(Camera.main != null || Object.FindFirstObjectByType<Camera>() != null, Is.True);
             Assert.That(game.HasPauseInsignia, Is.True, "The generated pause-menu insignia should load from Resources.");
             Assert.That(game.HasCameraComfortIcon, Is.True, "The generated Steady Camera icon should load from Resources.");
+            Assert.That(game.HasObjectiveBeaconIcon, Is.True, "The generated objective beacon icon should load from Resources.");
+            Assert.That(game.CurrentObjectiveBeaconPhase, Is.EqualTo(ObjectiveBeaconPhase.Tower));
+            Assert.That(game.CurrentObjectiveBeaconTarget, Is.EqualTo(new Vector3(-0.6f, 0f, 0.4f)));
             CombatFeedbackController combatFeedback = Object.FindFirstObjectByType<CombatFeedbackController>();
             Assert.That(combatFeedback, Is.Not.Null, "Reflex composition should provide the combat-feedback controller.");
             Assert.That(combatFeedback.HasImpactTexture, Is.True, "The generated impact texture should load from Resources.");
@@ -129,6 +134,13 @@ namespace DeadSignal.Tests
                 Assert.That(telegraph.IsVisible, Is.True);
                 Assert.That(telegraph.IsLatched, Is.False);
                 Assert.That(telegraphRoot.Find("Sapper Target Tether"), Is.Not.Null);
+                yield return null;
+
+                Assert.That(game.CurrentObjectiveBeaconPhase, Is.EqualTo(ObjectiveBeaconPhase.Salvage),
+                    "Tower activation should advance guidance to the nearest live salvage cache.");
+                var salvageTarget = game.CurrentObjectiveBeaconTarget;
+                Assert.That(new Vector2(salvageTarget.x, salvageTarget.z), Is.EqualTo(new Vector2(-5.8f, 7.2f)),
+                    "The beacon should select the closest remaining cache from the tower.");
 
                 float signalBeforePulse = game.CurrentSignal;
                 sapper.position = new Vector3(-0.6f, 0f, 0.4f);
@@ -171,6 +183,22 @@ namespace DeadSignal.Tests
                 Assert.That(telegraphRoot.gameObject.activeSelf, Is.False,
                     "Purging the Sapper should immediately hide every telegraph element.");
                 Assert.That(telegraph.IsVisible, Is.False);
+
+                foreach (Transform child in game.transform)
+                {
+                    if (child.name != "Salvage Cache" || !child.gameObject.activeSelf)
+                    {
+                        continue;
+                    }
+
+                    player.position = child.position;
+                    yield return null;
+                }
+
+                yield return null;
+                Assert.That(game.CurrentObjectiveBeaconPhase, Is.EqualTo(ObjectiveBeaconPhase.Extraction),
+                    "Securing every cache should advance guidance to extraction.");
+                Assert.That(game.CurrentObjectiveBeaconTarget, Is.EqualTo(new Vector3(-9.2f, 0f, -5.6f)));
 
                 InputSystem.QueueStateEvent(gamepad, new GamepadState());
                 yield return null;

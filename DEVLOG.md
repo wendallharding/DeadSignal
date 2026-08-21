@@ -475,3 +475,101 @@ Matching editor: `C:\Program Files\Unity\Hub\Editor\6000.3.11f1\Editor\Unity.exe
 ### Best next step
 
 Run one keyboard/controller comfort-options pass at 16:9 and ultrawide, then complete five interception-focused sessions with camera impulse both on and off before tuning the Sapper and combined Signal economy.
+
+## 2026-08-20 - Runtime architecture refactor
+
+### Goal
+
+Replace the 1,053-line `DeadSignalGame` monolith with focused single-responsibility collaborators while preserving the complete playable loop, public smoke-test surface, runtime hierarchy names, controls, balance, Reflex composition, and generated presentation.
+
+### Files and systems changed
+
+- `Assets/DeadSignal/Runtime/DeadSignalGame.cs`: reduced from 1,053 lines to roughly 240 lines, retaining only Unity lifecycle, run-state sequencing, pause/restart flow, player movement orchestration, and objective interactions.
+- `Assets/DeadSignal/Runtime/DeadSignalInput.cs` and Unity-generated `.meta`: owns keyboard, mouse, and gamepad polling plus aim projection.
+- `Assets/DeadSignal/Runtime/DeadSignalPalette.cs` and Unity-generated `.meta`: owns creation of the runtime material palette.
+- `Assets/DeadSignal/Runtime/DeadSignalWorld.cs` and Unity-generated `.meta`: owns runtime scene construction, stable object references, arena bounds, powered-territory queries, and blocker-based spatial resolution.
+- `Assets/DeadSignal/Runtime/DeadSignalThreatController.cs` and Unity-generated `.meta`: owns Warden/Sapper state, cooldowns, movement, attacks, projectiles, hit resolution, and telegraph updates.
+- `Assets/DeadSignal/Runtime/DeadSignalSalvageController.cs` and Unity-generated `.meta`: owns pickup animation and collection.
+- `Assets/DeadSignal/Runtime/DeadSignalHud.cs` and Unity-generated `.meta`: owns HUD, prompts, feedback, pause/options presentation, and result reporting as a dedicated Reflex-composed MonoBehaviour.
+- `Assets/DeadSignal/Runtime/DeadSignalBootstrap.cs`: composes and registers the dedicated HUD presenter before activating the runtime root.
+- `Assets/DeadSignal/Runtime/RunModel.cs`: corrected its architecture comment so deterministic rules no longer claim all presentation and input live in `DeadSignalGame`.
+- `Assets/DeadSignal/Tests/PlayMode/BootstrapSmokeTests.cs`: now verifies that bootstrap composes the dedicated HUD presenter before exercising the existing full runtime flow.
+- `BACKLOG.md`: records the completed architecture-quality item.
+- `DEVLOG.md`: records the refactor boundaries and exact validation evidence.
+
+No gameplay rules, costs, timings, controls, art, audio, packages, assembly references, scenes, prefabs, project settings, or serialized data intentionally changed. Existing hierarchy names and the `DeadSignalGame` public properties used by runtime tests remain compatible.
+
+### Tests run and exact outcomes
+
+Matching editor: `C:\Program Files\Unity\Hub\Editor\6000.3.11f1\Editor\Unity.exe`.
+
+1. Initial import/compilation wrote `Logs/refactor-compile.log`: return code `1`; `DeadSignalThreatController` imported `System` for `Action<string>`, making one projectile-cleanup `Object.Destroy` call ambiguous. The call was qualified as `UnityEngine.Object.Destroy`.
+2. Corrected import/compilation wrote `Logs/refactor-compile-fixed.log`: return code `0`; Unity imported all six new source files, generated their `.meta` files, and completed batch shutdown successfully.
+3. EditMode deterministic suite wrote `Logs/refactor-editmode-results.xml` and `Logs/refactor-editmode.log`: return code `0`; `12/12` passed, `0` failed, `0` skipped in `0.0594497` seconds.
+4. Final PlayMode runtime regression wrote `Logs/refactor-playmode-results-final.xml` and `Logs/refactor-playmode-final.log`: return code `0`; `1/1` passed, `0` failed, `0` skipped in `3.3189982` seconds. It directly exercised runtime/HUD composition, pause and persisted comfort state, impact feedback, controller movement and aim, tower activation, Warden/Sapper lifecycle, projectile combat, telegraph timing, Signal drain, and shortcut collision.
+5. Final batch compilation wrote `Logs/refactor-final-compile.log`: return code `0`; Unity exited batch mode successfully after the final dependency cleanup.
+
+Strict scans of the corrected compile, both final test logs, and final compilation found no C# compiler warnings/errors, null or missing-reference exceptions, unhandled exceptions, assertion failures, or failed-test markers. EditMode shutdown logged a non-fatal Unity Connect configuration timeout after the test runner had already completed successfully.
+
+### Known limitations
+
+- `DeadSignalWorld` remains a relatively large builder because the prototype still generates the entire fixed arena in code. Replacing that builder with authored room prefabs is already tracked separately and should be the next major presentation-architecture step.
+- Headless PlayMode validation proves the extracted systems retain behavior but does not replace an interactive keyboard/controller and visual-feel pass.
+
+### Best next step
+
+Run one interactive end-to-end session, then migrate the fixed arena construction from `DeadSignalWorld` into modular authored room prefabs without moving gameplay rules back into the composition layer.
+
+## 2026-08-20 - Autonomous Run 10
+
+### Today's single idea - dynamic objective beacon
+
+Player benefit: the next meaningful action remains understandable without scanning the arena or memorizing the route. A compact navigator points to the tower, then the nearest live salvage cache, then extraction, while showing the target distance and current objective phase.
+
+Acceptance criteria:
+
+- Before tower activation, the beacon targets the Signal tower and labels the activation objective.
+- After activation, it targets the nearest active salvage cache and updates as caches are secured.
+- After all three caches are collected, it targets extraction; it stays hidden under pause and result overlays.
+- The HUD loads and rotates an original transparent maintenance-navigation emblem without changing controls, costs, timing, or deterministic rules.
+- PlayMode coverage proves icon loading and all three objective phases while retaining the existing full controller, pause, combat, Sapper, and shortcut flow.
+
+### Files and systems changed
+
+- `Assets/DeadSignal/Runtime/ObjectiveBeaconHud.cs` and Unity-generated `.meta`: added the dedicated Reflex-composed navigator, nearest-live-cache selection, objective labels, distance display, and directional icon presentation.
+- `Assets/DeadSignal/Resources/UI/ObjectiveBeaconIcon.png` and Unity-generated `.meta`: added an original 1254x1254 RGBA cyan/white/amber maintenance-navigation emblem generated with the built-in image tool. Visual inspection confirmed a clean silhouette; alpha spans 0-255 and the image corners are transparent.
+- `Assets/DeadSignal/Runtime/DeadSignalBootstrap.cs`: composes and registers the navigator alongside the existing focused HUD and combat-feedback presenters.
+- `Assets/DeadSignal/Runtime/DeadSignalGame.cs`: configures the navigator from authoritative run/world state and exposes a narrow read-only PlayMode verification surface.
+- `Assets/DeadSignal/Runtime/RunModel.cs`: refactored its one remaining custom private helper to the repository `_camelCase` convention without changing deterministic behavior.
+- `Assets/DeadSignal/Tests/PlayMode/BootstrapSmokeTests.cs`: proves generated-icon loading, tower guidance, nearest-cache selection, and extraction guidance inside the complete runtime flow.
+- `GAME_VISION.md`: added continuous objective guidance to first-playable acceptance without changing the core concept.
+- `BACKLOG.md`: records dynamic objective guidance as complete while preserving the concurrent runtime-refactor entry.
+- `DEVLOG.md`: records Run 10 scope, implementation, validation, risks, and follow-up.
+
+The pre-existing uncommitted runtime architecture refactor and its documentation were preserved and used as the composition baseline. No gameplay balance, controls, packages, assembly definitions, scenes, prefabs, project settings, serialized data, or third-party assets changed for this idea.
+
+### Tests run and exact outcomes
+
+Matching editor: `C:\Program Files\Unity\Hub\Editor\6000.3.11f1\Editor\Unity.exe`.
+
+1. Import and compilation wrote `Logs/run10-compile.log`: process return code `0`; Unity imported the new source and PNG, retained their generated `.meta` files, compiled runtime/test assemblies, and completed batch shutdown successfully.
+2. EditMode deterministic suite wrote `Logs/run10-editmode-results.xml` and `Logs/run10-editmode.log`: process return code `0`; `12/12` passed, `0` failed, `0` skipped, `0` inconclusive in `0.0517663` seconds.
+3. PlayMode full runtime regression wrote `Logs/run10-playmode-results.xml` and `Logs/run10-playmode.log`: process return code `0`; `1/1` passed, `0` failed, `0` skipped, `0` inconclusive in `3.3811959` seconds. It directly proved Reflex composition, objective-icon loading, tower/nearest-salvage/extraction guidance transitions, and the retained pause, comfort, impact, movement, aim, tower, Sapper, projectile, and shortcut flow.
+4. Final warmed-project regression compilation wrote `Logs/run10-final-compile.log`: process return code `0`; Unity completed batch shutdown successfully after the source, asset, test, and documentation audit.
+
+Unity logged an initial licensing-channel handshake failure on each isolated launch, then connected to the versioned Licensing Client, resolved entitlements, ran the requested work, and returned `0`. Strict scans found no C# compiler warnings/errors, unhandled/null/missing-reference exceptions, assertion failures, or failed-test markers after licensing resolved.
+
+### Bugs found and fixed
+
+- No gameplay, compilation, or automated-test regressions were found in the objective-beacon implementation.
+- PlayMode validation compares the nearest cache in the horizontal arena plane so the cache's intentional hover animation cannot masquerade as an objective-selection failure.
+
+### Known limitations
+
+- Headless validation proves target selection, phase transitions, resource loading, and existing runtime behavior, but cannot judge icon legibility, rotation feel, panel overlap, or visual hierarchy at 16:9 and ultrawide resolutions.
+- The detailed source icon is rendered at 48 pixels in the immediate-mode HUD; an interactive pass may justify a simplified small-size variant or import tuning.
+- The prototype still needs human economy sessions, audio, broader ambient presentation, remaining accessibility settings, authored modular rooms, and a Windows development build.
+
+### Best next step
+
+Run one keyboard/controller session at 16:9 and ultrawide, verify that the beacon points correctly in all quadrants without obscuring prompts, then complete five interception-focused economy sessions before changing Sapper or Signal balance.

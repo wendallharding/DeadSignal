@@ -21,6 +21,7 @@ namespace DeadSignal
         private ICombatFeedback m_combatFeedback;
         private IComfortSettings m_comfortSettings;
         private IDeadSignalHud m_hud;
+        private IObjectiveBeacon m_objectiveBeacon;
         private Container m_container;
         private bool m_lastPoweredState;
         private bool m_fireBuffered;
@@ -30,6 +31,9 @@ namespace DeadSignal
         public bool IsPaused => m_combatFeedback?.IsPaused ?? false;
         public bool HasPauseInsignia => m_hud?.HasPauseInsignia ?? false;
         public bool HasCameraComfortIcon => m_hud?.HasCameraComfortIcon ?? false;
+        public bool HasObjectiveBeaconIcon => m_objectiveBeacon?.HasIcon ?? false;
+        public ObjectiveBeaconPhase CurrentObjectiveBeaconPhase => m_objectiveBeacon?.CurrentPhase ?? ObjectiveBeaconPhase.Tower;
+        public Vector3 CurrentObjectiveBeaconTarget => m_objectiveBeacon?.CurrentTarget ?? Vector3.zero;
         public bool IsCameraImpulseEnabled => m_comfortSettings?.CameraImpulseEnabled ?? true;
 
         /// <summary>
@@ -48,11 +52,13 @@ namespace DeadSignal
             ICombatFeedback combatFeedback,
             IComfortSettings comfortSettings,
             IDeadSignalHud hud,
+            IObjectiveBeacon objectiveBeacon,
             Container container)
         {
             m_combatFeedback = combatFeedback;
             m_comfortSettings = comfortSettings;
             m_hud = hud;
+            m_objectiveBeacon = objectiveBeacon;
             m_container = container;
         }
 
@@ -68,6 +74,7 @@ namespace DeadSignal
             m_threats = new DeadSignalThreatController(m_model, m_metrics, m_world, m_combatFeedback, _showFeedback);
             m_salvage = new DeadSignalSalvageController(m_model, m_world, _showFeedback);
             m_hud.Configure(m_model, m_metrics, m_world, m_threats);
+            m_objectiveBeacon.Configure(m_model, m_world);
             m_lastPoweredState = m_world.IsPowered(m_world.Player.position, m_model.TowerOnline);
         }
 
@@ -174,7 +181,7 @@ namespace DeadSignal
             {
                 if (m_model.TryActivateTower())
                 {
-                    m_world.ActivateTower();
+                    m_world.ActivateTower(DeadSignalThreatController.SAPPER_PULSE_INTERVAL);
                     _showFeedback("TOWER ONLINE - TWO THREATS AWAKENED");
                 }
                 else

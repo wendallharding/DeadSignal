@@ -83,7 +83,7 @@ namespace DeadSignal
             }
 
             Signal -= amount;
-            EvaluateSignal();
+            _evaluateSignal();
             return true;
         }
 
@@ -98,7 +98,7 @@ namespace DeadSignal
             float movementDrain = isMoving ? (isPowered ? 0.38f : 3.2f) : 0f;
             Signal -= (passiveDrain + movementDrain) * seconds;
             Signal = Math.Max(0f, Signal);
-            EvaluateSignal();
+            _evaluateSignal();
         }
 
         public bool TryActivateTower()
@@ -137,7 +137,7 @@ namespace DeadSignal
             }
 
             Signal = Math.Max(0f, Signal - SecurityHitCost);
-            EvaluateSignal();
+            _evaluateSignal();
         }
 
         public void TakeSapperPulse()
@@ -148,7 +148,7 @@ namespace DeadSignal
             }
 
             Signal = Math.Max(0f, Signal - SapperPulseCost);
-            EvaluateSignal();
+            _evaluateSignal();
         }
 
         public void CollectSalvage()
@@ -170,7 +170,7 @@ namespace DeadSignal
             return true;
         }
 
-        private void EvaluateSignal()
+        private void _evaluateSignal()
         {
             if (Signal <= 0f && Outcome == RunOutcome.Running)
             {
