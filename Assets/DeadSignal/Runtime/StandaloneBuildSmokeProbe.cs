@@ -41,12 +41,14 @@ namespace DeadSignal
             var runtimeReady = game != null &&
                                 game.transform.Find("Maintenance Drone") != null &&
                                 game.transform.Find("Shortcut Gate Assembly/Signal Shortcut Gate") != null &&
+                                game.transform.Find("Tower Signal Lines/Signal Trunk West") != null &&
                                 game.HasGeneratedAudio &&
                                 game.HasMaintenanceDeckAssets &&
                                 game.HasMaintenanceRoomShellAssets &&
                                 game.HasSignalTowerAssets &&
                                 game.HasExtractionPadAssets &&
                                 game.HasShortcutGateAssets &&
+                                game.HasSignalRoutingAssets &&
                                 game.HasLowSignalWarningTexture &&
                                 game.HasTowerActivationSweepTexture;
             if (!runtimeReady)

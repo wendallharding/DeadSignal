@@ -24,6 +24,7 @@
 - [x] Migrate the central Signal tower into a textured authored prefab without changing its interaction or animation
 - [x] Migrate the extraction dock into a textured authored prefab without changing its safe-zone or extraction rules
 - [x] Migrate the Signal-cost shortcut into a textured authored prefab without changing its route-choice rules
+- [x] Migrate the powered Signal-line routing into a textured authored prefab without changing tower rules
 - [x] Add a Signal-cost shortcut gate and first route choice
 - [x] Add a second enemy archetype that pressures powered territory
 - [x] Telegraph the Sapper's tower target and timed drain pulses in-world

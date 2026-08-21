@@ -23,6 +23,8 @@ namespace DeadSignal.Editor
         private const string EXTRACTION_PAD_PREFAB_PATH = ENVIRONMENT_FOLDER + "/ExtractionPadAssembly.prefab";
         private const string SHORTCUT_GATE_TEXTURE_PATH = ENVIRONMENT_FOLDER + "/ShortcutGatePanel.png";
         private const string SHORTCUT_GATE_PREFAB_PATH = ENVIRONMENT_FOLDER + "/ShortcutGateAssembly.prefab";
+        private const string SIGNAL_ROUTING_TEXTURE_PATH = ENVIRONMENT_FOLDER + "/SignalRoutingPanel.png";
+        private const string SIGNAL_ROUTING_PREFAB_PATH = ENVIRONMENT_FOLDER + "/SignalRoutingAssembly.prefab";
         private const string CREATE_REFLEX_SETTINGS_MENU = "Assets/Create/Reflex/Settings";
 
         public static bool HasReflexSettings =>
@@ -51,6 +53,10 @@ namespace DeadSignal.Editor
         public static bool HasShortcutGateAssets =>
             AssetDatabase.LoadAssetAtPath<Texture2D>(SHORTCUT_GATE_TEXTURE_PATH) != null &&
             AssetDatabase.LoadAssetAtPath<GameObject>(SHORTCUT_GATE_PREFAB_PATH) != null;
+
+        public static bool HasSignalRoutingAssets =>
+            AssetDatabase.LoadAssetAtPath<Texture2D>(SIGNAL_ROUTING_TEXTURE_PATH) != null &&
+            AssetDatabase.LoadAssetAtPath<GameObject>(SIGNAL_ROUTING_PREFAB_PATH) != null;
 
         public static void EnsureReflexSettings()
         {
@@ -308,6 +314,45 @@ namespace DeadSignal.Editor
             if (!HasShortcutGateAssets)
             {
                 throw new InvalidOperationException("The shortcut gate texture and assembly prefab were not created successfully.");
+            }
+        }
+
+        public static void EnsureSignalRoutingAssets()
+        {
+            var importer = AssetImporter.GetAtPath(SIGNAL_ROUTING_TEXTURE_PATH) as TextureImporter;
+            if (importer == null)
+            {
+                throw new InvalidOperationException($"Could not find the Signal-routing texture at {SIGNAL_ROUTING_TEXTURE_PATH}.");
+            }
+
+            importer.alphaIsTransparency = false;
+            importer.mipmapEnabled = true;
+            importer.maxTextureSize = 1024;
+            importer.wrapMode = TextureWrapMode.Repeat;
+            importer.textureCompression = TextureImporterCompression.CompressedHQ;
+            importer.SaveAndReimport();
+
+            if (AssetDatabase.LoadAssetAtPath<GameObject>(SIGNAL_ROUTING_PREFAB_PATH) == null)
+            {
+                var routing = new GameObject("Signal Routing Assembly");
+                _createPrefabCube("Signal Trunk West", new Vector3(-4.7f, -0.03f, 0.4f),
+                    new Vector3(0.09f, 0.04f, 8.2f), routing.transform);
+                _createPrefabCube("Signal Trunk East", new Vector3(4.1f, -0.03f, 0.4f),
+                    new Vector3(0.09f, 0.04f, 9.4f), routing.transform);
+                _createPrefabCube("Signal Branch", new Vector3(-0.6f, -0.025f, -3.5f),
+                    new Vector3(0.09f, 0.04f, 7.8f), routing.transform);
+                routing.transform.Find("Signal Trunk West").localRotation = Quaternion.Euler(0f, 90f, 0f);
+                routing.transform.Find("Signal Trunk East").localRotation = Quaternion.Euler(0f, 90f, 0f);
+
+                PrefabUtility.SaveAsPrefabAsset(routing, SIGNAL_ROUTING_PREFAB_PATH);
+                UnityEngine.Object.DestroyImmediate(routing);
+            }
+
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
+            if (!HasSignalRoutingAssets)
+            {
+                throw new InvalidOperationException("The Signal-routing texture and assembly prefab were not created successfully.");
             }
         }
 

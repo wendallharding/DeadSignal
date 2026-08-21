@@ -1355,3 +1355,61 @@ Matching Editor: `C:\Program Files\Unity\Hub\Editor\6000.3.11f1\Editor\Unity.exe
 ### Best next step
 
 Play `Build/Windows/DeadSignal.exe` at 16:9 and ultrawide in normal and High Contrast modes, alternate buying and skipping the gate, and confirm its closed/open state and both free detours read instantly; then migrate the runtime Signal-line geometry into an authored network-routing prefab.
+
+## 2026-08-21 — Autonomous Run 24
+
+### Today's single idea — authored Signal-routing assembly
+
+Player benefit: restoring the tower now reveals a deliberate physical circuit network across the deck instead of three bare cyan runtime bars. Original dark-alloy conduit art visually connects the tower, extraction side, shortcut side, and southern route while preserving the instant cyan read of powered territory.
+
+Acceptance criteria:
+
+- one reusable Unity-authored, collider-free routing prefab owns the west trunk, east trunk, and south branch at the existing world-space positions and dimensions;
+- runtime composition loads the prefab hidden, applies original cyan conduit art, and reveals the complete assembly only when the tower activates;
+- horizontal segment orientation preserves exact occupied geometry while aligning the texture's continuous conduit with each route;
+- a safe primitive fallback preserves the visibility transition if the prefab is absent, while tests, build validation, and packaged smoke report production readiness as false;
+- no power radius, tower price, Signal economy, route collision, threat timing, movement, controls, audio, save data, or serialized gameplay state changes; and
+- import/compile, EditMode, PlayMode, Windows build, Direct3D 11 packaged smoke, strict scans, and repository checks pass.
+
+### Files and systems changed
+
+- `Assets/DeadSignal/Resources/Environment/SignalRoutingPanel.png` and Unity-generated `.meta`: added an original 1254x1254 RGB dark-alloy conduit texture generated with the built-in image tool. The project copy was visually inspected and imported with sRGB, mipmaps, repeat wrapping, high-quality compression, and a 1024px default-platform cap. SHA-256: `B029C59CB3FD28E65FA1A452ED09430D34FA0C66607D4FB405FA1B0FE37C7AFB`; GUID: `554494648247b414ea43e7330aa87413`.
+- `Assets/DeadSignal/Resources/Environment/SignalRoutingAssembly.prefab` and Unity-generated `.meta`: added the reusable collider-free three-segment routing assembly through Unity's Prefab API. GUID: `80aa18974bb1e1c41ae0ed4261d45cff`.
+- `Assets/DeadSignal/Runtime/DeadSignalWorld.cs`: extracts routing composition from tower construction, loads and validates the authored prefab, applies the dedicated material, preserves dormant/online visibility, and retains a safe missing-asset fallback. This focused extraction is the run's one-class production-readiness refactor.
+- `Assets/DeadSignal/Runtime/DeadSignalPalette.cs`: adds the generated routing texture Resource and a dedicated live High Contrast-aware routing material.
+- `Assets/DeadSignal/Runtime/DeadSignalGame.cs`: exposes narrow routing asset and part-count state for validation.
+- `Assets/DeadSignal/Editor/DeadSignalProjectSetup.cs`: adds idempotent texture configuration and Unity-driven routing-prefab creation with art-aligned horizontal segment orientation.
+- `Assets/DeadSignal/Editor/DeadSignalWindowsBuild.cs`: prepares and requires the authored routing assets before packaging.
+- `Assets/DeadSignal/Runtime/StandaloneBuildSmokeProbe.cs`: requires the authored routing hierarchy and texture in packaged-player readiness.
+- `Assets/DeadSignal/Tests/PlayMode/BootstrapSmokeTests.cs`: verifies the authored root, three renderers, absent colliders, original texture assignment, production readiness, dormant state, and tower-activation reveal alongside the complete prior regression.
+- `GAME_VISION.md`, `BACKLOG.md`, and `DEVLOG.md`: record the authored-network milestone without changing the core concept.
+
+No packages, assembly definitions, scenes, project settings, deterministic rules, input, audio, balance, save data, or serialized gameplay state were intentionally changed. Reflex 14.3.1 was already installed. Unity's automatic build rewrites to URP assets, Graphics settings, batching, Unity Services, and earlier texture metadata were removed from the final source diff.
+
+### Tests run and exact outcomes
+
+Matching Editor: `C:\Program Files\Unity\Hub\Editor\6000.3.11f1\Editor\Unity.exe` (Unity 6000.3.11f1) against the live workspace.
+
+1. Unity import, compilation, texture configuration, and prefab setup wrote `Logs/run24-signal-routing-setup.log`: Unity imported the generated PNG, compiled all changed assemblies, created the collider-free prefab and both `.meta` files, and exited `0`.
+2. EditMode regression wrote `Logs/run24-editmode-results.xml` and `Logs/run24-editmode.log`: Unity exited `0`; `16/16` passed, `0` failed, `0` skipped, `0` inconclusive in `0.0614444` seconds.
+3. PlayMode full runtime regression wrote `Logs/run24-playmode-results.xml` and `Logs/run24-playmode.log`: Unity exited `0`; `1/1` passed, `0` failed, `0` skipped, `0` inconclusive in `3.9367684` seconds. It proved authored routing composition and retained every prior input, pause, accessibility, audio, particles, warning, activation, combat, Sapper, salvage, shortcut, extraction, and restart assertion.
+4. Windows development build wrote `Logs/run24-windows-build.log`: Unity exited `0`, reported `Build Finished, Result: Success`, emitted the build PASS marker, and produced 188,212,061 reported bytes in 44.65 seconds. The ignored local artifact contains 293 files totaling 188,405,403 bytes.
+5. Real packaged launch wrote `Logs/run24-standalone-d3d11-smoke.log`: the player forced Direct3D 11 on the NVIDIA GeForce RTX 3060, found the authored routing hierarchy and generated texture, printed one PASS marker, and exited `0`.
+6. Static asset inspection found exactly three mesh renderers and no collider component in the prefab. The project PNG was visually inspected and verified as 1254x1254 `Format24bppRgb`.
+7. Final warmed-project compilation after documentation and settings cleanup wrote `Logs/run24-final-compile.log`: Unity exited `0` with no first-party compiler error or warning.
+8. Strict scans of setup, EditMode, PlayMode, build, packaged-player, and final-compile logs found no first-party compiler errors, null or missing-reference exceptions, unhandled exceptions, failed assertions, failed tests, or failed smoke markers. Final metadata, trailing-whitespace, and `git diff --check` validation passed.
+
+### Bugs found and fixed
+
+- Source review caught that the generated texture's main conduit runs vertically, which would have stretched across rather than along the two horizontal trunks. The prefab and fallback rotate those trunks while swapping local length axes, preserving their exact world geometry and aligning the art with every route.
+- Removed unrelated Unity build-time URP, Graphics, batching, Unity Services, and existing texture-metadata serialization changes before final validation.
+
+### Known limitations
+
+- Automated checks prove hierarchy, Resources loading, texture assignment, High Contrast remapping, dormant/online visibility, and packaged startup but cannot judge conduit brightness, UV projection, or route readability at 16:9 and ultrawide.
+- The generated texture is an albedo only and the three segments retain thin cube meshes; a later art pass may benefit from emissive masks or junction meshes after a human top-down composition pass.
+- Deck, room shell, tower, extraction, shortcut, and Signal routing are authored, while gameplay markers and machine visuals remain runtime-composed. The broader complete-room migration remains open.
+
+### Best next step
+
+Play `Build/Windows/DeadSignal.exe` at 16:9 and ultrawide in normal and High Contrast modes, activate the tower, and confirm all three conduit runs appear continuous without overpowering actors or territory overlays; then migrate the runtime machine visuals into an authored socket-driven prop prefab.

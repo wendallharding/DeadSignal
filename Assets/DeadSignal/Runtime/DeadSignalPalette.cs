@@ -14,6 +14,7 @@ namespace DeadSignal
         private const string SIGNAL_TOWER_TEXTURE_RESOURCE = "Environment/SignalTowerHousingPanel";
         private const string EXTRACTION_DOCK_TEXTURE_RESOURCE = "Environment/ExtractionDockPanel";
         private const string SHORTCUT_GATE_TEXTURE_RESOURCE = "Environment/ShortcutGatePanel";
+        private const string SIGNAL_ROUTING_TEXTURE_RESOURCE = "Environment/SignalRoutingPanel";
 
         public DeadSignalPalette(bool highContrastEnabled)
         {
@@ -29,6 +30,7 @@ namespace DeadSignal
             ExtractionHousing = _createMaterial("Extraction Dock Housing");
             ShortcutHousing = _createMaterial("Shortcut Gate Housing");
             ShortcutLocked = _createMaterial("Shortcut Gate Locked");
+            SignalRouting = _createMaterial("Signal Routing");
             Dark = _createMaterial("Station Black");
             Steel = _createMaterial("Station Steel");
             White = _createMaterial("Drone White");
@@ -114,6 +116,22 @@ namespace DeadSignal
             }
 
             HasShortcutTexture = shortcutTexture != null;
+            var signalRoutingTexture = Resources.Load<Texture2D>(SIGNAL_ROUTING_TEXTURE_RESOURCE);
+            if (signalRoutingTexture != null)
+            {
+                SignalRouting.mainTexture = signalRoutingTexture;
+                if (SignalRouting.HasProperty("_BaseMap"))
+                {
+                    SignalRouting.SetTexture("_BaseMap", signalRoutingTexture);
+                }
+
+                if (SignalRouting.HasProperty("_Smoothness"))
+                {
+                    SignalRouting.SetFloat("_Smoothness", 0.4f);
+                }
+            }
+
+            HasSignalRoutingTexture = signalRoutingTexture != null;
             ApplyHighContrast(highContrastEnabled);
         }
 
@@ -129,6 +147,7 @@ namespace DeadSignal
         public Material ExtractionHousing { get; }
         public Material ShortcutHousing { get; }
         public Material ShortcutLocked { get; }
+        public Material SignalRouting { get; }
         public Material Dark { get; }
         public Material Steel { get; }
         public Material White { get; }
@@ -137,6 +156,7 @@ namespace DeadSignal
         public bool HasTowerTexture { get; }
         public bool HasExtractionTexture { get; }
         public bool HasShortcutTexture { get; }
+        public bool HasSignalRoutingTexture { get; }
 
         public void ApplyHighContrast(bool enabled)
         {
@@ -176,6 +196,9 @@ namespace DeadSignal
             _setMaterial(ShortcutLocked,
                 enabled ? new Color(1f, 0.34f, 0.28f) : new Color(0.52f, 0.15f, 0.16f),
                 enabled ? new Color(0.4f, 0.025f, 0.015f) : new Color(0.12f, 0.005f, 0.005f));
+            _setMaterial(SignalRouting,
+                enabled ? Color.white : new Color(0.72f, 0.82f, 0.86f),
+                enabled ? new Color(0.06f, 0.72f, 0.8f) : new Color(0.015f, 0.32f, 0.38f));
             _setMaterial(Dark,
                 enabled ? Color.black : new Color(0.012f, 0.018f, 0.026f),
                 Color.black);

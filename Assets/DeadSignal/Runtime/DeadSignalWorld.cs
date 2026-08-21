@@ -18,6 +18,7 @@ namespace DeadSignal
         private const string SIGNAL_TOWER_PREFAB_RESOURCE = "Environment/SignalTowerAssembly";
         private const string EXTRACTION_PAD_PREFAB_RESOURCE = "Environment/ExtractionPadAssembly";
         private const string SHORTCUT_GATE_PREFAB_RESOURCE = "Environment/ShortcutGateAssembly";
+        private const string SIGNAL_ROUTING_PREFAB_RESOURCE = "Environment/SignalRoutingAssembly";
         private const float DECK_MODULE_WIDTH = 3.9f;
         private const float DECK_MODULE_DEPTH = 3.6f;
 
@@ -66,6 +67,8 @@ namespace DeadSignal
         public int ExtractionPadPartCount { get; private set; }
         public bool HasShortcutGateAssets { get; private set; }
         public int ShortcutGatePartCount { get; private set; }
+        public bool HasSignalRoutingAssets { get; private set; }
+        public int SignalRoutingPartCount { get; private set; }
 
         public bool IsPowered(Vector3 position, bool towerOnline)
         {
@@ -395,11 +398,44 @@ namespace DeadSignal
                 SignalTowerPartCount = 3;
             }
 
+            _buildSignalRouting();
+        }
+
+        private void _buildSignalRouting()
+        {
+            var routingPrefab = Resources.Load<GameObject>(SIGNAL_ROUTING_PREFAB_RESOURCE);
+            var hasValidPrefab = routingPrefab != null &&
+                                 routingPrefab.transform.Find("Signal Trunk West") != null &&
+                                 routingPrefab.transform.Find("Signal Trunk East") != null &&
+                                 routingPrefab.transform.Find("Signal Branch") != null;
+            if (hasValidPrefab)
+            {
+                m_towerSignalLines = Object.Instantiate(routingPrefab, m_root);
+                m_towerSignalLines.name = "Tower Signal Lines";
+                m_towerSignalLines.transform.localPosition = Vector3.zero;
+                m_towerSignalLines.transform.localRotation = Quaternion.identity;
+                foreach (var routingRenderer in m_towerSignalLines.GetComponentsInChildren<Renderer>())
+                {
+                    routingRenderer.sharedMaterial = m_palette.SignalRouting;
+                    SignalRoutingPartCount++;
+                }
+
+                HasSignalRoutingAssets = m_palette.HasSignalRoutingTexture && SignalRoutingPartCount == 3;
+                m_towerSignalLines.SetActive(false);
+                return;
+            }
+
             m_towerSignalLines = new GameObject("Tower Signal Lines");
-            m_towerSignalLines.transform.SetParent(m_root);
-            _createPrimitive("Signal Trunk West", PrimitiveType.Cube, new Vector3(-4.7f, -0.03f, 0.4f), new Vector3(8.2f, 0.04f, 0.09f), m_palette.Cyan, m_towerSignalLines.transform);
-            _createPrimitive("Signal Trunk East", PrimitiveType.Cube, new Vector3(4.1f, -0.03f, 0.4f), new Vector3(9.4f, 0.04f, 0.09f), m_palette.Cyan, m_towerSignalLines.transform);
-            _createPrimitive("Signal Branch", PrimitiveType.Cube, new Vector3(-0.6f, -0.025f, -3.5f), new Vector3(0.09f, 0.04f, 7.8f), m_palette.Cyan, m_towerSignalLines.transform);
+            m_towerSignalLines.transform.SetParent(m_root, false);
+            var westTrunk = _createPrimitive("Signal Trunk West", PrimitiveType.Cube, new Vector3(-4.7f, -0.03f, 0.4f),
+                new Vector3(0.09f, 0.04f, 8.2f), m_palette.SignalRouting, m_towerSignalLines.transform);
+            westTrunk.transform.localRotation = Quaternion.Euler(0f, 90f, 0f);
+            var eastTrunk = _createPrimitive("Signal Trunk East", PrimitiveType.Cube, new Vector3(4.1f, -0.03f, 0.4f),
+                new Vector3(0.09f, 0.04f, 9.4f), m_palette.SignalRouting, m_towerSignalLines.transform);
+            eastTrunk.transform.localRotation = Quaternion.Euler(0f, 90f, 0f);
+            _createPrimitive("Signal Branch", PrimitiveType.Cube, new Vector3(-0.6f, -0.025f, -3.5f),
+                new Vector3(0.09f, 0.04f, 7.8f), m_palette.SignalRouting, m_towerSignalLines.transform);
+            SignalRoutingPartCount = 3;
             m_towerSignalLines.SetActive(false);
         }
 

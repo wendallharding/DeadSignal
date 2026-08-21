@@ -26,6 +26,7 @@ namespace DeadSignal.Editor
             DeadSignalProjectSetup.EnsureSignalTowerAssets();
             DeadSignalProjectSetup.EnsureExtractionPadAssets();
             DeadSignalProjectSetup.EnsureShortcutGateAssets();
+            DeadSignalProjectSetup.EnsureSignalRoutingAssets();
             _validateBuildInputs();
             _configureWindowsPlayer();
 
@@ -103,6 +104,11 @@ namespace DeadSignal.Editor
             if (!DeadSignalProjectSetup.HasShortcutGateAssets)
             {
                 throw new BuildFailedException("The authored shortcut gate assets are missing.");
+            }
+
+            if (!DeadSignalProjectSetup.HasSignalRoutingAssets)
+            {
+                throw new BuildFailedException("The authored Signal-routing assets are missing.");
             }
 
             if (AssetDatabase.LoadAssetAtPath<Texture2D>(APPLICATION_ICON_PATH) == null)

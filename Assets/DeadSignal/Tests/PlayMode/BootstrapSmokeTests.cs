@@ -51,6 +51,20 @@ namespace DeadSignal.Tests
                 "The authored shortcut should remain presentation-only so movement rules stay authoritative.");
             Assert.That(shortcut.Find("Signal Shortcut Gate").GetComponent<Renderer>().sharedMaterial.mainTexture, Is.Not.Null,
                 "The authored gate should render the original powered-lock texture.");
+            var signalRouting = game.transform.Find("Tower Signal Lines");
+            Assert.That(signalRouting, Is.Not.Null, "The powered network should load from the authored routing prefab.");
+            Assert.That(game.HasSignalRoutingAssets, Is.True,
+                "The routing prefab and original circuit texture should load from Resources.");
+            Assert.That(game.SignalRoutingPartCount, Is.EqualTo(3));
+            Assert.That(signalRouting.GetComponentsInChildren<Renderer>(true).Length, Is.EqualTo(3));
+            Assert.That(signalRouting.GetComponentsInChildren<Collider>(true).Length, Is.Zero,
+                "The authored routing should remain presentation-only so gameplay rules stay authoritative.");
+            Assert.That(
+                signalRouting.Find("Signal Trunk West").GetComponent<Renderer>().sharedMaterial.mainTexture,
+                Is.Not.Null,
+                "The authored network trunks should render the original circuit texture.");
+            Assert.That(signalRouting.gameObject.activeSelf, Is.False,
+                "The authored network routing should remain hidden while the tower is dormant.");
             Transform maintenanceDeck = game.transform.Find("Maintenance Deck Modules");
             Assert.That(maintenanceDeck, Is.Not.Null, "The arena should be assembled from authored maintenance-deck modules.");
             Assert.That(game.MaintenanceDeckModuleCount, Is.EqualTo(35));
@@ -292,6 +306,8 @@ namespace DeadSignal.Tests
 
                 Assert.That(game.transform.Find("Security Warden").gameObject.activeSelf, Is.True,
                     "Gamepad west button should activate the nearby tower and awaken security.");
+                Assert.That(signalRouting.gameObject.activeSelf, Is.True,
+                    "Tower activation should reveal the authored Signal-routing assembly.");
                 Assert.That(game.IsTowerActivationSweepPlaying, Is.True,
                     "Tower activation should launch one visible network-expansion sweep.");
                 Assert.That(game.transform.Find("Tower Network Activation Sweep"), Is.Not.Null);
