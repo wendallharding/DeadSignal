@@ -25,6 +25,7 @@ namespace DeadSignal
         private IDeadSignalHud m_hud;
         private IObjectiveBeacon m_objectiveBeacon;
         private ISignalDust m_signalDust;
+        private ILowSignalWarning m_lowSignalWarning;
         private Container m_container;
         private bool m_lastPoweredState;
         private bool m_fireBuffered;
@@ -41,6 +42,8 @@ namespace DeadSignal
         public bool HasAudioLinkIcon => m_hud?.HasAudioLinkIcon ?? false;
         public bool HasGeneratedAudio => m_audio?.HasGeneratedClips ?? false;
         public bool HasSignalDustTexture => m_signalDust?.HasTexture ?? false;
+        public bool HasLowSignalWarningTexture => m_lowSignalWarning?.HasTexture ?? false;
+        public float LowSignalWarningIntensity => m_lowSignalWarning?.CurrentIntensity ?? 0f;
         public bool IsSignalDustPowered => m_signalDust?.IsPowered ?? false;
         public int SignalDustMaximumParticles => m_signalDust?.MaximumParticles ?? 0;
         public float SignalDustEmissionRate => m_signalDust?.EmissionRate ?? 0f;
@@ -105,6 +108,7 @@ namespace DeadSignal
             IDeadSignalHud hud,
             IObjectiveBeacon objectiveBeacon,
             ISignalDust signalDust,
+            ILowSignalWarning lowSignalWarning,
             Container container)
         {
             m_combatFeedback = combatFeedback;
@@ -114,6 +118,7 @@ namespace DeadSignal
             m_hud = hud;
             m_objectiveBeacon = objectiveBeacon;
             m_signalDust = signalDust;
+            m_lowSignalWarning = lowSignalWarning;
             m_container = container;
         }
 
@@ -133,6 +138,8 @@ namespace DeadSignal
             m_lastPoweredState = m_world.IsPowered(m_world.Player.position, m_model.TowerOnline);
             m_signalDust.Configure();
             m_signalDust.Tick(m_lastPoweredState, m_model.TowerOnline, m_model.Signal / RunModel.MaximumSignal);
+            m_lowSignalWarning.Configure(m_model);
+            m_lowSignalWarning.Tick(0f);
         }
 
         private void Update()
@@ -174,6 +181,7 @@ namespace DeadSignal
             m_audio.Tick(powered, m_model.TowerOnline, m_model.Signal / RunModel.MaximumSignal);
             m_model.Advance(dt, movement.sqrMagnitude > 0.01f, powered);
             m_signalDust.Tick(powered, m_model.TowerOnline, m_model.Signal / RunModel.MaximumSignal);
+            m_lowSignalWarning.Tick(dt);
             m_metrics.Advance(dt, powered);
             if (powered != m_lastPoweredState)
             {

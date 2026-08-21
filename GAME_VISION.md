@@ -52,6 +52,7 @@ This autonomous run is accepted when a fresh Play session provides all of the fo
 - Control legends, contextual interactions, pause options, and restart guidance immediately follow the player's latest keyboard/mouse or gamepad input.
 - Original synthesized machinery ambience shifts between dead zones and powered territory, key actions have distinct cues, and a persisted pause option can mute all audio.
 - A bounded field of original Signal-dust motes becomes denser and brighter in powered territory, freezes with pause, and stays sparse in the dead zone.
+- Below 30 Signal, an original amber-red screen-edge warning intensifies toward failure, stays clear of the playfield center, and respects pause, outcomes, and Reduced Flashes.
 - Core resource/objective transitions have deterministic EditMode tests, and the Unity project compiles in batch mode.
 
 ## Experience target

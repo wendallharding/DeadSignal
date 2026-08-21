@@ -42,9 +42,10 @@ namespace DeadSignal
             var hud = root.AddComponent<DeadSignalHud>();
             var objectiveBeacon = root.AddComponent<ObjectiveBeaconHud>();
             var signalDust = root.AddComponent<SignalDustController>();
+            var lowSignalWarning = root.AddComponent<LowSignalWarningController>();
             root.AddComponent<DeadSignalGame>();
 
-            Container container = new ContainerBuilder()
+            var container = new ContainerBuilder()
                 .SetName("DEAD SIGNAL Runtime")
                 .RegisterValue(comfortSettings, new[] { typeof(IComfortSettings) })
                 .RegisterValue(input, new[] { typeof(IDeadSignalInput) })
@@ -53,6 +54,7 @@ namespace DeadSignal
                 .RegisterValue(hud, new[] { typeof(IDeadSignalHud) })
                 .RegisterValue(objectiveBeacon, new[] { typeof(IObjectiveBeacon) })
                 .RegisterValue(signalDust, new[] { typeof(ISignalDust) })
+                .RegisterValue(lowSignalWarning, new[] { typeof(ILowSignalWarning) })
                 .Build();
             GameObjectInjector.InjectObject(root, container);
             root.SetActive(true);

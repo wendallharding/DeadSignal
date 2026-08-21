@@ -892,3 +892,57 @@ Matching editor: `C:\Program Files\Unity\Hub\Editor\6000.3.11f1\Editor\Unity.exe
 ### Best next step
 
 Play one complete run at 16:9 and ultrawide to tune mote size/density alongside the new soundscape, then create the first Windows development build and build-validation test.
+
+## 2026-08-21 — Autonomous Run 16
+
+### Today's single idea — adaptive low-Signal emergency vignette
+
+Player benefit: players can recognize an approaching Signal failure in peripheral vision while aiming, fighting, or routing through the dark instead of repeatedly looking back to the numeric HUD. The presentation adds urgency without changing drain, damage, timing, or any other gameplay rule.
+
+Acceptance criteria:
+
+- The warning remains completely hidden at or above 30 Signal and strengthens smoothly as Signal approaches zero.
+- Original amber-red fractured-circuit art stays at the screen edge with a fully transparent center so it never obscures the drone, threats, or objective route.
+- Reduced Flashes removes opacity pulsing and caps the maximum overlay alpha at 16%.
+- Pause and completed outcomes hide the warning, while ordinary hit-stop freezes its phase with the rest of the run.
+- The presenter is independently composed through Reflex, and automated coverage proves its intensity policy, asset loading, safe starting state, and complete existing runtime flow.
+
+### Files and systems changed
+
+- `Assets/DeadSignal/Runtime/LowSignalWarningController.cs` and Unity-generated `.meta`: added `ILowSignalWarning` and a focused Reflex-composed presenter. It loads the overlay, owns the 30-Signal threshold and smooth danger curve, uses a restrained live pulse, applies the Reduced Flashes steady cap, and hides beneath pause/outcome presentation.
+- `Assets/DeadSignal/Runtime/DeadSignalBootstrap.cs`: creates and registers the presenter through the existing Reflex container. This run's focused convention refactor also changes the apparent-type `Container` local to `var`; Reflex 14.3.1 was already installed, so no package change was needed.
+- `Assets/DeadSignal/Runtime/DeadSignalGame.cs`: injects, configures, and ticks the presenter and exposes narrow read-only smoke-test state.
+- `Assets/DeadSignal/Resources/UI/LowSignalWarningVignette.png` and Unity-generated `.meta`: added an original 1254x1254 RGBA amber-red fractured maintenance-circuit border generated with the built-in image tool. Unity imports it as an alpha-aware, non-mipmapped texture clamped to 1024px. Visual inspection confirmed the open center; pixel inspection found alpha `0` at the center, upper-edge midpoint, and inner sample, with visible corner art at alpha `228`. SHA-256: `6E5A1B68A6CFEFE6260812F88C1EB3A729A6203A19654D276735EE9470B08963`.
+- `Assets/DeadSignal/Tests/LowSignalWarningControllerTests.cs` and Unity-generated `.meta`: added two focused EditMode tests for threshold/intensity progression and the Reduced Flashes pulse removal/opacity cap.
+- `Assets/DeadSignal/Tests/PlayMode/BootstrapSmokeTests.cs`: proves the presenter and generated resource are composed and loaded while the safe starting reserve leaves the overlay inactive, alongside the complete prior regression.
+- `GAME_VISION.md`, `BACKLOG.md`, and `DEVLOG.md`: record the accepted feature without changing the core pitch.
+
+No packages, assembly definitions, scenes, prefabs, materials, shaders, audio, input bindings, project settings, serialized gameplay data, deterministic rules, or balance values were changed.
+
+### Tests run and exact outcomes
+
+Matching editor: `C:\Program Files\Unity\Hub\Editor\6000.3.11f1\Editor\Unity.exe` (Unity 6000.3.11f1) against the live workspace.
+
+1. Import and compilation wrote `Logs/run16-compile.log`: Unity generated all three new `.meta` files, imported the PNG, compiled the changed runtime and test assemblies, and terminated with return code `0`.
+2. EditMode suite wrote `Logs/run16-editmode-results.xml` and `Logs/run16-editmode.log`: Unity return code `0`; `14/14` passed, `0` failed, `0` skipped, `0` inconclusive in `0.0488373` seconds.
+3. PlayMode full runtime regression wrote `Logs/run16-playmode-results.xml` and `Logs/run16-playmode.log`: Unity return code `0`; `1/1` passed, `0` failed, `0` skipped, `0` inconclusive in `3.68089` seconds. It proved Reflex composition and warning-art loading plus all prior particle, audio, adaptive input, comfort, pause, combat, Sapper, salvage, shortcut, extraction, and restart paths.
+4. Strict scans of the compile and both test logs found no C# compiler errors/warnings, null or missing-reference exceptions, unhandled exceptions, assertion failures, failed-test markers, or AudioListener warnings. Final `git diff --check` passed.
+5. The generated PNG was visually inspected at original resolution and verified as 1254x1254 `Format32bppArgb`; Unity accepted the explicit 1024px, alpha-aware, non-mipmapped import settings.
+6. Metadata hygiene validation wrote `Logs/run16-meta-validation.log`: Unity return code `0`; it accepted normalized empty YAML values while preserving generated GUID `7eb5b4ee6c226264695a5a771ebcacac`.
+
+Unity launches logged the existing transient licensing-channel handshake/access-token errors before resolving both installed Pro entitlements. The final successful shutdown also logged `Curl error 42: Callback aborted` after batch quit was invoked; all requested processes still returned `0`, and no compilation, import, or test result was affected.
+
+### Bugs found and fixed
+
+- No gameplay, compilation, import, or automated-test defect was found during this run.
+- The generated texture's default import was corrected before final validation to enable alpha-edge handling, disable unnecessary UI mipmaps, and cap runtime size at 1024px.
+
+### Known limitations
+
+- Headless tests prove intensity math, integration, and presentation gating but cannot judge subjective urgency, peripheral readability, edge cropping, or overlap at 16:9 and ultrawide resolutions.
+- The square source is stretched to the active screen rectangle so every edge remains present. An interactive ultrawide pass may justify authored aspect-ratio variants later.
+- The first standalone Windows build and build-validation test remain open, as do recorded economy sessions and authored modular rooms.
+
+### Best next step
+
+Drain below 30 Signal at 16:9 and ultrawide with Reduced Flashes both off and on, confirm the center stays clear and the warning is urgent without distraction, then create the first Windows development build and build-validation test.

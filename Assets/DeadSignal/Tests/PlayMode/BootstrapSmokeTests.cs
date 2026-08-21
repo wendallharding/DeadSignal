@@ -46,6 +46,10 @@ namespace DeadSignal.Tests
             Assert.That(Object.FindFirstObjectByType<SignalDustController>(), Is.Not.Null,
                 "Reflex composition should provide a dedicated ambient Signal-dust presenter.");
             Assert.That(game.HasSignalDustTexture, Is.True, "The original Signal-dust texture should load from Resources.");
+            Assert.That(game.HasLowSignalWarningTexture, Is.True,
+                "The low-Signal presenter should load its original warning vignette from Resources.");
+            Assert.That(game.LowSignalWarningIntensity, Is.Zero,
+                "The emergency vignette should stay hidden while the starting Signal reserve is safe.");
             Assert.That(game.SignalDustMaximumParticles, Is.EqualTo(56), "Ambient particles should stay within their fixed budget.");
             Assert.That(game.IsSignalDustPowered, Is.True, "The extraction dock should begin with powered Signal dust.");
             Assert.That(game.transform.Find("Adaptive Signal Dust Field"), Is.Not.Null);
