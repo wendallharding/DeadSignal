@@ -64,6 +64,9 @@ namespace DeadSignal
                                 Resources.Load<Material>("Materials/SecurityWardenArmor") != null &&
                                 Resources.Load<Material>("Materials/SecurityWardenEye") != null &&
                                 Resources.Load<Material>("Materials/SecurityWardenCrown") != null &&
+                                game.HasWardenWarningTexture &&
+                                Resources.Load<Texture2D>("VFX/WardenStrikeWarning") != null &&
+                                Resources.Load<WardenThreatTelegraphTuning>("Tuning/WardenThreatTelegraphTuning") != null &&
                                 Resources.Load<GameObject>("Actors/SignalSapperAssembly") != null &&
                                 Resources.Load<GameObject>("Actors/SignalSapperModel") != null &&
                                 Resources.Load<Texture2D>("Actors/SignalSapperArmorAlbedo") != null &&

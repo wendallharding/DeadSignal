@@ -2115,3 +2115,57 @@ The live project remained open in Unity `6000.3.11f1` and was not closed or cont
 ### Best next step
 
 Fire across the room and past both threats in `Assets/Scenes/SampleScene.unity`, then judge trail length, head direction, and cyan separation from powered floor routing at 16:9 and ultrawide.
+
+## 2026-08-21 — Run 37: Warden proximity warning
+
+### Today's single idea — authored Warden strike-range glyph
+
+Player benefit: the Security Warden now reveals a hostile red floor ring as it closes to striking distance, giving players a fair, glance-readable dodge window without changing pursuit speed, contact range, damage, or cooldown.
+
+Acceptance criteria:
+
+- load one original transparent red security glyph and render it horizontally beneath the live Warden;
+- keep the glyph hidden while the Warden is dormant or safely distant, then increase its opacity as the player approaches;
+- use restrained rotation/scale motion normally while Reduced Flashes retains a static warning;
+- keep warning distance, diameter, alpha, rotation, and pulse values in validated designer-facing tuning data; and
+- pass Unity import/compile, EditMode, PlayMode, Windows build, packaged-resource smoke, and repository checks.
+
+### Files and systems changed
+
+- `Assets/DeadSignal/Resources/VFX/WardenStrikeWarning.png` and Unity-generated `.meta`: added an original transparent crimson broken-ring glyph generated with OpenAI's built-in image-generation mode and configured with alpha transparency, mipmaps, clamp wrapping, high-quality compression, and a 1024px cap. SHA-256: `516A64E33777ECFF92DF21A33EBF3644ACE39B1EB7861297D19A7F0D427FC416`.
+- Image-generation prompt: centered hostile security strike reticle with a broken crimson ring, four inward angular armor teeth, sparse scan ticks, hollow center, true alpha, restrained glow, and no text, logos, UI, scene, characters, cyan, magenta, orange, or yellow.
+- `Assets/DeadSignal/Runtime/WardenThreatTelegraph.cs` and Unity-generated `.meta`: added a focused proximity presenter that owns the runtime sprite, follows only the active Warden, ramps alpha with danger, suppresses motion under Reduced Flashes, and cleans up owned fallback resources.
+- `Assets/DeadSignal/Runtime/WardenThreatTelegraphTuning.cs`, Unity-generated `.meta`, and `Assets/DeadSignal/Resources/Tuning/WardenThreatTelegraphTuning.asset`: added validated designer-facing distance, diameter, alpha, rotation, and pulse tuning.
+- `Assets/DeadSignal/Editor/DeadSignalWardenTelegraphSetup.cs` and Unity-generated `.meta`: added idempotent texture import, tuning persistence, and build-readiness validation.
+- `Assets/DeadSignal/Runtime/DeadSignalWorld.cs` and `DeadSignalGame.cs`: compose the dedicated telegraph beside the Warden and expose narrow validation state without changing threat ownership or rules.
+- `Assets/DeadSignal/Editor/DeadSignalWindowsBuild.cs` and `Assets/DeadSignal/Runtime/StandaloneBuildSmokeProbe.cs`: require the new presentation Resources before build and in packaged content.
+- `Assets/DeadSignal/Tests/PlayMode/BootstrapSmokeTests.cs`: verifies authored texture/tuning readiness, dormant hiding, proximity activation, Reduced Flashes motion suppression, and every prior core-loop assertion.
+- `GAME_VISION.md`, `BACKLOG.md`, and `DEVLOG.md`: record the completed threat-readability milestone.
+
+No model, prefab, gameplay timing, Warden pursuit/contact/damage rules, Signal economy, scene, package, project setting, input, audio, save data, or existing material asset was intentionally changed. The user's uncommitted `SignalBoltShell.mat` edit was detected at run start, excluded from this change, and preserved byte-for-byte.
+
+### Tests run and exact outcomes
+
+The live project remained open in Unity `6000.3.11f1` and was not closed or controlled. Authoritative validation used `C:\Projects\Wendall\CodexPrototype_Run37Validation` with the pinned Editor.
+
+1. OpenAI built-in image generation produced a `1254x1254` 32-bit ARGB transparent warning glyph. It was copied into project Resources and visually inspected for the broken crimson ring, hollow center, inward teeth, transparent negative space, and absence of text/logos. SHA-256 is recorded above; texture GUID: `c37ff0d54b2a72f48ba35aac9faaac7a`.
+2. Unity setup wrote `run37-setup.log`: the pinned Editor compiled the changed assemblies, imported the texture with its 1024px default-platform cap, created tuning GUID `97c2230029ced3d47b06d27f5c043d96`, and exited `0` with zero first-party compiler errors or warnings.
+3. EditMode regression wrote `run37-editmode-results.xml` and `run37-editmode.log`: `16/16` passed, `0` failed, `0` skipped in `0.0435977` seconds, exit `0`.
+4. PlayMode regression wrote `run37-playmode-results.xml` and `run37-playmode.log`: `1/1` passed, `0` failed, `0` skipped in `4.0443127` seconds, exit `0`. It proved authored texture/tuning readiness, dormant hiding, proximity activation, Reduced Flashes motion suppression, and every prior core-loop assertion.
+5. The Windows development build wrote `run37-build.log`: Unity exited `0`, reported `Build Finished, Result: Success`, emitted one build PASS marker, and produced `203,476,421` reported bytes in `61.85` seconds.
+6. The packaged `-batchmode -nographics -deadSignalBuildSmoke` launch wrote `run37-standalone.log`, loaded the new texture and tuning Resources, emitted one standalone PASS marker, and exited `0`.
+7. Strict scans of the setup, EditMode, PlayMode, build, and packaged-player logs found zero compiler errors/warnings, failed assertions, missing-reference exceptions, unhandled exceptions, failed build markers, or failed smoke markers. Unity's licensing client logged transient handshake/access-token messages but retained a valid license and completed every command successfully. Unity-generated whitespace was normalized, the staged `git diff --check` passed, and the user's pre-existing material hash remained `59BA8974FB04AF0E3376C5F67C469BDF528C1101A18B81D982824A2A844F91F1` after validation.
+
+### Bugs found and fixed
+
+- The Warden's red silhouette communicated hostility but not the moment its chase became an imminent contact attack. The proximity-only floor glyph now supplies that missing anticipation channel.
+- A flashing warning would undermine the existing comfort setting. Reduced Flashes now preserves the essential static ring and opacity ramp while removing rotation and scale pulse.
+
+### Known limitations
+
+- The warning diameter is presentation tuning aligned to the current contact threat; future combat-range tuning should update both assets together until threat gameplay values move into their own configuration asset.
+- Automated validation proves state, mapping, and accessibility behavior but cannot replace human judgment of ring brightness beneath the authored Warden on normal and High Contrast floors.
+
+### Best next step
+
+Activate the tower in `Assets/Scenes/SampleScene.unity`, let the Warden approach from several angles, and judge when the ring first becomes readable with Reduced Flashes both off and on at 16:9 and ultrawide.

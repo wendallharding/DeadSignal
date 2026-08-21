@@ -21,6 +21,7 @@ namespace DeadSignal
         public Transform Player { get; private set; }
         public Transform PlayerNose { get; private set; }
         public Transform Warden { get; private set; }
+        public WardenThreatTelegraph WardenTelegraph { get; private set; }
         public Transform Sapper { get; private set; }
         public Transform SapperCore { get; private set; }
         public Vector3 SapperCoreBaseScale { get; private set; }
@@ -556,6 +557,11 @@ namespace DeadSignal
             _buildPlayer();
 
             _buildWarden();
+
+            var wardenTelegraphRoot = new GameObject("Warden Strike Warning");
+            wardenTelegraphRoot.transform.SetParent(m_root);
+            WardenTelegraph = wardenTelegraphRoot.AddComponent<WardenThreatTelegraph>();
+            WardenTelegraph.Configure(Warden, Player, comfortSettings);
 
             _buildSapper();
 

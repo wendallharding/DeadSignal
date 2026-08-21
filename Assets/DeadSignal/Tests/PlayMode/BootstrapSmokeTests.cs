@@ -128,6 +128,14 @@ namespace DeadSignal.Tests
                 Is.Not.Null, "The Warden chassis should render the original armored security texture.");
             Assert.That(securityWarden.gameObject.activeSelf, Is.False,
                 "The authored Warden should remain dormant until tower activation.");
+            var wardenWarning = game.transform.Find("Warden Strike Warning");
+            Assert.That(wardenWarning, Is.Not.Null);
+            Assert.That(wardenWarning.GetComponent<SpriteRenderer>().sprite, Is.Not.Null,
+                "The Warden proximity warning should render the authored floor glyph.");
+            Assert.That(game.HasWardenWarningTexture, Is.True);
+            Assert.That(game.IsWardenWarningVisible, Is.False,
+                "The strike warning should remain hidden while the Warden is dormant.");
+            Assert.That(Resources.Load<WardenThreatTelegraphTuning>("Tuning/WardenThreatTelegraphTuning"), Is.Not.Null);
             var signalSapper = game.transform.Find("Signal Sapper");
             var authoredSapperPrefab = Resources.Load<GameObject>("Actors/SignalSapperAssembly");
             var sapperArmorTexture = Resources.Load<Texture2D>("Actors/SignalSapperArmorAlbedo");
@@ -535,6 +543,14 @@ namespace DeadSignal.Tests
                     "Tower activation should produce an audible state-change cue when audio is enabled.");
                 Assert.That(audio.PoweredVolume, Is.GreaterThan(0f),
                     "The powered network layer should remain active after the tower comes online.");
+                securityWarden.position = player.position + Vector3.right * 2f;
+                yield return null;
+                Assert.That(game.IsWardenWarningVisible, Is.True,
+                    "The authored strike warning should appear before the Warden reaches contact range.");
+                Assert.That(game.IsWardenWarningMotionSuppressed, Is.True,
+                    "Reduced Flashes should retain the warning while suppressing its rotation and scale pulse.");
+                securityWarden.position = new Vector3(6.8f, 0f, 4.7f);
+                yield return null;
                 Transform sapper = game.transform.Find("Signal Sapper");
                 Assert.That(sapper.gameObject.activeSelf, Is.True,
                     "Tower activation should awaken the Signal Sapper.");

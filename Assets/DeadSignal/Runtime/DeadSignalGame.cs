@@ -67,6 +67,9 @@ namespace DeadSignal
         public int PlayerDronePartCount => m_world?.PlayerDronePartCount ?? 0;
         public bool HasSignalBoltAssets => m_world?.HasSignalBoltAssets ?? false;
         public bool LastSignalBoltUsedAuthoredPrefab => m_world?.LastSignalBoltUsedAuthoredPrefab ?? false;
+        public bool HasWardenWarningTexture => m_world?.WardenTelegraph?.HasTexture ?? false;
+        public bool IsWardenWarningVisible => m_world?.WardenTelegraph?.IsWarningVisible ?? false;
+        public bool IsWardenWarningMotionSuppressed => m_world?.WardenTelegraph?.IsMotionSuppressed ?? false;
         public bool HasSignalSapperAssets => m_world?.HasSignalSapperAssets ?? false;
         public int SignalSapperPartCount => m_world?.SignalSapperPartCount ?? 0;
         public float LowSignalWarningIntensity => m_lowSignalWarning?.CurrentIntensity ?? 0f;

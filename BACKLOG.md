@@ -37,6 +37,7 @@
 - [x] Replace the Signal Sapper's placeholder primitives with a UV-mapped Blender model and persistent URP materials
 - [x] Add a Signal-cost shortcut gate and first route choice
 - [x] Add a second enemy archetype that pressures powered territory
+- [x] Add an authored, proximity-driven Warden strike warning that respects Reduced Flashes
 - [x] Telegraph the Sapper's tower target and timed drain pulses in-world
 - [x] Replace the Sapper's primitive pulse flash with an authored, tunable drain glyph
 - [x] Give the Sapper tether an authored directional energy flow without changing its threat rules

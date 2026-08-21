@@ -34,6 +34,7 @@ namespace DeadSignal.Editor
             DeadSignalActorSetup.EnsureSignalSapperAssets();
             DeadSignalProjectileSetup.EnsureAssets();
             DeadSignalSapperTelegraphSetup.EnsureAssets();
+            DeadSignalWardenTelegraphSetup.EnsureAssets();
             _validateBuildInputs();
             _configureWindowsPlayer();
 
@@ -151,6 +152,11 @@ namespace DeadSignal.Editor
             if (!DeadSignalSapperTelegraphSetup.HasAssets)
             {
                 throw new BuildFailedException("The authored Signal Sapper telegraph assets are missing.");
+            }
+
+            if (!DeadSignalWardenTelegraphSetup.HasAssets)
+            {
+                throw new BuildFailedException("The authored Warden strike-warning assets are missing.");
             }
 
             if (AssetDatabase.LoadAssetAtPath<Texture2D>(APPLICATION_ICON_PATH) == null)
