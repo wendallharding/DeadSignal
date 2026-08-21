@@ -1,3 +1,4 @@
+using System.Linq;
 using Reflex.Attributes;
 using Reflex.Core;
 using UnityEngine;
@@ -34,6 +35,8 @@ namespace DeadSignal
 
         public float CurrentSignal => m_model?.Signal ?? 0f;
         public bool IsSapperLatched => m_threats?.IsSapperLatched ?? false;
+        public float SapperHealth => m_threats?.SapperHealth ?? 0f;
+        public bool LastSignalBoltBlockedByEnvironment => m_threats?.LastShotBlockedByEnvironment ?? false;
         public bool IsPaused => m_combatFeedback?.IsPaused ?? false;
         public bool HasPauseInsignia => m_hud?.HasPauseInsignia ?? false;
         public bool HasCameraComfortIcon => m_hud?.HasCameraComfortIcon ?? false;
@@ -94,6 +97,8 @@ namespace DeadSignal
         public bool IsReducedFlashesEnabled => m_comfortSettings?.ReducedFlashesEnabled ?? false;
         public bool IsHighContrastEnabled => m_comfortSettings?.HighContrastEnabled ?? false;
         public bool HasSalvagePresentationTuning => m_salvageTuning != null;
+        public bool HasSignalBoltBulkheadImpact => m_combatFeedback?.HasEnvironmentImpactTexture ?? false;
+        public int ActiveSignalBoltCount => transform.Cast<Transform>().Count(child => child.name == "Signal Bolt");
 
         /// <summary>
         /// Toggles the persisted camera-impulse preference while the pause overlay is authoritative.
@@ -181,7 +186,22 @@ namespace DeadSignal
 
             m_world = new DeadSignalWorld(transform, m_comfortSettings);
             m_combatFeedback.Configure(m_world.Camera);
-            m_threats = new DeadSignalThreatController(m_model, m_metrics, m_world, m_combatFeedback, m_audio, _showFeedback);
+            var signalBoltTuning = Resources.Load<SignalBoltPresentationTuning>("Tuning/SignalBoltPresentationTuning");
+            if (signalBoltTuning == null)
+            {
+                Debug.LogError("Signal bolt presentation tuning is missing from Resources/Tuning.", this);
+                enabled = false;
+                return;
+            }
+
+            m_threats = new DeadSignalThreatController(
+                m_model,
+                m_metrics,
+                m_world,
+                m_combatFeedback,
+                m_audio,
+                signalBoltTuning,
+                _showFeedback);
             m_salvage = new DeadSignalSalvageController(m_model, m_world, m_audio, m_salvageTuning, _showFeedback);
             m_hud.Configure(m_model, m_metrics, m_world, m_threats);
             m_objectiveBeacon.Configure(m_model, m_world);

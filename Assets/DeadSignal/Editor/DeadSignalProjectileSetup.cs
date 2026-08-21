@@ -8,16 +8,20 @@ namespace DeadSignal.Editor
     {
         private const string TEXTURE_PATH = "Assets/DeadSignal/Resources/Projectiles/SignalBoltAlbedo.png";
         private const string TRAIL_TEXTURE_PATH = "Assets/DeadSignal/Resources/Projectiles/SignalBoltTrail.png";
+        private const string BULKHEAD_IMPACT_TEXTURE_PATH = "Assets/DeadSignal/Resources/Projectiles/SignalBoltBulkheadImpact.png";
         private const string MODEL_PATH = "Assets/DeadSignal/Resources/Projectiles/SignalBoltModel.fbx";
         private const string PREFAB_PATH = "Assets/DeadSignal/Resources/Projectiles/SignalBoltAssembly.prefab";
         private const string SHELL_MATERIAL_PATH = "Assets/DeadSignal/Resources/Materials/SignalBoltShell.mat";
         private const string ENERGY_MATERIAL_PATH = "Assets/DeadSignal/Resources/Materials/SignalBoltEnergy.mat";
         private const string TRAIL_MATERIAL_PATH = "Assets/DeadSignal/Resources/Materials/SignalBoltTrail.mat";
+        private const string BULKHEAD_IMPACT_MATERIAL_PATH = "Assets/DeadSignal/Resources/Materials/SignalBoltBulkheadImpact.mat";
         private const string TUNING_PATH = "Assets/DeadSignal/Resources/Tuning/SignalBoltPresentationTuning.asset";
 
         public static bool HasAssets =>
             AssetDatabase.LoadAssetAtPath<Texture2D>(TEXTURE_PATH) != null &&
             AssetDatabase.LoadAssetAtPath<Texture2D>(TRAIL_TEXTURE_PATH) != null &&
+            AssetDatabase.LoadAssetAtPath<Texture2D>(BULKHEAD_IMPACT_TEXTURE_PATH) != null &&
+            AssetDatabase.LoadAssetAtPath<Material>(BULKHEAD_IMPACT_MATERIAL_PATH) != null &&
             AssetDatabase.LoadAssetAtPath<GameObject>(MODEL_PATH) != null &&
             AssetDatabase.LoadAssetAtPath<SignalBoltPresentationTuning>(TUNING_PATH) != null &&
             _hasModelPrefab() &&
@@ -28,10 +32,12 @@ namespace DeadSignal.Editor
         {
             _configureTexture(TEXTURE_PATH, false, TextureWrapMode.Repeat);
             _configureTexture(TRAIL_TEXTURE_PATH, true, TextureWrapMode.Clamp);
+            _configureTexture(BULKHEAD_IMPACT_TEXTURE_PATH, false, TextureWrapMode.Clamp);
             _configureModel();
             _ensureTuning();
             _ensureMaterials();
             _ensureTrailMaterial();
+            _ensureBulkheadImpactMaterial();
             _ensurePrefab();
             _assignMaterials();
 
@@ -182,6 +188,38 @@ namespace DeadSignal.Editor
             var trailTexture = AssetDatabase.LoadAssetAtPath<Texture2D>(TRAIL_TEXTURE_PATH);
             material.mainTexture = trailTexture;
             material.SetTexture("_BaseMap", trailTexture);
+            EditorUtility.SetDirty(material);
+        }
+
+        private static void _ensureBulkheadImpactMaterial()
+        {
+            var material = AssetDatabase.LoadAssetAtPath<Material>(BULKHEAD_IMPACT_MATERIAL_PATH);
+            if (material == null)
+            {
+                var shader = Shader.Find("Universal Render Pipeline/Particles/Unlit");
+                if (shader == null)
+                {
+                    throw new InvalidOperationException("Could not find the URP particle shader for bulkhead impacts.");
+                }
+
+                material = new Material(shader)
+                {
+                    name = "SignalBoltBulkheadImpact",
+                    renderQueue = 3000
+                };
+                material.SetOverrideTag("RenderType", "Transparent");
+                material.SetFloat("_Surface", 1f);
+                material.SetFloat("_Blend", 1f);
+                material.SetFloat("_SrcBlend", (float)UnityEngine.Rendering.BlendMode.SrcAlpha);
+                material.SetFloat("_DstBlend", (float)UnityEngine.Rendering.BlendMode.One);
+                material.SetFloat("_ZWrite", 0f);
+                material.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
+                AssetDatabase.CreateAsset(material, BULKHEAD_IMPACT_MATERIAL_PATH);
+            }
+
+            var texture = AssetDatabase.LoadAssetAtPath<Texture2D>(BULKHEAD_IMPACT_TEXTURE_PATH);
+            material.mainTexture = texture;
+            material.SetTexture("_BaseMap", texture);
             EditorUtility.SetDirty(material);
         }
 

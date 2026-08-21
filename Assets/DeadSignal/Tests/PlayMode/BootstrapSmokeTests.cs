@@ -12,6 +12,62 @@ namespace DeadSignal.Tests
     public sealed class BootstrapSmokeTests
     {
         [UnityTest]
+        public IEnumerator SignalBolt_AuthoredCoverBlocksClosedGateButOpenDoorwayStaysClear()
+        {
+            yield return SceneManager.LoadSceneAsync("SampleScene");
+            yield return null;
+
+            var gamepad = InputSystem.AddDevice<Gamepad>();
+            try
+            {
+                var game = Object.FindFirstObjectByType<DeadSignalGame>();
+                var feedback = Object.FindFirstObjectByType<CombatFeedbackController>();
+                var player = game.transform.Find("Maintenance Drone");
+                player.position = new Vector3(2.5f, 0f, 0.4f);
+
+                InputSystem.QueueStateEvent(gamepad,
+                    new GamepadState { rightStick = Vector2.right }.WithButton(GamepadButton.RightShoulder));
+                yield return null;
+                InputSystem.QueueStateEvent(gamepad, new GamepadState { rightStick = Vector2.right });
+                yield return new WaitForSeconds(0.18f);
+
+                Assert.That(game.ActiveSignalBoltCount, Is.Zero,
+                    "The closed authored shortcut gate should consume the swept projectile.");
+                Assert.That(feedback.transform.Find("Bulkhead Signal Impact"), Is.Not.Null,
+                    "Blocked fire should produce the generated cyan cover-impact confirmation.");
+
+                yield return new WaitForSeconds(0.2f);
+                player.position = new Vector3(-0.6f, 0f, 0.4f);
+                InputSystem.QueueStateEvent(gamepad, new GamepadState().WithButton(GamepadButton.West));
+                yield return null;
+                InputSystem.QueueStateEvent(gamepad, new GamepadState());
+                yield return null;
+                yield return new WaitForSecondsRealtime(0.08f);
+                player.position = new Vector3(3f, 0f, 0.4f);
+                InputSystem.QueueStateEvent(gamepad, new GamepadState());
+                yield return null;
+                InputSystem.QueueStateEvent(gamepad, new GamepadState().WithButton(GamepadButton.West));
+                yield return null;
+                InputSystem.QueueStateEvent(gamepad, new GamepadState());
+                yield return null;
+                InputSystem.QueueStateEvent(gamepad,
+                    new GamepadState { rightStick = Vector2.right }.WithButton(GamepadButton.RightShoulder));
+                yield return null;
+                InputSystem.QueueStateEvent(gamepad, new GamepadState { rightStick = Vector2.right });
+                yield return new WaitForSeconds(0.18f);
+
+                Assert.That(game.ActiveSignalBoltCount, Is.EqualTo(1),
+                    "Retracting the shortcut gate should let the same shot continue through its authored doorway.");
+                Assert.That(game.transform.Cast<Transform>().Single(child => child.name == "Signal Bolt").position.x,
+                    Is.GreaterThan(4.4f));
+            }
+            finally
+            {
+                InputSystem.RemoveDevice(gamepad);
+            }
+        }
+
+        [UnityTest]
         public IEnumerator SceneLoad_BootstrapsCompleteRuntimeWithoutErrors()
         {
             yield return SceneManager.LoadSceneAsync("SampleScene");
@@ -94,6 +150,12 @@ namespace DeadSignal.Tests
             Assert.That(boltTrail.endWidth, Is.EqualTo(boltTrailTuning.EndingWidth));
             Assert.That(boltTrail.textureMode, Is.EqualTo(LineTextureMode.Stretch));
             Assert.That(boltTrail.shadowCastingMode, Is.EqualTo(UnityEngine.Rendering.ShadowCastingMode.Off));
+            var bulkheadImpactTexture = Resources.Load<Texture2D>("Projectiles/SignalBoltBulkheadImpact");
+            var bulkheadImpactMaterial = Resources.Load<Material>("Materials/SignalBoltBulkheadImpact");
+            Assert.That(bulkheadImpactTexture, Is.Not.Null);
+            Assert.That(bulkheadImpactMaterial, Is.Not.Null);
+            Assert.That(bulkheadImpactMaterial.mainTexture, Is.EqualTo(bulkheadImpactTexture));
+            Assert.That(game.HasSignalBoltBulkheadImpact, Is.True);
             var securityWarden = game.transform.Find("Security Warden");
             var authoredWardenPrefab = Resources.Load<GameObject>("Actors/SecurityWardenAssembly");
             Assert.That(authoredWardenPrefab, Is.Not.Null,
@@ -810,6 +872,17 @@ namespace DeadSignal.Tests
                 yield return new WaitForSeconds(0.3f);
                 Assert.That(combatFeedback.ActiveImpactCount, Is.Zero, "Finished impact bursts should clean themselves up.");
 
+                combatFeedback.PlayEnvironmentImpact(player.position + Vector3.up * 0.4f);
+                var bulkheadImpact = combatFeedback.transform.Find("Bulkhead Signal Impact");
+                Assert.That(bulkheadImpact, Is.Not.Null);
+                Assert.That(bulkheadImpact.GetComponent<SpriteRenderer>().sharedMaterial,
+                    Is.EqualTo(Resources.Load<Material>("Materials/SignalBoltBulkheadImpact")));
+                Assert.That(combatFeedback.IsHitStopped, Is.False,
+                    "Cover impacts should confirm blocked shots without interrupting player control.");
+                yield return new WaitForSeconds(0.3f);
+                Assert.That(combatFeedback.ActiveImpactCount, Is.Zero,
+                    "The generated bulkhead-impact flash should clean itself up.");
+
                 InputSystem.QueueStateEvent(gamepad, new GamepadState
                 {
                     leftStick = Vector2.right,
@@ -910,11 +983,20 @@ namespace DeadSignal.Tests
                 Assert.That(telegraph.PulseFlashVisible, Is.False,
                     "Reduced Flashes should suppress the expanding floor flash while preserving the countdown.");
 
-                sapper.position = player.position + Vector3.forward * 2f;
-                InputSystem.QueueStateEvent(gamepad,
-                    new GamepadState { rightStick = Vector2.up }.WithButton(GamepadButton.RightShoulder));
+                yield return new WaitForSecondsRealtime(0.08f);
+                player.position = new Vector3(2.5f, 0f, 0.4f);
+                InputSystem.QueueStateEvent(gamepad, new GamepadState().WithButton(GamepadButton.West));
                 yield return null;
-                InputSystem.QueueStateEvent(gamepad, new GamepadState { rightStick = Vector2.up });
+                InputSystem.QueueStateEvent(gamepad, new GamepadState());
+                yield return null;
+                Assert.That(game.transform.Find("Shortcut Gate Assembly/Signal Shortcut Gate").gameObject.activeSelf, Is.False,
+                    "The powered shortcut should retract before validating the unobstructed combat lane.");
+
+                sapper.position = new Vector3(5f, 0f, 0.4f);
+                InputSystem.QueueStateEvent(gamepad,
+                    new GamepadState { rightStick = Vector2.right }.WithButton(GamepadButton.RightShoulder));
+                yield return null;
+                InputSystem.QueueStateEvent(gamepad, new GamepadState { rightStick = Vector2.right });
                 var boltSpawnTimeout = 0.4f;
                 while (!game.LastSignalBoltUsedAuthoredPrefab && boltSpawnTimeout > 0f)
                 {
@@ -925,10 +1007,14 @@ namespace DeadSignal.Tests
                 Assert.That(game.LastSignalBoltUsedAuthoredPrefab, Is.True,
                     "Firing should instantiate the authored Signal bolt before deterministic hit processing.");
                 yield return new WaitForSeconds(0.22f);
+                Assert.That(game.LastSignalBoltBlockedByEnvironment, Is.False,
+                    "The open shortcut doorway should leave the combat line unobstructed.");
+                Assert.That(game.SapperHealth, Is.EqualTo(1f),
+                    "The first unobstructed Signal bolt should damage the Sapper exactly once.");
                 InputSystem.QueueStateEvent(gamepad,
-                    new GamepadState { rightStick = Vector2.up }.WithButton(GamepadButton.RightShoulder));
+                    new GamepadState { rightStick = Vector2.right }.WithButton(GamepadButton.RightShoulder));
                 yield return null;
-                InputSystem.QueueStateEvent(gamepad, new GamepadState { rightStick = Vector2.up });
+                InputSystem.QueueStateEvent(gamepad, new GamepadState { rightStick = Vector2.right });
                 yield return new WaitForSeconds(0.22f);
 
                 Assert.That(sapper.gameObject.activeSelf, Is.False,
@@ -955,28 +1041,7 @@ namespace DeadSignal.Tests
                     "One optional cache should remain available after the extraction requirement is met.");
                 Assert.That(game.CurrentObjectiveBeaconTarget, Is.EqualTo(new Vector3(-9.2f, 0f, -5.6f)));
 
-                InputSystem.QueueStateEvent(gamepad, new GamepadState());
-                yield return null;
                 player.position = new Vector3(3f, 0f, 0.4f);
-                InputSystem.QueueStateEvent(gamepad, new GamepadState { leftStick = Vector2.right });
-                for (int frame = 0; frame < 15; frame++)
-                {
-                    yield return null;
-                }
-
-                Assert.That(player.position.x, Is.LessThan(3.35f),
-                    "The closed shortcut gate should block the drone at the central bulkhead.");
-
-                InputSystem.QueueStateEvent(gamepad, new GamepadState());
-                yield return null;
-                InputSystem.QueueStateEvent(gamepad, new GamepadState().WithButton(GamepadButton.West));
-                yield return null;
-
-                Assert.That(game.transform.Find("Shortcut Gate Assembly/Signal Shortcut Gate").gameObject.activeSelf, Is.False,
-                    "Gamepad west button should spend Signal and retract the powered shortcut gate.");
-
-                InputSystem.QueueStateEvent(gamepad, new GamepadState());
-                yield return null;
                 InputSystem.QueueStateEvent(gamepad, new GamepadState { leftStick = Vector2.right });
                 for (int frame = 0; frame < 30; frame++)
                 {

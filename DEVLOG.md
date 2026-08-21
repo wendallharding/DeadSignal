@@ -2859,3 +2859,73 @@ Final Unity logs contained transient licensing handshake/access-token messages f
 ### Best next step
 
 Activate the tower, compare the east vault against each existing salvage branch, and complete two runs while deliberately skipping a different cache each time. Check whether the vault's longer dead-zone commitment feels worth choosing and whether Warden pressure makes its north/south splitter lanes meaningfully different.
+
+## 2026-08-21 - Autonomous Run 47
+
+### Today's single idea
+
+**Cover-authoritative Signal bolts.** Make every authored movement blocker intercept the player's fast projectile and show a short original cyan bulkhead-impact flash, while an opened shortcut gate remains a clear firing lane.
+
+Player benefit: shields, siphon pylons, relay banks, baffles, room walls, the vault splitter, and the shortcut gate now communicate one consistent tactical rule. Players can trust cover and must choose firing angles instead of shooting through geometry that blocks movement.
+
+Alternatives considered: a second optional room would add content while leaving every existing cover decision inconsistent; a projectile ricochet would create a new combat rule and balance burden; invisible collision without feedback would feel like a dropped input. Authoritative interception plus a readable non-disruptive flash was selected because it improves every authored encounter using the map already built.
+
+Acceptance criteria:
+
+- sweep each projectile segment against rotated object-aligned blockers so thin cover cannot be skipped at low frame rates;
+- resolve the nearest valid obstacle or threat hit and preserve two-shot Sapper combat;
+- make the closed shortcut gate stop a bolt and its retracted state leave the same doorway clear;
+- show one generated cyan additive impact flash without hit-stop or camera impulse and clean it up automatically;
+- move Signal-bolt speed, lifetime, fire cooldown, and collision radius from controller literals into the existing validated tuning asset;
+- add deterministic collision coverage and PlayMode integration coverage; and
+- preserve map layout, objective positions, economy, enemy tuning, input, save data, packages, and project settings.
+
+### Files and systems changed
+
+- `Assets/DeadSignal/Resources/Projectiles/SignalBoltBulkheadImpact.png` and Unity-generated `.meta`: added an original `1254x1254` RGB cyan-white electrical impact bloom generated with OpenAI's built-in image-generation mode and visually inspected at original resolution. SHA-256: `72F4A80DDDD82F8D0D95C8C1C08CAC6F9CE07FC81F71FF00EB6AE3D802D0549C`.
+- Final image-generation prompt: centered cyan-white electrical Signal-bolt impact bloom on a pure black additive-blend background, with compact radial energy spokes, angular circuit fragments, generous padding, and no text, logos, characters, weapons, UI, watermark, or franchise styling.
+- `Assets/DeadSignal/Resources/Materials/SignalBoltBulkheadImpact.mat` and Unity-generated `.meta`: added a persistent URP additive material mapped to the generated art.
+- `Assets/DeadSignal/Runtime/ProjectileCollision.cs` and `.meta`: added deterministic swept circle and rotated-box segment queries, including projectile-radius expansion and earliest contact fractions.
+- `Assets/DeadSignal/Runtime/DeadSignalWorld.cs`: exposes the nearest eligible authored blocker hit while ignoring the retracted shortcut gate.
+- `Assets/DeadSignal/Runtime/DeadSignalThreatController.cs`: now resolves obstacles and threats by hit fraction, emits environment feedback, exposes test diagnostics, and consumes tuned projectile speed/lifetime/cooldown/radius instead of literals. The touched class was also focused toward current conventions by replacing obvious local types with `var`.
+- `Assets/DeadSignal/Runtime/SignalBoltPresentationTuning.cs` and `Assets/DeadSignal/Resources/Tuning/SignalBoltPresentationTuning.asset`: added validated designer-facing projectile rule values with the previous behavior as defaults.
+- `Assets/DeadSignal/Runtime/CombatFeedbackController.cs`: loads the generated impact art/material and owns a pause-safe, Reduced-Flashes-aware, non-hit-stop environment flash.
+- `Assets/DeadSignal/Runtime/DeadSignalGame.cs`: loads required projectile tuning and exposes narrow runtime-readiness/test state.
+- `Assets/DeadSignal/Editor/DeadSignalProjectileSetup.cs`: imports the texture, creates the additive material idempotently, and includes both in asset readiness.
+- `Assets/DeadSignal/Runtime/StandaloneBuildSmokeProbe.cs`: requires the packaged bulkhead-impact texture, material, and runtime composition.
+- `Assets/DeadSignal/Tests/ProjectileCollisionTests.cs` and `.meta`: added swept thin-rotated-cover, parallel miss, and nearest circle-entry rules.
+- `Assets/DeadSignal/Tests/PlayMode/BootstrapSmokeTests.cs`: added closed-gate interception, generated-feedback, open-doorway, cleanup, and unobstructed Sapper damage coverage.
+- `GAME_VISION.md`, `BACKLOG.md`, and `DEVLOG.md`: record the selected product rationale, completed milestone, acceptance criteria, evidence, and next step.
+
+The owner's pre-existing uncommitted `AGENTS.md` and `OWNER_NOTES.md` changes were preserved and excluded. Unity rewrote unrelated prefabs, import metadata, materials, render-pipeline settings, and project settings during setup/build; those automation-created side effects were identified from the clean initial audit and reverted before staging. No scene, prefab, model, package, input binding, project setting, objective, economy, save-data, or enemy-tuning contract changed.
+
+### Tests run and exact outcomes
+
+Validation used the main workspace because no Unity Editor process was open, with pinned Unity `6000.3.11f1`.
+
+1. OpenAI built-in image generation produced the original impact texture. The project copy was visually inspected at `1254x1254` for a centered cyan electrical silhouette, generous black additive padding, and absence of text/logos.
+2. Unity setup/import wrote `Logs/bulkhead-impact-setup.log`, compiled successfully, generated `.meta` files and the additive material, completed asset readiness, and exited `0`.
+3. Initial EditMode validation passed `26/26` in `0.0591411` seconds. Final release-candidate EditMode regression wrote `Logs/bulkhead-impact-editmode-release.xml` and `.log`: `26/26` passed, `0` failed, `0` skipped in `0.0538161` seconds, exit `0`.
+4. The first full PlayMode run passed the new gate test but failed the legacy two-shot Sapper check because hit arbitration compared a missed Warden's zero output fraction. Focused diagnostics reproduced the error and the controller now compares fractions only when both threats were actually hit.
+5. Focused legacy combat regression wrote `Logs/bulkhead-impact-focused-final.xml`: `1/1` passed in `4.6215515` seconds, exit `0`.
+6. Final release-candidate PlayMode regression wrote `Logs/bulkhead-impact-playmode-release.xml` and `.log`: `3/3` passed, `0` failed, `0` skipped in `6.1999074` seconds, exit `0`.
+7. Final Windows development build wrote `Logs/bulkhead-impact-build-release.log`: `Build Finished, Result: Success`, one build PASS marker, `216,822,909` reported bytes in `10.19` seconds, exit `0`.
+8. Final packaged `-batchmode -nographics -deadSignalBuildSmoke` wrote `Logs/bulkhead-impact-standalone-release.log`, loaded the generated texture/material and complete runtime Resources, emitted one standalone PASS marker, and exited `0`.
+9. Final strict diff checks passed for intended files after Unity-generated unrelated serialization side effects were reverted. Final logs contain transient licensing access-token messages followed by successful entitlement and test/build completion; no compiler error, failed assertion, missing Resource, null/missing reference, build failure, or packaged-player failure remained.
+
+### Bugs found and fixed
+
+- Fast projectiles previously ignored all twenty-five authored movement blockers. Swept object-aligned collision now prevents tunneling through thin or rotated cover.
+- The nearest-hit selection initially used a missed threat query's output fraction when choosing between Warden and Sapper. Fractions are now compared only when both hit flags are true, restoring correct two-shot Sapper damage.
+- The legacy integration test fired across newly authoritative cover. It now opens the established shortcut and validates enemy damage through a deliberately clear authored combat lane; the dedicated gate test separately proves closed and open behavior.
+- Environment impacts initially risked sharing combat hit-stop semantics. The generated cover flash uses the same lifecycle owner but explicitly adds neither hit-stop nor camera impulse.
+
+### Known limitations
+
+- Automated tests prove collision and feedback lifecycle, but a human play pass is still needed to judge whether the flash is too large or bright against each material and whether cover interception makes any existing encounter frustrating.
+- Signal bolts are consumed rather than ricocheting, and enemies still do not fire projectiles; both are intentional scope boundaries.
+- The generated impact is an additive RGB texture with a black background rather than an alpha sprite, so future non-additive use would require a separate asset treatment.
+
+### Best next step
+
+Fight the Warden around its three blast shields, then shoot across the Sapper cradle, relay fork, east-vault splitter, and shortcut before and after opening it. Confirm each interception reads instantly and that clear firing lanes remain easy to find.

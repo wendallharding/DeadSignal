@@ -115,6 +115,35 @@ namespace DeadSignal
             return canMoveZ ? zOnly : current;
         }
 
+        public bool TryGetProjectileObstacleHit(
+            Vector3 start,
+            Vector3 end,
+            float radius,
+            bool shortcutOpen,
+            out float hitFraction)
+        {
+            hitFraction = 1f;
+            var didHit = false;
+            foreach (var blocker in m_movementBlockers)
+            {
+                if (blocker.IsShortcutGate && shortcutOpen)
+                {
+                    continue;
+                }
+
+                if (!blocker.TryGetSegmentHitFraction(start, end, radius, out var candidateFraction) ||
+                    candidateFraction > hitFraction)
+                {
+                    continue;
+                }
+
+                hitFraction = candidateFraction;
+                didHit = true;
+            }
+
+            return didHit;
+        }
+
         public void ActivateTower(float sapperPulseInterval)
         {
             m_towerTerritory.GetComponent<Renderer>().sharedMaterial = m_palette.CyanDim;
@@ -899,6 +928,19 @@ namespace DeadSignal
                 var delta = new Vector2(position.x - Center.x, position.z - Center.y);
                 return Mathf.Abs(Vector2.Dot(delta, RightAxis)) < HalfSize.x + radius &&
                        Mathf.Abs(Vector2.Dot(delta, ForwardAxis)) < HalfSize.y + radius;
+            }
+
+            public bool TryGetSegmentHitFraction(Vector3 start, Vector3 end, float radius, out float hitFraction)
+            {
+                return ProjectileCollision.TryGetOrientedBoxHitFraction(
+                    start,
+                    end,
+                    Center,
+                    HalfSize,
+                    RightAxis,
+                    ForwardAxis,
+                    radius,
+                    out hitFraction);
             }
         }
     }

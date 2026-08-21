@@ -9,11 +9,13 @@ namespace DeadSignal
         bool IsFrozen { get; }
         bool IsPaused { get; }
         bool HasImpactTexture { get; }
+        bool HasEnvironmentImpactTexture { get; }
 
         void Configure(Camera targetCamera);
         void PlaySignalImpact(Vector3 position, bool decisive);
         void PlaySecurityImpact(Vector3 position);
         void PlaySapperImpact(Vector3 position);
+        void PlayEnvironmentImpact(Vector3 position);
         void SetPaused(bool paused);
     }
 
@@ -25,6 +27,8 @@ namespace DeadSignal
     public sealed class CombatFeedbackController : MonoBehaviour, ICombatFeedback
     {
         private const string IMPACT_TEXTURE_PATH = "VFX/MaintenanceSignalImpact";
+        private const string ENVIRONMENT_IMPACT_TEXTURE_PATH = "Projectiles/SignalBoltBulkheadImpact";
+        private const string ENVIRONMENT_IMPACT_MATERIAL_PATH = "Materials/SignalBoltBulkheadImpact";
         private const float LIGHT_HIT_STOP = 0.035f;
         private const float HEAVY_HIT_STOP = 0.06f;
         private const float IMPACT_DURATION = 0.22f;
@@ -41,6 +45,9 @@ namespace DeadSignal
         private Camera m_targetCamera;
         private Texture2D m_impactTexture;
         private Sprite m_impactSprite;
+        private Texture2D m_environmentImpactTexture;
+        private Sprite m_environmentImpactSprite;
+        private Material m_environmentImpactMaterial;
         private Vector3 m_cameraRestPosition;
         private float m_hitStopEndsAt;
         private float m_shakeRemaining;
@@ -52,6 +59,7 @@ namespace DeadSignal
         public bool IsPaused => m_isPaused;
         public bool IsHitStopped => m_hitStopEndsAt > 0f;
         public bool HasImpactTexture => m_impactTexture != null;
+        public bool HasEnvironmentImpactTexture => m_environmentImpactTexture != null && m_environmentImpactMaterial != null;
         public bool CameraImpulseEnabled => m_comfortSettings?.CameraImpulseEnabled ?? true;
         public bool ReducedFlashesEnabled => m_comfortSettings?.ReducedFlashesEnabled ?? false;
         public int ActiveImpactCount => m_impacts.Count;
@@ -94,6 +102,22 @@ namespace DeadSignal
                 new Vector2(0.5f, 0.5f),
                 pixelsPerUnit);
             m_impactSprite.name = "Maintenance Signal Impact Sprite";
+
+            m_environmentImpactTexture = Resources.Load<Texture2D>(ENVIRONMENT_IMPACT_TEXTURE_PATH);
+            m_environmentImpactMaterial = Resources.Load<Material>(ENVIRONMENT_IMPACT_MATERIAL_PATH);
+            if (m_environmentImpactTexture == null || m_environmentImpactMaterial == null)
+            {
+                Debug.LogWarning("Signal bolt bulkhead-impact art is missing from Resources.", this);
+                return;
+            }
+
+            pixelsPerUnit = m_environmentImpactTexture.width / 2.4f;
+            m_environmentImpactSprite = Sprite.Create(
+                m_environmentImpactTexture,
+                new Rect(0f, 0f, m_environmentImpactTexture.width, m_environmentImpactTexture.height),
+                new Vector2(0.5f, 0.5f),
+                pixelsPerUnit);
+            m_environmentImpactSprite.name = "Signal Bolt Bulkhead Impact Sprite";
         }
 
         public void PlaySignalImpact(Vector3 position, bool decisive)
@@ -110,6 +134,12 @@ namespace DeadSignal
         public void PlaySapperImpact(Vector3 position)
         {
             _playImpact(position, s_sapperTint, 1.35f, 0.2f, HEAVY_HIT_STOP);
+        }
+
+        public void PlayEnvironmentImpact(Vector3 position)
+        {
+            _playImpact(position, Color.white, 0.72f, 0f, 0f, m_environmentImpactSprite, m_environmentImpactMaterial,
+                "Bulkhead Signal Impact");
         }
 
         public void SetPaused(bool paused)
@@ -153,23 +183,45 @@ namespace DeadSignal
             {
                 Destroy(m_impactSprite);
             }
+
+            if (m_environmentImpactSprite != null)
+            {
+                Destroy(m_environmentImpactSprite);
+            }
         }
 
         private void _playImpact(Vector3 position, Color tint, float targetScale, float shakeIntensity, float hitStopDuration)
         {
-            if (m_isPaused || m_impactSprite == null)
+            _playImpact(position, tint, targetScale, shakeIntensity, hitStopDuration, m_impactSprite, null, "Combat Impact Burst");
+        }
+
+        private void _playImpact(
+            Vector3 position,
+            Color tint,
+            float targetScale,
+            float shakeIntensity,
+            float hitStopDuration,
+            Sprite sprite,
+            Material material,
+            string objectName)
+        {
+            if (m_isPaused || sprite == null)
             {
                 return;
             }
 
-            var root = new GameObject("Combat Impact Burst");
+            var root = new GameObject(objectName);
             root.transform.SetParent(transform, true);
             root.transform.position = position;
             root.transform.rotation = Quaternion.Euler(-90f, 0f, 0f);
             root.transform.localScale = Vector3.one * 0.12f;
 
             var spriteRenderer = root.AddComponent<SpriteRenderer>();
-            spriteRenderer.sprite = m_impactSprite;
+            spriteRenderer.sprite = sprite;
+            if (material != null)
+            {
+                spriteRenderer.sharedMaterial = material;
+            }
             spriteRenderer.color = _impactColor(tint, 0f);
             spriteRenderer.sortingOrder = 30;
 
@@ -187,8 +239,11 @@ namespace DeadSignal
                 m_shakeIntensity = Mathf.Max(m_shakeIntensity, shakeIntensity);
             }
 
-            m_hitStopEndsAt = Mathf.Max(m_hitStopEndsAt, Time.realtimeSinceStartup + hitStopDuration);
-            Time.timeScale = 0f;
+            if (hitStopDuration > 0f)
+            {
+                m_hitStopEndsAt = Mathf.Max(m_hitStopEndsAt, Time.realtimeSinceStartup + hitStopDuration);
+                Time.timeScale = 0f;
+            }
         }
 
         private void _updateHitStop()

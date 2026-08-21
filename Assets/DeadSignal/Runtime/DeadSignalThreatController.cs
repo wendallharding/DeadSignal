@@ -16,11 +16,15 @@ namespace DeadSignal
         private const float SAPPER_LATCH_DISTANCE = 1.25f;
         private const float SAPPER_FIRST_PULSE_DELAY = 1.6f;
 
+        private static readonly float s_wardenProjectileHitRadius = Mathf.Sqrt(0.9f);
+        private static readonly float s_sapperProjectileHitRadius = Mathf.Sqrt(0.75f);
+
         private readonly RunModel m_model;
         private readonly RunMetrics m_metrics;
         private readonly DeadSignalWorld m_world;
         private readonly ICombatFeedback m_combatFeedback;
         private readonly IDeadSignalAudio m_audio;
+        private readonly SignalBoltPresentationTuning m_projectileTuning;
         private readonly Action<string> m_showFeedback;
         private readonly List<Projectile> m_projectiles = new();
 
@@ -37,6 +41,7 @@ namespace DeadSignal
             DeadSignalWorld world,
             ICombatFeedback combatFeedback,
             IDeadSignalAudio audio,
+            SignalBoltPresentationTuning projectileTuning,
             Action<string> showFeedback)
         {
             m_model = model;
@@ -44,11 +49,14 @@ namespace DeadSignal
             m_world = world;
             m_combatFeedback = combatFeedback;
             m_audio = audio;
+            m_projectileTuning = projectileTuning;
             m_showFeedback = showFeedback;
         }
 
         public bool IsSapperLatched => m_sapperLatched;
         public bool IsSapperAlive => m_sapperHealth > 0f;
+        public float SapperHealth => m_sapperHealth;
+        public bool LastShotBlockedByEnvironment { get; private set; }
         public float SapperPulseCooldown => m_sapperPulseCooldown;
         public bool CanFire => m_shotCooldown <= 0f;
 
@@ -77,11 +85,12 @@ namespace DeadSignal
                 return;
             }
 
-            m_shotCooldown = 0.16f;
+            m_shotCooldown = m_projectileTuning.FireCooldown;
             m_metrics.RecordShot();
             m_audio.Play(DeadSignalAudioCue.Fire);
+            LastShotBlockedByEnvironment = false;
             var shot = m_world.CreateSignalBolt(direction);
-            m_projectiles.Add(new Projectile(shot, direction.normalized));
+            m_projectiles.Add(new Projectile(shot, direction.normalized, m_projectileTuning.Lifetime));
         }
 
         private void _tickWarden(float dt)
@@ -94,7 +103,7 @@ namespace DeadSignal
             m_wardenAttackCooldown = Mathf.Max(0f, m_wardenAttackCooldown - dt);
             var delta = m_world.Player.position - m_world.Warden.position;
             delta.y = 0f;
-            float distance = delta.magnitude;
+            var distance = delta.magnitude;
             if (distance > 0.05f)
             {
                 m_world.Warden.rotation = Quaternion.LookRotation(delta.normalized, Vector3.up);
@@ -133,7 +142,7 @@ namespace DeadSignal
             {
                 var delta = m_world.TowerPosition - m_world.Sapper.position;
                 delta.y = 0f;
-                float distance = delta.magnitude;
+                var distance = delta.magnitude;
                 if (distance > 0.05f)
                 {
                     m_world.Sapper.rotation = Quaternion.LookRotation(delta.normalized, Vector3.up);
@@ -158,7 +167,7 @@ namespace DeadSignal
 
             m_sapperPulseCooldown = Mathf.Max(0f, m_sapperPulseCooldown - dt);
             m_world.SapperTelegraph.SetThreatState(true, true, m_sapperPulseCooldown, SAPPER_PULSE_INTERVAL);
-            float pulse = 1f + Mathf.Sin(Time.time * 10f) * 0.18f;
+            var pulse = 1f + Mathf.Sin(Time.time * 10f) * 0.18f;
             m_world.SapperCore.localScale = Vector3.Scale(
                 m_world.SapperCoreBaseScale,
                 new Vector3(pulse, 1f, pulse));
@@ -183,12 +192,37 @@ namespace DeadSignal
             {
                 var shot = m_projectiles[index];
                 shot.Life -= dt;
-                shot.Visual.transform.position += shot.Direction * (13.5f * dt);
+                var start = shot.Visual.transform.position;
+                var end = start + shot.Direction * (m_projectileTuning.Speed * dt);
+                var hitWarden = _tryGetThreatHitFraction(
+                    start, end, m_world.Warden, m_wardenHealth, s_wardenProjectileHitRadius, out var wardenHitFraction);
+                var hitSapper = _tryGetThreatHitFraction(
+                    start, end, m_world.Sapper, m_sapperHealth, s_sapperProjectileHitRadius, out var sapperHitFraction);
+                var hitObstacle = m_world.TryGetProjectileObstacleHit(
+                    start,
+                    end,
+                    m_projectileTuning.CollisionRadius,
+                    m_model.ShortcutOpen,
+                    out var obstacleHitFraction);
+                var nearestThreatFraction = Mathf.Min(
+                    hitWarden ? wardenHitFraction : float.PositiveInfinity,
+                    hitSapper ? sapperHitFraction : float.PositiveInfinity);
+                if (hitObstacle && obstacleHitFraction < nearestThreatFraction)
+                {
+                    LastShotBlockedByEnvironment = true;
+                    shot.Visual.transform.position = Vector3.Lerp(start, end, obstacleHitFraction);
+                    m_combatFeedback.PlayEnvironmentImpact(shot.Visual.transform.position + Vector3.up * 0.03f);
+                    UnityEngine.Object.Destroy(shot.Visual);
+                    m_projectiles.RemoveAt(index);
+                    continue;
+                }
 
-                bool hitWarden = m_world.Warden.gameObject.activeSelf && m_wardenHealth > 0f &&
-                                  Vector3.SqrMagnitude(shot.Visual.transform.position - (m_world.Warden.position + Vector3.up * 0.3f)) < 0.9f;
-                bool hitSapper = m_world.Sapper.gameObject.activeSelf && m_sapperHealth > 0f &&
-                                  Vector3.SqrMagnitude(shot.Visual.transform.position - (m_world.Sapper.position + Vector3.up * 0.3f)) < 0.75f;
+                shot.Visual.transform.position = end;
+                if (hitWarden && hitSapper)
+                {
+                    hitWarden = wardenHitFraction <= sapperHitFraction;
+                    hitSapper = !hitWarden;
+                }
                 if (hitWarden)
                 {
                     _hitWarden();
@@ -205,6 +239,35 @@ namespace DeadSignal
                     m_projectiles.RemoveAt(index);
                 }
             }
+        }
+
+        private static bool _tryGetThreatHitFraction(
+            Vector3 start,
+            Vector3 end,
+            Transform threat,
+            float health,
+            float radius,
+            out float hitFraction)
+        {
+            hitFraction = float.PositiveInfinity;
+            if (!threat.gameObject.activeSelf || health <= 0f)
+            {
+                return false;
+            }
+
+            var center = threat.position + Vector3.up * 0.3f;
+            if (ProjectileCollision.TryGetCircleHitFraction(start, end, center, radius, out hitFraction))
+            {
+                return true;
+            }
+
+            if (Vector3.SqrMagnitude(end - center) >= radius * radius)
+            {
+                return false;
+            }
+
+            hitFraction = 1f;
+            return true;
         }
 
         private void _hitWarden()
@@ -239,11 +302,11 @@ namespace DeadSignal
 
         private sealed class Projectile
         {
-            public Projectile(GameObject visual, Vector3 direction)
+            public Projectile(GameObject visual, Vector3 direction, float lifetime)
             {
                 Visual = visual;
                 Direction = direction;
-                Life = 1.5f;
+                Life = lifetime;
             }
 
             public GameObject Visual { get; }

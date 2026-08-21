@@ -17,3 +17,7 @@ MonoBehaviour:
   m_endingWidth: 0.015
   m_minimumVertexDistance: 0.03
   m_maximumAlpha: 0.62
+  m_speed: 13.5
+  m_lifetime: 1.5
+  m_fireCooldown: 0.16
+  m_collisionRadius: 0.08
