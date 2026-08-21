@@ -35,7 +35,7 @@ namespace DeadSignal
                 }
 
                 pickup.transform.Rotate(Vector3.up, 70f * dt, Space.World);
-                float hover = 0.06f + Mathf.Sin(Time.time * 3f + pickup.transform.position.x) * 0.04f;
+                var hover = 0.06f + Mathf.Sin(Time.time * 3f + pickup.transform.position.x) * 0.04f;
                 var position = pickup.transform.position;
                 position.y = hover;
                 pickup.transform.position = position;

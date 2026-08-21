@@ -1471,3 +1471,62 @@ Matching Editor: `C:\Program Files\Unity\Hub\Editor\6000.3.11f1\Editor\Unity.exe
 ### Best next step
 
 Play `Build/Windows/DeadSignal.exe` at 16:9 and ultrawide in normal and High Contrast modes, confirm the six consoles enrich the room edges without hiding actors or routes, then replace the remaining runtime gameplay markers with a small authored marker kit.
+
+## 2026-08-21 — Autonomous Run 26
+
+### Today's single idea — authored salvage-cache assembly
+
+Player benefit: the three mandatory rewards now read as valuable, purpose-built containment units instead of generic amber blocks. Original graphite, ceramic, and amber-core art makes each dark-zone objective more distinctive without changing the risk loop, collection timing, or objective guidance.
+
+Acceptance criteria:
+
+- one reusable Unity-authored, collider-free salvage-cache prefab owns the existing case and locking band at the existing dimensions;
+- runtime composition places exactly three prefab instances at the unchanged cache positions, applies original containment art to every case, and preserves the warm-gold/white reward read;
+- a safe primitive fallback preserves all three collectibles if the prefab is absent, while tests, build validation, and packaged smoke report production readiness as false;
+- High Contrast continues to update the live cache housing and band materials without changing collection or guidance;
+- no pickup positions, collection radius, hover/rotation behavior, salvage requirement, Signal economy, threat timing, movement, controls, audio, save data, or serialized gameplay state changes; and
+- import/compile, EditMode, PlayMode, Windows build, Direct3D 11 packaged smoke, strict scans, and repository checks pass.
+
+### Files and systems changed
+
+- `Assets/DeadSignal/Resources/Environment/SalvageCachePanel.png` and Unity-generated `.meta`: added an original 1254x1254 RGB dark-alloy salvage-containment texture generated with the built-in image tool. The generated preview and copied project asset were inspected; Unity imported it with sRGB, mipmaps, clamp wrapping, high-quality compression, and a 1024px default-platform cap. SHA-256: `A9EF794BCF171236DC8B1799F63F7A7A8EEAC4EDDA01DB2652FAFF6D281B70FC`; GUID: `13e1de368b4c25544ad3b3b4d7102959`.
+- `Assets/DeadSignal/Resources/Environment/SalvageCacheAssembly.prefab` and Unity-generated `.meta`: added the reusable collider-free two-part cache assembly through Unity's Prefab API. GUID: `c7f42c97cb1dfda47a2d41522d73e240`.
+- `Assets/DeadSignal/Runtime/DeadSignalWorld.cs`: loads and validates the prefab for all three unchanged positions, applies dedicated live materials, retains a safe primitive fallback, and exposes narrow readiness/count state.
+- `Assets/DeadSignal/Runtime/DeadSignalPalette.cs`: adds the generated cache texture Resource and a dedicated live High Contrast-aware housing material.
+- `Assets/DeadSignal/Runtime/DeadSignalGame.cs`: exposes narrow salvage asset and hierarchy state for validation.
+- `Assets/DeadSignal/Runtime/DeadSignalSalvageController.cs`: completes this run's focused one-class convention refactor by changing the apparent-type hover local to `var`; behavior is unchanged.
+- `Assets/DeadSignal/Editor/DeadSignalProjectSetup.cs`: adds idempotent texture configuration and Unity-driven cache-prefab creation.
+- `Assets/DeadSignal/Editor/DeadSignalWindowsBuild.cs`: prepares and requires the authored cache assets before packaging.
+- `Assets/DeadSignal/Runtime/StandaloneBuildSmokeProbe.cs`: requires the authored cache hierarchy and texture in packaged-player readiness.
+- `Assets/DeadSignal/Tests/PlayMode/BootstrapSmokeTests.cs`: verifies three authored roots, six renderers, absent colliders, original texture assignment, live High Contrast remapping, collection, and production readiness alongside the complete prior regression.
+- `GAME_VISION.md`, `BACKLOG.md`, and `DEVLOG.md`: record the authored-objective milestone without changing the core concept.
+
+No packages, assembly definitions, scenes, project settings, deterministic rules, input, audio, balance, save data, or serialized gameplay state were intentionally changed. Reflex 14.3.1 was already installed. Unity's automatic build rewrites to URP assets, Graphics settings, batching, Unity Services, and earlier texture metadata were removed from the final source diff.
+
+### Tests run and exact outcomes
+
+Matching Editor: `C:\Program Files\Unity\Hub\Editor\6000.3.11f1\Editor\Unity.exe` (Unity 6000.3.11f1) against the live workspace.
+
+1. Unity import, compilation, texture configuration, and prefab setup wrote `Logs/run26-salvage-setup.log`: Unity imported the generated PNG, compiled all changed assemblies, created the collider-free prefab and both `.meta` files, and exited `0`.
+2. An initial EditMode invocation with `-quit` compiled successfully but produced no XML and is not counted. The authoritative rerun wrote `Logs/run26-editmode-results.xml` and `Logs/run26-editmode.log`: Unity exited `0`; `16/16` passed, `0` failed, `0` skipped in `0.0449074` seconds.
+3. PlayMode full runtime regression wrote `Logs/run26-playmode-results.xml` and `Logs/run26-playmode.log`: Unity exited `0`; `1/1` passed, `0` failed, `0` skipped in `3.9398279` seconds. It proved the authored cache hierarchy, art, accessibility response, and collection path while retaining every prior input, pause, audio, particles, warning, activation, combat, Sapper, shortcut, extraction, and restart assertion.
+4. Windows development build wrote `Logs/run26-windows-build.log`: Unity exited `0`, emitted the build PASS marker, and produced 191,017,253 reported bytes in 69.24 seconds. The ignored local artifact contains 293 files totaling 191,210,595 bytes.
+5. A null-renderer packaged smoke wrote `Logs/run26-standalone-smoke.log`, printed one PASS marker, and exited `0`; it is supplemental only. The authoritative real packaged launch wrote `Logs/run26-standalone-d3d11-smoke.log`: the player forced Direct3D 11 on the NVIDIA GeForce RTX 3060, found the complete authored runtime including all salvage assets, printed one PASS marker, and exited `0`.
+6. Static asset inspection found exactly two mesh renderers and no collider component in the prefab. The project PNG is 1254x1254 RGB and byte-identical to the visually inspected generated output.
+7. Final warmed-project compilation after documentation and settings cleanup wrote `Logs/run26-final-compile.log`: Unity exited `0` with no first-party compiler error or warning.
+8. Strict scans of setup, EditMode, PlayMode, build, both packaged-player logs, and final compilation found no first-party compiler errors, null or missing-reference exceptions, unhandled exceptions, failed assertions, failed tests, or failed smoke markers. Final metadata, trailing-whitespace, and `git diff --check` validation passed.
+
+### Bugs found and fixed
+
+- Validation caught that `-nographics` forced the first standalone smoke onto Unity's null renderer despite `-force-d3d11`. A second hidden packaged run omitted `-nographics`, initialized Direct3D 11 on the NVIDIA RTX 3060, and passed.
+- Removed unrelated Unity build-time URP, Graphics, batching, Unity Services, and existing texture-metadata serialization changes before final validation.
+
+### Known limitations
+
+- Automated checks prove hierarchy, Resources loading, texture assignment, High Contrast remapping, unchanged collection/guidance, and packaged startup but cannot judge cache silhouette, UV projection, or reward readability at 16:9 and ultrawide.
+- The generated texture is an albedo only and the two-part assembly retains simple cube meshes; bevels, an emissive mask, and a normal map should wait until a human top-down composition pass.
+- The room shell, primary objectives, route choice, routing, machines, and salvage are now authored, while player and threat models plus security-edge markers remain runtime-composed. The broader complete-room migration and tuning-session work remain open.
+
+### Best next step
+
+Play `Build/Windows/DeadSignal.exe` at 16:9 and ultrawide in normal and High Contrast modes, confirm each amber cache remains unmistakable against the dark deck during combat, then migrate the player drone into an authored model prefab.

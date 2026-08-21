@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Linq;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -99,6 +100,18 @@ namespace DeadSignal.Tests
                 stationMachines.GetChild(0).Find("Machine Status").GetComponent<Renderer>().sharedMaterial,
                 Is.Not.EqualTo(stationMachines.GetChild(1).Find("Machine Status").GetComponent<Renderer>().sharedMaterial),
                 "Adjacent station machines should retain alternating red/cyan status strips.");
+            var salvageCaches = game.transform.Cast<Transform>().Where(child => child.name == "Salvage Cache").ToArray();
+            Assert.That(game.HasSalvageCacheAssets, Is.True,
+                "The salvage-cache prefab and original containment texture should load from Resources.");
+            Assert.That(game.SalvageCacheInstanceCount, Is.EqualTo(RunModel.SalvageRequired));
+            Assert.That(game.SalvageCachePartCount, Is.EqualTo(RunModel.SalvageRequired * 2));
+            Assert.That(salvageCaches.Length, Is.EqualTo(RunModel.SalvageRequired));
+            Assert.That(salvageCaches.Sum(cache => cache.GetComponentsInChildren<Renderer>().Length),
+                Is.EqualTo(RunModel.SalvageRequired * 2));
+            Assert.That(salvageCaches.Sum(cache => cache.GetComponentsInChildren<Collider>().Length), Is.Zero,
+                "The authored salvage caches should remain presentation-only so collection rules stay authoritative.");
+            Assert.That(salvageCaches[0].Find("Salvage Case").GetComponent<Renderer>().sharedMaterial.mainTexture,
+                Is.Not.Null, "Every authored salvage case should render the original containment texture.");
             Transform signalTower = game.transform.Find("Signal Tower Assembly");
             Assert.That(signalTower, Is.Not.Null, "The central objective should load from the authored Signal-tower prefab.");
             Assert.That(game.HasSignalTowerAssets, Is.True,

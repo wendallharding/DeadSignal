@@ -20,6 +20,7 @@ namespace DeadSignal
         private const string SHORTCUT_GATE_PREFAB_RESOURCE = "Environment/ShortcutGateAssembly";
         private const string SIGNAL_ROUTING_PREFAB_RESOURCE = "Environment/SignalRoutingAssembly";
         private const string STATION_MACHINE_PREFAB_RESOURCE = "Environment/StationMachineAssembly";
+        private const string SALVAGE_CACHE_PREFAB_RESOURCE = "Environment/SalvageCacheAssembly";
         private const float DECK_MODULE_WIDTH = 3.9f;
         private const float DECK_MODULE_DEPTH = 3.6f;
 
@@ -73,6 +74,9 @@ namespace DeadSignal
         public bool HasStationMachineAssets { get; private set; }
         public int StationMachineInstanceCount { get; private set; }
         public int StationMachinePartCount { get; private set; }
+        public bool HasSalvageCacheAssets { get; private set; }
+        public int SalvageCacheInstanceCount { get; private set; }
+        public int SalvageCachePartCount { get; private set; }
 
         public bool IsPowered(Vector3 position, bool towerOnline)
         {
@@ -586,12 +590,37 @@ namespace DeadSignal
 
         private void _createSalvage(Vector3 position)
         {
-            var root = new GameObject("Salvage Cache");
-            root.transform.SetParent(m_root);
-            root.transform.position = position;
-            _createPrimitive("Salvage Case", PrimitiveType.Cube, new Vector3(0f, 0.35f, 0f), new Vector3(0.75f, 0.48f, 0.75f), m_palette.Amber, root.transform);
-            _createPrimitive("Salvage Band", PrimitiveType.Cube, new Vector3(0f, 0.61f, 0f), new Vector3(0.9f, 0.06f, 0.28f), m_palette.White, root.transform);
+            var salvagePrefab = Resources.Load<GameObject>(SALVAGE_CACHE_PREFAB_RESOURCE);
+            var hasValidPrefab = salvagePrefab != null &&
+                                 salvagePrefab.transform.Find("Salvage Case") != null &&
+                                 salvagePrefab.transform.Find("Salvage Band") != null;
+            GameObject root;
+            if (hasValidPrefab)
+            {
+                root = Object.Instantiate(salvagePrefab, m_root);
+                root.name = "Salvage Cache";
+                root.transform.localPosition = position;
+                root.transform.localRotation = Quaternion.identity;
+                root.transform.Find("Salvage Case").GetComponent<Renderer>().sharedMaterial = m_palette.SalvageCacheHousing;
+                root.transform.Find("Salvage Band").GetComponent<Renderer>().sharedMaterial = m_palette.White;
+            }
+            else
+            {
+                root = new GameObject("Salvage Cache");
+                root.transform.SetParent(m_root);
+                root.transform.position = position;
+                _createPrimitive("Salvage Case", PrimitiveType.Cube, new Vector3(0f, 0.35f, 0f),
+                    new Vector3(0.75f, 0.48f, 0.75f), m_palette.SalvageCacheHousing, root.transform);
+                _createPrimitive("Salvage Band", PrimitiveType.Cube, new Vector3(0f, 0.61f, 0f),
+                    new Vector3(0.9f, 0.06f, 0.28f), m_palette.White, root.transform);
+            }
+
             m_salvagePickups.Add(root);
+            SalvageCacheInstanceCount++;
+            SalvageCachePartCount += 2;
+            HasSalvageCacheAssets = hasValidPrefab && m_palette.HasSalvageCacheTexture &&
+                                    SalvageCacheInstanceCount == RunModel.SalvageRequired &&
+                                    SalvageCachePartCount == RunModel.SalvageRequired * 2;
         }
 
         private bool _isBlocked(Vector3 position, float radius, bool shortcutOpen)

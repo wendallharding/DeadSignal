@@ -27,6 +27,8 @@ namespace DeadSignal.Editor
         private const string SIGNAL_ROUTING_PREFAB_PATH = ENVIRONMENT_FOLDER + "/SignalRoutingAssembly.prefab";
         private const string STATION_MACHINE_TEXTURE_PATH = ENVIRONMENT_FOLDER + "/StationMachinePanel.png";
         private const string STATION_MACHINE_PREFAB_PATH = ENVIRONMENT_FOLDER + "/StationMachineAssembly.prefab";
+        private const string SALVAGE_CACHE_TEXTURE_PATH = ENVIRONMENT_FOLDER + "/SalvageCachePanel.png";
+        private const string SALVAGE_CACHE_PREFAB_PATH = ENVIRONMENT_FOLDER + "/SalvageCacheAssembly.prefab";
         private const string CREATE_REFLEX_SETTINGS_MENU = "Assets/Create/Reflex/Settings";
 
         public static bool HasReflexSettings =>
@@ -63,6 +65,10 @@ namespace DeadSignal.Editor
         public static bool HasStationMachineAssets =>
             AssetDatabase.LoadAssetAtPath<Texture2D>(STATION_MACHINE_TEXTURE_PATH) != null &&
             AssetDatabase.LoadAssetAtPath<GameObject>(STATION_MACHINE_PREFAB_PATH) != null;
+
+        public static bool HasSalvageCacheAssets =>
+            AssetDatabase.LoadAssetAtPath<Texture2D>(SALVAGE_CACHE_TEXTURE_PATH) != null &&
+            AssetDatabase.LoadAssetAtPath<GameObject>(SALVAGE_CACHE_PREFAB_PATH) != null;
 
         public static void EnsureReflexSettings()
         {
@@ -394,6 +400,41 @@ namespace DeadSignal.Editor
             if (!HasStationMachineAssets)
             {
                 throw new InvalidOperationException("The station-machine texture and assembly prefab were not created successfully.");
+            }
+        }
+
+        public static void EnsureSalvageCacheAssets()
+        {
+            var importer = AssetImporter.GetAtPath(SALVAGE_CACHE_TEXTURE_PATH) as TextureImporter;
+            if (importer == null)
+            {
+                throw new InvalidOperationException($"Could not find the salvage-cache texture at {SALVAGE_CACHE_TEXTURE_PATH}.");
+            }
+
+            importer.alphaIsTransparency = false;
+            importer.mipmapEnabled = true;
+            importer.maxTextureSize = 1024;
+            importer.wrapMode = TextureWrapMode.Clamp;
+            importer.textureCompression = TextureImporterCompression.CompressedHQ;
+            importer.SaveAndReimport();
+
+            if (AssetDatabase.LoadAssetAtPath<GameObject>(SALVAGE_CACHE_PREFAB_PATH) == null)
+            {
+                var salvage = new GameObject("Salvage Cache Assembly");
+                _createPrefabCube("Salvage Case", new Vector3(0f, 0.35f, 0f),
+                    new Vector3(0.75f, 0.48f, 0.75f), salvage.transform);
+                _createPrefabCube("Salvage Band", new Vector3(0f, 0.61f, 0f),
+                    new Vector3(0.9f, 0.06f, 0.28f), salvage.transform);
+
+                PrefabUtility.SaveAsPrefabAsset(salvage, SALVAGE_CACHE_PREFAB_PATH);
+                UnityEngine.Object.DestroyImmediate(salvage);
+            }
+
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
+            if (!HasSalvageCacheAssets)
+            {
+                throw new InvalidOperationException("The salvage-cache texture and assembly prefab were not created successfully.");
             }
         }
 

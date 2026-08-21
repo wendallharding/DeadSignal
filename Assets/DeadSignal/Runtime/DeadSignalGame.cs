@@ -60,6 +60,9 @@ namespace DeadSignal
         public bool HasStationMachineAssets => m_world?.HasStationMachineAssets ?? false;
         public int StationMachineInstanceCount => m_world?.StationMachineInstanceCount ?? 0;
         public int StationMachinePartCount => m_world?.StationMachinePartCount ?? 0;
+        public bool HasSalvageCacheAssets => m_world?.HasSalvageCacheAssets ?? false;
+        public int SalvageCacheInstanceCount => m_world?.SalvageCacheInstanceCount ?? 0;
+        public int SalvageCachePartCount => m_world?.SalvageCachePartCount ?? 0;
         public float LowSignalWarningIntensity => m_lowSignalWarning?.CurrentIntensity ?? 0f;
         public bool IsSignalDustPowered => m_signalDust?.IsPowered ?? false;
         public int SignalDustMaximumParticles => m_signalDust?.MaximumParticles ?? 0;

@@ -50,6 +50,7 @@ namespace DeadSignal
                                 game.HasShortcutGateAssets &&
                                 game.HasSignalRoutingAssets &&
                                 game.HasStationMachineAssets &&
+                                game.HasSalvageCacheAssets &&
                                 game.HasLowSignalWarningTexture &&
                                 game.HasTowerActivationSweepTexture;
             if (!runtimeReady)

@@ -28,6 +28,7 @@ namespace DeadSignal.Editor
             DeadSignalProjectSetup.EnsureShortcutGateAssets();
             DeadSignalProjectSetup.EnsureSignalRoutingAssets();
             DeadSignalProjectSetup.EnsureStationMachineAssets();
+            DeadSignalProjectSetup.EnsureSalvageCacheAssets();
             _validateBuildInputs();
             _configureWindowsPlayer();
 
@@ -115,6 +116,11 @@ namespace DeadSignal.Editor
             if (!DeadSignalProjectSetup.HasStationMachineAssets)
             {
                 throw new BuildFailedException("The authored station-machine assets are missing.");
+            }
+
+            if (!DeadSignalProjectSetup.HasSalvageCacheAssets)
+            {
+                throw new BuildFailedException("The authored salvage-cache assets are missing.");
             }
 
             if (AssetDatabase.LoadAssetAtPath<Texture2D>(APPLICATION_ICON_PATH) == null)
