@@ -97,7 +97,16 @@ private float m_currentSignal;
 
 ## Class Organization
 
-- Follow the surrounding file and do not reorder an existing class solely to satisfy a preferred layout.
+Preferred layout, organize class members in this order:
+1. Fields with attributes
+2. Public fields
+3. Public properties
+4. Unity / Fusion lifecycle methods
+5. Public methods
+6. Private methods
+7. Private fields
+
+- When modifying a class reorder the existing class if it does not satisfy the preferred layout.
 - Keep related state and behavior close enough that ownership is easy to understand.
 - Group serialized fields by Inspector purpose, using attributes such as `[Header]` where that improves authoring clarity.
 - Keep public and interface methods before private helpers when consistent with the local file.
@@ -116,6 +125,15 @@ private float m_currentSignal;
 - Avoid unnecessary global state, singleton access, string-based scene lookups, and hidden dependencies.
 - Prefer event-driven or callback-based communication over polling when it makes ownership clearer.
 - Subscribe and unsubscribe symmetrically. `OnEnable` normally pairs with `OnDisable`; owned disposable resources must be cleaned up when their owner ends.
+
+## Tuning Data
+
+- Prioritize ScriptableObject assets for designer-facing gameplay, balance, AI, movement, combat, economy, camera, audio, VFX, and presentation tuning instead of hardcoding adjustable values in scripts.
+- Treat values that may change during playtesting, differ by difficulty or content variant, or need coordinated adjustment as tuning data. Group related values into focused configuration assets rather than creating one oversized global settings asset.
+- Keep true code invariants, fixed protocol values, array bounds, and values required by compile-time APIs as constants or static readonly members; do not move values into ScriptableObjects merely to eliminate every literal.
+- Pass tuning assets through serialized references or explicit composition. Keep deterministic rules directly testable by accepting the required configuration or copied immutable values rather than reaching into global assets.
+- Give tuning assets safe defaults and validate invalid ranges or relationships with `OnValidate`, Editor validation, or focused tests where appropriate.
+- When changing a system that contains hardcoded tuning, migrate the values relevant to the requested work when practical. Avoid broad unrelated tuning migrations solely for consistency.
 
 ## Unity Serialization and Object Semantics
 
