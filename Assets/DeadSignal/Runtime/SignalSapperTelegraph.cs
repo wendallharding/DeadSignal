@@ -5,6 +5,7 @@ namespace DeadSignal
     public sealed class SignalSapperTelegraph : MonoBehaviour
     {
         private const string PULSE_TEXTURE_RESOURCE = "VFX/SapperDrainGlyph";
+        private const string TETHER_TEXTURE_RESOURCE = "VFX/SapperTetherFlow";
         private const string TUNING_RESOURCE = "Tuning/SignalSapperTelegraphTuning";
 
         private readonly Transform[] m_reticleBrackets = new Transform[4];
@@ -14,6 +15,8 @@ namespace DeadSignal
         private SignalSapperTelegraphTuning m_tuning;
         private Vector3 m_towerPosition;
         private LineRenderer m_tether;
+        private Texture2D m_tetherTexture;
+        private Material m_tetherMaterial;
         private GameObject m_pulseFlashRoot;
         private Texture2D m_pulseTexture;
         private Sprite m_pulseSprite;
@@ -28,6 +31,8 @@ namespace DeadSignal
         public bool IsLatched => m_isLatched;
         public float DisplayedCountdown => m_pulseSecondsRemaining;
         public bool HasPulseTexture => m_pulseTexture != null;
+        public bool HasTetherTexture => m_tetherTexture != null;
+        public float TetherTextureOffset => m_tetherMaterial != null ? m_tetherMaterial.mainTextureOffset.x : 0f;
         public bool PulseFlashVisible => m_pulseFlashRoot != null && m_pulseFlashRoot.activeSelf;
 
         internal void Configure(
@@ -52,7 +57,8 @@ namespace DeadSignal
             var tetherObject = new GameObject("Sapper Target Tether");
             tetherObject.transform.SetParent(transform, false);
             m_tether = tetherObject.AddComponent<LineRenderer>();
-            m_tether.sharedMaterial = dimMaterial;
+            m_tetherTexture = Resources.Load<Texture2D>(TETHER_TEXTURE_RESOURCE);
+            m_tether.sharedMaterial = _createTetherMaterial(dimMaterial);
             m_tether.positionCount = 2;
             m_tether.startWidth = 0.045f;
             m_tether.endWidth = 0.14f;
@@ -60,6 +66,8 @@ namespace DeadSignal
             m_tether.endColor = new Color(1f, 0.08f, 0.72f, 1f);
             m_tether.useWorldSpace = true;
             m_tether.numCapVertices = 3;
+            m_tether.textureMode = LineTextureMode.Tile;
+            m_tether.alignment = LineAlignment.View;
 
             for (int index = 0; index < m_reticleBrackets.Length; index++)
             {
@@ -105,8 +113,17 @@ namespace DeadSignal
                 return;
             }
 
-            m_tether.SetPosition(0, m_sapper.position + Vector3.up * 0.55f);
-            m_tether.SetPosition(1, m_towerPosition + Vector3.up * 0.24f);
+            var tetherStart = m_sapper.position + Vector3.up * 0.55f;
+            var tetherEnd = m_towerPosition + Vector3.up * 0.24f;
+            m_tether.SetPosition(0, tetherStart);
+            m_tether.SetPosition(1, tetherEnd);
+            m_tether.textureScale = new Vector2(
+                Vector3.Distance(tetherStart, tetherEnd) / m_tuning.TetherRepeatWorldLength,
+                1f);
+            if (m_tetherMaterial != null)
+            {
+                m_tetherMaterial.mainTextureOffset = new Vector2(-Time.time * m_tuning.TetherScrollSpeed, 0f);
+            }
 
             float rotationSpeed = m_isLatched ? m_tuning.LatchedRotationSpeed : m_tuning.ApproachRotationSpeed;
             float rotationOffset = Time.time * rotationSpeed;
@@ -134,6 +151,11 @@ namespace DeadSignal
             if (m_pulseSprite != null)
             {
                 Destroy(m_pulseSprite);
+            }
+
+            if (m_tetherMaterial != null)
+            {
+                Destroy(m_tetherMaterial);
             }
 
             if (m_ownsFallbackTuning && m_tuning != null)
@@ -209,6 +231,29 @@ namespace DeadSignal
             m_pulseRenderer.sprite = m_pulseSprite;
             m_pulseRenderer.sortingOrder = 24;
             m_pulseFlashRoot.SetActive(false);
+        }
+
+        private Material _createTetherMaterial(Material fallbackMaterial)
+        {
+            if (m_tetherTexture == null)
+            {
+                Debug.LogWarning($"Sapper tether texture was not found at Resources/{TETHER_TEXTURE_RESOURCE}.", this);
+                return fallbackMaterial;
+            }
+
+            var shader = Shader.Find("Sprites/Default");
+            if (shader == null)
+            {
+                Debug.LogWarning("Sprites/Default shader was not available for the Sapper tether.", this);
+                return fallbackMaterial;
+            }
+
+            m_tetherMaterial = new Material(shader)
+            {
+                name = "Sapper Tether Flow Runtime",
+                mainTexture = m_tetherTexture
+            };
+            return m_tetherMaterial;
         }
 
         private GameObject _createPrimitive(string objectName, PrimitiveType type, Vector3 scale, Material material)

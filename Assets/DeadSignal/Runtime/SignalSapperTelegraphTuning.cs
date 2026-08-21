@@ -12,6 +12,10 @@ namespace DeadSignal
         [SerializeField] private float m_approachRotationSpeed = 58f;
         [SerializeField] private float m_latchedRotationSpeed = 34f;
 
+        [Header("Target Tether")]
+        [SerializeField] private float m_tetherScrollSpeed = 1.4f;
+        [SerializeField] private float m_tetherRepeatWorldLength = 0.9f;
+
         [Header("Drain Pulse")]
         [SerializeField] private float m_flashDuration = 0.42f;
         [SerializeField] private float m_flashStartingDiameter = 0.8f;
@@ -23,6 +27,8 @@ namespace DeadSignal
         public float CountdownEndRadius => m_countdownEndRadius;
         public float ApproachRotationSpeed => m_approachRotationSpeed;
         public float LatchedRotationSpeed => m_latchedRotationSpeed;
+        public float TetherScrollSpeed => m_tetherScrollSpeed;
+        public float TetherRepeatWorldLength => m_tetherRepeatWorldLength;
         public float FlashDuration => m_flashDuration;
         public float FlashStartingDiameter => m_flashStartingDiameter;
         public float FlashEndingDiameter => m_flashEndingDiameter;
@@ -35,6 +41,8 @@ namespace DeadSignal
             m_countdownEndRadius = Mathf.Clamp(m_countdownEndRadius, 0.1f, m_countdownStartRadius);
             m_approachRotationSpeed = Mathf.Max(0f, m_approachRotationSpeed);
             m_latchedRotationSpeed = Mathf.Max(0f, m_latchedRotationSpeed);
+            m_tetherScrollSpeed = Mathf.Max(0f, m_tetherScrollSpeed);
+            m_tetherRepeatWorldLength = Mathf.Max(0.1f, m_tetherRepeatWorldLength);
             m_flashDuration = Mathf.Max(0.05f, m_flashDuration);
             m_flashStartingDiameter = Mathf.Max(0.1f, m_flashStartingDiameter);
             m_flashEndingDiameter = Mathf.Max(m_flashStartingDiameter, m_flashEndingDiameter);

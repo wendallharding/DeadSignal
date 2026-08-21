@@ -49,6 +49,7 @@ This autonomous run is accepted when a fresh Play session provides all of the fo
 - Dead zones are visually distinct, show a warning, and drain Signal quickly.
 - Tower activation wakes two readable threats: a red Warden pursues the drone while a magenta Signal Sapper telegraphs its tower target and timed drain pulses; both can be destroyed.
 - The Sapper's successful drain uses an authored inward-pulling floor glyph whose expansion remains optional under Reduced Flashes while timing stays readable through the countdown reticle.
+- The Sapper's target tether carries repeated authored energy packets toward the tower during approach and latch, making drain direction readable without changing threat timing.
 - Three warm salvage pickups can be collected outside the safe starting area.
 - Returning to the extraction pad with all salvage and pressing E wins.
 - A central powered gate offers a readable choice: spend Signal for a direct salvage route or detour through the dead zone.

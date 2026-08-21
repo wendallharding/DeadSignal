@@ -17,6 +17,8 @@ MonoBehaviour:
   m_countdownEndRadius: 0.82
   m_approachRotationSpeed: 58
   m_latchedRotationSpeed: 34
+  m_tetherScrollSpeed: 1.4
+  m_tetherRepeatWorldLength: 0.9
   m_flashDuration: 0.42
   m_flashStartingDiameter: 0.8
   m_flashEndingDiameter: 5.2

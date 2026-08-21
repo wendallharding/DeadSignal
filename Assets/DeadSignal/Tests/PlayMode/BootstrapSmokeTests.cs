@@ -136,8 +136,14 @@ namespace DeadSignal.Tests
             Assert.That(telegraph.IsVisible, Is.False);
             Assert.That(telegraph.HasPulseTexture, Is.True,
                 "The Sapper telegraph should load its original drain-glyph texture.");
+            Assert.That(telegraph.HasTetherTexture, Is.True,
+                "The Sapper telegraph should load its original directional tether texture.");
             Assert.That(Resources.Load<SignalSapperTelegraphTuning>("Tuning/SignalSapperTelegraphTuning"), Is.Not.Null,
                 "The Sapper telegraph should load designer-facing presentation tuning.");
+            var sapperTether = telegraphRoot.Find("Sapper Target Tether").GetComponent<LineRenderer>();
+            Assert.That(sapperTether.textureMode, Is.EqualTo(LineTextureMode.Tile));
+            Assert.That(sapperTether.sharedMaterial.mainTexture, Is.EqualTo(Resources.Load<Texture2D>("VFX/SapperTetherFlow")),
+                "The targeting tether should render the authored repeating energy-flow texture.");
             var sapperPulseFlash = telegraphRoot.Find("Sapper Pulse Flash");
             Assert.That(sapperPulseFlash, Is.Not.Null);
             Assert.That(sapperPulseFlash.GetComponent<SpriteRenderer>(), Is.Not.Null,
@@ -499,7 +505,10 @@ namespace DeadSignal.Tests
                 Assert.That(telegraph.IsVisible, Is.True);
                 Assert.That(telegraph.IsLatched, Is.False);
                 Assert.That(telegraphRoot.Find("Sapper Target Tether"), Is.Not.Null);
+                float tetherOffsetBeforeAnimation = telegraph.TetherTextureOffset;
                 yield return null;
+                Assert.That(telegraph.TetherTextureOffset, Is.LessThan(tetherOffsetBeforeAnimation),
+                    "The tether texture should animate from the Sapper toward its tower target.");
 
                 Assert.That(game.CurrentObjectiveBeaconPhase, Is.EqualTo(ObjectiveBeaconPhase.Salvage),
                     "Tower activation should advance guidance to the nearest live salvage cache.");

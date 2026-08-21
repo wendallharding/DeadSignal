@@ -37,6 +37,7 @@
 - [x] Add a second enemy archetype that pressures powered territory
 - [x] Telegraph the Sapper's tower target and timed drain pulses in-world
 - [x] Replace the Sapper's primitive pulse flash with an authored, tunable drain glyph
+- [x] Give the Sapper tether an authored directional energy flow without changing its threat rules
 - [x] Add a safe pause/resume overlay for keyboard and controller
 - [x] Add combat hit-stop, camera impulse, and generated impact-burst feedback
 - [x] Add adaptive procedural Signal ambience, distinct gameplay cues, and persisted mute control

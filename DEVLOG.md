@@ -1946,3 +1946,57 @@ The live project remained open in Unity 6000.3.11f1 and was not controlled. Auth
 ### Best next step
 
 Trigger a Sapper drain in `Assets/Scenes/SampleScene.unity` with Reduced Flashes both off and on, then judge glyph brightness and size against the tower floor at 16:9 and ultrawide.
+
+## 2026-08-21 — Run 34: directional Sapper tether flow
+
+### Today's single idea — authored directional drain tether
+
+Player benefit: the Sapper-to-tower tether now carries repeated magenta energy packets toward the tower, communicating who is stealing Signal and where it is going before the first pulse without changing drain timing or cost.
+
+Acceptance criteria:
+
+- load one original transparent, horizontally repeating tether texture from Resources and map it onto the existing LineRenderer;
+- tile the texture at a stable world-space density and animate it from the Sapper toward its tower target during both approach and latch;
+- preserve the existing tether geometry, countdown, drain pulse, Reduced Flashes behavior, and all threat rules;
+- move scroll speed and repeat length into validated designer-facing tuning data; and
+- pass Unity import/compile, EditMode, PlayMode, Windows build, packaged-resource smoke, and repository checks.
+
+### Files and systems changed
+
+- `Assets/DeadSignal/Resources/VFX/SapperTetherFlow.png` and Unity-generated `.meta`: added an original transparent hot-magenta/deep-violet directional energy strip generated with OpenAI's built-in image-generation mode and configured for repeat wrapping, alpha transparency, mipmaps, high-quality compression, and a 1024px cap. SHA-256: `1BF1C82F7CCF39C5DE7955FE125F09FDF66E2C5005A3CE4488B3992BAAC81FB7`.
+- Image-generation prompt: narrow horizontally seamless Unity LineRenderer VFX with repeating hot-magenta chevrons and packets pointing left-to-right, restrained violet core and cool-white highlights, transparent space and gaps, no scene, text, logos, characters, opaque background, or competing colors.
+- `Assets/DeadSignal/Runtime/SignalSapperTelegraph.cs`: maps the authored texture through an owned transparent runtime material, tiles it according to tether length, scrolls it toward the tower, exposes readiness for validation, and cleans up the material.
+- `Assets/DeadSignal/Runtime/SignalSapperTelegraphTuning.cs` and `Assets/DeadSignal/Resources/Tuning/SignalSapperTelegraphTuning.asset`: added validated designer-facing tether scroll-speed and world-repeat tuning.
+- `Assets/DeadSignal/Editor/DeadSignalSapperTelegraphSetup.cs`: refactored duplicated import configuration into one focused helper and now configures both glyph and repeating tether textures while persisting new tuning fields.
+- `Assets/DeadSignal/Runtime/StandaloneBuildSmokeProbe.cs`: requires the tether texture in packaged content.
+- `Assets/DeadSignal/Tests/PlayMode/BootstrapSmokeTests.cs`: verifies texture readiness, mapping, repeat mode, and live directional animation while retaining the full core-loop regression.
+- `GAME_VISION.md`, `BACKLOG.md`, and `DEVLOG.md`: record the completed presentation milestone.
+
+No gameplay timing, Signal cost, enemy behavior, scene, prefab, package, project setting, input, audio, save data, or existing art/material asset changed.
+
+### Tests run and exact outcomes
+
+The live project and the user's other Unity projects remained untouched. Authoritative validation used `C:\Projects\Wendall\CodexPrototype_Run34Validation` with Unity `6000.3.11f1`.
+
+1. OpenAI built-in image generation produced a `2172x724` 32-bit ARGB texture. It was copied to project Resources, visually inspected for a clean left-to-right packet sequence and transparent negative space, and hashed as recorded above.
+2. Unity setup wrote `run34-setup.log`: the pinned Editor compiled the changed assemblies, imported the texture with GUID `c26a0f5e2761e0049aac5ff15b04966b`, persisted the two new tuning fields, and exited `0` without first-party compiler errors or warnings.
+3. Two initial Test Runner launches included `-quit`, exited `0`, and produced no result XML; they are not counted as passes. The corrected authoritative EditMode run wrote `run34-editmode-results.xml` and `run34-editmode-final.log`: `16/16` passed, `0` failed, `0` skipped in `0.047488` seconds, exit `0`.
+4. The authoritative PlayMode run wrote `run34-playmode-results.xml` and `run34-playmode-final.log`: `1/1` passed, `0` failed, `0` skipped in `3.9850381` seconds, exit `0`. It proved texture readiness, exact material mapping, repeat mode, live offset motion, and every prior core-loop assertion.
+5. The Windows development build wrote `run34-build.log`: Unity exited `0`, reported `Build Finished, Result: Success`, emitted one build PASS marker, and produced `200,277,353` reported bytes in `73.36` seconds.
+6. The packaged `-batchmode -nographics -deadSignalBuildSmoke` launch wrote `run34-standalone.log`, loaded the new required tether Resource, emitted one standalone PASS marker, and exited normally.
+7. Strict scans of the final setup, test, build, and packaged-player logs found zero compiler errors/warnings, failed assertions, missing-reference exceptions, unhandled exceptions, failed build markers, or failed smoke markers.
+
+### Bugs found and fixed
+
+- The previous tether used a solid shared palette material, so it identified the target but could not communicate drain direction. It now uses an independently owned transparent animated material and leaves shared materials untouched.
+- The touched tether animation values were hardcoded nowhere previously; their new adjustable values are introduced directly as validated ScriptableObject tuning rather than runtime literals.
+- Unity Test Runner exits before writing results when `-quit` is combined with this project's test invocation. The authoritative commands omit `-quit`, allowing the runner to own shutdown and produce verifiable XML.
+
+### Known limitations
+
+- Automated validation can prove mapping, tiling, and offset motion but cannot replace a human judgment of flow direction and brightness against the live floor at 16:9 and ultrawide.
+- The generated strip is intentionally emissive-looking through its albedo and transparent sprite shader; a dedicated additive URP shader remains unnecessary until profiling and visual review justify it.
+
+### Best next step
+
+Activate the tower in `Assets/Scenes/SampleScene.unity`, watch the Sapper approach and latch, and judge whether packet speed remains readable during simultaneous Warden pressure in normal and High Contrast modes.
