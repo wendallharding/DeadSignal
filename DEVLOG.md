@@ -816,7 +816,7 @@ Matching editor: `C:\Program Files\Unity\Hub\Editor\6000.3.11f1\Editor\Unity.exe
 5. Final EditMode regression wrote `Logs/run14-final-editmode-results.xml` and `Logs/run14-final-editmode.log`: Unity returned `0`; `12/12` passed, `0` failed, `0` skipped in `0.0505028` seconds.
 6. Final PlayMode regression wrote `Logs/run14-final-playmode-results.xml` and `Logs/run14-final-playmode.log`: Unity returned `0`; `1/1` passed, `0` failed, `0` skipped in `3.6426` seconds. It directly proved generated audio, one listener, pause/mute persistence, tower cue playback, adaptive powered volume, controller input, accessibility controls, combat, Sapper behavior, salvage, shortcut, extraction, and restart.
 7. Strict final scans found no C# compiler errors/warnings, null or missing-reference exceptions, unhandled exceptions, assertion failures, failed-test markers, or missing/duplicate AudioListener warnings. Unity emitted the existing transient licensing handshake error at startup, then resolved entitlements and returned `0` for every corrected/final operation.
-8. Final `git diff --check` passed. The generated PNG was visually inspected and its dimensions, RGBA format, transparency sample, and SHA-256 were verified from the project copy.
+8. Metadata hygiene validation wrote `Logs/run14-meta-validation.log`: Unity returned `0` and accepted normalized empty YAML values while preserving the generated GUID. Final `git diff --check` passed. The generated PNG was visually inspected and its dimensions, RGBA format, transparency sample, and SHA-256 were verified from the project copy.
 
 ### Bugs found and fixed
 
