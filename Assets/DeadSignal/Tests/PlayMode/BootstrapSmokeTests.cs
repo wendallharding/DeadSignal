@@ -16,6 +16,8 @@ namespace DeadSignal.Tests
 
             DeadSignalGame game = Object.FindFirstObjectByType<DeadSignalGame>();
             Assert.That(game, Is.Not.Null, "Runtime bootstrap did not create the game controller.");
+            Assert.That(Object.FindFirstObjectByType<DeadSignalHud>(), Is.Not.Null,
+                "Runtime bootstrap should compose a dedicated HUD presenter.");
             Assert.That(game.transform.Find("Maintenance Drone"), Is.Not.Null);
             Assert.That(game.transform.Find("Security Warden"), Is.Not.Null, "Dormant security should exist before tower activation.");
             Assert.That(game.transform.Find("Signal Sapper"), Is.Not.Null, "Dormant sapper should exist before tower activation.");

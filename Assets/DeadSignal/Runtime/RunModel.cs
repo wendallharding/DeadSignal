@@ -53,7 +53,7 @@ namespace DeadSignal
 
     /// <summary>
     /// Deterministic, engine-independent rules for the vertical slice.
-    /// Presentation and input live in DeadSignalGame; tests can exercise this model directly.
+    /// Runtime presentation and input live in focused orchestration services; tests can exercise this model directly.
     /// </summary>
     public sealed class RunModel
     {

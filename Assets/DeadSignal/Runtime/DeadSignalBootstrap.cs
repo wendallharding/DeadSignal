@@ -20,12 +20,14 @@ namespace DeadSignal
 
             var comfortSettings = new ComfortSettings();
             var combatFeedback = root.AddComponent<CombatFeedbackController>();
+            var hud = root.AddComponent<DeadSignalHud>();
             root.AddComponent<DeadSignalGame>();
 
             Container container = new ContainerBuilder()
                 .SetName("DEAD SIGNAL Runtime")
                 .RegisterValue(comfortSettings, new[] { typeof(IComfortSettings) })
                 .RegisterValue(combatFeedback, new[] { typeof(ICombatFeedback) })
+                .RegisterValue(hud, new[] { typeof(IDeadSignalHud) })
                 .Build();
             GameObjectInjector.InjectObject(root, container);
             root.SetActive(true);
