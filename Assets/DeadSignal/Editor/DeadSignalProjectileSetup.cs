@@ -7,22 +7,31 @@ namespace DeadSignal.Editor
     public static class DeadSignalProjectileSetup
     {
         private const string TEXTURE_PATH = "Assets/DeadSignal/Resources/Projectiles/SignalBoltAlbedo.png";
+        private const string TRAIL_TEXTURE_PATH = "Assets/DeadSignal/Resources/Projectiles/SignalBoltTrail.png";
         private const string MODEL_PATH = "Assets/DeadSignal/Resources/Projectiles/SignalBoltModel.fbx";
         private const string PREFAB_PATH = "Assets/DeadSignal/Resources/Projectiles/SignalBoltAssembly.prefab";
         private const string SHELL_MATERIAL_PATH = "Assets/DeadSignal/Resources/Materials/SignalBoltShell.mat";
         private const string ENERGY_MATERIAL_PATH = "Assets/DeadSignal/Resources/Materials/SignalBoltEnergy.mat";
+        private const string TRAIL_MATERIAL_PATH = "Assets/DeadSignal/Resources/Materials/SignalBoltTrail.mat";
+        private const string TUNING_PATH = "Assets/DeadSignal/Resources/Tuning/SignalBoltPresentationTuning.asset";
 
         public static bool HasAssets =>
             AssetDatabase.LoadAssetAtPath<Texture2D>(TEXTURE_PATH) != null &&
+            AssetDatabase.LoadAssetAtPath<Texture2D>(TRAIL_TEXTURE_PATH) != null &&
             AssetDatabase.LoadAssetAtPath<GameObject>(MODEL_PATH) != null &&
+            AssetDatabase.LoadAssetAtPath<SignalBoltPresentationTuning>(TUNING_PATH) != null &&
             _hasModelPrefab() &&
-            _hasMaterialAssignments();
+            _hasMaterialAssignments() &&
+            _hasAuthoredTrail();
 
         public static void EnsureAssets()
         {
-            _configureTexture();
+            _configureTexture(TEXTURE_PATH, false, TextureWrapMode.Repeat);
+            _configureTexture(TRAIL_TEXTURE_PATH, true, TextureWrapMode.Clamp);
             _configureModel();
+            _ensureTuning();
             _ensureMaterials();
+            _ensureTrailMaterial();
             _ensurePrefab();
             _assignMaterials();
 
@@ -34,20 +43,32 @@ namespace DeadSignal.Editor
             }
         }
 
-        private static void _configureTexture()
+        private static void _configureTexture(string texturePath, bool alphaIsTransparency, TextureWrapMode wrapMode)
         {
-            var importer = AssetImporter.GetAtPath(TEXTURE_PATH) as TextureImporter;
+            var importer = AssetImporter.GetAtPath(texturePath) as TextureImporter;
             if (importer == null)
             {
-                throw new InvalidOperationException($"Could not find the Signal bolt texture at {TEXTURE_PATH}.");
+                throw new InvalidOperationException($"Could not find the Signal bolt texture at {texturePath}.");
             }
 
-            importer.alphaIsTransparency = false;
+            importer.alphaIsTransparency = alphaIsTransparency;
             importer.mipmapEnabled = true;
             importer.maxTextureSize = 1024;
-            importer.wrapMode = TextureWrapMode.Repeat;
+            importer.wrapMode = wrapMode;
             importer.textureCompression = TextureImporterCompression.CompressedHQ;
             importer.SaveAndReimport();
+        }
+
+        private static void _ensureTuning()
+        {
+            var tuning = AssetDatabase.LoadAssetAtPath<SignalBoltPresentationTuning>(TUNING_PATH);
+            if (tuning == null)
+            {
+                tuning = ScriptableObject.CreateInstance<SignalBoltPresentationTuning>();
+                AssetDatabase.CreateAsset(tuning, TUNING_PATH);
+            }
+
+            EditorUtility.SetDirty(tuning);
         }
 
         private static void _configureModel()
@@ -132,6 +153,38 @@ namespace DeadSignal.Editor
             }
         }
 
+        private static void _ensureTrailMaterial()
+        {
+            var material = AssetDatabase.LoadAssetAtPath<Material>(TRAIL_MATERIAL_PATH);
+            if (material == null)
+            {
+                var shader = Shader.Find("Universal Render Pipeline/Particles/Unlit");
+                if (shader == null)
+                {
+                    throw new InvalidOperationException("Could not find the URP Particles Unlit shader for the Signal bolt trail.");
+                }
+
+                material = new Material(shader)
+                {
+                    name = "SignalBoltTrail",
+                    renderQueue = 3000
+                };
+                material.SetOverrideTag("RenderType", "Transparent");
+                material.SetFloat("_Surface", 1f);
+                material.SetFloat("_Blend", 0f);
+                material.SetFloat("_SrcBlend", (float)UnityEngine.Rendering.BlendMode.SrcAlpha);
+                material.SetFloat("_DstBlend", (float)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+                material.SetFloat("_ZWrite", 0f);
+                material.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
+                AssetDatabase.CreateAsset(material, TRAIL_MATERIAL_PATH);
+            }
+
+            var trailTexture = AssetDatabase.LoadAssetAtPath<Texture2D>(TRAIL_TEXTURE_PATH);
+            material.mainTexture = trailTexture;
+            material.SetTexture("_BaseMap", trailTexture);
+            EditorUtility.SetDirty(material);
+        }
+
         private static void _ensurePrefab()
         {
             if (_hasModelPrefab())
@@ -158,6 +211,7 @@ namespace DeadSignal.Editor
             {
                 _assignMaterial(prefabRoot.transform, "Bolt Shell", SHELL_MATERIAL_PATH);
                 _assignMaterial(prefabRoot.transform, "Bolt Energy", ENERGY_MATERIAL_PATH);
+                _configureTrail(prefabRoot);
                 PrefabUtility.SaveAsPrefabAsset(prefabRoot, PREFAB_PATH);
             }
             finally
@@ -176,6 +230,35 @@ namespace DeadSignal.Editor
             }
 
             renderer.sharedMaterial = material;
+        }
+
+        private static void _configureTrail(GameObject prefabRoot)
+        {
+            var tuning = AssetDatabase.LoadAssetAtPath<SignalBoltPresentationTuning>(TUNING_PATH);
+            var trailMaterial = AssetDatabase.LoadAssetAtPath<Material>(TRAIL_MATERIAL_PATH);
+            if (tuning == null || trailMaterial == null)
+            {
+                throw new InvalidOperationException("Signal bolt trail tuning or material is missing.");
+            }
+
+            var trail = prefabRoot.GetComponent<TrailRenderer>();
+            if (trail == null)
+            {
+                trail = prefabRoot.AddComponent<TrailRenderer>();
+            }
+
+            trail.sharedMaterial = trailMaterial;
+            trail.time = tuning.TrailDuration;
+            trail.startWidth = tuning.StartingWidth;
+            trail.endWidth = tuning.EndingWidth;
+            trail.minVertexDistance = tuning.MinimumVertexDistance;
+            trail.startColor = new Color(1f, 1f, 1f, tuning.MaximumAlpha);
+            trail.endColor = new Color(1f, 1f, 1f, 0f);
+            trail.textureMode = LineTextureMode.Stretch;
+            trail.alignment = LineAlignment.View;
+            trail.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+            trail.receiveShadows = false;
+            trail.emitting = true;
         }
 
         private static bool _hasModelPrefab()
@@ -207,6 +290,17 @@ namespace DeadSignal.Editor
             return part != null &&
                    part.TryGetComponent<Renderer>(out var renderer) &&
                    renderer.sharedMaterial == AssetDatabase.LoadAssetAtPath<Material>(materialPath);
+        }
+
+        private static bool _hasAuthoredTrail()
+        {
+            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(PREFAB_PATH);
+            var trailMaterial = AssetDatabase.LoadAssetAtPath<Material>(TRAIL_MATERIAL_PATH);
+            return prefab != null &&
+                   trailMaterial != null &&
+                   prefab.TryGetComponent<TrailRenderer>(out var trail) &&
+                   trail.sharedMaterial == trailMaterial &&
+                   trailMaterial.mainTexture == AssetDatabase.LoadAssetAtPath<Texture2D>(TRAIL_TEXTURE_PATH);
         }
     }
 }

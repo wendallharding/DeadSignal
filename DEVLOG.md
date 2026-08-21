@@ -2061,3 +2061,57 @@ The live project remained open in Unity `6000.3.11f1` and was not closed or cont
 ### Best next step
 
 Fire repeatedly at the Warden and Sapper in `Assets/Scenes/SampleScene.unity`, then judge the bolt silhouette, cyan brightness, and visual ownership at 16:9 and ultrawide in normal and High Contrast modes.
+
+## 2026-08-21 — Run 36: authored Signal bolt afterimage
+
+### Today's single idea — readable directional bolt trail
+
+Player benefit: fast shots now leave a compact cyan circuit afterimage, making aim direction, speed, and near-misses easier to read while keeping the new projectile body visible and combat behavior unchanged.
+
+Acceptance criteria:
+
+- load one original transparent cyan trail texture from Resources and persist it on a transparent URP material;
+- attach a collider-free TrailRenderer to the authored Signal bolt prefab with its texture oriented from fading tail to bright projectile head;
+- keep duration, widths, sampling distance, and maximum alpha in validated designer-facing tuning data;
+- preserve Signal cost, spawn point, speed, lifetime, hit radii, damage, input, hit-stop, and Reduced Flashes behavior; and
+- pass Unity import/compile, EditMode, PlayMode, Windows build, packaged-resource smoke, and repository checks.
+
+### Files and systems changed
+
+- `Assets/DeadSignal/Resources/Projectiles/SignalBoltTrail.png` and Unity-generated `.meta`: added an original transparent cyan/teal circuit-wisp afterimage generated with OpenAI's built-in image-generation mode and configured with alpha transparency, mipmaps, clamp wrapping, high-quality compression, and a 1024px cap. SHA-256: `281B1965CAF69B2B2BD8A771C289DB16ADAEFBC69D31121DFC8052F12A1B630A`.
+- Image-generation prompt: one narrow horizontal cyan maintenance-energy afterimage, brightest at the right-hand projectile end and tapering left into broken circuit wisps/particles, true alpha, generous transparent space, no text, logos, UI, scene, projectile body, border, or competing warm colors.
+- `Assets/DeadSignal/Resources/Materials/SignalBoltTrail.mat` and Unity-generated `.meta`: added the persistent transparent URP Particles Unlit trail material with the generated texture mapped.
+- `Assets/DeadSignal/Runtime/SignalBoltPresentationTuning.cs`, Unity-generated `.meta`, and `Assets/DeadSignal/Resources/Tuning/SignalBoltPresentationTuning.asset`: added validated designer-facing trail duration, start/end widths, sampling distance, and maximum alpha.
+- `Assets/DeadSignal/Resources/Projectiles/SignalBoltAssembly.prefab`: now persists the tuned, view-aligned, non-shadow-casting TrailRenderer while retaining the exact model/material hierarchy and no colliders.
+- `Assets/DeadSignal/Editor/DeadSignalProjectileSetup.cs`: refactored texture import into a shared parameterized helper and extended idempotent setup/build readiness to create, map, tune, and repair the authored trail without overwriting established shell/energy artist tuning.
+- `Assets/DeadSignal/Runtime/StandaloneBuildSmokeProbe.cs`: requires the trail texture, material, and tuning resource in packaged content.
+- `Assets/DeadSignal/Tests/PlayMode/BootstrapSmokeTests.cs`: verifies the exact prefab/material/texture/tuning mapping, width/duration contract, stretch orientation, disabled shadows, and every prior core-loop assertion.
+- `GAME_VISION.md`, `BACKLOG.md`, and `DEVLOG.md`: record the completed projectile-readability milestone.
+
+No mesh, gameplay timing, Signal cost, projectile speed/lifetime/hit radii/damage, enemy behavior, scene, package, project setting, input, audio, save data, or existing material tuning changed.
+
+### Tests run and exact outcomes
+
+The live project remained open in Unity `6000.3.11f1` and was not closed or controlled. Authoritative validation used `C:\Projects\Wendall\CodexPrototype_Run36Validation` with the pinned Editor.
+
+1. OpenAI built-in image generation produced a `2172x724` 32-bit ARGB transparent trail. It was copied into project Resources and visually inspected for a bright right-hand head, fading left tail, circuit wisps, transparent negative space, and absence of text/logos. SHA-256 is recorded above; texture GUID: `1f3322a1ed4e5a046bbc167c0939643c`.
+2. Unity setup wrote `run36-setup.log`: the pinned Editor compiled the changed assemblies, imported the trail, created material GUID `4009e0f955d6ad5409231030e4dfbdae`, created tuning GUID `561e19e7e77d16242a6c94973f0309d2`, serialized the TrailRenderer on the existing prefab GUID, and exited `0` with zero first-party compiler errors or warnings.
+3. EditMode regression wrote `run36-editmode-results.xml` and `run36-editmode.log`: `16/16` passed, `0` failed, `0` skipped in `0.0580936` seconds, exit `0`.
+4. PlayMode regression wrote `run36-playmode-results.xml` and `run36-playmode.log`: `1/1` passed, `0` failed, `0` skipped in `3.9717278` seconds, exit `0`. It proved exact texture/material/tuning mapping, trail duration and widths, stretched orientation, disabled shadows, no colliders, and every prior core-loop assertion.
+5. The Windows development build wrote `run36-build.log`: Unity exited `0`, reported `Build Finished, Result: Success`, emitted one build PASS marker, and produced `202,071,957` reported bytes in `73.96` seconds.
+6. The packaged `-batchmode -nographics -deadSignalBuildSmoke` launch wrote `run36-standalone.log`, loaded all new trail Resources, emitted one standalone PASS marker, and exited normally.
+7. Strict scans of the setup, EditMode, PlayMode, build, and packaged-player logs found zero compiler errors/warnings, failed assertions, missing-reference exceptions, unhandled exceptions, failed build markers, or failed smoke markers. Final Unity-generated whitespace was normalized and `git diff --check` passed.
+
+### Bugs found and fixed
+
+- The authored projectile had a strong close-up silhouette but its 13.5-unit/second motion could still read as a brief cyan speck. The short textured afterimage now communicates travel direction without altering its transform or collision path.
+- Projectile setup previously duplicated assumptions around one opaque texture. It now uses one focused import helper for opaque repeating albedo and transparent clamped trail assets.
+
+### Known limitations
+
+- TrailRenderer texture orientation and perceived brightness still require human judgment during simultaneous Warden, Sapper, and impact feedback at target display aspect ratios.
+- The trail remains active in Reduced Flashes mode because it is a continuous low-alpha motion cue rather than a sudden flash; its restrained alpha is designer-tunable.
+
+### Best next step
+
+Fire across the room and past both threats in `Assets/Scenes/SampleScene.unity`, then judge trail length, head direction, and cyan separation from powered floor routing at 16:9 and ultrawide.

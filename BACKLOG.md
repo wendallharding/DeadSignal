@@ -31,6 +31,7 @@
 - [x] Replace the maintenance drone's placeholder primitive meshes with a UV-mapped Blender-authored model
 - [x] Persist the maintenance drone's mapped URP materials on its prefab outside Play Mode
 - [x] Replace the player's placeholder cube projectile with a textured, UV-mapped Blender-authored prefab
+- [x] Add a short authored, tunable afterimage to the Signal bolt
 - [x] Migrate the Security Warden into a textured authored prefab without changing pursuit, damage, or health
 - [x] Replace the Security Warden's placeholder primitives with a UV-mapped Blender model and persistent URP materials
 - [x] Replace the Signal Sapper's placeholder primitives with a UV-mapped Blender model and persistent URP materials

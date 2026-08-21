@@ -75,6 +75,9 @@ namespace DeadSignal
                                 Resources.Load<Texture2D>("Projectiles/SignalBoltAlbedo") != null &&
                                 Resources.Load<Material>("Materials/SignalBoltShell") != null &&
                                 Resources.Load<Material>("Materials/SignalBoltEnergy") != null &&
+                                Resources.Load<Texture2D>("Projectiles/SignalBoltTrail") != null &&
+                                Resources.Load<Material>("Materials/SignalBoltTrail") != null &&
+                                Resources.Load<SignalBoltPresentationTuning>("Tuning/SignalBoltPresentationTuning") != null &&
                                 Resources.Load<Texture2D>("VFX/SapperDrainGlyph") != null &&
                                 Resources.Load<Texture2D>("VFX/SapperTetherFlow") != null &&
                                 Resources.Load<SignalSapperTelegraphTuning>("Tuning/SignalSapperTelegraphTuning") != null &&

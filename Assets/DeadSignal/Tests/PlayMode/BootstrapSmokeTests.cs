@@ -77,6 +77,21 @@ namespace DeadSignal.Tests
                 "Both Signal bolt meshes should retain complete authored UV coordinates.");
             Assert.That(authoredBoltPrefab.GetComponentsInChildren<Collider>().Length, Is.Zero,
                 "The authored projectile should remain presentation-only so deterministic hit rules stay authoritative.");
+            var boltTrailTexture = Resources.Load<Texture2D>("Projectiles/SignalBoltTrail");
+            var boltTrailMaterial = Resources.Load<Material>("Materials/SignalBoltTrail");
+            var boltTrailTuning = Resources.Load<SignalBoltPresentationTuning>("Tuning/SignalBoltPresentationTuning");
+            var boltTrail = authoredBoltPrefab.GetComponent<TrailRenderer>();
+            Assert.That(boltTrailTexture, Is.Not.Null);
+            Assert.That(boltTrailMaterial, Is.Not.Null);
+            Assert.That(boltTrailTuning, Is.Not.Null);
+            Assert.That(boltTrail, Is.Not.Null, "The authored projectile prefab should persist its directional afterimage.");
+            Assert.That(boltTrail.sharedMaterial, Is.EqualTo(boltTrailMaterial));
+            Assert.That(boltTrailMaterial.mainTexture, Is.EqualTo(boltTrailTexture));
+            Assert.That(boltTrail.time, Is.EqualTo(boltTrailTuning.TrailDuration));
+            Assert.That(boltTrail.startWidth, Is.EqualTo(boltTrailTuning.StartingWidth));
+            Assert.That(boltTrail.endWidth, Is.EqualTo(boltTrailTuning.EndingWidth));
+            Assert.That(boltTrail.textureMode, Is.EqualTo(LineTextureMode.Stretch));
+            Assert.That(boltTrail.shadowCastingMode, Is.EqualTo(UnityEngine.Rendering.ShadowCastingMode.Off));
             var securityWarden = game.transform.Find("Security Warden");
             var authoredWardenPrefab = Resources.Load<GameObject>("Actors/SecurityWardenAssembly");
             Assert.That(authoredWardenPrefab, Is.Not.Null,
