@@ -25,6 +25,7 @@ namespace DeadSignal.Editor
             DeadSignalProjectSetup.EnsureMaintenanceRoomShellAssets();
             DeadSignalProjectSetup.EnsureSignalTowerAssets();
             DeadSignalProjectSetup.EnsureExtractionPadAssets();
+            DeadSignalProjectSetup.EnsureShortcutGateAssets();
             _validateBuildInputs();
             _configureWindowsPlayer();
 
@@ -97,6 +98,11 @@ namespace DeadSignal.Editor
             if (!DeadSignalProjectSetup.HasExtractionPadAssets)
             {
                 throw new BuildFailedException("The authored extraction pad assets are missing.");
+            }
+
+            if (!DeadSignalProjectSetup.HasShortcutGateAssets)
+            {
+                throw new BuildFailedException("The authored shortcut gate assets are missing.");
             }
 
             if (AssetDatabase.LoadAssetAtPath<Texture2D>(APPLICATION_ICON_PATH) == null)

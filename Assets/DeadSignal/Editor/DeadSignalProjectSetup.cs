@@ -21,6 +21,8 @@ namespace DeadSignal.Editor
         private const string SIGNAL_TOWER_PREFAB_PATH = ENVIRONMENT_FOLDER + "/SignalTowerAssembly.prefab";
         private const string EXTRACTION_DOCK_TEXTURE_PATH = ENVIRONMENT_FOLDER + "/ExtractionDockPanel.png";
         private const string EXTRACTION_PAD_PREFAB_PATH = ENVIRONMENT_FOLDER + "/ExtractionPadAssembly.prefab";
+        private const string SHORTCUT_GATE_TEXTURE_PATH = ENVIRONMENT_FOLDER + "/ShortcutGatePanel.png";
+        private const string SHORTCUT_GATE_PREFAB_PATH = ENVIRONMENT_FOLDER + "/ShortcutGateAssembly.prefab";
         private const string CREATE_REFLEX_SETTINGS_MENU = "Assets/Create/Reflex/Settings";
 
         public static bool HasReflexSettings =>
@@ -45,6 +47,10 @@ namespace DeadSignal.Editor
         public static bool HasExtractionPadAssets =>
             AssetDatabase.LoadAssetAtPath<Texture2D>(EXTRACTION_DOCK_TEXTURE_PATH) != null &&
             AssetDatabase.LoadAssetAtPath<GameObject>(EXTRACTION_PAD_PREFAB_PATH) != null;
+
+        public static bool HasShortcutGateAssets =>
+            AssetDatabase.LoadAssetAtPath<Texture2D>(SHORTCUT_GATE_TEXTURE_PATH) != null &&
+            AssetDatabase.LoadAssetAtPath<GameObject>(SHORTCUT_GATE_PREFAB_PATH) != null;
 
         public static void EnsureReflexSettings()
         {
@@ -167,7 +173,7 @@ namespace DeadSignal.Editor
                     new(-11.6f, 0f, 6.8f), new(-8.8f, 0f, 6.9f), new(10.8f, 0f, 6.8f),
                     new(11.2f, 0f, -6.7f), new(4.8f, 0f, -7.1f), new(-3.8f, 0f, 7.1f)
                 };
-                for (int i = 0; i < machineLocations.Length; i++)
+                for (var i = 0; i < machineLocations.Length; i++)
                 {
                     var socket = new GameObject($"Machine Socket {i + 1:00}");
                     socket.transform.SetParent(sockets.transform, false);
@@ -259,6 +265,49 @@ namespace DeadSignal.Editor
             if (!HasExtractionPadAssets)
             {
                 throw new InvalidOperationException("The extraction dock texture and assembly prefab were not created successfully.");
+            }
+        }
+
+        public static void EnsureShortcutGateAssets()
+        {
+            var importer = AssetImporter.GetAtPath(SHORTCUT_GATE_TEXTURE_PATH) as TextureImporter;
+            if (importer == null)
+            {
+                throw new InvalidOperationException($"Could not find the shortcut gate texture at {SHORTCUT_GATE_TEXTURE_PATH}.");
+            }
+
+            importer.alphaIsTransparency = false;
+            importer.mipmapEnabled = true;
+            importer.maxTextureSize = 1024;
+            importer.wrapMode = TextureWrapMode.Clamp;
+            importer.textureCompression = TextureImporterCompression.CompressedHQ;
+            importer.SaveAndReimport();
+
+            if (AssetDatabase.LoadAssetAtPath<GameObject>(SHORTCUT_GATE_PREFAB_PATH) == null)
+            {
+                var shortcut = new GameObject("Shortcut Gate Assembly");
+                _createPrefabCube("Shortcut Bulkhead South", new Vector3(0f, 0.46f, -3.55f),
+                    new Vector3(0.55f, 1.1f, 4.7f), shortcut.transform);
+                _createPrefabCube("Shortcut Bulkhead North", new Vector3(0f, 0.46f, 3.15f),
+                    new Vector3(0.55f, 1.1f, 3.9f), shortcut.transform);
+                _createPrefabCube("Shortcut Gate South Post", new Vector3(-0.16f, 0.68f, -1.34f),
+                    new Vector3(0.85f, 1.45f, 0.25f), shortcut.transform);
+                _createPrefabCube("Shortcut Gate North Post", new Vector3(-0.16f, 0.68f, 1.34f),
+                    new Vector3(0.85f, 1.45f, 0.25f), shortcut.transform);
+                _createPrefabCube("Shortcut Gate Signal", new Vector3(-0.31f, 1.38f, 0f),
+                    new Vector3(0.12f, 0.08f, 2.3f), shortcut.transform);
+                _createPrefabCube("Signal Shortcut Gate", new Vector3(0f, 0.55f, 0f),
+                    new Vector3(0.42f, 1.05f, 2.4f), shortcut.transform);
+
+                PrefabUtility.SaveAsPrefabAsset(shortcut, SHORTCUT_GATE_PREFAB_PATH);
+                UnityEngine.Object.DestroyImmediate(shortcut);
+            }
+
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
+            if (!HasShortcutGateAssets)
+            {
+                throw new InvalidOperationException("The shortcut gate texture and assembly prefab were not created successfully.");
             }
         }
 

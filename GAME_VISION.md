@@ -39,6 +39,7 @@ This autonomous run is accepted when a fresh Play session provides all of the fo
 - The playable room perimeter is an authored reusable shell with textured bulkheads and explicit machine sockets rather than hard-coded wall and prop placement.
 - The central Signal tower is a reusable authored assembly with original control-panel housing art while its dormant/online state remains unmistakable.
 - The extraction dock is a reusable authored assembly with original radial docking art while its safe-home and final-objective read remains unmistakable.
+- The optional Signal-cost shortcut is a reusable authored assembly with original powered-lock art while both free detours and its closed/open state remain unmistakable.
 - Dead zones are visually distinct, show a warning, and drain Signal quickly.
 - Tower activation wakes two readable threats: a red Warden pursues the drone while a magenta Signal Sapper telegraphs its tower target and timed drain pulses; both can be destroyed.
 - Three warm salvage pickups can be collected outside the safe starting area.

@@ -13,6 +13,7 @@ namespace DeadSignal
         private const string MAINTENANCE_BULKHEAD_TEXTURE_RESOURCE = "Environment/MaintenanceBulkheadPanel";
         private const string SIGNAL_TOWER_TEXTURE_RESOURCE = "Environment/SignalTowerHousingPanel";
         private const string EXTRACTION_DOCK_TEXTURE_RESOURCE = "Environment/ExtractionDockPanel";
+        private const string SHORTCUT_GATE_TEXTURE_RESOURCE = "Environment/ShortcutGatePanel";
 
         public DeadSignalPalette(bool highContrastEnabled)
         {
@@ -26,6 +27,8 @@ namespace DeadSignal
             Bulkhead = _createMaterial("Maintenance Bulkhead");
             TowerHousing = _createMaterial("Signal Tower Housing");
             ExtractionHousing = _createMaterial("Extraction Dock Housing");
+            ShortcutHousing = _createMaterial("Shortcut Gate Housing");
+            ShortcutLocked = _createMaterial("Shortcut Gate Locked");
             Dark = _createMaterial("Station Black");
             Steel = _createMaterial("Station Steel");
             White = _createMaterial("Drone White");
@@ -93,6 +96,24 @@ namespace DeadSignal
             }
 
             HasExtractionTexture = extractionTexture != null;
+            var shortcutTexture = Resources.Load<Texture2D>(SHORTCUT_GATE_TEXTURE_RESOURCE);
+            if (shortcutTexture != null)
+            {
+                ShortcutHousing.mainTexture = shortcutTexture;
+                ShortcutLocked.mainTexture = shortcutTexture;
+                if (ShortcutHousing.HasProperty("_BaseMap"))
+                {
+                    ShortcutHousing.SetTexture("_BaseMap", shortcutTexture);
+                    ShortcutLocked.SetTexture("_BaseMap", shortcutTexture);
+                }
+
+                if (ShortcutHousing.HasProperty("_Smoothness"))
+                {
+                    ShortcutHousing.SetFloat("_Smoothness", 0.34f);
+                }
+            }
+
+            HasShortcutTexture = shortcutTexture != null;
             ApplyHighContrast(highContrastEnabled);
         }
 
@@ -106,6 +127,8 @@ namespace DeadSignal
         public Material Bulkhead { get; }
         public Material TowerHousing { get; }
         public Material ExtractionHousing { get; }
+        public Material ShortcutHousing { get; }
+        public Material ShortcutLocked { get; }
         public Material Dark { get; }
         public Material Steel { get; }
         public Material White { get; }
@@ -113,6 +136,7 @@ namespace DeadSignal
         public bool HasBulkheadTexture { get; }
         public bool HasTowerTexture { get; }
         public bool HasExtractionTexture { get; }
+        public bool HasShortcutTexture { get; }
 
         public void ApplyHighContrast(bool enabled)
         {
@@ -146,6 +170,12 @@ namespace DeadSignal
             _setMaterial(ExtractionHousing,
                 enabled ? Color.white : new Color(0.7f, 0.78f, 0.82f),
                 Color.black);
+            _setMaterial(ShortcutHousing,
+                enabled ? new Color(0.95f, 0.98f, 1f) : new Color(0.66f, 0.72f, 0.76f),
+                Color.black);
+            _setMaterial(ShortcutLocked,
+                enabled ? new Color(1f, 0.34f, 0.28f) : new Color(0.52f, 0.15f, 0.16f),
+                enabled ? new Color(0.4f, 0.025f, 0.015f) : new Color(0.12f, 0.005f, 0.005f));
             _setMaterial(Dark,
                 enabled ? Color.black : new Color(0.012f, 0.018f, 0.026f),
                 Color.black);

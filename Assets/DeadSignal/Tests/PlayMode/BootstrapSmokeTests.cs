@@ -41,7 +41,16 @@ namespace DeadSignal.Tests
             Assert.That(extractionPad.Find("Extraction Plinth").GetComponent<Renderer>().sharedMaterial.mainTexture, Is.Not.Null,
                 "The authored extraction housing should render the original docking texture.");
             Assert.That(extractionPad.Find("Extraction Beacon"), Is.Not.Null);
-            Assert.That(game.transform.Find("Signal Shortcut Gate"), Is.Not.Null);
+            Transform shortcut = game.transform.Find("Shortcut Gate Assembly");
+            Assert.That(shortcut, Is.Not.Null, "The optional route choice should load from the authored shortcut prefab.");
+            Assert.That(game.HasShortcutGateAssets, Is.True,
+                "The shortcut prefab and original powered-lock texture should load from Resources.");
+            Assert.That(game.ShortcutGatePartCount, Is.EqualTo(6));
+            Assert.That(shortcut.GetComponentsInChildren<Renderer>().Length, Is.EqualTo(6));
+            Assert.That(shortcut.GetComponentsInChildren<Collider>().Length, Is.Zero,
+                "The authored shortcut should remain presentation-only so movement rules stay authoritative.");
+            Assert.That(shortcut.Find("Signal Shortcut Gate").GetComponent<Renderer>().sharedMaterial.mainTexture, Is.Not.Null,
+                "The authored gate should render the original powered-lock texture.");
             Transform maintenanceDeck = game.transform.Find("Maintenance Deck Modules");
             Assert.That(maintenanceDeck, Is.Not.Null, "The arena should be assembled from authored maintenance-deck modules.");
             Assert.That(game.MaintenanceDeckModuleCount, Is.EqualTo(35));
@@ -402,7 +411,7 @@ namespace DeadSignal.Tests
                 InputSystem.QueueStateEvent(gamepad, new GamepadState().WithButton(GamepadButton.West));
                 yield return null;
 
-                Assert.That(game.transform.Find("Signal Shortcut Gate").gameObject.activeSelf, Is.False,
+                Assert.That(game.transform.Find("Shortcut Gate Assembly/Signal Shortcut Gate").gameObject.activeSelf, Is.False,
                     "Gamepad west button should spend Signal and retract the powered shortcut gate.");
 
                 InputSystem.QueueStateEvent(gamepad, new GamepadState());

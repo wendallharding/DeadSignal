@@ -17,6 +17,7 @@ namespace DeadSignal
         private const string MAINTENANCE_ROOM_SHELL_RESOURCE = "Environment/MaintenanceRoomShell";
         private const string SIGNAL_TOWER_PREFAB_RESOURCE = "Environment/SignalTowerAssembly";
         private const string EXTRACTION_PAD_PREFAB_RESOURCE = "Environment/ExtractionPadAssembly";
+        private const string SHORTCUT_GATE_PREFAB_RESOURCE = "Environment/ShortcutGateAssembly";
         private const float DECK_MODULE_WIDTH = 3.9f;
         private const float DECK_MODULE_DEPTH = 3.6f;
 
@@ -63,6 +64,8 @@ namespace DeadSignal
         public int SignalTowerPartCount { get; private set; }
         public bool HasExtractionPadAssets { get; private set; }
         public int ExtractionPadPartCount { get; private set; }
+        public bool HasShortcutGateAssets { get; private set; }
+        public int ShortcutGatePartCount { get; private set; }
 
         public bool IsPowered(Vector3 position, bool towerOnline)
         {
@@ -217,7 +220,7 @@ namespace DeadSignal
             _createTerritory("Dock Power Territory", ExtractionPosition, STARTING_POWER_RADIUS, m_palette.CyanDim);
             m_towerTerritory = _createTerritory("Tower Power Territory", TowerPosition, TOWER_POWER_RADIUS, m_palette.Dark);
 
-            for (int x = -12; x <= 12; x += 4)
+            for (var x = -12; x <= 12; x += 4)
             {
                 _createPrimitive("Security Edge Marker", PrimitiveType.Cube, new Vector3(x, -0.06f, 8.55f), new Vector3(1.5f, 0.035f, 0.07f), m_palette.RedDim);
                 _createPrimitive("Security Edge Marker", PrimitiveType.Cube, new Vector3(x, -0.06f, -8.55f), new Vector3(1.5f, 0.035f, 0.07f), m_palette.RedDim);
@@ -235,9 +238,9 @@ namespace DeadSignal
             var deckRoot = new GameObject("Maintenance Deck Modules");
             deckRoot.transform.SetParent(m_root);
 
-            for (int gridX = -3; gridX <= 3; gridX++)
+            for (var gridX = -3; gridX <= 3; gridX++)
             {
-                for (int gridZ = -2; gridZ <= 2; gridZ++)
+                for (var gridZ = -2; gridZ <= 2; gridZ++)
                 {
                     var position = new Vector3(gridX * DECK_MODULE_WIDTH, -0.45f, gridZ * DECK_MODULE_DEPTH);
                     GameObject module;
@@ -414,23 +417,62 @@ namespace DeadSignal
         private void _buildSignalShortcut()
         {
             // The end passages stay open, so spending Signal for the central route is optional.
-            _createBarrierSegment("Shortcut Bulkhead South", new Vector3(4f, 0.46f, -3.15f), new Vector3(0.55f, 1.1f, 4.7f));
-            _createBarrierSegment("Shortcut Bulkhead North", new Vector3(4f, 0.46f, 3.55f), new Vector3(0.55f, 1.1f, 3.9f));
+            var shortcutPrefab = Resources.Load<GameObject>(SHORTCUT_GATE_PREFAB_RESOURCE);
+            var hasValidPrefab = shortcutPrefab != null &&
+                                 shortcutPrefab.transform.Find("Shortcut Bulkhead South") != null &&
+                                 shortcutPrefab.transform.Find("Shortcut Bulkhead North") != null &&
+                                 shortcutPrefab.transform.Find("Shortcut Gate South Post") != null &&
+                                 shortcutPrefab.transform.Find("Shortcut Gate North Post") != null &&
+                                 shortcutPrefab.transform.Find("Shortcut Gate Signal") != null &&
+                                 shortcutPrefab.transform.Find("Signal Shortcut Gate") != null;
+            if (hasValidPrefab)
+            {
+                var shortcut = Object.Instantiate(shortcutPrefab, m_root);
+                shortcut.name = "Shortcut Gate Assembly";
+                shortcut.transform.localPosition = ShortcutPosition;
+                shortcut.transform.localRotation = Quaternion.identity;
+                foreach (var childRenderer in shortcut.GetComponentsInChildren<Renderer>())
+                {
+                    childRenderer.sharedMaterial = childRenderer.name == "Shortcut Gate Signal"
+                        ? m_palette.CyanDim
+                        : m_palette.ShortcutHousing;
+                    ShortcutGatePartCount++;
+                }
 
-            _createPrimitive("Shortcut Gate South Post", PrimitiveType.Cube, ShortcutPosition + new Vector3(-0.16f, 0.68f, -1.34f), new Vector3(0.85f, 1.45f, 0.25f), m_palette.Steel);
-            _createPrimitive("Shortcut Gate North Post", PrimitiveType.Cube, ShortcutPosition + new Vector3(-0.16f, 0.68f, 1.34f), new Vector3(0.85f, 1.45f, 0.25f), m_palette.Steel);
-            _createPrimitive("Shortcut Gate Signal", PrimitiveType.Cube, ShortcutPosition + new Vector3(-0.31f, 1.38f, 0f), new Vector3(0.12f, 0.08f, 2.3f), m_palette.CyanDim);
-            m_shortcutGate = _createPrimitive("Signal Shortcut Gate", PrimitiveType.Cube, ShortcutPosition + new Vector3(0f, 0.55f, 0f), new Vector3(0.42f, 1.05f, 2.4f), m_palette.RedDim);
-            m_movementBlockers.Add(new MovementBlocker(new Vector2(ShortcutPosition.x, ShortcutPosition.z), new Vector2(0.21f, 1.2f), true));
+                m_shortcutGate = shortcut.transform.Find("Signal Shortcut Gate").gameObject;
+                m_shortcutGate.GetComponent<Renderer>().sharedMaterial = m_palette.ShortcutLocked;
+                HasShortcutGateAssets = m_palette.HasShortcutTexture && ShortcutGatePartCount == 6;
+                _addShortcutMovementBlockers();
+                return;
+            }
+
+            var fallbackRoot = new GameObject("Shortcut Gate Assembly");
+            fallbackRoot.transform.SetParent(m_root, false);
+            fallbackRoot.transform.localPosition = ShortcutPosition;
+            _createPrimitive("Shortcut Bulkhead South", PrimitiveType.Cube, new Vector3(0f, 0.46f, -3.55f),
+                new Vector3(0.55f, 1.1f, 4.7f), m_palette.ShortcutHousing, fallbackRoot.transform);
+            _createPrimitive("Shortcut Bulkhead North", PrimitiveType.Cube, new Vector3(0f, 0.46f, 3.15f),
+                new Vector3(0.55f, 1.1f, 3.9f), m_palette.ShortcutHousing, fallbackRoot.transform);
+            _createPrimitive("Shortcut Gate South Post", PrimitiveType.Cube, new Vector3(-0.16f, 0.68f, -1.34f),
+                new Vector3(0.85f, 1.45f, 0.25f), m_palette.ShortcutHousing, fallbackRoot.transform);
+            _createPrimitive("Shortcut Gate North Post", PrimitiveType.Cube, new Vector3(-0.16f, 0.68f, 1.34f),
+                new Vector3(0.85f, 1.45f, 0.25f), m_palette.ShortcutHousing, fallbackRoot.transform);
+            _createPrimitive("Shortcut Gate Signal", PrimitiveType.Cube, new Vector3(-0.31f, 1.38f, 0f),
+                new Vector3(0.12f, 0.08f, 2.3f), m_palette.CyanDim, fallbackRoot.transform);
+            m_shortcutGate = _createPrimitive("Signal Shortcut Gate", PrimitiveType.Cube, new Vector3(0f, 0.55f, 0f),
+                new Vector3(0.42f, 1.05f, 2.4f), m_palette.ShortcutLocked, fallbackRoot.transform);
+            ShortcutGatePartCount = 6;
+            _addShortcutMovementBlockers();
         }
 
-        private void _createBarrierSegment(string objectName, Vector3 position, Vector3 scale)
+        private void _addShortcutMovementBlockers()
         {
-            _createPrimitive(objectName, PrimitiveType.Cube, position, scale, m_palette.Steel);
             m_movementBlockers.Add(new MovementBlocker(
-                new Vector2(position.x, position.z),
-                new Vector2(scale.x * 0.5f, scale.z * 0.5f),
-                false));
+                new Vector2(4f, -3.15f), new Vector2(0.275f, 2.35f), false));
+            m_movementBlockers.Add(new MovementBlocker(
+                new Vector2(4f, 3.55f), new Vector2(0.275f, 1.95f), false));
+            m_movementBlockers.Add(new MovementBlocker(
+                new Vector2(ShortcutPosition.x, ShortcutPosition.z), new Vector2(0.21f, 1.2f), true));
         }
 
         private void _buildActors(IComfortSettings comfortSettings)

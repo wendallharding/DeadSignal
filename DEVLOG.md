@@ -1297,3 +1297,61 @@ Matching Editor: `C:\Program Files\Unity\Hub\Editor\6000.3.11f1\Editor\Unity.exe
 ### Best next step
 
 Play `Build/Windows/DeadSignal.exe` at 16:9 and ultrawide in normal and High Contrast modes, verify the textured extraction pad feels like an obvious safe home and satisfying return target, then migrate the shortcut gate into an authored route-choice prefab.
+
+## 2026-08-21 — Autonomous Run 23
+
+### Today's single idea — authored Signal shortcut assembly
+
+Player benefit: the first route decision now reads as a deliberate maintenance lock connected to the restored network rather than a loose collection of generic primitives. Original split-hatch art makes the optional paid crossing visually distinct while preserving the free north/south detours and the existing Signal tradeoff.
+
+Acceptance criteria:
+
+- one reusable Unity-authored, collider-free shortcut prefab owns the two bulkheads, two gate posts, powered strip, and retractable gate at the existing dimensions;
+- runtime composition loads the prefab at the unchanged shortcut position, applies original powered-lock art, and preserves the closed red/open hidden state;
+- the existing movement-blocker rules remain authoritative, so both free detours stay open, the closed gate blocks actors, and the purchased gate becomes passable;
+- a safe primitive fallback preserves playability if the prefab is absent, while tests, build validation, and packaged smoke report production readiness as false;
+- no 16-Signal price, last-Signal protection, tower prerequisite, interaction range, economy, threat timing, movement, controls, audio, save data, or serialized gameplay state changes; and
+- import/compile, EditMode, PlayMode, Windows build, Direct3D 11 packaged smoke, strict scans, and repository checks pass.
+
+### Files and systems changed
+
+- `Assets/DeadSignal/Resources/Environment/ShortcutGatePanel.png` and Unity-generated `.meta`: added an original 1254x1254 RGB dark-alloy split-hatch texture generated with the built-in image tool. The project copy was visually inspected and imported with sRGB, mipmaps, clamp wrapping, high-quality compression, and a 1024px default-platform cap. SHA-256: `365ABC05CEC13C7171B9723C4E35F4EFE1E847793253884E342B9947A964FA85`; GUID: `4f97c39464b97b845bef506b922b8eba`.
+- `Assets/DeadSignal/Resources/Environment/ShortcutGateAssembly.prefab` and Unity-generated `.meta`: added the reusable collider-free six-part shortcut assembly through Unity's Prefab API. GUID: `796d83f1401c8bd428319d3407d66d77`.
+- `Assets/DeadSignal/Runtime/DeadSignalWorld.cs`: loads and validates the prefab, applies dedicated textured housing/locked materials, preserves the exact transforms and rule-owned blockers, retains a safe asset-missing fallback, exposes narrow readiness state, and completes this run's focused convention refactor by changing three apparent-type loop indices to `var`.
+- `Assets/DeadSignal/Runtime/DeadSignalPalette.cs`: adds the generated shortcut texture Resource plus live High Contrast-aware housing and locked materials.
+- `Assets/DeadSignal/Runtime/DeadSignalGame.cs`: exposes narrow shortcut asset and part-count state for validation.
+- `Assets/DeadSignal/Editor/DeadSignalProjectSetup.cs`: adds idempotent texture configuration and Unity-driven shortcut-prefab creation, and changes its remaining apparent-type loop index to `var`.
+- `Assets/DeadSignal/Editor/DeadSignalWindowsBuild.cs`: prepares and requires the authored shortcut assets before packaging.
+- `Assets/DeadSignal/Runtime/StandaloneBuildSmokeProbe.cs`: requires the authored shortcut hierarchy and texture in packaged-player readiness.
+- `Assets/DeadSignal/Tests/PlayMode/BootstrapSmokeTests.cs`: verifies the authored root, six renderers, absent colliders, original texture assignment, production readiness, closed collision, purchase, and open traversal alongside the complete prior regression.
+- `GAME_VISION.md`, `BACKLOG.md`, and `DEVLOG.md`: record the authored-route milestone without changing the core concept.
+
+No packages, assembly definitions, scenes, project settings, deterministic rules, input, audio, balance, save data, or serialized gameplay state were intentionally changed. Reflex 14.3.1 was already installed. Unity's automatic build rewrites to URP assets, Graphics settings, batching, Unity Services, and existing texture metadata were removed from the final source diff.
+
+### Tests run and exact outcomes
+
+Matching Editor: `C:\Program Files\Unity\Hub\Editor\6000.3.11f1\Editor\Unity.exe` (Unity 6000.3.11f1) against the live workspace.
+
+1. Unity import, compilation, texture configuration, and prefab setup wrote `Logs/run23-shortcut-setup.log`: Unity imported the generated PNG, compiled all changed assemblies, created the collider-free prefab and both `.meta` files, and exited `0`.
+2. EditMode regression wrote `Logs/run23-editmode-results.xml` and `Logs/run23-editmode.log`: Unity exited `0`; `16/16` passed, `0` failed, `0` skipped, `0` inconclusive in `0.0569351` seconds.
+3. PlayMode full runtime regression wrote `Logs/run23-playmode-results.xml` and `Logs/run23-playmode.log`: Unity exited `0`; `1/1` passed, `0` failed, `0` skipped, `0` inconclusive in `3.9409198` seconds. It proved the authored hierarchy and retained every prior input, pause, accessibility, audio, particles, warning, activation, combat, Sapper, salvage, shortcut, extraction, and restart assertion.
+4. Windows development build wrote `Logs/run23-windows-build.log`: Unity exited `0`, reported `Build Finished, Result: Success`, emitted the build PASS marker, and produced 186,808,729 reported bytes in 35.62 seconds. The ignored local artifact contains 293 files totaling 187,002,071 bytes.
+5. Real packaged launch wrote `Logs/run23-standalone-d3d11-smoke.log`: the player forced Direct3D 11 on the NVIDIA GeForce RTX 3060, found the authored shortcut prefab and generated texture, printed one PASS marker, and exited `0`.
+6. Static asset inspection found exactly six mesh renderers and no collider component in the prefab. The project PNG was visually inspected and verified as 1254x1254 `Format24bppRgb`.
+7. Final warmed-project compilation after documentation and settings cleanup wrote `Logs/run23-final-compile.log`: Unity exited `0` with no first-party compiler error or warning.
+8. Strict scans of setup, EditMode, PlayMode, build, packaged-player, and final-compile logs found no first-party compiler errors, null or missing-reference exceptions, unhandled exceptions, failed assertions, failed tests, or failed smoke markers. The build logged one Unity Render Pipeline Core package shader warning about implicit vector truncation; it does not reference first-party code and did not affect the Direct3D 11 smoke pass. Final `git diff --check` passed.
+
+### Bugs found and fixed
+
+- Source review caught that assigning the existing solid red material to the authored gate would discard its generated texture. A dedicated textured locked-state material now preserves both the red closed read and the original panel art before validation.
+- Removed unrelated Unity build-time URP, Graphics, batching, Unity Services, and existing texture-metadata serialization changes before final validation.
+
+### Known limitations
+
+- Automated checks prove hierarchy, Resources loading, material remapping, movement blocking, purchase/open traversal, and packaged startup but cannot judge texture projection, cyan-line brightness, or route readability at 16:9 and ultrawide.
+- The generated texture is an albedo only and the six-part assembly retains simple cube meshes; mesh bevels, decals, and a normal map should wait until a human top-down composition pass.
+- Deck, room shell, tower, extraction, and shortcut are authored, while gameplay markers, Signal-line geometry, and machine visuals remain runtime-composed. The broader complete-room migration remains open.
+
+### Best next step
+
+Play `Build/Windows/DeadSignal.exe` at 16:9 and ultrawide in normal and High Contrast modes, alternate buying and skipping the gate, and confirm its closed/open state and both free detours read instantly; then migrate the runtime Signal-line geometry into an authored network-routing prefab.
