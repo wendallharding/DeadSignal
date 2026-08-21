@@ -40,6 +40,14 @@ namespace DeadSignal.Tests
                 "The authored deck prefab and original plating texture should load from Resources.");
             Assert.That(maintenanceDeck.GetChild(0).GetComponent<Renderer>().sharedMaterial.mainTexture, Is.Not.Null,
                 "Every deck module should render the original plating texture.");
+            Transform roomShell = game.transform.Find("Maintenance Room Shell");
+            Assert.That(roomShell, Is.Not.Null, "The arena perimeter should load from the authored room-shell prefab.");
+            Assert.That(game.HasMaintenanceRoomShellAssets, Is.True,
+                "The room-shell prefab and original bulkhead texture should load from Resources.");
+            Assert.That(game.RoomShellBulkheadCount, Is.EqualTo(4));
+            Assert.That(game.MachineSocketCount, Is.EqualTo(6));
+            Assert.That(roomShell.Find("Bulkheads").GetChild(0).GetComponent<Renderer>().sharedMaterial.mainTexture, Is.Not.Null,
+                "Every authored bulkhead should render the original wall texture.");
             Assert.That(Camera.main != null || Object.FindFirstObjectByType<Camera>() != null, Is.True);
             Assert.That(Object.FindFirstObjectByType<AudioListener>(), Is.Not.Null,
                 "The runtime camera should provide the listener required by the synthesized soundscape.");

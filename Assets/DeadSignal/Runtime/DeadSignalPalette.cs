@@ -10,6 +10,7 @@ namespace DeadSignal
     {
         private const string RUNTIME_MATERIAL_RESOURCE = "Materials/RuntimeLitTemplate";
         private const string MAINTENANCE_DECK_TEXTURE_RESOURCE = "Environment/MaintenanceDeckPanel";
+        private const string MAINTENANCE_BULKHEAD_TEXTURE_RESOURCE = "Environment/MaintenanceBulkheadPanel";
 
         public DeadSignalPalette(bool highContrastEnabled)
         {
@@ -20,6 +21,7 @@ namespace DeadSignal
             RedDim = _createMaterial("Dead Zone Red");
             Magenta = _createMaterial("Sapper Magenta");
             Deck = _createMaterial("Maintenance Deck");
+            Bulkhead = _createMaterial("Maintenance Bulkhead");
             Dark = _createMaterial("Station Black");
             Steel = _createMaterial("Station Steel");
             White = _createMaterial("Drone White");
@@ -39,6 +41,22 @@ namespace DeadSignal
             }
 
             HasDeckTexture = deckTexture != null;
+            var bulkheadTexture = Resources.Load<Texture2D>(MAINTENANCE_BULKHEAD_TEXTURE_RESOURCE);
+            if (bulkheadTexture != null)
+            {
+                Bulkhead.mainTexture = bulkheadTexture;
+                if (Bulkhead.HasProperty("_BaseMap"))
+                {
+                    Bulkhead.SetTexture("_BaseMap", bulkheadTexture);
+                }
+
+                if (Bulkhead.HasProperty("_Smoothness"))
+                {
+                    Bulkhead.SetFloat("_Smoothness", 0.3f);
+                }
+            }
+
+            HasBulkheadTexture = bulkheadTexture != null;
             ApplyHighContrast(highContrastEnabled);
         }
 
@@ -49,10 +67,12 @@ namespace DeadSignal
         public Material RedDim { get; }
         public Material Magenta { get; }
         public Material Deck { get; }
+        public Material Bulkhead { get; }
         public Material Dark { get; }
         public Material Steel { get; }
         public Material White { get; }
         public bool HasDeckTexture { get; }
+        public bool HasBulkheadTexture { get; }
 
         public void ApplyHighContrast(bool enabled)
         {
@@ -76,6 +96,9 @@ namespace DeadSignal
                 enabled ? new Color(2.7f, 0.12f, 3f) : new Color(2.2f, 0.01f, 1.15f));
             _setMaterial(Deck,
                 enabled ? new Color(0.82f, 0.9f, 0.96f) : new Color(0.58f, 0.66f, 0.72f),
+                Color.black);
+            _setMaterial(Bulkhead,
+                enabled ? new Color(0.72f, 0.82f, 0.9f) : new Color(0.48f, 0.56f, 0.62f),
                 Color.black);
             _setMaterial(Dark,
                 enabled ? Color.black : new Color(0.012f, 0.018f, 0.026f),

@@ -1127,3 +1127,59 @@ Matching Editor: `C:\Program Files\Unity\Hub\Editor\6000.3.11f1\Editor\Unity.exe
 ### Best next step
 
 Play the Windows build at 16:9 and ultrawide, check actor/threat readability over the new deck in normal and High Contrast modes, then author one complete room-shell prefab from the validated floor module plus bulkhead and machine sockets.
+## 2026-08-21 — Autonomous Run 20
+
+### Today's single idea — authored maintenance room shell
+
+Player benefit: the arena now reads as one purpose-built orbital-station room, with a coherent textured perimeter and machinery placed from authored sockets instead of another layer of invisible prototype coordinates. This advances the existing modular-room direction without changing the proven risk loop.
+
+Acceptance criteria:
+
+- one reusable Unity-authored room-shell prefab owns exactly four collider-free perimeter bulkheads and six machine sockets at the existing gameplay positions;
+- runtime composition loads the prefab, applies original bulkhead art through a dedicated live-tintable material, and builds station machines from the authored sockets;
+- a safe primitive fallback preserves playability if the prefab is absent, while tests, build validation, and packaged smoke fail readiness for missing production assets;
+- no movement bounds, blockers, gameplay costs, balance, controls, threats, salvage, objectives, audio, save data, or serialized gameplay state change; and
+- import/compile, EditMode, PlayMode, Windows build, Direct3D 11 packaged smoke, strict scans, and repository checks pass.
+
+### Files and systems changed
+
+- `Assets/DeadSignal/Resources/Environment/MaintenanceBulkheadPanel.png` and Unity-generated `.meta`: added an original 1254x1254 RGB dark-alloy ribbed bulkhead texture generated with the built-in image tool. The project copy was visually inspected and imported with sRGB, mipmaps, repeat wrapping, high-quality compression, and a 1024px default cap. SHA-256: `D830561ED4FD1E51F36551D819D80B6B8C2099318E9EEA4637A75C3505293275`; GUID: `14bcf16f0b31e7f4fbfacb084129ef86`.
+- `Assets/DeadSignal/Resources/Environment/MaintenanceRoomShell.prefab` and Unity-generated `.meta`: added the reusable collider-free shell with a four-renderer `Bulkheads` group and six-transform `Machine Sockets` group, created through Unity's Prefab API. GUID: `6121d8ab7c35a5d4f9eaf9c66ecd0d49`.
+- `Assets/DeadSignal/Runtime/DeadSignalWorld.cs`: replaced procedural perimeter placement with prefab instantiation, assigns the dedicated bulkhead material, sources station-machine positions from authored sockets, keeps an asset-missing fallback, exposes narrow validation state, and completes this run's focused convention refactor by changing the remaining apparent-type movement booleans to `var`.
+- `Assets/DeadSignal/Runtime/DeadSignalPalette.cs`: added the original bulkhead texture resource and a dedicated material that participates in live normal/High Contrast remapping.
+- `Assets/DeadSignal/Runtime/DeadSignalGame.cs`: exposes narrow room-shell readiness, bulkhead-count, and socket-count state for validation.
+- `Assets/DeadSignal/Editor/DeadSignalProjectSetup.cs`: adds idempotent texture configuration plus Unity-driven room-shell prefab creation.
+- `Assets/DeadSignal/Editor/DeadSignalWindowsBuild.cs`: prepares and requires both room-shell assets before packaging.
+- `Assets/DeadSignal/Runtime/StandaloneBuildSmokeProbe.cs`: now requires the authored room shell in packaged-player readiness.
+- `Assets/DeadSignal/Tests/PlayMode/BootstrapSmokeTests.cs`: verifies the prefab root, four textured bulkheads, six authored sockets, and production asset readiness alongside the complete prior regression.
+- `GAME_VISION.md`, `BACKLOG.md`, and `DEVLOG.md`: record this modular-room milestone without changing the core concept.
+
+No packages, assembly definitions, scenes, project settings, deterministic rules, input, audio, balance, save data, or serialized gameplay data were intentionally changed. Reflex 14.3.1 was already installed. Unity's automatic URP, Graphics, batching, Services, and prior texture-metadata rewrites were removed from the final source diff.
+
+### Tests run and exact outcomes
+
+Matching Editor: `C:\Program Files\Unity\Hub\Editor\6000.3.11f1\Editor\Unity.exe` (Unity 6000.3.11f1) against the live workspace.
+
+1. Unity import, compilation, texture configuration, and prefab setup wrote `Logs/run20-room-shell-setup.log`: Unity imported the new PNG, compiled all changed assemblies, created the collider-free prefab and both `.meta` files, and exited `0`.
+2. EditMode regression wrote `Logs/run20-editmode-results.xml` and `Logs/run20-editmode.log`: Unity exited `0`; `16/16` passed, `0` failed, `0` skipped, `0` inconclusive in `0.0619282` seconds.
+3. PlayMode full runtime regression wrote `Logs/run20-playmode-results.xml` and `Logs/run20-playmode.log`: Unity exited `0`; `1/1` passed, `0` failed, `0` skipped, `0` inconclusive in `3.9472763` seconds. It proved the authored shell hierarchy, textured bulkheads, socket-driven machines, production resource readiness, and every prior input, pause, accessibility, audio, particles, warning, activation, combat, Sapper, salvage, shortcut, extraction, and restart assertion.
+4. Windows development build wrote `Logs/run20-windows-build.log`: Unity exited `0`, reported `Build Finished, Result: Success`, and produced 182,596,737 reported bytes in 28.48 seconds. The ignored local artifact contains 293 files totaling 182,790,079 bytes.
+5. Real packaged launch wrote `Logs/run20-standalone-batch-d3d11-smoke.log`: the player forced Direct3D 11 on the NVIDIA GeForce RTX 3060, found the authored shell, generated texture, and expanded runtime composition, printed one PASS marker, and exited `0`.
+6. Static prefab inspection found four mesh renderers, six named machine sockets, and no `BoxCollider` component. The generated project PNG was visually inspected and verified as 1254x1254 `Format24bppRgb`.
+7. Final warmed compilation wrote `Logs/run20-final-compile.log`: Unity exited `0` with no first-party compiler warning or error. Metadata validation after normalizing Unity's empty YAML values wrote `Logs/run20-meta-validation.log`: Unity exited `0` and preserved both new asset GUIDs.
+8. Strict scans of setup, EditMode, PlayMode, build, packaged, final compile, and metadata logs found no first-party compiler errors, null or missing-reference exceptions, unhandled exceptions, failed assertions, or failed smoke markers. Final `git diff --check` passed.
+
+### Bugs found and fixed
+
+- No gameplay, compilation, asset-import, automated-test, build, or packaged-runtime defect was found after implementation.
+- Removed unrelated Unity build-time URP, Graphics, batching, Unity Services, and existing deck-metadata serialization changes before final validation.
+
+### Known limitations
+
+- Automated checks prove hierarchy, resource assignment, socket placement, High Contrast material updates, and packaged startup but cannot judge texture stretching, brightness, visual repetition, or actor silhouettes at 16:9 and ultrawide.
+- The shell currently authors the room boundary and prop sockets; tower, extraction, shortcut, gameplay markers, and machine visuals remain runtime-composed. The broader full authored-room migration therefore remains open.
+- The bulkheads use simple cube meshes and one generated albedo texture; mesh variation, trims, decals, and normal maps should wait until a human composition pass confirms the silhouette and contrast.
+
+### Best next step
+
+Play the Windows build at 16:9 and ultrawide in normal and High Contrast modes, checking whether the new perimeter reads clearly without becoming brighter than threats; then migrate one major gameplay fixture, preferably the tower assembly, into an authored socket-driven prefab.

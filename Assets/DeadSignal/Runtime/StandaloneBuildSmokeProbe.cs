@@ -43,6 +43,7 @@ namespace DeadSignal
                                 game.transform.Find("Signal Shortcut Gate") != null &&
                                 game.HasGeneratedAudio &&
                                 game.HasMaintenanceDeckAssets &&
+                                game.HasMaintenanceRoomShellAssets &&
                                 game.HasLowSignalWarningTexture &&
                                 game.HasTowerActivationSweepTexture;
             if (!runtimeReady)

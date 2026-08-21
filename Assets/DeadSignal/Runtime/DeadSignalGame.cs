@@ -46,6 +46,9 @@ namespace DeadSignal
         public bool HasLowSignalWarningTexture => m_lowSignalWarning?.HasTexture ?? false;
         public bool HasMaintenanceDeckAssets => m_world?.HasMaintenanceDeckAssets ?? false;
         public int MaintenanceDeckModuleCount => m_world?.MaintenanceDeckModuleCount ?? 0;
+        public bool HasMaintenanceRoomShellAssets => m_world?.HasMaintenanceRoomShellAssets ?? false;
+        public int RoomShellBulkheadCount => m_world?.RoomShellBulkheadCount ?? 0;
+        public int MachineSocketCount => m_world?.MachineSocketCount ?? 0;
         public float LowSignalWarningIntensity => m_lowSignalWarning?.CurrentIntensity ?? 0f;
         public bool IsSignalDustPowered => m_signalDust?.IsPowered ?? false;
         public int SignalDustMaximumParticles => m_signalDust?.MaximumParticles ?? 0;

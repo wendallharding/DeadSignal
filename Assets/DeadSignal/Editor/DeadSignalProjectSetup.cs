@@ -15,6 +15,8 @@ namespace DeadSignal.Editor
         private const string TOWER_ACTIVATION_SWEEP_PATH = RESOURCES_FOLDER + "/VFX/TowerNetworkActivationSweep.png";
         private const string MAINTENANCE_DECK_TEXTURE_PATH = ENVIRONMENT_FOLDER + "/MaintenanceDeckPanel.png";
         private const string MAINTENANCE_DECK_PREFAB_PATH = ENVIRONMENT_FOLDER + "/MaintenanceDeckModule.prefab";
+        private const string MAINTENANCE_BULKHEAD_TEXTURE_PATH = ENVIRONMENT_FOLDER + "/MaintenanceBulkheadPanel.png";
+        private const string MAINTENANCE_ROOM_SHELL_PREFAB_PATH = ENVIRONMENT_FOLDER + "/MaintenanceRoomShell.prefab";
         private const string CREATE_REFLEX_SETTINGS_MENU = "Assets/Create/Reflex/Settings";
 
         public static bool HasReflexSettings =>
@@ -27,6 +29,10 @@ namespace DeadSignal.Editor
         public static bool HasMaintenanceDeckAssets =>
             AssetDatabase.LoadAssetAtPath<Texture2D>(MAINTENANCE_DECK_TEXTURE_PATH) != null &&
             AssetDatabase.LoadAssetAtPath<GameObject>(MAINTENANCE_DECK_PREFAB_PATH) != null;
+
+        public static bool HasMaintenanceRoomShellAssets =>
+            AssetDatabase.LoadAssetAtPath<Texture2D>(MAINTENANCE_BULKHEAD_TEXTURE_PATH) != null &&
+            AssetDatabase.LoadAssetAtPath<GameObject>(MAINTENANCE_ROOM_SHELL_PREFAB_PATH) != null;
 
         public static void EnsureReflexSettings()
         {
@@ -113,6 +119,61 @@ namespace DeadSignal.Editor
             }
         }
 
+        public static void EnsureMaintenanceRoomShellAssets()
+        {
+            var importer = AssetImporter.GetAtPath(MAINTENANCE_BULKHEAD_TEXTURE_PATH) as TextureImporter;
+            if (importer == null)
+            {
+                throw new InvalidOperationException($"Could not find the maintenance bulkhead texture at {MAINTENANCE_BULKHEAD_TEXTURE_PATH}.");
+            }
+
+            importer.alphaIsTransparency = false;
+            importer.mipmapEnabled = true;
+            importer.maxTextureSize = 1024;
+            importer.wrapMode = TextureWrapMode.Repeat;
+            importer.textureCompression = TextureImporterCompression.CompressedHQ;
+            importer.SaveAndReimport();
+
+            if (AssetDatabase.LoadAssetAtPath<GameObject>(MAINTENANCE_ROOM_SHELL_PREFAB_PATH) == null)
+            {
+                var shell = new GameObject("Maintenance Room Shell");
+                var bulkheads = new GameObject("Bulkheads");
+                bulkheads.transform.SetParent(shell.transform, false);
+                _createPrefabCube("North Bulkhead", new Vector3(0f, 0.25f, 9.1f),
+                    new Vector3(27.8f, 0.8f, 0.5f), bulkheads.transform);
+                _createPrefabCube("South Bulkhead", new Vector3(0f, 0.25f, -9.1f),
+                    new Vector3(27.8f, 0.8f, 0.5f), bulkheads.transform);
+                _createPrefabCube("East Bulkhead", new Vector3(13.7f, 0.25f, 0f),
+                    new Vector3(0.5f, 0.8f, 18.7f), bulkheads.transform);
+                _createPrefabCube("West Bulkhead", new Vector3(-13.7f, 0.25f, 0f),
+                    new Vector3(0.5f, 0.8f, 18.7f), bulkheads.transform);
+
+                var sockets = new GameObject("Machine Sockets");
+                sockets.transform.SetParent(shell.transform, false);
+                Vector3[] machineLocations =
+                {
+                    new(-11.6f, 0f, 6.8f), new(-8.8f, 0f, 6.9f), new(10.8f, 0f, 6.8f),
+                    new(11.2f, 0f, -6.7f), new(4.8f, 0f, -7.1f), new(-3.8f, 0f, 7.1f)
+                };
+                for (int i = 0; i < machineLocations.Length; i++)
+                {
+                    var socket = new GameObject($"Machine Socket {i + 1:00}");
+                    socket.transform.SetParent(sockets.transform, false);
+                    socket.transform.localPosition = machineLocations[i];
+                }
+
+                PrefabUtility.SaveAsPrefabAsset(shell, MAINTENANCE_ROOM_SHELL_PREFAB_PATH);
+                UnityEngine.Object.DestroyImmediate(shell);
+            }
+
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
+            if (!HasMaintenanceRoomShellAssets)
+            {
+                throw new InvalidOperationException("The maintenance bulkhead texture and room-shell prefab were not created successfully.");
+            }
+        }
+
         private static void _ensureMaterial(string assetPath, string shaderName)
         {
             if (AssetDatabase.LoadAssetAtPath<Material>(assetPath) != null)
@@ -127,6 +188,20 @@ namespace DeadSignal.Editor
             }
 
             AssetDatabase.CreateAsset(new Material(shader), assetPath);
+        }
+
+        private static void _createPrefabCube(string objectName, Vector3 position, Vector3 scale, Transform parent)
+        {
+            var cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            cube.name = objectName;
+            cube.transform.SetParent(parent, false);
+            cube.transform.localPosition = position;
+            cube.transform.localScale = scale;
+            var collider = cube.GetComponent<Collider>();
+            if (collider != null)
+            {
+                UnityEngine.Object.DestroyImmediate(collider);
+            }
         }
     }
 }

@@ -14,6 +14,7 @@ namespace DeadSignal
         public const float TOWER_POWER_RADIUS = 7.2f;
 
         private const string MAINTENANCE_DECK_MODULE_RESOURCE = "Environment/MaintenanceDeckModule";
+        private const string MAINTENANCE_ROOM_SHELL_RESOURCE = "Environment/MaintenanceRoomShell";
         private const float DECK_MODULE_WIDTH = 3.9f;
         private const float DECK_MODULE_DEPTH = 3.6f;
 
@@ -21,6 +22,7 @@ namespace DeadSignal
         private readonly DeadSignalPalette m_palette;
         private readonly List<MovementBlocker> m_movementBlockers = new();
         private readonly List<GameObject> m_salvagePickups = new();
+        private readonly List<Vector3> m_machineSockets = new();
 
         private GameObject m_towerTerritory;
         private GameObject m_towerSignalLines;
@@ -52,6 +54,9 @@ namespace DeadSignal
         public IReadOnlyList<GameObject> SalvagePickups => m_salvagePickups;
         public bool HasMaintenanceDeckAssets { get; private set; }
         public int MaintenanceDeckModuleCount { get; private set; }
+        public bool HasMaintenanceRoomShellAssets { get; private set; }
+        public int RoomShellBulkheadCount { get; private set; }
+        public int MachineSocketCount => m_machineSockets.Count;
 
         public bool IsPowered(Vector3 position, bool towerOnline)
         {
@@ -79,8 +84,8 @@ namespace DeadSignal
 
             var xOnly = new Vector3(desired.x, current.y, current.z);
             var zOnly = new Vector3(current.x, current.y, desired.z);
-            bool canMoveX = !_isBlocked(xOnly, radius, shortcutOpen);
-            bool canMoveZ = !_isBlocked(zOnly, radius, shortcutOpen);
+            var canMoveX = !_isBlocked(xOnly, radius, shortcutOpen);
+            var canMoveZ = !_isBlocked(zOnly, radius, shortcutOpen);
             if (canMoveX && canMoveZ)
             {
                 return Mathf.Abs(desired.x - current.x) >= Mathf.Abs(desired.z - current.z) ? xOnly : zOnly;
@@ -201,11 +206,7 @@ namespace DeadSignal
         private void _buildArena()
         {
             _buildMaintenanceDeck();
-
-            _createPrimitive("North Bulkhead", PrimitiveType.Cube, new Vector3(0f, 0.25f, 9.1f), new Vector3(27.8f, 0.8f, 0.5f), m_palette.Steel);
-            _createPrimitive("South Bulkhead", PrimitiveType.Cube, new Vector3(0f, 0.25f, -9.1f), new Vector3(27.8f, 0.8f, 0.5f), m_palette.Steel);
-            _createPrimitive("East Bulkhead", PrimitiveType.Cube, new Vector3(13.7f, 0.25f, 0f), new Vector3(0.5f, 0.8f, 18.7f), m_palette.Steel);
-            _createPrimitive("West Bulkhead", PrimitiveType.Cube, new Vector3(-13.7f, 0.25f, 0f), new Vector3(0.5f, 0.8f, 18.7f), m_palette.Steel);
+            _buildMaintenanceRoomShell();
 
             _createTerritory("Dock Power Territory", ExtractionPosition, STARTING_POWER_RADIUS, m_palette.CyanDim);
             m_towerTerritory = _createTerritory("Tower Power Territory", TowerPosition, TOWER_POWER_RADIUS, m_palette.Dark);
@@ -261,6 +262,53 @@ namespace DeadSignal
             HasMaintenanceDeckAssets = modulePrefab != null && m_palette.HasDeckTexture;
         }
 
+        private void _buildMaintenanceRoomShell()
+        {
+            var shellPrefab = Resources.Load<GameObject>(MAINTENANCE_ROOM_SHELL_RESOURCE);
+            if (shellPrefab == null)
+            {
+                var fallbackRoot = new GameObject("Maintenance Room Shell");
+                fallbackRoot.transform.SetParent(m_root);
+                _createPrimitive("North Bulkhead", PrimitiveType.Cube, new Vector3(0f, 0.25f, 9.1f),
+                    new Vector3(27.8f, 0.8f, 0.5f), m_palette.Bulkhead, fallbackRoot.transform);
+                _createPrimitive("South Bulkhead", PrimitiveType.Cube, new Vector3(0f, 0.25f, -9.1f),
+                    new Vector3(27.8f, 0.8f, 0.5f), m_palette.Bulkhead, fallbackRoot.transform);
+                _createPrimitive("East Bulkhead", PrimitiveType.Cube, new Vector3(13.7f, 0.25f, 0f),
+                    new Vector3(0.5f, 0.8f, 18.7f), m_palette.Bulkhead, fallbackRoot.transform);
+                _createPrimitive("West Bulkhead", PrimitiveType.Cube, new Vector3(-13.7f, 0.25f, 0f),
+                    new Vector3(0.5f, 0.8f, 18.7f), m_palette.Bulkhead, fallbackRoot.transform);
+                m_machineSockets.AddRange(new[]
+                {
+                    new Vector3(-11.6f, 0f, 6.8f), new Vector3(-8.8f, 0f, 6.9f), new Vector3(10.8f, 0f, 6.8f),
+                    new Vector3(11.2f, 0f, -6.7f), new Vector3(4.8f, 0f, -7.1f), new Vector3(-3.8f, 0f, 7.1f)
+                });
+                RoomShellBulkheadCount = 4;
+                return;
+            }
+
+            var shell = Object.Instantiate(shellPrefab, m_root);
+            shell.name = "Maintenance Room Shell";
+            shell.transform.localPosition = Vector3.zero;
+            shell.transform.localRotation = Quaternion.identity;
+            foreach (var bulkheadRenderer in shell.GetComponentsInChildren<Renderer>())
+            {
+                bulkheadRenderer.sharedMaterial = m_palette.Bulkhead;
+                RoomShellBulkheadCount++;
+            }
+
+            var sockets = shell.transform.Find("Machine Sockets");
+            if (sockets != null)
+            {
+                foreach (Transform socket in sockets)
+                {
+                    m_machineSockets.Add(socket.position);
+                }
+            }
+
+            HasMaintenanceRoomShellAssets =
+                m_palette.HasBulkheadTexture && RoomShellBulkheadCount == 4 && m_machineSockets.Count == 6;
+        }
+
         private void _buildExtraction()
         {
             _createPrimitive("Extraction Plinth", PrimitiveType.Cylinder, ExtractionPosition + new Vector3(0f, 0.02f, 0f), new Vector3(3.2f, 0.08f, 3.2f), m_palette.CyanDim);
@@ -284,15 +332,9 @@ namespace DeadSignal
 
         private void _buildStationMachines()
         {
-            Vector3[] locations =
+            for (int i = 0; i < m_machineSockets.Count; i++)
             {
-                new(-11.6f, 0f, 6.8f), new(-8.8f, 0f, 6.9f), new(10.8f, 0f, 6.8f),
-                new(11.2f, 0f, -6.7f), new(4.8f, 0f, -7.1f), new(-3.8f, 0f, 7.1f)
-            };
-
-            for (int i = 0; i < locations.Length; i++)
-            {
-                var position = locations[i];
+                var position = m_machineSockets[i];
                 _createPrimitive("Machine Block", PrimitiveType.Cube, position + new Vector3(0f, 0.45f, 0f), new Vector3(1.5f, 0.9f, 1.1f), m_palette.Steel);
                 _createPrimitive("Machine Status", PrimitiveType.Cube, position + new Vector3(0f, 0.92f, -0.15f), new Vector3(0.75f, 0.06f, 0.18f),
                     i % 2 == 0 ? m_palette.RedDim : m_palette.CyanDim);
