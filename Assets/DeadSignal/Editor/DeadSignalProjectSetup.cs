@@ -19,6 +19,8 @@ namespace DeadSignal.Editor
         private const string MAINTENANCE_ROOM_SHELL_PREFAB_PATH = ENVIRONMENT_FOLDER + "/MaintenanceRoomShell.prefab";
         private const string SIGNAL_TOWER_TEXTURE_PATH = ENVIRONMENT_FOLDER + "/SignalTowerHousingPanel.png";
         private const string SIGNAL_TOWER_PREFAB_PATH = ENVIRONMENT_FOLDER + "/SignalTowerAssembly.prefab";
+        private const string EXTRACTION_DOCK_TEXTURE_PATH = ENVIRONMENT_FOLDER + "/ExtractionDockPanel.png";
+        private const string EXTRACTION_PAD_PREFAB_PATH = ENVIRONMENT_FOLDER + "/ExtractionPadAssembly.prefab";
         private const string CREATE_REFLEX_SETTINGS_MENU = "Assets/Create/Reflex/Settings";
 
         public static bool HasReflexSettings =>
@@ -39,6 +41,10 @@ namespace DeadSignal.Editor
         public static bool HasSignalTowerAssets =>
             AssetDatabase.LoadAssetAtPath<Texture2D>(SIGNAL_TOWER_TEXTURE_PATH) != null &&
             AssetDatabase.LoadAssetAtPath<GameObject>(SIGNAL_TOWER_PREFAB_PATH) != null;
+
+        public static bool HasExtractionPadAssets =>
+            AssetDatabase.LoadAssetAtPath<Texture2D>(EXTRACTION_DOCK_TEXTURE_PATH) != null &&
+            AssetDatabase.LoadAssetAtPath<GameObject>(EXTRACTION_PAD_PREFAB_PATH) != null;
 
         public static void EnsureReflexSettings()
         {
@@ -214,6 +220,45 @@ namespace DeadSignal.Editor
             if (!HasSignalTowerAssets)
             {
                 throw new InvalidOperationException("The Signal tower texture and assembly prefab were not created successfully.");
+            }
+        }
+
+        public static void EnsureExtractionPadAssets()
+        {
+            var importer = AssetImporter.GetAtPath(EXTRACTION_DOCK_TEXTURE_PATH) as TextureImporter;
+            if (importer == null)
+            {
+                throw new InvalidOperationException($"Could not find the extraction dock texture at {EXTRACTION_DOCK_TEXTURE_PATH}.");
+            }
+
+            importer.alphaIsTransparency = false;
+            importer.mipmapEnabled = true;
+            importer.maxTextureSize = 1024;
+            importer.wrapMode = TextureWrapMode.Clamp;
+            importer.textureCompression = TextureImporterCompression.CompressedHQ;
+            importer.SaveAndReimport();
+
+            if (AssetDatabase.LoadAssetAtPath<GameObject>(EXTRACTION_PAD_PREFAB_PATH) == null)
+            {
+                var extractionPad = new GameObject("Extraction Pad Assembly");
+                _createPrefabPrimitive("Extraction Plinth", PrimitiveType.Cylinder, new Vector3(0f, 0.02f, 0f),
+                    new Vector3(3.2f, 0.08f, 3.2f), extractionPad.transform);
+                _createPrefabPrimitive("Extraction Ring", PrimitiveType.Cylinder, new Vector3(0f, 0.08f, 0f),
+                    new Vector3(2.55f, 0.08f, 2.55f), extractionPad.transform);
+                _createPrefabPrimitive("Extraction Center", PrimitiveType.Cylinder, new Vector3(0f, 0.14f, 0f),
+                    new Vector3(2.1f, 0.08f, 2.1f), extractionPad.transform);
+                _createPrefabPrimitive("Extraction Beacon", PrimitiveType.Cube, new Vector3(0f, 0.7f, 1.5f),
+                    new Vector3(0.22f, 1.4f, 0.22f), extractionPad.transform);
+
+                PrefabUtility.SaveAsPrefabAsset(extractionPad, EXTRACTION_PAD_PREFAB_PATH);
+                UnityEngine.Object.DestroyImmediate(extractionPad);
+            }
+
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
+            if (!HasExtractionPadAssets)
+            {
+                throw new InvalidOperationException("The extraction dock texture and assembly prefab were not created successfully.");
             }
         }
 

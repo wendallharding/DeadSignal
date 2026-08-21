@@ -12,6 +12,7 @@ namespace DeadSignal
         private const string MAINTENANCE_DECK_TEXTURE_RESOURCE = "Environment/MaintenanceDeckPanel";
         private const string MAINTENANCE_BULKHEAD_TEXTURE_RESOURCE = "Environment/MaintenanceBulkheadPanel";
         private const string SIGNAL_TOWER_TEXTURE_RESOURCE = "Environment/SignalTowerHousingPanel";
+        private const string EXTRACTION_DOCK_TEXTURE_RESOURCE = "Environment/ExtractionDockPanel";
 
         public DeadSignalPalette(bool highContrastEnabled)
         {
@@ -24,6 +25,7 @@ namespace DeadSignal
             Deck = _createMaterial("Maintenance Deck");
             Bulkhead = _createMaterial("Maintenance Bulkhead");
             TowerHousing = _createMaterial("Signal Tower Housing");
+            ExtractionHousing = _createMaterial("Extraction Dock Housing");
             Dark = _createMaterial("Station Black");
             Steel = _createMaterial("Station Steel");
             White = _createMaterial("Drone White");
@@ -75,6 +77,22 @@ namespace DeadSignal
             }
 
             HasTowerTexture = towerTexture != null;
+            var extractionTexture = Resources.Load<Texture2D>(EXTRACTION_DOCK_TEXTURE_RESOURCE);
+            if (extractionTexture != null)
+            {
+                ExtractionHousing.mainTexture = extractionTexture;
+                if (ExtractionHousing.HasProperty("_BaseMap"))
+                {
+                    ExtractionHousing.SetTexture("_BaseMap", extractionTexture);
+                }
+
+                if (ExtractionHousing.HasProperty("_Smoothness"))
+                {
+                    ExtractionHousing.SetFloat("_Smoothness", 0.32f);
+                }
+            }
+
+            HasExtractionTexture = extractionTexture != null;
             ApplyHighContrast(highContrastEnabled);
         }
 
@@ -87,12 +105,14 @@ namespace DeadSignal
         public Material Deck { get; }
         public Material Bulkhead { get; }
         public Material TowerHousing { get; }
+        public Material ExtractionHousing { get; }
         public Material Dark { get; }
         public Material Steel { get; }
         public Material White { get; }
         public bool HasDeckTexture { get; }
         public bool HasBulkheadTexture { get; }
         public bool HasTowerTexture { get; }
+        public bool HasExtractionTexture { get; }
 
         public void ApplyHighContrast(bool enabled)
         {
@@ -122,6 +142,9 @@ namespace DeadSignal
                 Color.black);
             _setMaterial(TowerHousing,
                 enabled ? new Color(0.95f, 0.98f, 1f) : new Color(0.72f, 0.78f, 0.82f),
+                Color.black);
+            _setMaterial(ExtractionHousing,
+                enabled ? Color.white : new Color(0.7f, 0.78f, 0.82f),
                 Color.black);
             _setMaterial(Dark,
                 enabled ? Color.black : new Color(0.012f, 0.018f, 0.026f),

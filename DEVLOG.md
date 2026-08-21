@@ -1240,3 +1240,60 @@ Matching Editor: `C:\Program Files\Unity\Hub\Editor\6000.3.11f1\Editor\Unity.exe
 ### Best next step
 
 Play `Build/Windows/DeadSignal.exe` at 16:9 and ultrawide in normal and High Contrast modes, confirm the textured tower remains immediately readable before and after activation, then migrate the extraction pad into an authored objective prefab.
+
+## 2026-08-21 — Autonomous Run 22
+
+### Today's single idea — authored extraction-pad assembly
+
+Player benefit: the start, safe home, and final destination now read as one deliberate evacuation machine instead of four disconnected runtime primitives. Original concentric docking art reinforces the return journey and makes the extraction objective visually distinct without changing the proven loop.
+
+Acceptance criteria:
+
+- one reusable Unity-authored, collider-free extraction prefab owns exactly the existing plinth, ring, center, and rotating beacon at the existing dimensions;
+- runtime composition loads the prefab at the unchanged extraction position, applies original docking art to its structural surfaces, and preserves the cyan ring/beacon and existing beacon rotation;
+- a safe primitive fallback preserves playability if the prefab is absent, while tests, build validation, and packaged smoke report production readiness as false;
+- no safe-zone radius, salvage requirement, interaction range, economy, threat timing, movement, controls, audio, save data, or serialized gameplay state changes; and
+- import/compile, EditMode, PlayMode, Windows build, Direct3D 11 packaged smoke, strict scans, and repository checks pass.
+
+### Files and systems changed
+
+- `Assets/DeadSignal/Resources/Environment/ExtractionDockPanel.png` and Unity-generated `.meta`: added an original 1254x1254 RGB dark-alloy radial docking texture generated with the built-in image tool. The project copy was visually inspected and imported with sRGB, mipmaps, clamp wrapping, high-quality compression, and a 1024px default-platform cap. SHA-256: `90F133B0C41D224A744315AA1D6D3DE5625A73BB701645062C83057300719215`; GUID: `e909597614d969a4f9fc7d467a038edf`.
+- `Assets/DeadSignal/Resources/Environment/ExtractionPadAssembly.prefab` and Unity-generated `.meta`: added the reusable collider-free four-part extraction pad through Unity's Prefab API. GUID: `1e2c19ddf1b6b1f4cbb02c3e9b735020`.
+- `Assets/DeadSignal/Runtime/DeadSignalWorld.cs`: loads and validates the prefab, applies the dedicated live material, preserves the extraction position and rotating beacon behavior, retains a safe asset-missing fallback, exposes narrow readiness state, and completes this run's focused convention refactor by converting the station-machine loop index to `var`.
+- `Assets/DeadSignal/Runtime/DeadSignalPalette.cs`: adds the generated extraction texture Resource and a dedicated live High Contrast-aware extraction housing material.
+- `Assets/DeadSignal/Runtime/DeadSignalGame.cs`: exposes narrow extraction asset and part-count state for validation.
+- `Assets/DeadSignal/Editor/DeadSignalProjectSetup.cs`: adds idempotent texture configuration and Unity-driven extraction-prefab creation.
+- `Assets/DeadSignal/Editor/DeadSignalWindowsBuild.cs`: prepares and requires the authored extraction assets before packaging.
+- `Assets/DeadSignal/Runtime/StandaloneBuildSmokeProbe.cs`: requires the authored extraction pad in packaged-player readiness.
+- `Assets/DeadSignal/Tests/PlayMode/BootstrapSmokeTests.cs`: verifies the authored root, four renderers, absent colliders, original texture assignment, and production readiness alongside the complete run regression.
+- `GAME_VISION.md`, `BACKLOG.md`, and `DEVLOG.md`: record the extraction-production milestone without changing the core concept.
+
+No packages, assembly definitions, scenes, project settings, deterministic rules, input, audio, balance, save data, or serialized gameplay data were intentionally changed. Reflex 14.3.1 was already installed. Unity's automatic build rewrites to URP assets, Graphics settings, batching, Unity Services, and earlier texture metadata were removed from the final source diff.
+
+### Tests run and exact outcomes
+
+Matching Editor: `C:\Program Files\Unity\Hub\Editor\6000.3.11f1\Editor\Unity.exe` (Unity 6000.3.11f1) against the live workspace.
+
+1. Unity import, compilation, texture configuration, and prefab setup wrote `Logs/run22-extraction-setup.log`: Unity imported the generated PNG, compiled all changed assemblies, created the collider-free prefab and both `.meta` files, and exited `0`.
+2. An initial EditMode invocation exited `0` but produced no results XML because `-quit` ended the run before the test runner executed; it is not counted as a test pass. The corrected EditMode regression wrote `Logs/run22-editmode-results.xml` and `Logs/run22-editmode.log`: Unity exited `0`; `16/16` passed, `0` failed, `0` skipped, `0` inconclusive in `0.0532756` seconds.
+3. PlayMode full runtime regression wrote `Logs/run22-playmode-results.xml` and `Logs/run22-playmode.log`: Unity exited `0`; `1/1` passed, `0` failed, `0` skipped, `0` inconclusive in `3.9610875` seconds. It proved authored extraction composition and all prior input, pause, accessibility, audio, particles, low-Signal warning, activation, combat, Sapper, salvage, shortcut, extraction, and restart assertions.
+4. Windows development build wrote `Logs/run22-windows-build.log`: Unity reported `Build Finished, Result: Success`, emitted the build PASS marker, and produced 185,403,413 reported bytes in 67.60 seconds. The ignored local artifact contains 293 files totaling 185,596,755 bytes.
+5. Real packaged launch wrote `Logs/run22-standalone-d3d11-smoke.log`: the player forced Direct3D 11 on the NVIDIA GeForce RTX 3060, found the authored extraction prefab and generated texture, printed one PASS marker, and exited `0`. A prior `-nographics` packaged launch also exited `0` but used Unity's null device and is not the visual-runtime evidence.
+6. Static asset inspection found exactly four mesh renderers and no collider component in the prefab. The project PNG was visually inspected and verified as 1254x1254 `Format24bppRgb`.
+7. Final warmed-project compilation after documentation and settings cleanup wrote `Logs/run22-final-compile.log`: Unity exited `0` with no first-party compiler error or warning. Strict scans of setup, EditMode, PlayMode, build, packaged-player, and final-compile logs found no compiler errors, null or missing-reference exceptions, unhandled exceptions, failed assertions, failed tests, or failed smoke markers. Final `git diff --check` passed.
+
+### Bugs found and fixed
+
+- No gameplay, compilation, asset-import, automated-test, build, or packaged-runtime defect was found after implementation.
+- Corrected the first EditMode command by removing the premature `-quit` flag, then obtained the authoritative XML-backed pass.
+- Removed unrelated Unity build-time URP, Graphics, batching, Unity Services, and existing texture-metadata serialization changes before final validation.
+
+### Known limitations
+
+- Automated checks prove hierarchy, Resources loading, texture assignment, High Contrast remapping, beacon animation ownership, and packaged startup but cannot judge cylinder UV mapping, texture brightness, cyan-guide-light repetition, or player/threat separation at 16:9 and ultrawide.
+- The generated texture is an albedo only; its surface depth is deliberately restrained, and a normal map should wait until the top-down read is evaluated interactively.
+- Deck, room shell, tower, and extraction are authored, while shortcut geometry, gameplay markers, signal-line geometry, and machine visuals remain runtime-composed. The broader complete-room migration remains open.
+
+### Best next step
+
+Play `Build/Windows/DeadSignal.exe` at 16:9 and ultrawide in normal and High Contrast modes, verify the textured extraction pad feels like an obvious safe home and satisfying return target, then migrate the shortcut gate into an authored route-choice prefab.

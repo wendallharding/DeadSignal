@@ -30,7 +30,17 @@ namespace DeadSignal.Tests
             Assert.That(telegraphRoot.gameObject.activeSelf, Is.False, "The Sapper telegraph should remain hidden while dormant.");
             Assert.That(telegraph.IsVisible, Is.False);
             Assert.That(game.transform.Find("Tower Power Territory"), Is.Not.Null);
-            Assert.That(game.transform.Find("Extraction Beacon"), Is.Not.Null);
+            Transform extractionPad = game.transform.Find("Extraction Pad Assembly");
+            Assert.That(extractionPad, Is.Not.Null, "The start and finish objective should load from the authored extraction-pad prefab.");
+            Assert.That(game.HasExtractionPadAssets, Is.True,
+                "The extraction-pad prefab and original docking texture should load from Resources.");
+            Assert.That(game.ExtractionPadPartCount, Is.EqualTo(4));
+            Assert.That(extractionPad.GetComponentsInChildren<Renderer>().Length, Is.EqualTo(4));
+            Assert.That(extractionPad.GetComponentsInChildren<Collider>().Length, Is.Zero,
+                "The authored extraction pad should remain presentation-only so existing interaction rules stay authoritative.");
+            Assert.That(extractionPad.Find("Extraction Plinth").GetComponent<Renderer>().sharedMaterial.mainTexture, Is.Not.Null,
+                "The authored extraction housing should render the original docking texture.");
+            Assert.That(extractionPad.Find("Extraction Beacon"), Is.Not.Null);
             Assert.That(game.transform.Find("Signal Shortcut Gate"), Is.Not.Null);
             Transform maintenanceDeck = game.transform.Find("Maintenance Deck Modules");
             Assert.That(maintenanceDeck, Is.Not.Null, "The arena should be assembled from authored maintenance-deck modules.");

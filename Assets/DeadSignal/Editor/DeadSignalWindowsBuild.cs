@@ -24,6 +24,7 @@ namespace DeadSignal.Editor
             DeadSignalProjectSetup.EnsureMaintenanceDeckAssets();
             DeadSignalProjectSetup.EnsureMaintenanceRoomShellAssets();
             DeadSignalProjectSetup.EnsureSignalTowerAssets();
+            DeadSignalProjectSetup.EnsureExtractionPadAssets();
             _validateBuildInputs();
             _configureWindowsPlayer();
 
@@ -91,6 +92,11 @@ namespace DeadSignal.Editor
             if (!DeadSignalProjectSetup.HasSignalTowerAssets)
             {
                 throw new BuildFailedException("The authored Signal tower assets are missing.");
+            }
+
+            if (!DeadSignalProjectSetup.HasExtractionPadAssets)
+            {
+                throw new BuildFailedException("The authored extraction pad assets are missing.");
             }
 
             if (AssetDatabase.LoadAssetAtPath<Texture2D>(APPLICATION_ICON_PATH) == null)

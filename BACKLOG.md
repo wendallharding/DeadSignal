@@ -22,6 +22,7 @@
 - [x] Establish the first reusable authored room component with a textured maintenance-deck prefab
 - [x] Author the first textured room-shell prefab with perimeter bulkheads and machine sockets
 - [x] Migrate the central Signal tower into a textured authored prefab without changing its interaction or animation
+- [x] Migrate the extraction dock into a textured authored prefab without changing its safe-zone or extraction rules
 - [x] Add a Signal-cost shortcut gate and first route choice
 - [x] Add a second enemy archetype that pressures powered territory
 - [x] Telegraph the Sapper's tower target and timed drain pulses in-world

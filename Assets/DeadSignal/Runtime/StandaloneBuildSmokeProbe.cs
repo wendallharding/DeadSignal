@@ -45,6 +45,7 @@ namespace DeadSignal
                                 game.HasMaintenanceDeckAssets &&
                                 game.HasMaintenanceRoomShellAssets &&
                                 game.HasSignalTowerAssets &&
+                                game.HasExtractionPadAssets &&
                                 game.HasLowSignalWarningTexture &&
                                 game.HasTowerActivationSweepTexture;
             if (!runtimeReady)

@@ -16,6 +16,7 @@ namespace DeadSignal
         private const string MAINTENANCE_DECK_MODULE_RESOURCE = "Environment/MaintenanceDeckModule";
         private const string MAINTENANCE_ROOM_SHELL_RESOURCE = "Environment/MaintenanceRoomShell";
         private const string SIGNAL_TOWER_PREFAB_RESOURCE = "Environment/SignalTowerAssembly";
+        private const string EXTRACTION_PAD_PREFAB_RESOURCE = "Environment/ExtractionPadAssembly";
         private const float DECK_MODULE_WIDTH = 3.9f;
         private const float DECK_MODULE_DEPTH = 3.6f;
 
@@ -60,6 +61,8 @@ namespace DeadSignal
         public int MachineSocketCount => m_machineSockets.Count;
         public bool HasSignalTowerAssets { get; private set; }
         public int SignalTowerPartCount { get; private set; }
+        public bool HasExtractionPadAssets { get; private set; }
+        public int ExtractionPadPartCount { get; private set; }
 
         public bool IsPowered(Vector3 position, bool towerOnline)
         {
@@ -314,10 +317,43 @@ namespace DeadSignal
 
         private void _buildExtraction()
         {
-            _createPrimitive("Extraction Plinth", PrimitiveType.Cylinder, ExtractionPosition + new Vector3(0f, 0.02f, 0f), new Vector3(3.2f, 0.08f, 3.2f), m_palette.CyanDim);
-            _createPrimitive("Extraction Ring", PrimitiveType.Cylinder, ExtractionPosition + new Vector3(0f, 0.08f, 0f), new Vector3(2.55f, 0.08f, 2.55f), m_palette.Cyan);
-            _createPrimitive("Extraction Center", PrimitiveType.Cylinder, ExtractionPosition + new Vector3(0f, 0.14f, 0f), new Vector3(2.1f, 0.08f, 2.1f), m_palette.Dark);
-            m_extractionBeacon = _createPrimitive("Extraction Beacon", PrimitiveType.Cube, ExtractionPosition + new Vector3(0f, 0.7f, 1.5f), new Vector3(0.22f, 1.4f, 0.22f), m_palette.Cyan);
+            var extractionPrefab = Resources.Load<GameObject>(EXTRACTION_PAD_PREFAB_RESOURCE);
+            var hasValidPrefab = extractionPrefab != null &&
+                                 extractionPrefab.transform.Find("Extraction Plinth") != null &&
+                                 extractionPrefab.transform.Find("Extraction Ring") != null &&
+                                 extractionPrefab.transform.Find("Extraction Center") != null &&
+                                 extractionPrefab.transform.Find("Extraction Beacon") != null;
+            if (hasValidPrefab)
+            {
+                var extractionPad = Object.Instantiate(extractionPrefab, m_root);
+                extractionPad.name = "Extraction Pad Assembly";
+                extractionPad.transform.localPosition = ExtractionPosition;
+                extractionPad.transform.localRotation = Quaternion.identity;
+                var plinth = extractionPad.transform.Find("Extraction Plinth");
+                var ring = extractionPad.transform.Find("Extraction Ring");
+                var center = extractionPad.transform.Find("Extraction Center");
+                m_extractionBeacon = extractionPad.transform.Find("Extraction Beacon").gameObject;
+                plinth.GetComponent<Renderer>().sharedMaterial = m_palette.ExtractionHousing;
+                ring.GetComponent<Renderer>().sharedMaterial = m_palette.Cyan;
+                center.GetComponent<Renderer>().sharedMaterial = m_palette.ExtractionHousing;
+                m_extractionBeacon.GetComponent<Renderer>().sharedMaterial = m_palette.Cyan;
+                ExtractionPadPartCount = 4;
+                HasExtractionPadAssets = m_palette.HasExtractionTexture;
+                return;
+            }
+
+            var fallbackRoot = new GameObject("Extraction Pad Assembly");
+            fallbackRoot.transform.SetParent(m_root, false);
+            fallbackRoot.transform.localPosition = ExtractionPosition;
+            _createPrimitive("Extraction Plinth", PrimitiveType.Cylinder, new Vector3(0f, 0.02f, 0f),
+                new Vector3(3.2f, 0.08f, 3.2f), m_palette.ExtractionHousing, fallbackRoot.transform);
+            _createPrimitive("Extraction Ring", PrimitiveType.Cylinder, new Vector3(0f, 0.08f, 0f),
+                new Vector3(2.55f, 0.08f, 2.55f), m_palette.Cyan, fallbackRoot.transform);
+            _createPrimitive("Extraction Center", PrimitiveType.Cylinder, new Vector3(0f, 0.14f, 0f),
+                new Vector3(2.1f, 0.08f, 2.1f), m_palette.ExtractionHousing, fallbackRoot.transform);
+            m_extractionBeacon = _createPrimitive("Extraction Beacon", PrimitiveType.Cube, new Vector3(0f, 0.7f, 1.5f),
+                new Vector3(0.22f, 1.4f, 0.22f), m_palette.Cyan, fallbackRoot.transform);
+            ExtractionPadPartCount = 4;
         }
 
         private void _buildTower()
@@ -366,7 +402,7 @@ namespace DeadSignal
 
         private void _buildStationMachines()
         {
-            for (int i = 0; i < m_machineSockets.Count; i++)
+            for (var i = 0; i < m_machineSockets.Count; i++)
             {
                 var position = m_machineSockets[i];
                 _createPrimitive("Machine Block", PrimitiveType.Cube, position + new Vector3(0f, 0.45f, 0f), new Vector3(1.5f, 0.9f, 1.1f), m_palette.Steel);
