@@ -30,6 +30,7 @@ namespace DeadSignal.Tests
             Assert.That(game.transform.Find("Signal Shortcut Gate"), Is.Not.Null);
             Assert.That(Camera.main != null || Object.FindFirstObjectByType<Camera>() != null, Is.True);
             Assert.That(game.HasPauseInsignia, Is.True, "The generated pause-menu insignia should load from Resources.");
+            Assert.That(game.HasCameraComfortIcon, Is.True, "The generated Steady Camera icon should load from Resources.");
             CombatFeedbackController combatFeedback = Object.FindFirstObjectByType<CombatFeedbackController>();
             Assert.That(combatFeedback, Is.Not.Null, "Reflex composition should provide the combat-feedback controller.");
             Assert.That(combatFeedback.HasImpactTexture, Is.True, "The generated impact texture should load from Resources.");
@@ -37,6 +38,8 @@ namespace DeadSignal.Tests
             Gamepad gamepad = InputSystem.AddDevice<Gamepad>();
             Transform player = game.transform.Find("Maintenance Drone");
             Vector3 startingPosition = player.position;
+            bool hadCameraImpulsePreference = PlayerPrefs.HasKey("DeadSignal.CameraImpulseEnabled");
+            bool initialCameraImpulse = game.IsCameraImpulseEnabled;
             try
             {
                 float signalBeforePause = game.CurrentSignal;
@@ -48,6 +51,29 @@ namespace DeadSignal.Tests
                 yield return new WaitForSecondsRealtime(0.1f);
                 Assert.That(game.CurrentSignal, Is.EqualTo(signalBeforePause), "Signal must not drain while paused.");
 
+                InputSystem.QueueStateEvent(gamepad, new GamepadState().WithButton(GamepadButton.North));
+                yield return null;
+                Assert.That(game.IsCameraImpulseEnabled, Is.EqualTo(!initialCameraImpulse),
+                    "Gamepad north should toggle the Steady Camera option while paused.");
+                Assert.That(combatFeedback.CameraImpulseEnabled, Is.EqualTo(game.IsCameraImpulseEnabled),
+                    "Reflex-composed combat feedback should share the comfort setting.");
+                Assert.That(PlayerPrefs.GetInt("DeadSignal.CameraImpulseEnabled", -1),
+                    Is.EqualTo(game.IsCameraImpulseEnabled ? 1 : 0), "The comfort choice should persist for future runs.");
+
+                InputSystem.QueueStateEvent(gamepad, new GamepadState());
+                yield return null;
+                game.ToggleCameraImpulse();
+                Assert.That(game.IsCameraImpulseEnabled, Is.EqualTo(initialCameraImpulse),
+                    "The pause option should restore its prior camera-impulse state.");
+
+                if (game.IsCameraImpulseEnabled)
+                {
+                    game.ToggleCameraImpulse();
+                }
+
+                Assert.That(game.IsCameraImpulseEnabled, Is.False,
+                    "The camera-impulse suppression path should be active for feedback validation.");
+
                 InputSystem.QueueStateEvent(gamepad, new GamepadState());
                 yield return null;
                 InputSystem.QueueStateEvent(gamepad, new GamepadState().WithButton(GamepadButton.Start));
@@ -55,6 +81,8 @@ namespace DeadSignal.Tests
                 Assert.That(game.IsPaused, Is.False, "Gamepad Menu should resume a paused game.");
                 Assert.That(Time.timeScale, Is.EqualTo(1f));
 
+                Camera gameCamera = game.GetComponentInChildren<Camera>();
+                Vector3 cameraRestPosition = gameCamera.transform.position;
                 combatFeedback.PlaySignalImpact(player.position + Vector3.up * 0.5f, false);
                 Assert.That(combatFeedback.ActiveImpactCount, Is.EqualTo(1));
                 Transform impactBurst = combatFeedback.transform.Find("Combat Impact Burst");
@@ -68,6 +96,8 @@ namespace DeadSignal.Tests
                 yield return new WaitForSecondsRealtime(0.08f);
                 Assert.That(combatFeedback.IsHitStopped, Is.False, "Hit-stop should end using real time.");
                 Assert.That(Time.timeScale, Is.EqualTo(1f));
+                Assert.That(gameCamera.transform.position, Is.EqualTo(cameraRestPosition),
+                    "Steady Camera should suppress camera impulse without removing hit-stop or impact art.");
                 Assert.That(combatFeedback.ActiveImpactCount, Is.EqualTo(1),
                     "The burst should remain long enough to read after hit-stop ends.");
                 yield return new WaitForSeconds(0.3f);
@@ -174,6 +204,16 @@ namespace DeadSignal.Tests
             finally
             {
                 Time.timeScale = 1f;
+                if (hadCameraImpulsePreference)
+                {
+                    PlayerPrefs.SetInt("DeadSignal.CameraImpulseEnabled", initialCameraImpulse ? 1 : 0);
+                }
+                else
+                {
+                    PlayerPrefs.DeleteKey("DeadSignal.CameraImpulseEnabled");
+                }
+
+                PlayerPrefs.Save();
                 InputSystem.RemoveDevice(gamepad);
             }
         }

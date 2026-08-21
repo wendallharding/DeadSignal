@@ -25,7 +25,8 @@
 - [ ] Add layered procedural audio and broader ambient particles
 - [ ] Tune resource economy from recorded five-minute play sessions
 - [x] Add an end-of-run performance report for balance sessions
-- [ ] Add options and accessibility settings (flash, shake, contrast)
+- [x] Add a persisted Steady Camera comfort toggle to disable combat camera impulse
+- [ ] Add remaining accessibility settings (flash reduction and high contrast)
 - [ ] Add a build-validation test and Windows development build
 
 ## P2 — MVP production

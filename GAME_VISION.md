@@ -45,6 +45,7 @@ This autonomous run is accepted when a fresh Play session provides all of the fo
 - Keyboard/mouse and gamepad can each complete the full run without switching devices.
 - Escape or gamepad Menu pauses the active run without advancing Signal drain, threats, projectiles, or run time.
 - Successful bolt hits, Warden impacts, and Sapper drains provide distinct world-space bursts, brief hit-stop, and restrained camera impulse.
+- The pause overlay offers a persisted Steady Camera option that removes camera impulse without weakening hit-stop or impact art.
 - Core resource/objective transitions have deterministic EditMode tests, and the Unity project compiles in batch mode.
 
 ## Experience target

@@ -68,7 +68,9 @@ namespace DeadSignal
         private GUIStyle giantStyle;
         private GUIStyle reportStyle;
         private Texture2D m_pauseInsignia;
+        private Texture2D m_cameraComfortIcon;
         private ICombatFeedback m_combatFeedback;
+        private IComfortSettings m_comfortSettings;
         private Container m_container;
         private bool m_fireBuffered;
 
@@ -76,6 +78,19 @@ namespace DeadSignal
         public bool IsSapperLatched => sapperLatched;
         public bool IsPaused => m_combatFeedback?.IsPaused ?? false;
         public bool HasPauseInsignia => m_pauseInsignia != null;
+        public bool HasCameraComfortIcon => m_cameraComfortIcon != null;
+        public bool IsCameraImpulseEnabled => m_comfortSettings?.CameraImpulseEnabled ?? true;
+
+        /// <summary>
+        /// Toggles the persisted camera-impulse preference while the pause overlay is authoritative.
+        /// </summary>
+        public void ToggleCameraImpulse()
+        {
+            if (IsPaused)
+            {
+                m_comfortSettings.ToggleCameraImpulse();
+            }
+        }
 
         private sealed class Projectile
         {
@@ -98,9 +113,10 @@ namespace DeadSignal
         }
 
         [Inject]
-        private void _construct(ICombatFeedback combatFeedback, Container container)
+        private void _construct(ICombatFeedback combatFeedback, IComfortSettings comfortSettings, Container container)
         {
             m_combatFeedback = combatFeedback;
+            m_comfortSettings = comfortSettings;
             m_container = container;
         }
 
@@ -110,6 +126,7 @@ namespace DeadSignal
             model = new RunModel();
             metrics = new RunMetrics();
             m_pauseInsignia = Resources.Load<Texture2D>("UI/MaintenanceNetworkInsignia");
+            m_cameraComfortIcon = Resources.Load<Texture2D>("UI/SteadyCameraIcon");
             Application.targetFrameRate = 120;
             BuildMaterials();
             BuildPresentation();
@@ -124,6 +141,11 @@ namespace DeadSignal
             if (model.Outcome == RunOutcome.Running && _pressedPause())
             {
                 _setPaused(!IsPaused);
+            }
+
+            if (IsPaused && _pressedCameraImpulseToggle())
+            {
+                ToggleCameraImpulse();
             }
 
             if (m_combatFeedback.IsFrozen)
@@ -724,6 +746,12 @@ namespace DeadSignal
                    (Gamepad.current != null && Gamepad.current.startButton.wasPressedThisFrame);
         }
 
+        private static bool _pressedCameraImpulseToggle()
+        {
+            return (Keyboard.current != null && Keyboard.current.cKey.wasPressedThisFrame) ||
+                   (Gamepad.current != null && Gamepad.current.buttonNorth.wasPressedThisFrame);
+        }
+
         private void _setPaused(bool paused)
         {
             m_combatFeedback.SetPaused(paused);
@@ -925,17 +953,34 @@ namespace DeadSignal
                 GUI.color = Color.white;
                 if (m_pauseInsignia != null)
                 {
-                    GUI.DrawTexture(new Rect(Screen.width * 0.5f - 92f, Screen.height * 0.5f - 205f, 184f, 184f),
+                    GUI.DrawTexture(new Rect(Screen.width * 0.5f - 76f, Screen.height * 0.5f - 250f, 152f, 152f),
                         m_pauseInsignia, ScaleMode.ScaleToFit, true);
                 }
 
                 GUI.color = new Color(0.08f, 0.96f, 1f);
-                GUI.Label(new Rect(0f, Screen.height * 0.5f - 30f, Screen.width, 54f), "SIGNAL LINK SUSPENDED", giantStyle);
+                GUI.Label(new Rect(0f, Screen.height * 0.5f - 94f, Screen.width, 54f), "SIGNAL LINK SUSPENDED", giantStyle);
                 GUI.color = new Color(0.76f, 0.86f, 0.9f);
-                GUI.Label(new Rect(0f, Screen.height * 0.5f + 34f, Screen.width, 32f),
+                GUI.Label(new Rect(0f, Screen.height * 0.5f - 40f, Screen.width, 32f),
                     "Signal drain, threats, projectiles, and run time are frozen.", reportStyle);
+
+                Rect comfortPanel = new(Screen.width * 0.5f - 220f, Screen.height * 0.5f + 4f, 440f, 82f);
+                GUI.color = new Color(0.025f, 0.07f, 0.085f, 0.98f);
+                GUI.Box(comfortPanel, GUIContent.none);
                 GUI.color = Color.white;
-                GUI.Label(new Rect(0f, Screen.height * 0.5f + 78f, Screen.width, 36f),
+                if (m_cameraComfortIcon != null)
+                {
+                    GUI.DrawTexture(new Rect(comfortPanel.x + 12f, comfortPanel.y + 9f, 64f, 64f),
+                        m_cameraComfortIcon, ScaleMode.ScaleToFit, true);
+                }
+
+                GUI.Label(new Rect(comfortPanel.x + 88f, comfortPanel.y + 12f, 330f, 24f),
+                    "STEADY CAMERA", labelStyle);
+                GUI.color = IsCameraImpulseEnabled ? new Color(0.08f, 0.96f, 1f) : new Color(1f, 0.68f, 0.12f);
+                GUI.Label(new Rect(comfortPanel.x + 88f, comfortPanel.y + 38f, 330f, 26f),
+                    IsCameraImpulseEnabled ? "C / Y  CAMERA IMPULSE ON" : "C / Y  CAMERA IMPULSE OFF", smallStyle);
+
+                GUI.color = Color.white;
+                GUI.Label(new Rect(0f, Screen.height * 0.5f + 100f, Screen.width, 36f),
                     "PRESS ESC / GAMEPAD MENU TO RESUME", centerStyle);
             }
 

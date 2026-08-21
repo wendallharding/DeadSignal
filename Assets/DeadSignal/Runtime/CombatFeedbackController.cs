@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Reflex.Attributes;
 using UnityEngine;
 
 namespace DeadSignal
@@ -35,6 +36,7 @@ namespace DeadSignal
 
         private readonly List<ImpactVisual> m_impacts = new();
 
+        private IComfortSettings m_comfortSettings;
         private Camera m_targetCamera;
         private Texture2D m_impactTexture;
         private Sprite m_impactSprite;
@@ -49,6 +51,7 @@ namespace DeadSignal
         public bool IsPaused => m_isPaused;
         public bool IsHitStopped => m_hitStopEndsAt > 0f;
         public bool HasImpactTexture => m_impactTexture != null;
+        public bool CameraImpulseEnabled => m_comfortSettings?.CameraImpulseEnabled ?? true;
         public int ActiveImpactCount => m_impacts.Count;
 
         private sealed class ImpactVisual
@@ -58,6 +61,13 @@ namespace DeadSignal
             public Color Tint;
             public float Age;
             public float TargetScale;
+        }
+
+        [Inject]
+        private void _construct(IComfortSettings comfortSettings)
+        {
+            m_comfortSettings = comfortSettings;
+            m_comfortSettings.CameraImpulseChanged += _handleCameraImpulseChanged;
         }
 
         public void Configure(Camera targetCamera)
@@ -132,6 +142,11 @@ namespace DeadSignal
             Time.timeScale = 1f;
             _resetCamera();
 
+            if (m_comfortSettings != null)
+            {
+                m_comfortSettings.CameraImpulseChanged -= _handleCameraImpulseChanged;
+            }
+
             if (m_impactSprite != null)
             {
                 Destroy(m_impactSprite);
@@ -164,8 +179,12 @@ namespace DeadSignal
                 TargetScale = targetScale
             });
 
-            m_shakeRemaining = Mathf.Max(m_shakeRemaining, SHAKE_DURATION);
-            m_shakeIntensity = Mathf.Max(m_shakeIntensity, shakeIntensity);
+            if (CameraImpulseEnabled)
+            {
+                m_shakeRemaining = Mathf.Max(m_shakeRemaining, SHAKE_DURATION);
+                m_shakeIntensity = Mathf.Max(m_shakeIntensity, shakeIntensity);
+            }
+
             m_hitStopEndsAt = Mathf.Max(m_hitStopEndsAt, Time.realtimeSinceStartup + hitStopDuration);
             Time.timeScale = 0f;
         }
@@ -212,6 +231,12 @@ namespace DeadSignal
                 return;
             }
 
+            if (!CameraImpulseEnabled)
+            {
+                _clearCameraShake();
+                return;
+            }
+
             if (m_shakeRemaining <= 0f)
             {
                 _resetCamera();
@@ -230,6 +255,21 @@ namespace DeadSignal
                 m_shakeIntensity = 0f;
                 _resetCamera();
             }
+        }
+
+        private void _handleCameraImpulseChanged(bool enabled)
+        {
+            if (!enabled)
+            {
+                _clearCameraShake();
+            }
+        }
+
+        private void _clearCameraShake()
+        {
+            m_shakeRemaining = 0f;
+            m_shakeIntensity = 0f;
+            _resetCamera();
         }
 
         private void _resetCamera()

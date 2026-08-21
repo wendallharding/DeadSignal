@@ -420,3 +420,58 @@ Matching editor: `C:\Program Files\Unity\Hub\Editor\6000.3.11f1\Editor\Unity.exe
 ### Best next step
 
 Run five interception-focused sessions with shake enabled, record whether impacts improve hit confirmation without obscuring the Sapper countdown, and use the run report to tune Sapper timing and the combined Signal economy before adding audio or more content.
+
+## 2026-08-20 - Autonomous Run 09
+
+### Today's single idea - Steady Camera comfort option
+
+Player benefit: motion-sensitive players can disable combat camera impulse from the safe pause overlay while retaining the impact burst, hit-stop, combat rules, and threat timing that communicate successful and incoming hits.
+
+Acceptance criteria:
+
+- While paused, keyboard C or gamepad Y toggles Camera Impulse between on and off, and the overlay always shows the current state.
+- The preference is saved locally and is shared by the pause UI and combat-feedback system through Reflex composition.
+- Disabling Camera Impulse immediately restores the camera and suppresses future shake without removing hit-stop or impact art.
+- The pause overlay uses one original transparent stabilization icon and degrades safely if the texture is unavailable.
+- PlayMode coverage proves icon loading, gamepad input, persisted state, shared Reflex state, shake suppression, retained impact feedback, and the existing complete runtime flow.
+
+### Files and systems changed
+
+- `Assets/DeadSignal/Runtime/ComfortSettings.cs` and Unity-generated `.meta`: added a focused locally persisted comfort service and change event; the service is registered once in the Reflex container.
+- `Assets/DeadSignal/Runtime/CombatFeedbackController.cs`: consumes the injected comfort setting, cancels active camera shake when disabled, suppresses future impulse, and keeps hit-stop and bursts unchanged.
+- `Assets/DeadSignal/Runtime/DeadSignalBootstrap.cs`: registers `IComfortSettings` beside `ICombatFeedback`; as this run's focused convention refactor, renamed its attributed private helper to `_createFirstPlayable` without changing bootstrap timing.
+- `Assets/DeadSignal/Runtime/DeadSignalGame.cs`: loads the comfort icon, exposes a pause-authoritative toggle action, binds C/gamepad Y, reports the saved state, and adds a compact Steady Camera panel to the pause overlay.
+- `Assets/DeadSignal/Resources/UI/SteadyCameraIcon.png` and Unity-generated `.meta`: added an original 1254x1254 RGBA stabilization emblem generated with the built-in image tool. The final prompt requested a centered, commercially safe orbital-maintenance gyroscope with concentric broken rings, a cyan signal diamond, white/cyan metal, a small amber accent, strong 64-pixel readability, genuine transparent alpha, and no text, logos, watermark, brand resemblance, or opaque background.
+- `Assets/DeadSignal/Tests/PlayMode/BootstrapSmokeTests.cs`: extended the full runtime test to preserve the prior PlayerPrefs state and prove icon loading, gamepad toggling, saved state, Reflex sharing, camera stability, retained hit-stop/burst cleanup, pause, controller movement, combat, Sapper, and shortcut behavior.
+- `GAME_VISION.md`: added the Steady Camera behavior to first-playable acceptance without changing the core concept or balance.
+- `BACKLOG.md`: marked persisted camera-impulse control complete and narrowed the remaining accessibility item to flash reduction and high contrast.
+- `DEVLOG.md`: recorded Run 09 scope, implementation, validation, defects, risks, and next step.
+
+No packages, package versions, scenes, prefabs, materials, shaders, audio, deterministic gameplay rules, input costs, project settings, serialized gameplay data, or generated source were intentionally changed. Unity reimported `ProjectSettings/ProjectSettings.asset` during PlayMode teardown; no project-setting edit was made, and its final SHA-256 is `5656BCA230B92B0599BCE69F8AB4CBBBA2BA524717EE9BAF5731B9397313857F`. Unity also refreshed the derived `DeadSignal.Runtime.csproj`; it was not hand-edited. A root `.gitignore` change adding `.vscode/` appeared during the run between test launches; this automation did not create or edit it and preserved it as unrelated user/environment work. Git is now available on `main` at baseline commit `3f0f985`; the feature diff and status were inspected without modifying that unrelated file.
+
+### Tests run and exact outcomes
+
+Matching editor: `C:\Program Files\Unity\Hub\Editor\6000.3.11f1\Editor\Unity.exe`.
+
+1. Initial asset import and compilation wrote `Logs/run09-compile.log`: return code `0`; Unity imported the new script and generated image, created both `.meta` files, compiled the runtime/test assemblies, and shut down successfully. Startup logged transient licensing handshake/access-token errors, then resolved both installed entitlements and completed normally.
+2. Final EditMode deterministic suite wrote `Logs/run09-editmode-results-final.xml` and `Logs/run09-editmode-final.log`: return code `0`; `12/12` passed, `0` failed, `0` skipped, `0` inconclusive in `0.0358551` seconds.
+3. Final PlayMode runtime/comfort regression wrote `Logs/run09-playmode-results-final.xml` and `Logs/run09-playmode-final.log`: return code `0`; `1/1` passed, `0` failed, `0` skipped, `0` inconclusive in `3.3305175` seconds.
+4. Final regression compilation wrote `Logs/run09-final-compile.log`: return code `0`; Unity exited batch mode successfully. Strict scans of the three final logs found no C# compiler warnings/errors, null/missing-reference or unhandled exceptions, assertion failures, or failed-test markers.
+5. The generated PNG was visually inspected at its project path. Pixel inspection reported 1254x1254 RGBA, alpha range 0-255, transparent corners, and both transparent and opaque content. No interactive 16:9 or ultrawide gameplay capture was available.
+
+### Bugs found and fixed
+
+- Headless paused-frame keyboard synthesis did not produce a reliable `wasPressedThisFrame` signal even though the existing virtual-gamepad path did. The final test uses the real gamepad binding plus the same public pause-option action used by keyboard input; the production C binding remains compiled, but still needs a human keyboard pass.
+- A diagnostic attempt used a delta event on a bitfield key and another used an unavailable Input System update overload, producing one expected diagnostic exception and one temporary test-assembly compile error. Both test-only experiments were removed before the clean final suites and compile.
+- The test now preserves an existing camera-comfort PlayerPrefs value, or removes the temporary key if none existed, so automation cannot overwrite the player's preference.
+
+### Known limitations
+
+- Headless validation proves state flow and a stable camera transform with impulse disabled, but cannot judge the pause-panel layout, icon scale, normal shake comfort, or input labeling at unusual aspect ratios.
+- The keyboard C binding compiled but synthetic paused-key timing was not reliable enough to claim a runtime keyboard pass; it requires one interactive keyboard check.
+- Steady Camera controls only combat camera impulse. Flash reduction and high-contrast modes remain backlog work, and the game still lacks audio, broader ambient particles, authored rooms, persistence beyond this preference, and a standalone build.
+- The 1254x1254 icon is acceptable for prototype iteration but should be resized or atlased after the UI direction stabilizes.
+
+### Best next step
+
+Run one keyboard/controller comfort-options pass at 16:9 and ultrawide, then complete five interception-focused sessions with camera impulse both on and off before tuning the Sapper and combined Signal economy.
