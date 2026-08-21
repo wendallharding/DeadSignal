@@ -35,6 +35,7 @@ namespace DeadSignal.Editor
             DeadSignalProjectileSetup.EnsureAssets();
             DeadSignalSapperTelegraphSetup.EnsureAssets();
             DeadSignalWardenTelegraphSetup.EnsureAssets();
+            DeadSignalTowerJunctionSetup.EnsureAssets();
             _validateBuildInputs();
             _configureWindowsPlayer();
 
@@ -157,6 +158,11 @@ namespace DeadSignal.Editor
             if (!DeadSignalWardenTelegraphSetup.HasAssets)
             {
                 throw new BuildFailedException("The authored Warden strike-warning assets are missing.");
+            }
+
+            if (!DeadSignalTowerJunctionSetup.HasAssets)
+            {
+                throw new BuildFailedException("The scene-authored tower-approach junction assets are missing.");
             }
 
             if (AssetDatabase.LoadAssetAtPath<Texture2D>(APPLICATION_ICON_PATH) == null)

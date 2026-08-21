@@ -72,6 +72,7 @@ namespace DeadSignal
         public bool IsWardenWarningMotionSuppressed => m_world?.WardenTelegraph?.IsMotionSuppressed ?? false;
         public bool HasSignalSapperAssets => m_world?.HasSignalSapperAssets ?? false;
         public int SignalSapperPartCount => m_world?.SignalSapperPartCount ?? 0;
+        public int AuthoredMapObstacleCount => m_world?.AuthoredMapObstacleCount ?? 0;
         public float LowSignalWarningIntensity => m_lowSignalWarning?.CurrentIntensity ?? 0f;
         public bool IsSignalDustPowered => m_signalDust?.IsPowered ?? false;
         public int SignalDustMaximumParticles => m_signalDust?.MaximumParticles ?? 0;

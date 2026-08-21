@@ -29,7 +29,7 @@ Out of scope until the loop proves fun: online features, co-op, procedural narra
 
 ## First playable acceptance criteria
 
-This autonomous run is accepted when a fresh Play session provides all of the following without hand-authoring scene objects:
+This autonomous run is accepted when a fresh Play session provides all of the following through a gradually scene-authored modular map and focused runtime systems:
 
 - WASD movement and mouse aim feel immediate; left click or Space fires.
 - Movement in dead zones, attacks, tower activation, and enemy impacts visibly consume Signal.
@@ -37,6 +37,7 @@ This autonomous run is accepted when a fresh Play session provides all of the fo
 - Tower activation launches a cyan circuit sweep from the tower to the powered boundary, visibly selling the network's expansion while respecting pause and Reduced Flashes.
 - The station deck is assembled from reusable authored floor modules carrying original dark-alloy plating art while powered/dead-zone overlays remain readable.
 - The playable room perimeter is an authored reusable shell with textured bulkheads and explicit machine sockets rather than hard-coded wall and prop placement.
+- The central tower approach is a scene-placed modular junction whose authored coolant-manifold obstacles create distinct safe and exposed lanes for the player and awakened threats.
 - The central Signal tower is a reusable authored assembly with original control-panel housing art while its dormant/online state remains unmistakable.
 - The extraction dock is a reusable authored assembly with original radial docking art while its safe-home and final-objective read remains unmistakable.
 - The optional Signal-cost shortcut is a reusable authored assembly with original powered-lock art while both free detours and its closed/open state remain unmistakable.

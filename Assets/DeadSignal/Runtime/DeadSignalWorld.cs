@@ -4,7 +4,7 @@ using UnityEngine;
 namespace DeadSignal
 {
     /// <summary>
-    /// Builds and owns the runtime scene graph plus spatial queries for the fixed prototype arena.
+    /// Builds runtime game objects and consumes scene-authored spatial data for the current prototype map.
     /// </summary>
     internal sealed class DeadSignalWorld
     {
@@ -53,6 +53,7 @@ namespace DeadSignal
         public bool LastSignalBoltUsedAuthoredPrefab { get; private set; }
         public bool HasSignalSapperAssets { get; private set; }
         public int SignalSapperPartCount { get; private set; }
+        public int AuthoredMapObstacleCount { get; private set; }
 
         public DeadSignalWorld(Transform root, IComfortSettings comfortSettings)
         {
@@ -64,6 +65,7 @@ namespace DeadSignal
                                   m_signalBoltPrefab.transform.Find("Bolt Energy") != null;
             _buildPresentation();
             _buildArena();
+            _registerAuthoredMapObstacles();
             _buildActors(comfortSettings);
             ApplyHighContrast(comfortSettings.HighContrastEnabled);
         }
@@ -550,6 +552,17 @@ namespace DeadSignal
                 new Vector2(4f, 3.55f), new Vector2(0.275f, 1.95f), false));
             m_movementBlockers.Add(new MovementBlocker(
                 new Vector2(ShortcutPosition.x, ShortcutPosition.z), new Vector2(0.21f, 1.2f), true));
+        }
+
+        private void _registerAuthoredMapObstacles()
+        {
+            var authoredObstacles = Object.FindObjectsByType<AuthoredMapObstacle>(FindObjectsSortMode.None);
+            foreach (var obstacle in authoredObstacles)
+            {
+                m_movementBlockers.Add(new MovementBlocker(obstacle.Center, obstacle.WorldHalfSize, false));
+            }
+
+            AuthoredMapObstacleCount = authoredObstacles.Length;
         }
 
         private void _buildActors(IComfortSettings comfortSettings)

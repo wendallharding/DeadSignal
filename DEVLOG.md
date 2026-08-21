@@ -2169,3 +2169,63 @@ The live project remained open in Unity `6000.3.11f1` and was not closed or cont
 ### Best next step
 
 Activate the tower in `Assets/Scenes/SampleScene.unity`, let the Warden approach from several angles, and judge when the ring first becomes readable with Reduced Flashes both off and on at 16:9 and ultrawide.
+
+## 2026-08-21 — Run 38: scene-authored tower approach
+
+### Today's single idea — tactical tower-approach junction
+
+Player benefit: reaching and defending the first Signal tower now requires choosing between a longer western approach and a more exposed eastern lane, while three solid coolant manifolds create readable cover and kiting routes once the Warden and Sapper awaken.
+
+Acceptance criteria:
+
+- place one reusable tower-junction prefab directly in `SampleScene` rather than constructing its layout at runtime;
+- use three original Blender-authored, textured coolant-manifold obstacles to create distinct approach and combat lanes around the tower;
+- source movement-blocking bounds from serialized prefab components instead of adding hard-coded obstacle coordinates to `DeadSignalWorld`;
+- preserve every existing objective position, Signal cost, enemy speed, damage rule, shortcut rule, and salvage requirement; and
+- pass Unity import/compile, EditMode, PlayMode, Windows build, packaged-resource smoke, and repository checks.
+
+### Files and systems changed
+
+- `OWNER_NOTES.md`: read as the primary product direction for this run. The owner's untracked file remains human-owned and excluded from the automation commit.
+- `Assets/DeadSignal/Resources/Environment/CoolantManifoldAlbedo.png` and Unity-generated `.meta`: added an original graphite/cyan/amber armor-panel albedo generated with OpenAI's built-in image-generation mode for top-down station machinery.
+- Image-generation prompt: square orthographic dark orbital-station coolant-manifold armor panel, layered graphite plating, recessed vents, restrained cyan conduit and amber accents, flat albedo information, no text, logos, characters, UI, perspective scene, red, or magenta.
+- `ArtSource/CoolantManifold/create_coolant_manifold.py`, `CoolantManifold.blend`, `CoolantManifoldPreview.png`, and `README.md`: added reproducible Blender 5.2 source, a two-part UV-mapped low-poly manifold, and a visually inspected preview.
+- `Assets/DeadSignal/Resources/Environment/CoolantManifoldModel.fbx`, Unity-generated `.meta`, `CoolantManifoldAssembly.prefab`, and `TowerApproachJunction.prefab`: added the imported model, reusable obstacle assembly, and three-obstacle junction layout.
+- `Assets/DeadSignal/Resources/Materials/CoolantManifoldArmor.mat` and `CoolantManifoldConduit.mat`, with Unity-generated `.meta` files: added persistent URP materials with mapped albedo and restrained cyan emission.
+- `Assets/Scenes/SampleScene.unity`: now contains the tower-junction prefab instance at the established tower position, making this the first gameplay-shaping map section placed directly in the scene.
+- `Assets/DeadSignal/Runtime/AuthoredMapObstacle.cs` and Unity-generated `.meta`: added serialized, rotation/scale-aware obstacle bounds with an Editor gizmo for visual level authoring.
+- `Assets/DeadSignal/Runtime/DeadSignalWorld.cs`: refactored authored obstacle registration into prefab-driven scene discovery while preserving existing shortcut blockers and fallback arena construction.
+- `Assets/DeadSignal/Runtime/DeadSignalGame.cs`, `StandaloneBuildSmokeProbe.cs`, `Assets/DeadSignal/Editor/DeadSignalTowerJunctionSetup.cs`, and `DeadSignalWindowsBuild.cs`: expose narrow validation state and require the authored scene content in packaged builds.
+- `Assets/DeadSignal/Tests/AuthoredMapObstacleTests.cs` and `Assets/DeadSignal/Tests/PlayMode/BootstrapSmokeTests.cs`: validate transformed bounds, scene placement, three registered obstacles, imported presentation, and collider-free movement integration.
+- `GAME_VISION.md`, `BACKLOG.md`, and `DEVLOG.md`: align the product plan with the owner's scene/prefab-first map direction.
+
+No established objective position, powered radius, Signal economy, enemy speed/health/damage, shortcut behavior, salvage rule, input, audio, package, or project setting was intentionally changed. The user's uncommitted `SignalBoltShell.mat` texture mapping was detected at run start and excluded from this change.
+
+### Tests run and exact outcomes
+
+The live project remained open in Unity `6000.3.11f1` and was not closed or controlled. Authoritative validation used `C:\Projects\Wendall\CodexPrototype_Run38Validation` with the pinned Editor.
+
+1. OpenAI built-in image generation produced a `1254x1254` 24-bit RGB armor-panel albedo. It was copied into project Resources and visually inspected for dark layered plating, cyan conduit routing, amber accents, clean edge-to-edge coverage, and absence of text/logos. SHA-256: `39F2BEFCF6226345337E65701A768D21B7D6D96B8977593438C6E16A76E32946`; texture GUID: `2f421495a9b97cf4daddb6c812c8b142`.
+2. Blender `5.2.0 LTS` ran `ArtSource/CoolantManifold/create_coolant_manifold.py`, exported the `56,348`-byte UV-mapped FBX, saved the editable `.blend`, rendered the `1280x720` preview, and exited `0`. The preview was visually inspected for a strong top-down silhouette, legible graphite armor, raised cyan conduit, distinct supports, and no missing geometry. Model SHA-256: `316AFE3ACECE30B01DEA1C2A5C5C98E2A3BCFC06D166AAE8296B649CEB91CFC6`; model GUID: `aa3ec7c73d14a5d48912350a1f275462`.
+3. Unity setup wrote `run38-setup.log`: the pinned Editor compiled the changed assemblies, imported the texture/model, created persistent materials and prefabs, placed junction prefab GUID `27ffd41f62987314a80e5d1e9dfd5664` in `SampleScene`, saved the scene, and exited `0` with zero first-party compiler errors or warnings.
+4. Final EditMode regression wrote `run38-editmode-final-results.xml` and `run38-editmode-final.log`: `17/17` passed, `0` failed, `0` skipped in `0.040987` seconds, exit `0`. The new test directly proved rotation/scale-aware serialized obstacle bounds.
+5. The first PlayMode run correctly failed `0/1` because the historical smoke test relied on Test Runner's temporary backup scene and therefore could not validate newly scene-authored content. The test now explicitly loads `SampleScene`; `run38-playmode-rerun-results.xml` and `run38-playmode-rerun.log` then passed `1/1`, `0` failed, `0` skipped in `4.3737135` seconds, exit `0`. It proved the scene prefab instance, three serialized obstacles, six imported renderers, texture mapping, collider-free integration, runtime blocker registration, and every prior core-loop assertion.
+6. The Windows development build wrote `run38-build.log`: Unity exited `0`, reported `Build Finished, Result: Success`, emitted one build PASS marker, and produced `204,943,181` reported bytes in `72.86` seconds.
+7. The packaged `-batchmode -nographics -deadSignalBuildSmoke` launch wrote `run38-standalone.log`, found all three registered scene obstacles and both authored prefabs plus the texture in packaged content, emitted one standalone PASS marker, and exited `0`.
+8. Strict scans of the final setup, EditMode, PlayMode rerun, build, and packaged-player logs found zero compiler errors/warnings, failed assertions, missing-reference exceptions, unhandled exceptions, failed build markers, or failed smoke markers. Unity's licensing client logged transient handshake/access-token messages but retained a valid license and completed every final command successfully. Unity-generated whitespace was normalized and the staged `git diff --check` passed. The owner's notes hash remained `B1BC8163B42B8C9A921419CF377AFBF5D4DDF9A2EEF4A3A12297E8C6BECF8D72`, and the user's material hash remained `59BA8974FB04AF0E3376C5F67C469BDF528C1101A18B81D982824A2A844F91F1`.
+
+### Bugs found and fixed
+
+- The tower was previously surrounded by open floor, so the fastest line was also the obvious and nearly consequence-free line. The authored south manifold now forces a route choice before activation, while the north/east pieces turn the awakened chase into a small tactical circuit.
+- `DeadSignalWorld` could only collide movement against code-defined shortcut rectangles. It now consumes serialized scene/prefab obstacle bounds, establishing a safe incremental path away from runtime-authored map layout.
+- The PlayMode smoke test previously ran against Test Runner's backup scene, which was adequate for the global runtime bootstrap but could never validate authored scene content. It now loads the production scene explicitly before asserting composition.
+
+### Known limitations
+
+- Projectile collision still ignores map obstacles, matching the existing prototype behavior for room bulkheads and the shortcut housing.
+- This run authors one tower section rather than migrating the extraction dock, salvage placements, enemies, or full room shell; those remain staged follow-up work to avoid an all-at-once map rewrite.
+- Automated validation cannot replace human judgment of lane width, enemy pathing feel, texture brightness, or whether the western route's added safety is worth its travel time.
+
+### Best next step
+
+Play from extraction through both sides of the south manifold, activate the tower, and kite each awakened threat around the three obstacles; then tune the prefab transforms in `SampleScene` based on which lane currently dominates.

@@ -4,6 +4,7 @@ using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.LowLevel;
+using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
 
 namespace DeadSignal.Tests
@@ -13,6 +14,7 @@ namespace DeadSignal.Tests
         [UnityTest]
         public IEnumerator SceneLoad_BootstrapsCompleteRuntimeWithoutErrors()
         {
+            yield return SceneManager.LoadSceneAsync("SampleScene");
             yield return null;
 
             DeadSignalGame game = Object.FindFirstObjectByType<DeadSignalGame>();
@@ -136,6 +138,21 @@ namespace DeadSignal.Tests
             Assert.That(game.IsWardenWarningVisible, Is.False,
                 "The strike warning should remain hidden while the Warden is dormant.");
             Assert.That(Resources.Load<WardenThreatTelegraphTuning>("Tuning/WardenThreatTelegraphTuning"), Is.Not.Null);
+            var towerJunction = GameObject.Find("Tower Approach Junction");
+            Assert.That(towerJunction, Is.Not.Null,
+                "The tower approach should be placed as scene-authored prefab content rather than runtime layout code.");
+            var authoredObstacles = towerJunction.GetComponentsInChildren<AuthoredMapObstacle>();
+            Assert.That(authoredObstacles.Length, Is.EqualTo(3));
+            Assert.That(game.AuthoredMapObstacleCount, Is.EqualTo(authoredObstacles.Length),
+                "Every authored junction obstacle should participate in runtime movement resolution.");
+            Assert.That(authoredObstacles.Sum(obstacle => obstacle.GetComponentsInChildren<Renderer>().Length), Is.EqualTo(6));
+            Assert.That(authoredObstacles.Sum(obstacle => obstacle.GetComponentsInChildren<Collider>().Length), Is.Zero,
+                "The non-physics movement controller should use authored obstacle bounds without duplicate physics colliders.");
+            Assert.That(
+                authoredObstacles.SelectMany(obstacle => obstacle.GetComponentsInChildren<Renderer>())
+                    .Any(renderer => renderer.sharedMaterial.mainTexture != null),
+                Is.True,
+                "The tower junction should display its original coolant-manifold panel texture.");
             var signalSapper = game.transform.Find("Signal Sapper");
             var authoredSapperPrefab = Resources.Load<GameObject>("Actors/SignalSapperAssembly");
             var sapperArmorTexture = Resources.Load<Texture2D>("Actors/SignalSapperArmorAlbedo");
