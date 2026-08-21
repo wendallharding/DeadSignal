@@ -143,8 +143,8 @@ namespace DeadSignal.Tests
                 "The tower approach should be placed as scene-authored prefab content rather than runtime layout code.");
             var authoredObstacles = towerJunction.GetComponentsInChildren<AuthoredMapObstacle>();
             Assert.That(authoredObstacles.Length, Is.EqualTo(3));
-            Assert.That(game.AuthoredMapObstacleCount, Is.EqualTo(8),
-                "Every authored junction, annex, and departure-channel obstacle should participate in movement resolution.");
+            Assert.That(game.AuthoredMapObstacleCount, Is.EqualTo(10),
+                "Every authored junction, annex, departure-channel, and coolant-gauntlet obstacle should participate in movement resolution.");
             Assert.That(authoredObstacles.Sum(obstacle => obstacle.GetComponentsInChildren<Renderer>().Length), Is.EqualTo(6));
             Assert.That(authoredObstacles.Sum(obstacle => obstacle.GetComponentsInChildren<Collider>().Length), Is.Zero,
                 "The non-physics movement controller should use authored obstacle bounds without duplicate physics colliders.");
@@ -186,6 +186,37 @@ namespace DeadSignal.Tests
             var departureArmor = Resources.Load<Material>("Materials/DepartureCapacitorArmor");
             Assert.That(departureTexture, Is.Not.Null);
             Assert.That(departureArmor.mainTexture, Is.EqualTo(departureTexture));
+            var coolantGauntlet = GameObject.Find("Southeast Coolant Gauntlet");
+            Assert.That(coolantGauntlet, Is.Not.Null,
+                "The southeast cache should sit inside a scene-authored coolant reclamation lane.");
+            Assert.That(coolantGauntlet.transform.position, Is.EqualTo(new Vector3(10.4f, 0f, -6.4f)),
+                "The gauntlet should surround the established cache without moving the objective.");
+            var coolantObstacles = coolantGauntlet.GetComponentsInChildren<AuthoredMapObstacle>();
+            Assert.That(coolantObstacles.Length, Is.EqualTo(2));
+            Assert.That(coolantObstacles.Sum(obstacle => obstacle.GetComponentsInChildren<Renderer>().Length), Is.EqualTo(8));
+            Assert.That(coolantObstacles.Sum(obstacle => obstacle.GetComponentsInChildren<Collider>().Length), Is.Zero,
+                "The coolant baffles should use serialized movement bounds without duplicate physics colliders.");
+            var coolantMeshes = coolantObstacles
+                .SelectMany(obstacle => obstacle.GetComponentsInChildren<MeshFilter>())
+                .Select(filter => filter.sharedMesh)
+                .ToArray();
+            Assert.That(coolantMeshes.Length, Is.EqualTo(8));
+            Assert.That(coolantMeshes.All(mesh => mesh != null && mesh.vertexCount >= 24), Is.True,
+                "Every coolant-baffle part should use purpose-built geometry rather than a placeholder primitive.");
+            Assert.That(
+                coolantMeshes.All(mesh => mesh.HasVertexAttribute(UnityEngine.Rendering.VertexAttribute.TexCoord0)),
+                Is.True,
+                "Every coolant-baffle mesh should retain authored UV coordinates.");
+            Assert.That(coolantObstacles.Select(obstacle => obstacle.transform.localPosition), Is.EquivalentTo(new[]
+            {
+                new Vector3(-1f, 0f, 1.35f),
+                new Vector3(1f, 0f, -1.35f)
+            }), "The staggered baffles should preserve the authored salvage corridor.");
+            var coolantTexture = Resources.Load<Texture2D>("Environment/CoolantGauntletAlbedo");
+            var coolantArmor = Resources.Load<Material>("Materials/CoolantBaffleArmor");
+            Assert.That(coolantTexture, Is.Not.Null);
+            Assert.That(coolantArmor.mainTexture, Is.EqualTo(coolantTexture),
+                "The coolant baffles should persistently map their original reclamation-yard albedo.");
             var signalSapper = game.transform.Find("Signal Sapper");
             var authoredSapperPrefab = Resources.Load<GameObject>("Actors/SignalSapperAssembly");
             var sapperArmorTexture = Resources.Load<Texture2D>("Actors/SignalSapperArmorAlbedo");

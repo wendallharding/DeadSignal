@@ -2356,3 +2356,63 @@ Start a fresh run, move through the departure channel without using the HUD beac
 - Bugs found/fixed: the movement system reduced every rotated authored obstacle to an expanded world AABB; it now preserves each object's local orientation. No compiler errors, failed assertions, missing references, or unhandled exceptions were found in the validation logs.
 - Known limitation: obstacle collision remains a deliberate 2D footprint used by the top-down movement model; vertical mesh shape is not considered.
 - Best next step: walk around both diagonal departure capacitors in `SampleScene` and verify that their visible edges, cyan selected gizmos, and movement limits agree at each corner.
+
+## 2026-08-21 - Autonomous Run 41
+
+### Today's single idea
+
+**Scene-authored southeast coolant gauntlet.** Frame the established southeast salvage cache with two staggered reclamation baffles, creating a recognizable collection lane that asks the player to commit to constrained positioning while awakened threats remain active.
+
+Player benefit: the second optional salvage location is no longer an open-floor drive-by. Its white cooling fins, copper reclaim pipes, and cyan status lights form a distinct landmark, while the offset baffles create a short approach/escape decision without adding empty travel or changing the reward.
+
+Acceptance criteria:
+
+- place one reusable coolant-gauntlet prefab directly in `SampleScene` around the existing southeast cache;
+- use two original Blender-authored, textured baffles to form a clear staggered lane;
+- register both baffles through serialized, object-aligned `AuthoredMapObstacle` bounds with no physics colliders;
+- preserve the cache at `(10.4, 0, -6.4)` and preserve every objective, Signal, enemy, shortcut, and salvage rule; and
+- pass Unity import/compile, EditMode, PlayMode, Windows build, packaged-resource smoke, and repository checks.
+
+### Files and systems changed
+
+- `OWNER_NOTES.md`: remained the primary product direction and was read without modification.
+- `Assets/DeadSignal/Resources/Environment/CoolantGauntletAlbedo.png` and Unity-generated `.meta`: added an original gunmetal, ceramic, copper, amber, and cyan reclamation-machine albedo generated with OpenAI's built-in image-generation mode. SHA-256: `03C344D239FFEEC44F31BD382553AAA1C60846828CAEEA711EEC4639858B175B`; texture GUID: `d58f2f0963cbde3469d31aac79f4051a`.
+- Final image-generation prompt: square low-poly Unity orbital-station coolant-baffle texture atlas with broad dark gunmetal plates, matte off-white ceramic fins, oxidized copper pipe channels, restrained amber accents, and sparse cyan status lights; large UV regions; no perspective scene, text, numbers, logos, characters, UI, watermark, red, or magenta focal colors.
+- `ArtSource/CoolantGauntlet/create_coolant_baffle.py`, `CoolantBaffle.blend`, `CoolantBafflePreview.png`, and `README.md`: added reproducible Blender 5.2 source, editable geometry, and a visually inspected preview.
+- `Assets/DeadSignal/Resources/Environment/CoolantBaffleModel.fbx`, `CoolantBaffle.prefab`, `SoutheastCoolantGauntlet.prefab`, and Unity-generated `.meta` files: added a four-part UV-mapped reclamation baffle, a reusable object-aligned blocker, and a two-baffle staggered lane. Model SHA-256: `63303FE779641823EF8176C8924F424A3A687B8B8DB752B1B5A7662A97E10D29`; gauntlet prefab GUID: `7b8a4d8fdfe31144cb5393dae9efc639`.
+- `Assets/DeadSignal/Resources/Materials/CoolantBaffleArmor.mat`, `CoolantBaffleFins.mat`, `CoolantBafflePipes.mat`, and `CoolantBaffleLights.mat`, with Unity-generated `.meta`: added persistent URP materials for mapped armor, ceramic fins, copper pipework, and restrained cyan emission.
+- `Assets/Scenes/SampleScene.unity`: now places `Southeast Coolant Gauntlet` at the unchanged southeast cache coordinate.
+- `Assets/DeadSignal/Editor/DeadSignalCoolantGauntletSetup.cs` and Unity-generated `.meta`, plus `DeadSignalWindowsBuild.cs`: added idempotent import, material, prefab, scene-placement, and build-readiness validation.
+- `Assets/DeadSignal/Runtime/StandaloneBuildSmokeProbe.cs`: requires packaged coolant-gauntlet Resources and moves the authored-obstacle expectation into a named constant while updating it from eight to ten.
+- `Assets/DeadSignal/Tests/PlayMode/BootstrapSmokeTests.cs`: verifies scene placement, two serialized blockers, staggered transforms, eight purpose-built UV-mapped mesh parts, mapped armor, zero colliders, and ten total authored obstacles.
+- `GAME_VISION.md`, `BACKLOG.md`, and `DEVLOG.md`: record the completed southeast encounter-space milestone.
+
+No salvage position, objective rule, powered radius, Signal economy, enemy tuning, shortcut behavior, input, audio, package, project setting, or save data changed.
+
+### Tests run and exact outcomes
+
+The live Unity project remained open and was not closed or controlled. Authoritative validation used `C:\Projects\Wendall\CodexPrototype_Run40CleanValidation` with Unity `6000.3.11f1`.
+
+1. OpenAI built-in image generation produced the original albedo, which was copied into project Resources and visually inspected for large mapped regions, gunmetal armor, white cooling fins, copper routing, restrained cyan light, and absence of text/logos. Its hash and GUID are recorded above.
+2. Blender `5.2.0 LTS` ran `create_coolant_baffle.py`, exported the `66,476`-byte UV-mapped FBX, saved the editable `.blend`, rendered the `1280x720` preview, and exited `0`. The preview was visually inspected for a clear long-baffle silhouette, seven ceramic fins, paired copper pipes, cyan end lights, and complete geometry. Blender emitted two forward-looking `use_nodes` deprecation warnings only.
+3. Unity setup wrote `run41-setup.log`: the pinned Editor compiled the changes, imported the texture/model, created four persistent materials and two prefabs, placed the gauntlet in `SampleScene`, saved the scene, and exited `0`.
+4. Final EditMode regression wrote `run41-editmode-final-results.xml` and `run41-editmode-final.log`: `18/18` passed, `0` failed, `0` skipped in `0.052498` seconds, exit `0`.
+5. Final PlayMode regression wrote `run41-playmode-final-results.xml` and `run41-playmode-final.log`: `1/1` passed, `0` failed, `0` skipped in `4.4080791` seconds, exit `0`.
+6. Final Windows development build wrote `run41-build-final.log`: Unity exited `0`, reported `Build Finished, Result: Success`, emitted one PASS marker, and produced `209,383,801` reported bytes in `11.43` seconds.
+7. Final packaged `-batchmode -nographics -deadSignalBuildSmoke` launch wrote `run41-standalone-final.log`, loaded the new Resources, emitted one standalone PASS marker, and exited `0`.
+8. Strict scans of setup, final EditMode, final PlayMode, final build, and final standalone logs found zero compiler errors, null/missing-reference exceptions, failed assertions, failed tests, build failures, or smoke failures. `git diff --check` passed.
+
+### Bugs found and fixed
+
+- The southeast salvage cache previously sat on open floor and required almost no navigation commitment. The staggered baffles now create a bounded collection lane while keeping the reward and economy unchanged.
+- The first packaged smoke launch correctly failed because its authored-obstacle expectation remained at eight. The health check now uses a named expectation of ten; the rebuilt player passed.
+
+### Known limitations
+
+- Automated tests prove composition, UVs, collision registration, and packaged readiness, but cannot determine whether the lane is too tight when both threats converge.
+- Projectile collision still ignores authored map obstacles, matching the existing room shell, junction, annex, and departure-channel behavior.
+- The baffles are static landmarks; they do not yet animate or react to Signal state.
+
+### Best next step
+
+Approach the southeast cache from the tower with both threats awake, collect it inside the staggered lane, and retreat west; then tune the two child transforms in `SoutheastCoolantGauntlet.prefab` if turning clearance or pressure feels unfair.

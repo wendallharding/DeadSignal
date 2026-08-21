@@ -12,6 +12,8 @@ namespace DeadSignal
         public const string COMMAND_LINE_ARGUMENT = "-deadSignalBuildSmoke";
         public const string PASS_MARKER = "[DEAD SIGNAL STANDALONE SMOKE] PASS";
 
+        private const int EXPECTED_AUTHORED_OBSTACLE_COUNT = 10;
+
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         private static void _startWhenRequested()
         {
@@ -67,7 +69,7 @@ namespace DeadSignal
                                 game.HasWardenWarningTexture &&
                                 Resources.Load<Texture2D>("VFX/WardenStrikeWarning") != null &&
                                 Resources.Load<WardenThreatTelegraphTuning>("Tuning/WardenThreatTelegraphTuning") != null &&
-                                game.AuthoredMapObstacleCount == 8 &&
+                                game.AuthoredMapObstacleCount == EXPECTED_AUTHORED_OBSTACLE_COUNT &&
                                 Resources.Load<GameObject>("Environment/CoolantManifoldAssembly") != null &&
                                 Resources.Load<GameObject>("Environment/TowerApproachJunction") != null &&
                                 Resources.Load<Texture2D>("Environment/CoolantManifoldAlbedo") != null &&
@@ -77,6 +79,9 @@ namespace DeadSignal
                                 Resources.Load<GameObject>("Environment/DepartureCapacitor") != null &&
                                 Resources.Load<GameObject>("Environment/ExtractionDepartureChannel") != null &&
                                 Resources.Load<Texture2D>("Environment/DepartureCapacitorAlbedo") != null &&
+                                Resources.Load<GameObject>("Environment/CoolantBaffle") != null &&
+                                Resources.Load<GameObject>("Environment/SoutheastCoolantGauntlet") != null &&
+                                Resources.Load<Texture2D>("Environment/CoolantGauntletAlbedo") != null &&
                                 Resources.Load<GameObject>("Actors/SignalSapperAssembly") != null &&
                                 Resources.Load<GameObject>("Actors/SignalSapperModel") != null &&
                                 Resources.Load<Texture2D>("Actors/SignalSapperArmorAlbedo") != null &&

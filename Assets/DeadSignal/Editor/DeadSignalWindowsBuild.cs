@@ -38,6 +38,7 @@ namespace DeadSignal.Editor
             DeadSignalTowerJunctionSetup.EnsureAssets();
             DeadSignalSalvageAnnexSetup.EnsureAssets();
             DeadSignalDepartureChannelSetup.EnsureAssets();
+            DeadSignalCoolantGauntletSetup.EnsureAssets();
             _validateBuildInputs();
             _configureWindowsPlayer();
 
@@ -175,6 +176,11 @@ namespace DeadSignal.Editor
             if (!DeadSignalDepartureChannelSetup.HasAssets)
             {
                 throw new BuildFailedException("The scene-authored extraction departure-channel assets are missing.");
+            }
+
+            if (!DeadSignalCoolantGauntletSetup.HasAssets)
+            {
+                throw new BuildFailedException("The scene-authored southeast coolant-gauntlet assets are missing.");
             }
 
             if (AssetDatabase.LoadAssetAtPath<Texture2D>(APPLICATION_ICON_PATH) == null)
