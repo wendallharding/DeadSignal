@@ -27,6 +27,7 @@
 - [x] Migrate the powered Signal-line routing into a textured authored prefab without changing tower rules
 - [x] Migrate the six runtime machine props into a textured authored prefab without changing room layout or gameplay
 - [x] Migrate the three salvage pickups into a textured authored prefab without changing collection or guidance
+- [x] Migrate the maintenance drone into a textured authored prefab without changing movement, aim, or firing
 - [x] Add a Signal-cost shortcut gate and first route choice
 - [x] Add a second enemy archetype that pressures powered territory
 - [x] Telegraph the Sapper's tower target and timed drain pulses in-world

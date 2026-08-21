@@ -21,7 +21,18 @@ namespace DeadSignal.Tests
                 "Runtime bootstrap should compose a dedicated HUD presenter.");
             Assert.That(Object.FindFirstObjectByType<ObjectiveBeaconHud>(), Is.Not.Null,
                 "Runtime bootstrap should compose a dedicated objective beacon presenter.");
-            Assert.That(game.transform.Find("Maintenance Drone"), Is.Not.Null);
+            var maintenanceDrone = game.transform.Find("Maintenance Drone");
+            Assert.That(maintenanceDrone, Is.Not.Null);
+            Assert.That(game.HasPlayerDroneAssets, Is.True,
+                "The player prefab and original maintenance-drone texture should load from Resources.");
+            Assert.That(game.PlayerDronePartCount, Is.EqualTo(4));
+            Assert.That(maintenanceDrone.GetComponentsInChildren<Renderer>().Length, Is.EqualTo(4));
+            Assert.That(maintenanceDrone.GetComponentsInChildren<Collider>().Length, Is.Zero,
+                "The authored player drone should remain presentation-only so deterministic movement stays authoritative.");
+            Assert.That(maintenanceDrone.Find("Drone Chassis").GetComponent<Renderer>().sharedMaterial.mainTexture,
+                Is.Not.Null, "The authored drone chassis should render the original ceramic Signal texture.");
+            Assert.That(maintenanceDrone.Find("Drone Tool").localPosition, Is.EqualTo(new Vector3(0f, 0.3f, 0.68f)),
+                "The authored tool must preserve the projectile origin and aiming silhouette.");
             Assert.That(game.transform.Find("Security Warden"), Is.Not.Null, "Dormant security should exist before tower activation.");
             Assert.That(game.transform.Find("Signal Sapper"), Is.Not.Null, "Dormant sapper should exist before tower activation.");
             Assert.That(game.transform.Find("Signal Sapper").gameObject.activeSelf, Is.False);
@@ -161,7 +172,7 @@ namespace DeadSignal.Tests
             Assert.That(audio.HasGeneratedClips, Is.True);
 
             Gamepad gamepad = InputSystem.AddDevice<Gamepad>();
-            Transform player = game.transform.Find("Maintenance Drone");
+            var player = game.transform.Find("Maintenance Drone");
             Vector3 startingPosition = player.position;
             bool hadCameraImpulsePreference = PlayerPrefs.HasKey("DeadSignal.CameraImpulseEnabled");
             bool initialCameraImpulse = game.IsCameraImpulseEnabled;
@@ -241,6 +252,8 @@ namespace DeadSignal.Tests
                 Color initialSalvageColor = salvageCase.GetComponent<Renderer>().sharedMaterial.color;
                 var machineHousing = stationMachines.GetChild(0).Find("Machine Housing").GetComponent<Renderer>();
                 var initialMachineHousingColor = machineHousing.sharedMaterial.color;
+                var playerHousing = player.Find("Drone Chassis").GetComponent<Renderer>();
+                var initialPlayerHousingColor = playerHousing.sharedMaterial.color;
                 InputSystem.QueueStateEvent(gamepad, new GamepadState().WithButton(GamepadButton.DpadUp));
                 yield return null;
                 Assert.That(game.IsHighContrastEnabled, Is.EqualTo(!initialHighContrast),
@@ -251,6 +264,8 @@ namespace DeadSignal.Tests
                     "High Contrast should immediately remap shared world materials while paused.");
                 Assert.That(machineHousing.sharedMaterial.color, Is.Not.EqualTo(initialMachineHousingColor),
                     "High Contrast should immediately remap the authored machine housing material.");
+                Assert.That(playerHousing.sharedMaterial.color, Is.Not.EqualTo(initialPlayerHousingColor),
+                    "High Contrast should immediately remap the authored player housing material.");
 
                 InputSystem.QueueStateEvent(gamepad, new GamepadState());
                 yield return null;

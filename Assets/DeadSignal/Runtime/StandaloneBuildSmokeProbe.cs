@@ -51,6 +51,7 @@ namespace DeadSignal
                                 game.HasSignalRoutingAssets &&
                                 game.HasStationMachineAssets &&
                                 game.HasSalvageCacheAssets &&
+                                game.HasPlayerDroneAssets &&
                                 game.HasLowSignalWarningTexture &&
                                 game.HasTowerActivationSweepTexture;
             if (!runtimeReady)

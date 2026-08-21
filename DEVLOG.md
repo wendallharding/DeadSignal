@@ -1530,3 +1530,61 @@ Matching Editor: `C:\Program Files\Unity\Hub\Editor\6000.3.11f1\Editor\Unity.exe
 ### Best next step
 
 Play `Build/Windows/DeadSignal.exe` at 16:9 and ultrawide in normal and High Contrast modes, confirm each amber cache remains unmistakable against the dark deck during combat, then migrate the player drone into an authored model prefab.
+
+## 2026-08-21 — Autonomous Run 27
+
+### Today's single idea — authored maintenance-drone assembly
+
+Player benefit: the avatar now reads as a deliberate station-maintenance machine instead of four untextured primitives. Original white-ceramic, graphite, and cyan-circuit art strengthens the game's miniature-machine identity and keeps the player unmistakable against the dark deck without changing the proven controls or resource loop.
+
+Acceptance criteria:
+
+- one reusable Unity-authored, collider-free maintenance-drone prefab owns the existing chassis, Signal ring, core, and forward tool at their exact prior transforms;
+- runtime composition loads the prefab at the unchanged extraction position, applies original drone art to its chassis, and preserves movement, aim rotation, projectile origin, and cyan tool/ring readability;
+- a safe primitive fallback preserves a playable drone if the prefab is absent, while tests, build validation, and packaged smoke report production readiness as false;
+- High Contrast immediately updates the live drone housing without changing gameplay;
+- no movement speed, collision radius, firing cost, bolt direction, Signal economy, threat timing, controls, audio, save data, or serialized gameplay state changes; and
+- import/compile, EditMode, PlayMode, Windows build, real Direct3D 11 packaged smoke, strict scans, and repository checks pass.
+
+### Files and systems changed
+
+- `Assets/DeadSignal/Resources/Actors/MaintenanceDronePanel.png` and Unity-generated `.meta`: added an original 1254x1254 RGB white-ceramic, graphite, and cyan-circuit drone texture generated with the built-in image tool. The generated preview and project copy were visually inspected; Unity imported it with sRGB, mipmaps, clamp wrapping, high-quality compression, and a 1024px default-platform cap. SHA-256: `4FEE70E30691E06697672F5463326D597A294FA15F104ED35BA799AA2FFE0EF7`; GUID: `c087257882df7c6458913896cfa3070d`.
+- `Assets/DeadSignal/Resources/Actors.meta`, `Assets/DeadSignal/Resources/Actors/MaintenanceDroneAssembly.prefab`, and Unity-generated prefab `.meta`: added the actor Resources folder and reusable collider-free four-part drone through Unity's Prefab API. Prefab GUID: `9a5b6ffcaef50fd4eae45c14fac5b59d`.
+- `Assets/DeadSignal/Runtime/DeadSignalWorld.cs`: replaces runtime player primitive construction with validated prefab composition, assigns live materials, retains the exact prior fallback, and exposes narrow readiness/part-count state.
+- `Assets/DeadSignal/Runtime/DeadSignalPalette.cs`: adds the generated drone texture Resource and a dedicated live High Contrast-aware housing material.
+- `Assets/DeadSignal/Runtime/DeadSignalGame.cs`: exposes narrow player-asset readiness and part-count state for validation.
+- `Assets/DeadSignal/Editor/DeadSignalProjectSetup.cs`: adds idempotent texture configuration and Unity-driven drone-prefab creation.
+- `Assets/DeadSignal/Editor/DeadSignalWindowsBuild.cs`: prepares and requires the authored drone assets before packaging.
+- `Assets/DeadSignal/Runtime/StandaloneBuildSmokeProbe.cs`: requires the authored drone in packaged-player readiness.
+- `Assets/DeadSignal/Tests/PlayMode/BootstrapSmokeTests.cs`: verifies the four-part authored hierarchy, absent colliders, original texture, exact tool transform, live High Contrast remapping, and full retained run flow; its player local now uses `var` as this run's focused one-class convention cleanup.
+- `GAME_VISION.md`, `BACKLOG.md`, and `DEVLOG.md`: record the completed player-production milestone without changing the core concept.
+
+No packages, assembly definitions, scenes, project settings, deterministic rules, balance, input, audio, save data, or serialized gameplay state were intentionally changed. Reflex 14.3.1 was already installed and remains the composition mechanism. Unity's automatic URP, Graphics, batching, Services, and older texture-metadata rewrites were removed from the source diff.
+
+### Tests run and exact outcomes
+
+Matching Editor: `C:\Program Files\Unity\Hub\Editor\6000.3.11f1\Editor\Unity.exe` (Unity 6000.3.11f1) against the live workspace. The two open 6000.0.24f1 Editor processes target unrelated Whitechapel workspaces and were not touched.
+
+1. Unity import, compilation, texture configuration, and prefab setup wrote `Logs/run27-player-drone-setup.log`: Unity imported the generated PNG, compiled all changed assemblies, created the actor folder metadata, collider-free prefab, and prefab metadata, and exited `0`.
+2. EditMode regression wrote `Logs/run27-editmode-results.xml` and `Logs/run27-editmode.log`: Unity exited `0`; `16/16` passed, `0` failed, `0` skipped in `0.0473382` seconds.
+3. PlayMode full runtime regression wrote `Logs/run27-playmode-results.xml` and `Logs/run27-playmode.log`: Unity exited `0`; `1/1` passed, `0` failed, `0` skipped in `3.94188` seconds. It proved authored player composition, art, exact tool origin, accessibility response, movement, aiming, firing, and restart while retaining every prior pause, audio, particle, warning, activation, combat, Sapper, salvage, shortcut, and extraction assertion.
+4. Windows development build wrote `Logs/run27-windows-build.log`: Unity exited `0`, reported `Build Finished, Result: Success`, emitted the build PASS marker, and produced 192,421,105 reported bytes in 46.34 seconds. The ignored local artifact contains 293 files totaling 192,614,447 bytes.
+5. Real packaged launch wrote `Logs/run27-standalone-d3d11-smoke.log`: the player forced Direct3D 11 on the NVIDIA GeForce RTX 3060, found the complete authored runtime including the player assets, printed one PASS marker, and exited `0`.
+6. Static inspection found exactly four mesh renderers and no collider component in the prefab. The project PNG is 1254x1254 `Format24bppRgb`, byte-identical to the visually inspected generated output, and its imported metadata carries the intended sRGB/mipmap/clamp/HQ/1024 settings.
+7. Final warmed-project compilation after documentation and settings cleanup wrote `Logs/run27-final-compile.log`: Unity exited `0` with no first-party compiler error or warning.
+8. Strict scans of setup, EditMode, PlayMode, build, packaged-player, and final-compile logs found no first-party compiler errors, null or missing-reference exceptions, unhandled exceptions, failed assertions, failed tests, or failed smoke markers. Final metadata, trailing-whitespace, staged-diff, and synchronization checks passed.
+
+### Bugs found and fixed
+
+- No gameplay, compilation, asset-import, automated-test, build, or packaged-runtime defect was found after implementation.
+- Removed unrelated Unity build-time URP, Graphics, batching, Unity Services, and existing texture-metadata serialization changes before final validation.
+
+### Known limitations
+
+- Automated checks prove hierarchy, Resources loading, texture assignment, exact tool placement, High Contrast remapping, unchanged control flow, and packaged startup but cannot judge the player silhouette, cylindrical UV projection, cyan-ring brightness, or threat separation at 16:9 and ultrawide.
+- The generated texture is an albedo only and the assembly intentionally retains the proven primitive dimensions; bevels, emissive masks, and a normal map should wait until a human top-down composition pass.
+- The player and major room/objective assets are authored, while the Warden, Sapper, and security-edge markers remain runtime-composed. Complete room-prefab migration and tuning-session work remain open.
+
+### Best next step
+
+Play `Build/Windows/DeadSignal.exe` at 16:9 and ultrawide in normal and High Contrast modes, confirm the white/cyan player remains readable during Warden and Sapper pressure, then migrate the Warden into an authored threat prefab.

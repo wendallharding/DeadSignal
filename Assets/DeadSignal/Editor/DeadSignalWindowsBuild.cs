@@ -29,6 +29,7 @@ namespace DeadSignal.Editor
             DeadSignalProjectSetup.EnsureSignalRoutingAssets();
             DeadSignalProjectSetup.EnsureStationMachineAssets();
             DeadSignalProjectSetup.EnsureSalvageCacheAssets();
+            DeadSignalProjectSetup.EnsurePlayerDroneAssets();
             _validateBuildInputs();
             _configureWindowsPlayer();
 
@@ -121,6 +122,11 @@ namespace DeadSignal.Editor
             if (!DeadSignalProjectSetup.HasSalvageCacheAssets)
             {
                 throw new BuildFailedException("The authored salvage-cache assets are missing.");
+            }
+
+            if (!DeadSignalProjectSetup.HasPlayerDroneAssets)
+            {
+                throw new BuildFailedException("The authored maintenance-drone assets are missing.");
             }
 
             if (AssetDatabase.LoadAssetAtPath<Texture2D>(APPLICATION_ICON_PATH) == null)

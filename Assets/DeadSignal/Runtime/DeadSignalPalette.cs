@@ -17,6 +17,7 @@ namespace DeadSignal
         private const string SIGNAL_ROUTING_TEXTURE_RESOURCE = "Environment/SignalRoutingPanel";
         private const string STATION_MACHINE_TEXTURE_RESOURCE = "Environment/StationMachinePanel";
         private const string SALVAGE_CACHE_TEXTURE_RESOURCE = "Environment/SalvageCachePanel";
+        private const string PLAYER_DRONE_TEXTURE_RESOURCE = "Actors/MaintenanceDronePanel";
 
         public DeadSignalPalette(bool highContrastEnabled)
         {
@@ -35,6 +36,7 @@ namespace DeadSignal
             SignalRouting = _createMaterial("Signal Routing");
             StationMachineHousing = _createMaterial("Station Machine Housing");
             SalvageCacheHousing = _createMaterial("Salvage Cache Housing");
+            PlayerDroneHousing = _createMaterial("Maintenance Drone Housing");
             Dark = _createMaterial("Station Black");
             Steel = _createMaterial("Station Steel");
             White = _createMaterial("Drone White");
@@ -168,6 +170,22 @@ namespace DeadSignal
             }
 
             HasSalvageCacheTexture = salvageCacheTexture != null;
+            var playerDroneTexture = Resources.Load<Texture2D>(PLAYER_DRONE_TEXTURE_RESOURCE);
+            if (playerDroneTexture != null)
+            {
+                PlayerDroneHousing.mainTexture = playerDroneTexture;
+                if (PlayerDroneHousing.HasProperty("_BaseMap"))
+                {
+                    PlayerDroneHousing.SetTexture("_BaseMap", playerDroneTexture);
+                }
+
+                if (PlayerDroneHousing.HasProperty("_Smoothness"))
+                {
+                    PlayerDroneHousing.SetFloat("_Smoothness", 0.42f);
+                }
+            }
+
+            HasPlayerDroneTexture = playerDroneTexture != null;
             ApplyHighContrast(highContrastEnabled);
         }
 
@@ -186,6 +204,7 @@ namespace DeadSignal
         public Material SignalRouting { get; }
         public Material StationMachineHousing { get; }
         public Material SalvageCacheHousing { get; }
+        public Material PlayerDroneHousing { get; }
         public Material Dark { get; }
         public Material Steel { get; }
         public Material White { get; }
@@ -197,6 +216,7 @@ namespace DeadSignal
         public bool HasSignalRoutingTexture { get; }
         public bool HasStationMachineTexture { get; }
         public bool HasSalvageCacheTexture { get; }
+        public bool HasPlayerDroneTexture { get; }
 
         public void ApplyHighContrast(bool enabled)
         {
@@ -245,6 +265,9 @@ namespace DeadSignal
             _setMaterial(SalvageCacheHousing,
                 enabled ? new Color(1f, 0.92f, 0.58f) : new Color(0.82f, 0.58f, 0.28f),
                 enabled ? new Color(0.55f, 0.2f, 0.01f) : new Color(0.18f, 0.05f, 0.005f));
+            _setMaterial(PlayerDroneHousing,
+                enabled ? Color.white : new Color(0.82f, 0.86f, 0.88f),
+                Color.black);
             _setMaterial(Dark,
                 enabled ? Color.black : new Color(0.012f, 0.018f, 0.026f),
                 Color.black);

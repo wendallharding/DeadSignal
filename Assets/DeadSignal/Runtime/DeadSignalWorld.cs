@@ -21,6 +21,7 @@ namespace DeadSignal
         private const string SIGNAL_ROUTING_PREFAB_RESOURCE = "Environment/SignalRoutingAssembly";
         private const string STATION_MACHINE_PREFAB_RESOURCE = "Environment/StationMachineAssembly";
         private const string SALVAGE_CACHE_PREFAB_RESOURCE = "Environment/SalvageCacheAssembly";
+        private const string PLAYER_DRONE_PREFAB_RESOURCE = "Actors/MaintenanceDroneAssembly";
         private const float DECK_MODULE_WIDTH = 3.9f;
         private const float DECK_MODULE_DEPTH = 3.6f;
 
@@ -77,6 +78,8 @@ namespace DeadSignal
         public bool HasSalvageCacheAssets { get; private set; }
         public int SalvageCacheInstanceCount { get; private set; }
         public int SalvageCachePartCount { get; private set; }
+        public bool HasPlayerDroneAssets { get; private set; }
+        public int PlayerDronePartCount { get; private set; }
 
         public bool IsPowered(Vector3 position, bool towerOnline)
         {
@@ -550,14 +553,7 @@ namespace DeadSignal
 
         private void _buildActors(IComfortSettings comfortSettings)
         {
-            var playerRoot = new GameObject("Maintenance Drone");
-            playerRoot.transform.SetParent(m_root);
-            playerRoot.transform.position = ExtractionPosition;
-            Player = playerRoot.transform;
-            _createPrimitive("Drone Chassis", PrimitiveType.Cylinder, new Vector3(0f, 0.28f, 0f), new Vector3(1.05f, 0.22f, 1.05f), m_palette.White, Player);
-            _createPrimitive("Drone Signal Ring", PrimitiveType.Cylinder, new Vector3(0f, 0.42f, 0f), new Vector3(0.72f, 0.08f, 0.72f), m_palette.Cyan, Player);
-            _createPrimitive("Drone Core", PrimitiveType.Cylinder, new Vector3(0f, 0.5f, 0f), new Vector3(0.36f, 0.09f, 0.36f), m_palette.Dark, Player);
-            PlayerNose = _createPrimitive("Drone Tool", PrimitiveType.Cube, new Vector3(0f, 0.3f, 0.68f), new Vector3(0.24f, 0.2f, 0.7f), m_palette.Cyan, Player).transform;
+            _buildPlayer();
 
             var enemyRoot = new GameObject("Security Warden");
             enemyRoot.transform.SetParent(m_root);
@@ -586,6 +582,46 @@ namespace DeadSignal
             _createSalvage(new Vector3(9.7f, 0f, 6.3f));
             _createSalvage(new Vector3(10.4f, 0f, -6.4f));
             _createSalvage(new Vector3(-5.8f, 0f, 7.2f));
+        }
+
+        private void _buildPlayer()
+        {
+            var playerPrefab = Resources.Load<GameObject>(PLAYER_DRONE_PREFAB_RESOURCE);
+            var hasValidPrefab = playerPrefab != null &&
+                                 playerPrefab.transform.Find("Drone Chassis") != null &&
+                                 playerPrefab.transform.Find("Drone Signal Ring") != null &&
+                                 playerPrefab.transform.Find("Drone Core") != null &&
+                                 playerPrefab.transform.Find("Drone Tool") != null;
+            if (hasValidPrefab)
+            {
+                var playerRoot = Object.Instantiate(playerPrefab, m_root);
+                playerRoot.name = "Maintenance Drone";
+                playerRoot.transform.localPosition = ExtractionPosition;
+                playerRoot.transform.localRotation = Quaternion.identity;
+                Player = playerRoot.transform;
+                Player.Find("Drone Chassis").GetComponent<Renderer>().sharedMaterial = m_palette.PlayerDroneHousing;
+                Player.Find("Drone Signal Ring").GetComponent<Renderer>().sharedMaterial = m_palette.Cyan;
+                Player.Find("Drone Core").GetComponent<Renderer>().sharedMaterial = m_palette.Dark;
+                PlayerNose = Player.Find("Drone Tool");
+                PlayerNose.GetComponent<Renderer>().sharedMaterial = m_palette.Cyan;
+                PlayerDronePartCount = 4;
+                HasPlayerDroneAssets = m_palette.HasPlayerDroneTexture;
+                return;
+            }
+
+            var fallbackRoot = new GameObject("Maintenance Drone");
+            fallbackRoot.transform.SetParent(m_root);
+            fallbackRoot.transform.position = ExtractionPosition;
+            Player = fallbackRoot.transform;
+            _createPrimitive("Drone Chassis", PrimitiveType.Cylinder, new Vector3(0f, 0.28f, 0f),
+                new Vector3(1.05f, 0.22f, 1.05f), m_palette.PlayerDroneHousing, Player);
+            _createPrimitive("Drone Signal Ring", PrimitiveType.Cylinder, new Vector3(0f, 0.42f, 0f),
+                new Vector3(0.72f, 0.08f, 0.72f), m_palette.Cyan, Player);
+            _createPrimitive("Drone Core", PrimitiveType.Cylinder, new Vector3(0f, 0.5f, 0f),
+                new Vector3(0.36f, 0.09f, 0.36f), m_palette.Dark, Player);
+            PlayerNose = _createPrimitive("Drone Tool", PrimitiveType.Cube, new Vector3(0f, 0.3f, 0.68f),
+                new Vector3(0.24f, 0.2f, 0.7f), m_palette.Cyan, Player).transform;
+            PlayerDronePartCount = 4;
         }
 
         private void _createSalvage(Vector3 position)

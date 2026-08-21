@@ -9,6 +9,7 @@ namespace DeadSignal.Editor
         private const string RESOURCES_FOLDER = "Assets/DeadSignal/Resources";
         private const string MATERIALS_FOLDER = RESOURCES_FOLDER + "/Materials";
         private const string ENVIRONMENT_FOLDER = RESOURCES_FOLDER + "/Environment";
+        private const string ACTORS_FOLDER = RESOURCES_FOLDER + "/Actors";
         private const string REFLEX_SETTINGS_PATH = RESOURCES_FOLDER + "/ReflexSettings.asset";
         private const string RUNTIME_LIT_MATERIAL_PATH = MATERIALS_FOLDER + "/RuntimeLitTemplate.mat";
         private const string RUNTIME_PARTICLE_MATERIAL_PATH = MATERIALS_FOLDER + "/RuntimeParticleTemplate.mat";
@@ -29,6 +30,8 @@ namespace DeadSignal.Editor
         private const string STATION_MACHINE_PREFAB_PATH = ENVIRONMENT_FOLDER + "/StationMachineAssembly.prefab";
         private const string SALVAGE_CACHE_TEXTURE_PATH = ENVIRONMENT_FOLDER + "/SalvageCachePanel.png";
         private const string SALVAGE_CACHE_PREFAB_PATH = ENVIRONMENT_FOLDER + "/SalvageCacheAssembly.prefab";
+        private const string PLAYER_DRONE_TEXTURE_PATH = ACTORS_FOLDER + "/MaintenanceDronePanel.png";
+        private const string PLAYER_DRONE_PREFAB_PATH = ACTORS_FOLDER + "/MaintenanceDroneAssembly.prefab";
         private const string CREATE_REFLEX_SETTINGS_MENU = "Assets/Create/Reflex/Settings";
 
         public static bool HasReflexSettings =>
@@ -69,6 +72,10 @@ namespace DeadSignal.Editor
         public static bool HasSalvageCacheAssets =>
             AssetDatabase.LoadAssetAtPath<Texture2D>(SALVAGE_CACHE_TEXTURE_PATH) != null &&
             AssetDatabase.LoadAssetAtPath<GameObject>(SALVAGE_CACHE_PREFAB_PATH) != null;
+
+        public static bool HasPlayerDroneAssets =>
+            AssetDatabase.LoadAssetAtPath<Texture2D>(PLAYER_DRONE_TEXTURE_PATH) != null &&
+            AssetDatabase.LoadAssetAtPath<GameObject>(PLAYER_DRONE_PREFAB_PATH) != null;
 
         public static void EnsureReflexSettings()
         {
@@ -435,6 +442,45 @@ namespace DeadSignal.Editor
             if (!HasSalvageCacheAssets)
             {
                 throw new InvalidOperationException("The salvage-cache texture and assembly prefab were not created successfully.");
+            }
+        }
+
+        public static void EnsurePlayerDroneAssets()
+        {
+            var importer = AssetImporter.GetAtPath(PLAYER_DRONE_TEXTURE_PATH) as TextureImporter;
+            if (importer == null)
+            {
+                throw new InvalidOperationException($"Could not find the maintenance-drone texture at {PLAYER_DRONE_TEXTURE_PATH}.");
+            }
+
+            importer.alphaIsTransparency = false;
+            importer.mipmapEnabled = true;
+            importer.maxTextureSize = 1024;
+            importer.wrapMode = TextureWrapMode.Clamp;
+            importer.textureCompression = TextureImporterCompression.CompressedHQ;
+            importer.SaveAndReimport();
+
+            if (AssetDatabase.LoadAssetAtPath<GameObject>(PLAYER_DRONE_PREFAB_PATH) == null)
+            {
+                var drone = new GameObject("Maintenance Drone Assembly");
+                _createPrefabPrimitive("Drone Chassis", PrimitiveType.Cylinder, new Vector3(0f, 0.28f, 0f),
+                    new Vector3(1.05f, 0.22f, 1.05f), drone.transform);
+                _createPrefabPrimitive("Drone Signal Ring", PrimitiveType.Cylinder, new Vector3(0f, 0.42f, 0f),
+                    new Vector3(0.72f, 0.08f, 0.72f), drone.transform);
+                _createPrefabPrimitive("Drone Core", PrimitiveType.Cylinder, new Vector3(0f, 0.5f, 0f),
+                    new Vector3(0.36f, 0.09f, 0.36f), drone.transform);
+                _createPrefabCube("Drone Tool", new Vector3(0f, 0.3f, 0.68f),
+                    new Vector3(0.24f, 0.2f, 0.7f), drone.transform);
+
+                PrefabUtility.SaveAsPrefabAsset(drone, PLAYER_DRONE_PREFAB_PATH);
+                UnityEngine.Object.DestroyImmediate(drone);
+            }
+
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
+            if (!HasPlayerDroneAssets)
+            {
+                throw new InvalidOperationException("The maintenance-drone texture and assembly prefab were not created successfully.");
             }
         }
 
