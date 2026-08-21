@@ -15,6 +15,7 @@ namespace DeadSignal
 
         private const string MAINTENANCE_DECK_MODULE_RESOURCE = "Environment/MaintenanceDeckModule";
         private const string MAINTENANCE_ROOM_SHELL_RESOURCE = "Environment/MaintenanceRoomShell";
+        private const string SIGNAL_TOWER_PREFAB_RESOURCE = "Environment/SignalTowerAssembly";
         private const float DECK_MODULE_WIDTH = 3.9f;
         private const float DECK_MODULE_DEPTH = 3.6f;
 
@@ -57,6 +58,8 @@ namespace DeadSignal
         public bool HasMaintenanceRoomShellAssets { get; private set; }
         public int RoomShellBulkheadCount { get; private set; }
         public int MachineSocketCount => m_machineSockets.Count;
+        public bool HasSignalTowerAssets { get; private set; }
+        public int SignalTowerPartCount { get; private set; }
 
         public bool IsPowered(Vector3 position, bool towerOnline)
         {
@@ -147,7 +150,7 @@ namespace DeadSignal
         public void TickTower(float dt, bool towerOnline)
         {
             TowerCore.Rotate(Vector3.up, (towerOnline ? 110f : 22f) * dt, Space.World);
-            float pulse = 1f + Mathf.Sin(Time.time * (towerOnline ? 5f : 2f)) * 0.08f;
+            var pulse = 1f + Mathf.Sin(Time.time * (towerOnline ? 5f : 2f)) * 0.08f;
             TowerCore.localScale = new Vector3(1.35f * pulse, 0.22f, 1.35f * pulse);
         }
 
@@ -319,9 +322,40 @@ namespace DeadSignal
 
         private void _buildTower()
         {
-            _createPrimitive("Tower Base", PrimitiveType.Cylinder, TowerPosition + new Vector3(0f, 0.15f, 0f), new Vector3(2.2f, 0.25f, 2.2f), m_palette.Steel);
-            _createPrimitive("Tower Column", PrimitiveType.Cylinder, TowerPosition + new Vector3(0f, 0.85f, 0f), new Vector3(0.8f, 1.35f, 0.8f), m_palette.Steel);
-            TowerCore = _createPrimitive("Tower Core", PrimitiveType.Cylinder, TowerPosition + new Vector3(0f, 1.65f, 0f), new Vector3(1.35f, 0.22f, 1.35f), m_palette.RedDim).transform;
+            var towerPrefab = Resources.Load<GameObject>(SIGNAL_TOWER_PREFAB_RESOURCE);
+            var hasValidPrefab = towerPrefab != null &&
+                                 towerPrefab.transform.Find("Tower Base") != null &&
+                                 towerPrefab.transform.Find("Tower Column") != null &&
+                                 towerPrefab.transform.Find("Tower Core") != null;
+            if (hasValidPrefab)
+            {
+                var tower = Object.Instantiate(towerPrefab, m_root);
+                tower.name = "Signal Tower Assembly";
+                tower.transform.localPosition = TowerPosition;
+                tower.transform.localRotation = Quaternion.identity;
+                var towerBase = tower.transform.Find("Tower Base");
+                var towerColumn = tower.transform.Find("Tower Column");
+                TowerCore = tower.transform.Find("Tower Core");
+                towerBase.GetComponent<Renderer>().sharedMaterial = m_palette.TowerHousing;
+                towerColumn.GetComponent<Renderer>().sharedMaterial = m_palette.TowerHousing;
+                TowerCore.GetComponent<Renderer>().sharedMaterial = m_palette.RedDim;
+                SignalTowerPartCount = 3;
+                HasSignalTowerAssets = m_palette.HasTowerTexture;
+            }
+            else
+            {
+                var tower = new GameObject("Signal Tower Assembly");
+                tower.transform.SetParent(m_root, false);
+                tower.transform.localPosition = TowerPosition;
+                _createPrimitive("Tower Base", PrimitiveType.Cylinder, new Vector3(0f, 0.15f, 0f),
+                    new Vector3(2.2f, 0.25f, 2.2f), m_palette.TowerHousing, tower.transform);
+                _createPrimitive("Tower Column", PrimitiveType.Cylinder, new Vector3(0f, 0.85f, 0f),
+                    new Vector3(0.8f, 1.35f, 0.8f), m_palette.TowerHousing, tower.transform);
+                TowerCore = _createPrimitive("Tower Core", PrimitiveType.Cylinder, new Vector3(0f, 1.65f, 0f),
+                    new Vector3(1.35f, 0.22f, 1.35f), m_palette.RedDim, tower.transform).transform;
+                SignalTowerPartCount = 3;
+            }
+
             m_towerSignalLines = new GameObject("Tower Signal Lines");
             m_towerSignalLines.transform.SetParent(m_root);
             _createPrimitive("Signal Trunk West", PrimitiveType.Cube, new Vector3(-4.7f, -0.03f, 0.4f), new Vector3(8.2f, 0.04f, 0.09f), m_palette.Cyan, m_towerSignalLines.transform);

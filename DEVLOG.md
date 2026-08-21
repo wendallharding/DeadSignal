@@ -1183,3 +1183,60 @@ Matching Editor: `C:\Program Files\Unity\Hub\Editor\6000.3.11f1\Editor\Unity.exe
 ### Best next step
 
 Play the Windows build at 16:9 and ultrawide in normal and High Contrast modes, checking whether the new perimeter reads clearly without becoming brighter than threats; then migrate one major gameplay fixture, preferably the tower assembly, into an authored socket-driven prefab.
+
+## 2026-08-21 — Autonomous Run 21
+
+### Today's single idea — authored Signal tower assembly
+
+Player benefit: the arena's central objective now reads as a deliberate network-control machine rather than three generic runtime primitives. Its original radial housing art strengthens the game's power-network hook at the exact point where the first minute turns from exploration into escalation, without changing the proven interaction or economy.
+
+Acceptance criteria:
+
+- one reusable Unity-authored, collider-free Signal-tower prefab owns exactly the existing base, column, and animated core at the existing dimensions;
+- runtime composition loads the prefab at the unchanged tower position, applies original housing art to its structural parts, and preserves the dormant red-to-online cyan core state and pulse animation;
+- a safe primitive fallback preserves playability if the prefab is absent, while tests, build validation, and packaged smoke report production readiness as false;
+- no tower cost, refill, interaction range, territory radius, threat timing, movement, controls, audio, save data, or serialized gameplay state changes; and
+- import/compile, EditMode, PlayMode, Windows build, Direct3D 11 packaged smoke, strict scans, and repository checks pass.
+
+### Files and systems changed
+
+- `Assets/DeadSignal/Resources/Environment/SignalTowerHousingPanel.png` and Unity-generated `.meta`: added an original 1254x1254 RGB dark-alloy radial control-panel texture generated with the built-in image tool. The project copy was visually inspected and imported with sRGB, mipmaps, repeat wrapping, high-quality compression, and a 1024px default-platform cap. SHA-256: `7229C32FB1F194C36B436E470F2BAFB399C0C37BE0722B802EDE8EF9D9A8BF03`; GUID: `d6617427e81a2184c85364cac3261d46`.
+- `Assets/DeadSignal/Resources/Environment/SignalTowerAssembly.prefab` and Unity-generated `.meta`: added the reusable collider-free three-part tower created through Unity's Prefab API. GUID: `4bf93dfa3a2586243b93bb789b185732`.
+- `Assets/DeadSignal/Runtime/DeadSignalWorld.cs`: loads and validates the prefab, assigns the textured housing material, preserves the existing animated core and signal-line behavior, retains a safe asset-missing fallback, exposes narrow readiness state, and completes this run's focused convention refactor by changing the apparent-type tower pulse local to `var`.
+- `Assets/DeadSignal/Runtime/DeadSignalPalette.cs`: adds the generated tower texture Resource and a dedicated live High Contrast-aware housing material.
+- `Assets/DeadSignal/Runtime/DeadSignalGame.cs`: exposes narrow tower asset and part-count state for validation.
+- `Assets/DeadSignal/Editor/DeadSignalProjectSetup.cs`: adds idempotent texture configuration and Unity-driven tower-prefab creation, plus a focused helper extraction so prefab primitives share collider removal.
+- `Assets/DeadSignal/Editor/DeadSignalWindowsBuild.cs`: prepares and requires the authored tower assets before packaging.
+- `Assets/DeadSignal/Runtime/StandaloneBuildSmokeProbe.cs`: requires the authored tower in packaged-player readiness and changes its apparent-type readiness local to `var`.
+- `Assets/DeadSignal/Tests/PlayMode/BootstrapSmokeTests.cs`: verifies the authored root, three renderers, absent colliders, original texture assignment, and production readiness alongside the complete run regression.
+- `GAME_VISION.md`, `BACKLOG.md`, and `DEVLOG.md`: record the tower-production milestone without changing the core concept.
+
+No packages, assembly definitions, scenes, project settings, deterministic rules, input, audio, balance, save data, or serialized gameplay data were intentionally changed. Reflex 14.3.1 was already installed. Unity's automatic build rewrites to URP assets, Graphics settings, batching, Unity Services, and existing texture metadata were removed from the final source diff.
+
+### Tests run and exact outcomes
+
+Matching Editor: `C:\Program Files\Unity\Hub\Editor\6000.3.11f1\Editor\Unity.exe` (Unity 6000.3.11f1) against the live workspace.
+
+1. Unity import, compilation, texture configuration, and prefab setup wrote `Logs/run21-tower-setup.log`: Unity imported the generated PNG, compiled all changed assemblies, created the collider-free prefab and both `.meta` files, and exited `0`.
+2. EditMode regression wrote `Logs/run21-editmode-results.xml` and `Logs/run21-editmode.log`: Unity exited `0`; `16/16` passed, `0` failed, `0` skipped, `0` inconclusive in `0.0498516` seconds.
+3. PlayMode full runtime regression wrote `Logs/run21-playmode-results.xml` and `Logs/run21-playmode.log`: Unity exited `0`; `1/1` passed, `0` failed, `0` skipped, `0` inconclusive in `3.9630532` seconds. It proved authored tower composition and all prior input, pause, accessibility, audio, particles, low-Signal warning, activation, combat, Sapper, salvage, shortcut, extraction, and restart assertions.
+4. Windows development build wrote `Logs/run21-windows-build.log`: Unity exited `0`, reported `Build Finished, Result: Success`, and produced 183,999,461 reported bytes in 67.90 seconds. The ignored local artifact contains 293 files totaling 184,192,803 bytes.
+5. Real packaged launch wrote `Logs/run21-standalone-batch-d3d11-smoke.log`: the player forced Direct3D 11 on the NVIDIA GeForce RTX 3060, found the authored tower prefab and generated texture, printed one PASS marker, and exited `0`.
+6. Static prefab inspection found exactly the base, column, and core mesh renderers with no collider component. The project PNG was visually inspected and verified as 1254x1254 `Format24bppRgb`.
+7. Final warmed-project compilation after documentation and settings cleanup wrote `Logs/run21-final-compile.log`: Unity exited `0` with no first-party compiler warning or error. Metadata validation after normalizing Unity's empty YAML values wrote `Logs/run21-meta-validation.log`: Unity exited `0` and preserved both new asset GUIDs.
+8. Strict scans of setup, EditMode, PlayMode, build, packaged-player, final compile, and metadata-validation logs found no first-party compiler errors, null or missing-reference exceptions, unhandled exceptions, failed assertions, failed tests, or failed smoke markers. Final `git diff --check` passed.
+
+### Bugs found and fixed
+
+- No gameplay, compilation, asset-import, automated-test, build, or packaged-runtime defect was found after implementation.
+- Removed unrelated Unity build-time URP, Graphics, batching, Unity Services, and existing texture-metadata serialization changes before final validation.
+
+### Known limitations
+
+- Automated checks prove hierarchy, Resources loading, state-material switching, High Contrast remapping, core animation ownership, and packaged startup but cannot judge texture UV wrapping, brightness, radial-detail scale, or actor/threat separation at 16:9 and ultrawide.
+- The generated texture is an albedo only; its baked surface detail is intentionally restrained, but a later art pass may benefit from a normal map after the top-down read is evaluated interactively.
+- The tower assembly is now authored, while extraction, shortcut, gameplay markers, signal-line geometry, and machine visuals remain runtime-composed. The broader complete-room migration remains open.
+
+### Best next step
+
+Play `Build/Windows/DeadSignal.exe` at 16:9 and ultrawide in normal and High Contrast modes, confirm the textured tower remains immediately readable before and after activation, then migrate the extraction pad into an authored objective prefab.

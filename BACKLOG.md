@@ -21,6 +21,7 @@
 - [ ] Replace bootstrap arena with modular authored room prefabs
 - [x] Establish the first reusable authored room component with a textured maintenance-deck prefab
 - [x] Author the first textured room-shell prefab with perimeter bulkheads and machine sockets
+- [x] Migrate the central Signal tower into a textured authored prefab without changing its interaction or animation
 - [x] Add a Signal-cost shortcut gate and first route choice
 - [x] Add a second enemy archetype that pressures powered territory
 - [x] Telegraph the Sapper's tower target and timed drain pulses in-world

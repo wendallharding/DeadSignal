@@ -48,6 +48,16 @@ namespace DeadSignal.Tests
             Assert.That(game.MachineSocketCount, Is.EqualTo(6));
             Assert.That(roomShell.Find("Bulkheads").GetChild(0).GetComponent<Renderer>().sharedMaterial.mainTexture, Is.Not.Null,
                 "Every authored bulkhead should render the original wall texture.");
+            Transform signalTower = game.transform.Find("Signal Tower Assembly");
+            Assert.That(signalTower, Is.Not.Null, "The central objective should load from the authored Signal-tower prefab.");
+            Assert.That(game.HasSignalTowerAssets, Is.True,
+                "The Signal-tower prefab and original housing texture should load from Resources.");
+            Assert.That(game.SignalTowerPartCount, Is.EqualTo(3));
+            Assert.That(signalTower.GetComponentsInChildren<Renderer>().Length, Is.EqualTo(3));
+            Assert.That(signalTower.GetComponentsInChildren<Collider>().Length, Is.Zero,
+                "The authored tower should remain presentation-only so existing interaction rules stay authoritative.");
+            Assert.That(signalTower.Find("Tower Base").GetComponent<Renderer>().sharedMaterial.mainTexture, Is.Not.Null,
+                "The authored tower housing should render the original control-panel texture.");
             Assert.That(Camera.main != null || Object.FindFirstObjectByType<Camera>() != null, Is.True);
             Assert.That(Object.FindFirstObjectByType<AudioListener>(), Is.Not.Null,
                 "The runtime camera should provide the listener required by the synthesized soundscape.");

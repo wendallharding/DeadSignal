@@ -38,12 +38,13 @@ namespace DeadSignal
             yield return null;
 
             var game = FindFirstObjectByType<DeadSignalGame>();
-            bool runtimeReady = game != null &&
+            var runtimeReady = game != null &&
                                 game.transform.Find("Maintenance Drone") != null &&
                                 game.transform.Find("Signal Shortcut Gate") != null &&
                                 game.HasGeneratedAudio &&
                                 game.HasMaintenanceDeckAssets &&
                                 game.HasMaintenanceRoomShellAssets &&
+                                game.HasSignalTowerAssets &&
                                 game.HasLowSignalWarningTexture &&
                                 game.HasTowerActivationSweepTexture;
             if (!runtimeReady)

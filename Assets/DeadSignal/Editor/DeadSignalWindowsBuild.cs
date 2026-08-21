@@ -23,6 +23,7 @@ namespace DeadSignal.Editor
             DeadSignalProjectSetup.EnsureRuntimeMaterialTemplates();
             DeadSignalProjectSetup.EnsureMaintenanceDeckAssets();
             DeadSignalProjectSetup.EnsureMaintenanceRoomShellAssets();
+            DeadSignalProjectSetup.EnsureSignalTowerAssets();
             _validateBuildInputs();
             _configureWindowsPlayer();
 
@@ -85,6 +86,11 @@ namespace DeadSignal.Editor
             if (!DeadSignalProjectSetup.HasMaintenanceRoomShellAssets)
             {
                 throw new BuildFailedException("The authored maintenance room-shell assets are missing.");
+            }
+
+            if (!DeadSignalProjectSetup.HasSignalTowerAssets)
+            {
+                throw new BuildFailedException("The authored Signal tower assets are missing.");
             }
 
             if (AssetDatabase.LoadAssetAtPath<Texture2D>(APPLICATION_ICON_PATH) == null)

@@ -17,6 +17,8 @@ namespace DeadSignal.Editor
         private const string MAINTENANCE_DECK_PREFAB_PATH = ENVIRONMENT_FOLDER + "/MaintenanceDeckModule.prefab";
         private const string MAINTENANCE_BULKHEAD_TEXTURE_PATH = ENVIRONMENT_FOLDER + "/MaintenanceBulkheadPanel.png";
         private const string MAINTENANCE_ROOM_SHELL_PREFAB_PATH = ENVIRONMENT_FOLDER + "/MaintenanceRoomShell.prefab";
+        private const string SIGNAL_TOWER_TEXTURE_PATH = ENVIRONMENT_FOLDER + "/SignalTowerHousingPanel.png";
+        private const string SIGNAL_TOWER_PREFAB_PATH = ENVIRONMENT_FOLDER + "/SignalTowerAssembly.prefab";
         private const string CREATE_REFLEX_SETTINGS_MENU = "Assets/Create/Reflex/Settings";
 
         public static bool HasReflexSettings =>
@@ -33,6 +35,10 @@ namespace DeadSignal.Editor
         public static bool HasMaintenanceRoomShellAssets =>
             AssetDatabase.LoadAssetAtPath<Texture2D>(MAINTENANCE_BULKHEAD_TEXTURE_PATH) != null &&
             AssetDatabase.LoadAssetAtPath<GameObject>(MAINTENANCE_ROOM_SHELL_PREFAB_PATH) != null;
+
+        public static bool HasSignalTowerAssets =>
+            AssetDatabase.LoadAssetAtPath<Texture2D>(SIGNAL_TOWER_TEXTURE_PATH) != null &&
+            AssetDatabase.LoadAssetAtPath<GameObject>(SIGNAL_TOWER_PREFAB_PATH) != null;
 
         public static void EnsureReflexSettings()
         {
@@ -174,6 +180,43 @@ namespace DeadSignal.Editor
             }
         }
 
+        public static void EnsureSignalTowerAssets()
+        {
+            var importer = AssetImporter.GetAtPath(SIGNAL_TOWER_TEXTURE_PATH) as TextureImporter;
+            if (importer == null)
+            {
+                throw new InvalidOperationException($"Could not find the Signal tower texture at {SIGNAL_TOWER_TEXTURE_PATH}.");
+            }
+
+            importer.alphaIsTransparency = false;
+            importer.mipmapEnabled = true;
+            importer.maxTextureSize = 1024;
+            importer.wrapMode = TextureWrapMode.Repeat;
+            importer.textureCompression = TextureImporterCompression.CompressedHQ;
+            importer.SaveAndReimport();
+
+            if (AssetDatabase.LoadAssetAtPath<GameObject>(SIGNAL_TOWER_PREFAB_PATH) == null)
+            {
+                var tower = new GameObject("Signal Tower Assembly");
+                _createPrefabPrimitive("Tower Base", PrimitiveType.Cylinder, new Vector3(0f, 0.15f, 0f),
+                    new Vector3(2.2f, 0.25f, 2.2f), tower.transform);
+                _createPrefabPrimitive("Tower Column", PrimitiveType.Cylinder, new Vector3(0f, 0.85f, 0f),
+                    new Vector3(0.8f, 1.35f, 0.8f), tower.transform);
+                _createPrefabPrimitive("Tower Core", PrimitiveType.Cylinder, new Vector3(0f, 1.65f, 0f),
+                    new Vector3(1.35f, 0.22f, 1.35f), tower.transform);
+
+                PrefabUtility.SaveAsPrefabAsset(tower, SIGNAL_TOWER_PREFAB_PATH);
+                UnityEngine.Object.DestroyImmediate(tower);
+            }
+
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
+            if (!HasSignalTowerAssets)
+            {
+                throw new InvalidOperationException("The Signal tower texture and assembly prefab were not created successfully.");
+            }
+        }
+
         private static void _ensureMaterial(string assetPath, string shaderName)
         {
             if (AssetDatabase.LoadAssetAtPath<Material>(assetPath) != null)
@@ -192,12 +235,22 @@ namespace DeadSignal.Editor
 
         private static void _createPrefabCube(string objectName, Vector3 position, Vector3 scale, Transform parent)
         {
-            var cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            cube.name = objectName;
-            cube.transform.SetParent(parent, false);
-            cube.transform.localPosition = position;
-            cube.transform.localScale = scale;
-            var collider = cube.GetComponent<Collider>();
+            _createPrefabPrimitive(objectName, PrimitiveType.Cube, position, scale, parent);
+        }
+
+        private static void _createPrefabPrimitive(
+            string objectName,
+            PrimitiveType primitiveType,
+            Vector3 position,
+            Vector3 scale,
+            Transform parent)
+        {
+            var primitive = GameObject.CreatePrimitive(primitiveType);
+            primitive.name = objectName;
+            primitive.transform.SetParent(parent, false);
+            primitive.transform.localPosition = position;
+            primitive.transform.localScale = scale;
+            var collider = primitive.GetComponent<Collider>();
             if (collider != null)
             {
                 UnityEngine.Object.DestroyImmediate(collider);
