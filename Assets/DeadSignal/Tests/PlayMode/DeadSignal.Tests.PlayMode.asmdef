@@ -1,0 +1,11 @@
+{
+  "name": "DeadSignal.Tests.PlayMode",
+  "rootNamespace": "DeadSignal.Tests",
+  "references": [
+    "DeadSignal.Runtime",
+    "Unity.InputSystem"
+  ],
+  "optionalUnityReferences": [
+    "TestAssemblies"
+  ]
+}

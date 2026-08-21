@@ -1,0 +1,9 @@
+{
+  "name": "DeadSignal.Runtime",
+  "rootNamespace": "DeadSignal",
+  "references": [
+    "Unity.InputSystem",
+    "Reflex"
+  ],
+  "autoReferenced": true
+}

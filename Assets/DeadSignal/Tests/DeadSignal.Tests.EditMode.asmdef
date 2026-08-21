@@ -1,0 +1,13 @@
+{
+  "name": "DeadSignal.Tests.EditMode",
+  "rootNamespace": "DeadSignal.Tests",
+  "references": [
+    "DeadSignal.Runtime"
+  ],
+  "includePlatforms": [
+    "Editor"
+  ],
+  "optionalUnityReferences": [
+    "TestAssemblies"
+  ]
+}
