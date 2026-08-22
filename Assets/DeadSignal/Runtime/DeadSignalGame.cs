@@ -119,6 +119,14 @@ namespace DeadSignal
             }
         }
 
+        public void ResetKeyboardBindings()
+        {
+            if (IsPaused)
+            {
+                m_input.ResetKeyboardBindings();
+            }
+        }
+
         /// <summary>
         /// Toggles the persisted camera-impulse preference while the pause overlay is authoritative.
         /// </summary>

@@ -29,6 +29,7 @@ namespace DeadSignal
         bool PressedAudioToggle();
         void BeginFireKeyboardRebind();
         void BeginInteractKeyboardRebind();
+        void ResetKeyboardBindings();
         void CancelRebind();
     }
 
@@ -175,6 +176,17 @@ namespace DeadSignal
         public void BeginFireKeyboardRebind() => _beginKeyboardRebind(m_fireAction, 1, FIRE_BINDING_KEY);
 
         public void BeginInteractKeyboardRebind() => _beginKeyboardRebind(m_interactAction, 0, INTERACT_BINDING_KEY);
+
+        public void ResetKeyboardBindings()
+        {
+            CancelRebind();
+            m_fireAction.RemoveBindingOverride(1);
+            m_interactAction.RemoveBindingOverride(0);
+            PlayerPrefs.DeleteKey(FIRE_BINDING_KEY);
+            PlayerPrefs.DeleteKey(INTERACT_BINDING_KEY);
+            PlayerPrefs.Save();
+            _useKeyboardMouse();
+        }
 
         public void CancelRebind()
         {

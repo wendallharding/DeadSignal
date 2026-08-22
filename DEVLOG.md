@@ -3056,3 +3056,54 @@ Validation used isolated `C:\Projects\Wendall\CodexPrototype_Run49Validation` be
 ### Best next step
 
 Pause a run, click Fire, press an uncommon key, confirm the gameplay legend changes and firing works, then restart the build to verify persistence. Repeat for Use and verify Escape cancels without closing the pause overlay.
+
+## 2026-08-21 - Autonomous Run 50
+
+### Today's single idea
+
+**Primary-binding reset recovery.** The pause overlay now restores keyboard Fire and Use together to Space and E with one click.
+
+Player benefit: experimentation with custom keys is reversible and a bad or forgotten layout can be repaired without locating preference files.
+
+Acceptance criteria:
+
+- expose a clearly labeled Reset action beside the existing Fire and Use routes;
+- cancel an active capture, restore Space/E, delete both persisted override paths, and update prompts immediately;
+- preserve mouse and gamepad bindings, gameplay rules, tuning, scenes, assets, packages, and project settings; and
+- pass focused Unity EditMode coverage plus the complete PlayMode regression.
+
+### Files and systems changed
+
+- `Assets/DeadSignal/Runtime/DeadSignalInput.cs`: added atomic reset ownership to the existing action/persistence service.
+- `Assets/DeadSignal/Runtime/DeadSignalHud.cs`: fitted a Reset button into the existing Binding Matrix panel without adding another settings surface.
+- `Assets/DeadSignal/Runtime/DeadSignalGame.cs`: exposes the pause-authoritative reset operation for integration and future UI migration.
+- `Assets/DeadSignal/Tests/DeadSignalInputTests.cs` and Unity-generated `.meta`: prove custom override loading, active-capture cancellation, default restoration, preference deletion, and prompt-device restoration.
+- `GAME_VISION.md`, `BACKLOG.md`, and `DEVLOG.md`: record rationale, acceptance criteria, evidence, limitations, and next step.
+
+The existing original Binding Matrix art was intentionally reused because this is recovery within that feature, not a new visual concept. The owner's uncommitted `AGENTS.md` and `OWNER_NOTES.md` changes were preserved and excluded. No gameplay rule, tuning value, scene, prefab, material, model, texture, audio, package, project setting, or serialized data changed.
+
+### Tests run and exact outcomes
+
+The user's Unity Editor remained open and untouched. Validation used isolated `C:\Projects\Wendall\CodexPrototype_Run50Validation` with Unity `6000.3.11f1`.
+
+1. The first isolated compile correctly failed before tests because the new test directly referenced an internal runtime type. The test was corrected to preserve encapsulation and exercise the public members through reflection.
+2. Final EditMode regression wrote `Logs/run50-final-editmode-results.xml` and `.log`: `27/27` passed, `0` failed, `0` skipped, `0` inconclusive in `0.0884476` seconds, exit `0`.
+3. Final PlayMode regression wrote `Logs/run50-final-playmode-results.xml` and `.log`: `3/3` passed, `0` failed, `0` skipped, `0` inconclusive in `6.2126183` seconds, exit `0`.
+4. Windows development build wrote `Logs/run50-build.log`: `Build Finished, Result: Success`, one build PASS marker, `218,963,192` reported bytes in `72.91` seconds, exit `0`.
+5. Packaged `-batchmode -nographics -deadSignalBuildSmoke` wrote `Logs/run50-standalone.log`, emitted one standalone PASS marker, and exited cleanly.
+
+### Bugs found and fixed
+
+- Custom primary bindings had no in-game recovery path. Reset now removes both overrides as one operation and returns all live keyboard labels to their documented defaults.
+- Resetting during key capture could otherwise leave the action disabled. The reset first cancels capture, re-enables the action, and then clears both overrides.
+- Unity `-runTests` combined with `-quit` completed import but exited before emitting results in this environment. Final authoritative runs omitted `-quit` and were exited by the Test Framework with code `0`.
+
+### Known limitations
+
+- Reset is currently a mouse-click action in the IMGUI pause panel; controller navigation of settings remains future work.
+- Automated tests prove state and persistence but cannot judge button fit at very small resolutions or perform a native click-and-relaunch pass.
+- Movement, pause/restart, comfort toggles, mouse buttons, controller remapping, conflict warnings, and platform-specific glyph families remain outside this scoped pass.
+
+### Best next step
+
+Interactively remap both actions, click Reset, confirm Space/E appear instantly and still apply after relaunch, then extend the action-backed pattern to movement with duplicate-binding warnings.

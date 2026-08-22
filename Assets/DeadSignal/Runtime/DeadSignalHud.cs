@@ -301,14 +301,19 @@ namespace DeadSignal
             GUI.Label(new Rect(left + 74f, thirdRow + 36f, 190f, 25f),
                 m_input.IsRebinding ? "PRESS A KEY  |  ESC CANCELS" : "PERSISTED KEYBOARD BINDINGS", m_smallStyle);
             GUI.enabled = !m_input.IsRebinding;
-            if (GUI.Button(new Rect(left + 278f, thirdRow + 17f, 190f, 38f), $"FIRE  {m_input.FireKeyboardBinding}"))
+            if (GUI.Button(new Rect(left + 268f, thirdRow + 17f, 156f, 38f), $"FIRE  {m_input.FireKeyboardBinding}"))
             {
                 m_input.BeginFireKeyboardRebind();
             }
 
-            if (GUI.Button(new Rect(left + 478f, thirdRow + 17f, 190f, 38f), $"USE  {m_input.InteractKeyboardBinding}"))
+            if (GUI.Button(new Rect(left + 434f, thirdRow + 17f, 146f, 38f), $"USE  {m_input.InteractKeyboardBinding}"))
             {
                 m_input.BeginInteractKeyboardRebind();
+            }
+
+            if (GUI.Button(new Rect(left + 590f, thirdRow + 17f, 90f, 38f), "RESET"))
+            {
+                m_input.ResetKeyboardBindings();
             }
 
             GUI.enabled = true;

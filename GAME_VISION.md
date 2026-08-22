@@ -101,6 +101,8 @@ The opening route now carries an authored Signal spine: five large cyan maintena
 
 Primary keyboard controls now use persistent Input System actions rather than fixed polling: the pause overlay exposes Fire and Use as readable control-routing buttons, listens for the next key across connected keyboards, lets Escape cancel safely, and updates live HUD prompts after reassignment. This was selected before more content because input ownership is a commercial-readiness requirement, and a focused primary-action pass proves the persistence and UI pattern without risking movement, aim, controller support, or gameplay balance.
 
+The same control-routing panel now provides one-click recovery to the documented Space Fire and E Use defaults. Reset cancels any active key capture, removes both saved override paths, and refreshes the visible prompts immediately. This was selected over expanding the remapping surface because customization needs a trustworthy escape hatch before more actions and device glyph families add complexity.
+
 ## Experience target
 
 The first minute should teach the entire promise without a tutorial panel: leave the small powered dock, feel the dead-zone drain, ignite the tower, see the station turn cyan and the security unit wake, spend Signal to survive, sweep the outskirts for gold salvage, and retreat to extraction under pressure.
