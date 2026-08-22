@@ -18,7 +18,16 @@
 - [x] Add controller support for the complete run loop
 - [x] Add adaptive keyboard/mouse and gamepad guidance with generated input-link art
 - [x] Add persistent remappable Input Actions for Fire, Use, and all four movement directions with conflict-safe reset recovery
-- [ ] Add platform-specific button glyph sets
+- [x] Add adaptive action-family glyphs for movement, aim, fire, use, and system prompts
+
+### Run 55 adaptive control-glyph ideas
+
+- [x] Movement glyph — player value: the locomotion route is identifiable before reading bindings; acceptance: original transparent four-way art loads, appears in the live legend, and retains adaptive device text.
+- [x] Aim glyph — player value: mouse versus right-stick aiming is easier to scan; acceptance: original reticle art loads beside the active aim label without changing aim behavior.
+- [x] Fire glyph — player value: the shared-Signal attack reads as an action at a glance; acceptance: original pulse-emitter art loads beside live keyboard or gamepad fire labels.
+- [x] Use glyph — player value: tower, shortcut, and extraction interactions share one recognizable visual verb; acceptance: original connector art appears in both the legend and contextual prompts.
+- [x] System glyph — player value: pause and restart recovery remain discoverable during play and outcomes; acceptance: original system-ring art loads in the legend and outcome screen while adaptive labels remain authoritative.
+- [ ] Add hardware-family-specific face-button variants after visual testing confirms the device-neutral action set
 
 ### Run 54 control-routing ideas
 

@@ -3360,3 +3360,52 @@ The user's open Unity Editor remained untouched. Authoritative validation used `
 ### Best next step
 
 Pause at 16:9 and ultrawide, remap movement to I/J/K/L, attempt Right = current Fire and confirm the conflict recovery, resume and complete a diagonal obstacle route, then relaunch to verify persistence and Reset.
+
+## 2026-08-21 - Autonomous Run 55 - Adaptive control-glyph language
+
+### Today's five tightly scoped ideas
+
+1. **Movement glyph.** Player benefit: movement is identifiable before the player parses bindings. Acceptance: an original transparent four-way glyph loads and accompanies adaptive movement text.
+2. **Aim glyph.** Player benefit: mouse and right-stick aiming share one visual verb. Acceptance: an original targeting glyph loads without changing aim behavior.
+3. **Fire glyph.** Player benefit: the Signal-cost attack is faster to locate in the legend. Acceptance: an original pulse-emitter glyph loads beside the current device's fire route.
+4. **Use glyph.** Player benefit: tower, shortcut, and extraction prompts gain a consistent interaction cue. Acceptance: an original connector glyph appears in the legend and every active contextual prompt.
+5. **System glyph.** Player benefit: pause and restart recovery remain discoverable. Acceptance: an original system-ring glyph appears in the legend and outcome screen while adaptive labels remain authoritative.
+
+These were selected over a new room, enemy, or economy change because Run 54 completed a powerful but text-dense control surface. The five device-neutral action families make the first minute easier to scan without changing gameplay, binding persistence, or the established Signal-economy vision.
+
+### Files and systems changed
+
+- Added `MovementControlGlyph.png`, `AimControlGlyph.png`, `FireControlGlyph.png`, `UseControlGlyph.png`, and `SystemControlGlyph.png` plus Unity-generated `.meta` files under `Assets/DeadSignal/Resources/UI`.
+- OpenAI built-in image generation produced all five original 1254x1254 alpha-transparent graphite, ceramic, cyan, and amber UI assets. SHA-256 values respectively: `17E8248FECB69347B8676B1796370B0CB757BC8FDF469A68E38868958ABCC583`, `A1533C416BE95D1A8D2DAA6609FAC7FA9F798B05F05D45D62BBC2F1D98E6749F`, `344EEC78C2153ED3D08CAA349B4E1AA3EF13B8069350E74874A8A6714315EB91`, `66A1255BAF8D46FE283804407DA7A8DDAAD6735DBFA9660A1E319A99D4FDE6DE`, and `5AE42CB9CD0B2C3989358062906BAC7D3686171616C7F923E004AB6CC9BCD6DE`.
+- `DeadSignalHud.cs`: loads the complete set, adds a compact five-family visual legend, attaches the use glyph to contextual interactions, attaches the system glyph to outcomes, and caches its new GUI style to avoid per-frame allocations. This is the run's focused production refactor; no designer-facing gameplay tuning exists in this presentation class to migrate.
+- `DeadSignalGame.cs`, `StandaloneBuildSmokeProbe.cs`, and `BootstrapSmokeTests.cs`: expose and enforce complete runtime and packaged-player glyph readiness.
+- `GAME_VISION.md` and `BACKLOG.md`: record player value, acceptance criteria, product rationale, and defer hardware-brand button variants until the device-neutral set is visually assessed.
+- No scenes, prefabs, packages, project settings, tuning assets, save data, input behavior, generated source, gameplay rules, or audio changed.
+
+Final prompts specified five separate polished sci-fi Unity HUD icons—four-way movement, targeting reticle, maintenance pulse emitter, connector/socket interaction, and pause/restart system ring—with genuine transparency, 36-pixel readability, DEAD SIGNAL's ceramic/graphite/cyan/amber palette, and no text, logo, brand, trademarked controller shape, or watermark.
+
+### Tests run and exact outcomes
+
+The owner's open Unity Editor remained untouched. Authoritative validation used `C:\Projects\Wendall\CodexPrototype_Run50Validation` with pinned Unity `6000.3.11f1`.
+
+1. Import/compile: `Logs/run55-import.log`; all five textures imported, all five `.meta` files were generated, script compilation succeeded, and Unity exited `0`.
+2. EditMode: `Logs/run55-editmode-results.xml` and `.log`; `35/35` passed, `0` failed, `0` skipped in `0.1343315` seconds; exit `0`.
+3. PlayMode: `Logs/run55-playmode-results.xml` and `.log`; `4/4` passed, `0` failed, `0` skipped in `7.4229585` seconds; exit `0`.
+4. Windows development build: `Logs/run55-build.log`; succeeded at `232,271,879` reported bytes in `14.63` seconds; exit `0`.
+5. Packaged standalone smoke: `Logs/run55-standalone.log`; emitted one `[DEAD SIGNAL STANDALONE SMOKE] PASS` marker and exited `0`.
+6. Alpha sampling confirmed transparency in every asset; strict scans of all five logs found no compiler errors, failed assertions, unhandled exceptions, null-reference errors, or smoke failures. `git diff --check` passed for tracked source and documentation; its only staged warnings are Unity 6000.3 serializer-owned spaces after empty fields in the five generated texture `.meta` files.
+
+### Bugs found and fixed
+
+- Avoided a new immediate-mode UI allocation by caching the glyph-label style during HUD style initialization instead of constructing it on every `OnGUI` call.
+- The first import launcher remained asynchronously active; a second launcher correctly refused the isolated-project lock. Validation waited for the original process, which completed successfully, and did not touch the owner's Editor.
+
+### Known limitations
+
+- Headless validation proves import, runtime composition, adaptive text behavior, and packaging, but cannot judge 36-pixel silhouette clarity, the expanded legend at narrow resolutions, or contextual-prompt balance.
+- The action glyphs are deliberately hardware-neutral. Xbox, PlayStation, and Nintendo-specific button-shape sets remain deferred until the base visual language is confirmed in play.
+- Unity 6000.3-generated texture metadata retains spaces after empty YAML fields. These serializer-owned files were intentionally preserved byte-for-byte rather than hand-normalized.
+
+### Best next step
+
+Play once with keyboard/mouse and once with a controller at 16:9 and ultrawide; verify each glyph reads before its label, the use icon improves tower/shortcut/extraction prompts, and the right HUD panel remains comfortably clear.

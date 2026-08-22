@@ -724,6 +724,13 @@ namespace DeadSignal.Tests
                 "The generated binding-conflict icon should load from Resources.");
             Assert.That(game.HasMovementRoutingIcon, Is.True,
                 "The generated movement-routing icon should load from Resources.");
+            Assert.That(game.HasControlGlyphSet, Is.True,
+                "All five adaptive control-family glyphs should load from Resources.");
+            Assert.That(Resources.Load<Texture2D>("UI/MovementControlGlyph"), Is.Not.Null);
+            Assert.That(Resources.Load<Texture2D>("UI/AimControlGlyph"), Is.Not.Null);
+            Assert.That(Resources.Load<Texture2D>("UI/FireControlGlyph"), Is.Not.Null);
+            Assert.That(Resources.Load<Texture2D>("UI/UseControlGlyph"), Is.Not.Null);
+            Assert.That(Resources.Load<Texture2D>("UI/SystemControlGlyph"), Is.Not.Null);
             Assert.That(game.FireKeyboardBinding, Is.Not.Empty);
             Assert.That(game.MoveUpKeyboardBinding, Is.Not.Empty);
             Assert.That(game.MoveDownKeyboardBinding, Is.Not.Empty);

@@ -83,6 +83,7 @@ This autonomous run is accepted when a fresh Play session provides all of the fo
 - The pause overlay lets keyboard players reroute Fire and Use to any key, persists those choices between sessions, and immediately updates every relevant prompt while fixed gamepad controls remain available.
 - Primary keyboard rerouting rejects duplicate Fire/Use assignments, keeps the previous valid route active, and explains the conflict without leaving the pause menu.
 - Move Up, Down, Left, and Right can each be rerouted independently from pause, persist across launches, update the HUD immediately, preserve arrow-key and controller fallbacks, and reject conflicts across all six primary keyboard actions.
+- Five original control-family glyphs make movement, aim, fire, use, and system actions scannable at a glance while the accompanying labels continue to adapt to the latest keyboard/mouse or gamepad input.
 - Original synthesized machinery ambience shifts between dead zones and powered territory, key actions have distinct cues, and a persisted pause option can mute all audio.
 - A bounded field of original Signal-dust motes becomes denser and brighter in powered territory, freezes with pause, and stays sparse in the dead zone.
 - Below 30 Signal, an original amber-red screen-edge warning intensifies toward failure, stays clear of the playfield center, and respects pause, outcomes, and Reduced Flashes.
@@ -112,6 +113,8 @@ The same control-routing panel now provides one-click recovery to the documented
 Primary control routing now prevents Fire and Use from sharing one keyboard key. A rejected route keeps listening, preserves the existing binding and persisted preference, and replaces the routing emblem with an amber-red conflict indicator until the player chooses another key or cancels. This was selected before movement remapping because a larger binding surface would multiply silent conflicts; the routing system needs a clear invariant first.
 
 Responsive drone flight now carries a short twin Signal wake driven by resolved speed. This was selected over another movement mechanic because the retained-velocity model needs immediate visual confirmation before additional abilities complicate handling; the wake strengthens the miniature-machine fantasy without consuming Signal or changing collision, acceleration, or braking.
+
+The adaptive control legend now leads with a five-glyph visual language for movement, aim, fire, use, and system actions. This was selected before more content because the complete input-routing surface had become dense and text-heavy; persistent, device-neutral action silhouettes improve first-minute scanning while live keyboard and gamepad labels retain exact control authority.
 
 ## Experience target
 

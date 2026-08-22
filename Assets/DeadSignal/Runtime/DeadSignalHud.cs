@@ -14,6 +14,7 @@ namespace DeadSignal
         bool HasBindingMatrixIcon { get; }
         bool HasBindingConflictIcon { get; }
         bool HasMovementRoutingIcon { get; }
+        bool HasControlGlyphSet { get; }
 
         void Configure(RunModel model, RunMetrics metrics, DeadSignalWorld world, DeadSignalThreatController threats);
         void ShowFeedback(string message);
@@ -38,6 +39,7 @@ namespace DeadSignal
         private GUIStyle m_centerStyle;
         private GUIStyle m_giantStyle;
         private GUIStyle m_reportStyle;
+        private GUIStyle m_glyphLabelStyle;
         private Texture2D m_pauseInsignia;
         private Texture2D m_cameraComfortIcon;
         private Texture2D m_reducedFlashesIcon;
@@ -47,6 +49,11 @@ namespace DeadSignal
         private Texture2D m_bindingMatrixIcon;
         private Texture2D m_bindingConflictIcon;
         private Texture2D m_movementRoutingIcon;
+        private Texture2D m_movementControlGlyph;
+        private Texture2D m_aimControlGlyph;
+        private Texture2D m_fireControlGlyph;
+        private Texture2D m_useControlGlyph;
+        private Texture2D m_systemControlGlyph;
         private float m_feedbackTimer;
         private string m_feedback = string.Empty;
 
@@ -59,6 +66,11 @@ namespace DeadSignal
         public bool HasBindingMatrixIcon => m_bindingMatrixIcon != null;
         public bool HasBindingConflictIcon => m_bindingConflictIcon != null;
         public bool HasMovementRoutingIcon => m_movementRoutingIcon != null;
+        public bool HasControlGlyphSet => m_movementControlGlyph != null &&
+                                          m_aimControlGlyph != null &&
+                                          m_fireControlGlyph != null &&
+                                          m_useControlGlyph != null &&
+                                          m_systemControlGlyph != null;
 
         [Inject]
         private void _construct(
@@ -90,6 +102,11 @@ namespace DeadSignal
             m_bindingMatrixIcon = Resources.Load<Texture2D>("UI/BindingMatrixIcon");
             m_bindingConflictIcon = Resources.Load<Texture2D>("UI/BindingConflictIcon");
             m_movementRoutingIcon = Resources.Load<Texture2D>("UI/MovementRoutingIcon");
+            m_movementControlGlyph = Resources.Load<Texture2D>("UI/MovementControlGlyph");
+            m_aimControlGlyph = Resources.Load<Texture2D>("UI/AimControlGlyph");
+            m_fireControlGlyph = Resources.Load<Texture2D>("UI/FireControlGlyph");
+            m_useControlGlyph = Resources.Load<Texture2D>("UI/UseControlGlyph");
+            m_systemControlGlyph = Resources.Load<Texture2D>("UI/SystemControlGlyph");
         }
 
         void IDeadSignalHud.ShowFeedback(string message)
@@ -136,6 +153,8 @@ namespace DeadSignal
             m_centerStyle = new GUIStyle(m_labelStyle) { alignment = TextAnchor.MiddleCenter, fontSize = 17 };
             m_giantStyle = new GUIStyle(m_centerStyle) { fontSize = 38, fontStyle = FontStyle.Bold };
             m_reportStyle = new GUIStyle(m_centerStyle) { fontSize = 15, fontStyle = FontStyle.Normal };
+            m_glyphLabelStyle = new GUIStyle(m_smallStyle) { alignment = TextAnchor.MiddleCenter, fontSize = 10 };
+            m_glyphLabelStyle.normal.textColor = new Color(0.62f, 0.82f, 0.86f);
         }
 
         private void _applyContrastTheme()
@@ -174,7 +193,7 @@ namespace DeadSignal
             GUI.Label(new Rect(34f, 134f, 300f, 24f), zone, m_smallStyle);
 
             GUI.color = new Color(0.015f, 0.025f, 0.035f, 0.86f);
-            GUI.Box(new Rect(Screen.width - 374f, 18f, 356f, 190f), GUIContent.none);
+            GUI.Box(new Rect(Screen.width - 374f, 18f, 356f, 214f), GUIContent.none);
             GUI.color = Color.white;
             GUI.Label(new Rect(Screen.width - 358f, 28f, 330f, 22f), _currentObjective(), m_labelStyle);
             m_smallStyle.normal.textColor = m_model.TowerOnline && m_threats.IsSapperAlive
@@ -182,12 +201,12 @@ namespace DeadSignal
                 : new Color(0.5f, 0.68f, 0.7f);
             GUI.Label(new Rect(Screen.width - 358f, 54f, 330f, 22f), _sapperStatus(), m_smallStyle);
             m_smallStyle.normal.textColor = new Color(0.72f, 0.82f, 0.86f);
-            if (m_inputLinkIcon != null)
-            {
-                GUI.DrawTexture(new Rect(Screen.width - 358f, 84f, 72f, 72f), m_inputLinkIcon, ScaleMode.ScaleToFit, true);
-            }
-
-            GUI.Label(new Rect(Screen.width - 278f, 78f, 244f, 104f), _activeControlLegend(), m_smallStyle);
+            _drawControlGlyph(m_movementControlGlyph, 0, "MOVE");
+            _drawControlGlyph(m_aimControlGlyph, 1, "AIM");
+            _drawControlGlyph(m_fireControlGlyph, 2, "FIRE");
+            _drawControlGlyph(m_useControlGlyph, 3, "USE");
+            _drawControlGlyph(m_systemControlGlyph, 4, "SYSTEM");
+            GUI.Label(new Rect(Screen.width - 358f, 166f, 330f, 42f), _activeControlLegend(), m_smallStyle);
         }
 
         private void _drawContextPrompt()
@@ -199,9 +218,15 @@ namespace DeadSignal
             }
 
             GUI.color = new Color(0.015f, 0.025f, 0.035f, 0.93f);
-            GUI.Box(new Rect(Screen.width * 0.5f - 220f, Screen.height - 86f, 440f, 44f), GUIContent.none);
+            GUI.Box(new Rect(Screen.width * 0.5f - 220f, Screen.height - 92f, 440f, 50f), GUIContent.none);
             GUI.color = Color.white;
-            GUI.Label(new Rect(Screen.width * 0.5f - 210f, Screen.height - 80f, 420f, 32f), prompt, m_centerStyle);
+            if (m_useControlGlyph != null)
+            {
+                GUI.DrawTexture(new Rect(Screen.width * 0.5f - 212f, Screen.height - 87f, 40f, 40f),
+                    m_useControlGlyph, ScaleMode.ScaleToFit, true);
+            }
+
+            GUI.Label(new Rect(Screen.width * 0.5f - 166f, Screen.height - 83f, 370f, 32f), prompt, m_centerStyle);
         }
 
         private void _drawFeedback()
@@ -239,6 +264,11 @@ namespace DeadSignal
             GUI.color = Color.white;
             GUI.Label(new Rect(0f, Screen.height * 0.5f + 88f, Screen.width, 36f),
                 $"PRESS {_binding("R / ENTER", "GAMEPAD A")} TO RESTART", m_centerStyle);
+            if (m_systemControlGlyph != null)
+            {
+                GUI.DrawTexture(new Rect(Screen.width * 0.5f - 24f, Screen.height * 0.5f + 126f, 48f, 48f),
+                    m_systemControlGlyph, ScaleMode.ScaleToFit, true);
+            }
         }
 
         private void _drawPauseOverlay()
@@ -372,6 +402,19 @@ namespace DeadSignal
             GUI.Label(new Rect(panel.x + 74f, panel.y + 36f, panel.width - 84f, 25f), state, m_smallStyle);
         }
 
+        private void _drawControlGlyph(Texture2D glyph, int index, string label)
+        {
+            const float glyphSize = 42f;
+            const float spacing = 65f;
+            var x = Screen.width - 354f + index * spacing;
+            if (glyph != null)
+            {
+                GUI.DrawTexture(new Rect(x, 82f, glyphSize, glyphSize), glyph, ScaleMode.ScaleToFit, true);
+            }
+
+            GUI.Label(new Rect(x - 7f, 126f, glyphSize + 14f, 18f), label, m_glyphLabelStyle);
+        }
+
         private string _currentObjective()
         {
             if (!m_model.TowerOnline)
@@ -441,10 +484,10 @@ namespace DeadSignal
         private string _activeControlLegend()
         {
             return m_input.ActivePromptDevice == InputPromptDevice.Gamepad
-                ? "GAMEPAD LINK\nLS Move  |  RS Aim\nRT / RB Fire  |  X Use\nMenu Pause  |  A Restart"
-                : $"KEYBOARD + MOUSE\n{m_input.MoveUpKeyboardBinding}{m_input.MoveLeftKeyboardBinding}" +
-                  $"{m_input.MoveDownKeyboardBinding}{m_input.MoveRightKeyboardBinding} Move  |  Mouse Aim\n" +
-                  $"LMB / {m_input.FireKeyboardBinding} Fire  |  {m_input.InteractKeyboardBinding} Use\nEsc Pause  |  R Restart";
+                ? "GAMEPAD  LS / RS  |  RT-RB / X  |  MENU-A"
+                : $"KEYBOARD  {m_input.MoveUpKeyboardBinding}{m_input.MoveLeftKeyboardBinding}" +
+                  $"{m_input.MoveDownKeyboardBinding}{m_input.MoveRightKeyboardBinding} / MOUSE  |  " +
+                  $"LMB-{m_input.FireKeyboardBinding} / {m_input.InteractKeyboardBinding}  |  ESC-R";
         }
 
         private string _binding(string keyboardMouse, string gamepad)
