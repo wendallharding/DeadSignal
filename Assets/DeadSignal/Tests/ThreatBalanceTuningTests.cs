@@ -31,6 +31,9 @@ namespace DeadSignal.Tests
                 Assert.That(tuning.SuppressorMovementMultiplier, Is.InRange(0.4f, 0.75f));
                 Assert.That(tuning.SuppressorSignalReward,
                     Is.LessThanOrEqualTo(tuning.SuppressorHealth * RunModel.ShotCost));
+                Assert.That(tuning.ReinforcementEntryDelay + tuning.SuppressorWarningDuration,
+                    Is.LessThan(tuning.ExtractionUplinkDuration - 1f),
+                    "The promoted Suppressor needs a meaningful active-field response window before extraction completes.");
             }
             finally
             {

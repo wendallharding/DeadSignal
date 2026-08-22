@@ -45,6 +45,8 @@ namespace DeadSignal
         public bool IsInterceptorCharging => m_threats?.IsInterceptorCharging ?? false;
         public float SuppressorHealth => m_threats?.SuppressorHealth ?? 0f;
         public bool IsSuppressorFieldActive => m_threats?.IsSuppressorFieldActive ?? false;
+        public bool IsSuppressorFieldWarningActive => m_threats?.IsSuppressorFieldWarningActive ?? false;
+        public Vector3 SuppressorFieldCenter => m_threats?.SuppressorFieldCenter ?? Vector3.zero;
         public bool IsPlayerSuppressed => m_threats?.IsPlayerSuppressed ?? false;
         public int SecurityEscalationTier => m_threats?.EscalationTier ?? 0;
         public int SecurityReinforcementsRemaining => m_threats?.ReinforcementsRemaining ?? 0;

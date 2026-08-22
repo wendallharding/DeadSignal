@@ -14,6 +14,15 @@
 
 ## P1 — Prove the loop
 
+### Run 70 locked-extraction-sweep ideas
+
+- [x] Keep the promoted Suppressor's full 2.5-second entry warning and farther authored safe gate
+- [x] Lock its first denial ring to the drone's deployment-time position instead of waiting for a cross-arena approach
+- [x] Preserve the existing one-second amber telegraph before the finite magenta field activates
+- [x] Leave the six-second mobile uplink, field penalties, enemy health, bounty, and four-response budget unchanged
+- [x] Prove the player has time to leave the locked ring before extraction and that later fields resume normal Suppressor positioning
+- [ ] Playtest whether the remote lock reads as intentional, whether one second is a fair escape warning, and whether the final maneuver is climactic
+
 ### Run 69 extraction-response-priority ideas
 
 - [x] Promote the existing extraction Suppressor ahead of unresolved salvage reserves when the six-second uplink begins

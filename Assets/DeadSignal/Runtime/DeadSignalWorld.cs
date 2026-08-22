@@ -267,8 +267,13 @@ namespace DeadSignal
 
         public void SetSuppressorField(bool visible, bool active, float radius)
         {
+            SetSuppressorFieldAt(visible, active, radius, Suppressor.position);
+        }
+
+        public void SetSuppressorFieldAt(bool visible, bool active, float radius, Vector3 center)
+        {
             m_suppressorField.SetActive(visible);
-            m_suppressorField.transform.position = Suppressor.position + Vector3.up * 0.035f;
+            m_suppressorField.transform.position = center + Vector3.up * 0.035f;
             m_suppressorField.transform.localScale = new Vector3(radius * 2f, 0.025f, radius * 2f);
             m_suppressorField.GetComponent<Renderer>().sharedMaterial = active ? m_palette.Magenta : m_palette.Amber;
         }

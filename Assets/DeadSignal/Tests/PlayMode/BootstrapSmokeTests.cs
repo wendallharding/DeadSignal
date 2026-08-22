@@ -1429,6 +1429,41 @@ namespace DeadSignal.Tests
                 var initialUplinkCountdown = game.ExtractionUplinkSecondsRemaining;
                 yield return new WaitForSeconds(0.2f);
                 Assert.That(game.ExtractionUplinkSecondsRemaining, Is.LessThan(initialUplinkCountdown));
+                var suppressorWarningDeadline = Time.time + 2.7f;
+                while (!game.IsSuppressorFieldWarningActive && Time.time < suppressorWarningDeadline)
+                {
+                    yield return null;
+                }
+
+                Assert.That(game.IsSuppressorFieldWarningActive, Is.True,
+                    "The promoted Suppressor should immediately telegraph its locked opening sweep after safe entry.");
+                Assert.That(Vector2.Distance(
+                        new Vector2(game.SuppressorFieldCenter.x, game.SuppressorFieldCenter.z),
+                        new Vector2(player.position.x, player.position.z)), Is.LessThan(0.1f),
+                    "The opening sweep should lock to the drone's deployment-time position.");
+                Assert.That(Vector2.Distance(
+                        new Vector2(suppressor.position.x, suppressor.position.z),
+                        new Vector2(player.position.x, player.position.z)), Is.GreaterThan(6f),
+                    "Remote projection must preserve the authored safe-gate separation instead of spawning beside the drone.");
+                Assert.That(game.ExtractionUplinkSecondsRemaining, Is.GreaterThan(2.2f),
+                    "The full entry warning must still leave time for the one-second field telegraph and an escape.");
+
+                var suppressorFieldDeadline = Time.time + 1.2f;
+                while (!game.IsSuppressorFieldActive && Time.time < suppressorFieldDeadline)
+                {
+                    yield return null;
+                }
+
+                Assert.That(game.IsSuppressorFieldActive, Is.True,
+                    "The locked amber warning should become an active field before the uplink completes.");
+                Assert.That(game.IsPlayerSuppressed, Is.True,
+                    "A drone that ignores the one-second warning should be caught by the active opening sweep.");
+                player.position += Vector3.right * 4f;
+                yield return null;
+                Assert.That(game.IsPlayerSuppressed, Is.False,
+                    "Crossing the finite ring boundary should immediately restore full control.");
+                Assert.That(game.ExtractionUplinkSecondsRemaining, Is.GreaterThan(1f),
+                    "Leaving the locked field should remain a meaningful decision before extraction resolves.");
                 var extractionDeadline = Time.time + 7f;
                 while (game.IsExtractionUplinkActive && Time.time < extractionDeadline)
                 {

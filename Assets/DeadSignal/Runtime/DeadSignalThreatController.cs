@@ -50,6 +50,7 @@ namespace DeadSignal
         private float m_suppressorFieldCountdown;
         private float m_suppressorFieldCooldown;
         private float m_suppressorPulseCountdown;
+        private Vector3 m_suppressorFieldCenter;
 
         public DeadSignalThreatController(
             RunModel model,
@@ -102,8 +103,10 @@ namespace DeadSignal
         public float SuppressorSignalReward => m_tuning.SuppressorSignalReward;
         public bool IsInterceptorCharging => m_interceptorChargeCountdown > 0f;
         public bool IsSuppressorFieldActive => m_suppressorFieldCountdown > 0f;
+        public bool IsSuppressorFieldWarningActive => m_suppressorWarningCountdown > 0f;
+        public Vector3 SuppressorFieldCenter => m_suppressorFieldCenter;
         public bool IsPlayerSuppressed => IsSuppressorFieldActive &&
-                                          DeadSignalWorld.FlatDistance(m_world.Player.position, m_world.Suppressor.position) <=
+                                          DeadSignalWorld.FlatDistance(m_world.Player.position, m_suppressorFieldCenter) <=
                                           m_tuning.SuppressorFieldRadius;
         public float PlayerMovementMultiplier => IsPlayerSuppressed ? m_tuning.SuppressorMovementMultiplier : 1f;
         public bool LastShotBlockedByEnvironment { get; private set; }
@@ -206,12 +209,12 @@ namespace DeadSignal
             else if (reinforcement == SecurityReinforcement.Suppressor)
             {
                 m_suppressorHealth = m_tuning.SuppressorHealth;
-                m_suppressorWarningCountdown = 0f;
                 m_suppressorFieldCountdown = 0f;
                 m_suppressorFieldCooldown = 0f;
                 m_suppressorPulseCountdown = 0f;
                 m_world.DeploySuppressorReinforcement();
                 m_showFeedback("FLANK GATES OPEN — SUPPRESSOR INBOUND");
+                _beginSuppressorWarning(m_world.Player.position, "SUPPRESSION SWEEP LOCKED — LEAVE THE RING");
             }
         }
 
@@ -227,7 +230,7 @@ namespace DeadSignal
             {
                 m_suppressorFieldCountdown = Mathf.Max(0f, m_suppressorFieldCountdown - dt);
                 m_suppressorPulseCountdown = Mathf.Max(0f, m_suppressorPulseCountdown - dt);
-                m_world.SetSuppressorField(true, true, m_tuning.SuppressorFieldRadius);
+                m_world.SetSuppressorFieldAt(true, true, m_tuning.SuppressorFieldRadius, m_suppressorFieldCenter);
                 if (IsPlayerSuppressed && m_suppressorPulseCountdown <= 0f)
                 {
                     m_suppressorPulseCountdown = m_tuning.SuppressorPulseInterval;
@@ -250,7 +253,7 @@ namespace DeadSignal
             if (m_suppressorWarningCountdown > 0f)
             {
                 m_suppressorWarningCountdown = Mathf.Max(0f, m_suppressorWarningCountdown - dt);
-                m_world.SetSuppressorField(true, false, m_tuning.SuppressorFieldRadius);
+                m_world.SetSuppressorFieldAt(true, false, m_tuning.SuppressorFieldRadius, m_suppressorFieldCenter);
                 if (m_suppressorWarningCountdown <= 0f)
                 {
                     m_suppressorFieldCountdown = m_tuning.SuppressorFieldDuration;
@@ -285,10 +288,17 @@ namespace DeadSignal
 
             if (m_suppressorFieldCooldown <= 0f)
             {
-                m_suppressorWarningCountdown = m_tuning.SuppressorWarningDuration;
-                m_world.SetSuppressorField(true, false, m_tuning.SuppressorFieldRadius);
-                m_showFeedback("SUPPRESSION FIELD PRIMING — LEAVE THE RING");
+                _beginSuppressorWarning(m_world.Suppressor.position, "SUPPRESSION FIELD PRIMING — LEAVE THE RING");
             }
+        }
+
+        private void _beginSuppressorWarning(Vector3 center, string feedback)
+        {
+            center.y = 0f;
+            m_suppressorFieldCenter = center;
+            m_suppressorWarningCountdown = m_tuning.SuppressorWarningDuration;
+            m_world.SetSuppressorFieldAt(true, false, m_tuning.SuppressorFieldRadius, m_suppressorFieldCenter);
+            m_showFeedback(feedback);
         }
 
         private void _tickInterceptor(float dt)

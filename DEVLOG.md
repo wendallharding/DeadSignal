@@ -3956,3 +3956,36 @@ The six-second uplink now promotes its unique Suppressor ahead of unresolved sal
 - Automated runtime evidence covers the avoidance route that reaches extraction with two salvage responses unresolved: uplink start reports three total responses remaining, the Suppressor immediately owns a fresh 2.5-second warning, and the run still completes after six seconds. Deterministic evidence proves the deferred Interceptor remains next after Suppressor deployment.
 - No human playtest was performed. The field's actual arrival time after its entry and approach, warning recognition during the uplink, and whether the promoted denial threat creates a meaningful final maneuver remain subjective risks.
 - Manual playtest next: complete one combat-heavy route that clears every reserve before extraction and one avoidance route that leaves two banked. At uplink start record the announced role, warning recognition, Suppressor field activation time, field entries/exits, Signal lost, final movement route, threats purged, uplink start/end reserve, and whether either run ends before the Suppressor can influence a decision.
+## 2026-08-22 — Autonomous Run 70 — Locked extraction suppression sweep
+
+### Milestone, player benefit, and acceptance
+
+The promoted extraction Suppressor will create one guaranteed, avoidable movement decision inside the six-second uplink instead of spending the climax approaching from its deliberately distant safe gate. Acceptance requires the existing 2.5-second entry warning and farther authored gate, a stationary denial ring locked to the drone's deployment-time position, the existing one-second amber field telegraph, field activation with time remaining to escape before extraction completes, and unchanged uplink duration, penalties, health, bounty, safe distance, and four-response budget. After the opening sweep, the Suppressor must return to its established positioning and cooldown cycle.
+
+### Files and systems changed
+
+- `DeadSignalThreatController.cs` now locks the opening Suppressor sweep to the drone's deployment-time position as soon as safe entry completes. The warning and active field retain that stationary center; later cooldown cycles use the Suppressor's live position as before.
+- `DeadSignalWorld.cs` can present a Suppressor field at an explicit world-space center while preserving the existing actor-centered API for cleanup and ordinary cycles.
+- `DeadSignalGame.cs` exposes narrow warning and field-center state for runtime acceptance evidence.
+- `BootstrapSmokeTests.cs` now proves the unresolved-reserve extraction route keeps the Suppressor beyond six metres, shows the locked warning, activates the field during the uplink, catches an unmoving drone, and restores control after a four-metre escape with more than one second remaining.
+- `ThreatBalanceTuningTests.cs` protects the timing relationship between the entry warning, field warning, and unchanged uplink duration.
+- `GAME_VISION.md`, `BACKLOG.md`, and this devlog record the extraction decision. No tuning asset, enemy statistic, Signal cost/reward, field radius/duration, uplink duration, entrance, prefab, scene, material, texture, audio, input, package, project setting, or serialized gameplay data is owned by this milestone.
+
+### Exact validation evidence
+
+1. The first focused launch found a test-only compile error because the PlayMode assembly referenced internal `DeadSignalWorld.FlatDistance`; both assertions were corrected to use public `Vector2.Distance`. No production behavior changed to hide the failure.
+2. Corrected focused EditMode: exit `0`; `2/2` passed in `0.0342042s`; `Logs/run70-editmode-focused-results.xml` and `Logs/run70-editmode-focused.log`.
+3. Focused complete-runtime PlayMode: exit `0`; `1/1` passed in `13.4465091s`; `Logs/run70-playmode-focused-results.xml` and `Logs/run70-playmode-focused.log`.
+4. Full EditMode: exit `0`; `76/76` passed, `0` failed, `0` skipped in `0.1792847s`; `Logs/run70-editmode-final-results.xml` and `Logs/run70-editmode-final.log`.
+5. Full PlayMode: exit `0`; `8/8` passed, `0` failed, `0` skipped in `25.5489016s`; `Logs/run70-playmode-final-results.xml` and `Logs/run70-playmode-final.log`.
+6. Windows x64 development build: exit `0`; Unity reported `241,166,576` bytes in `15.43s`; `Build/Windows/DeadSignal.exe` and `Logs/run70-build.log`.
+7. Packaged null-device smoke: exit `0` with one `[DEAD SIGNAL STANDALONE SMOKE] PASS`; `Logs/run70-standalone.log`.
+8. Sixty unrelated Unity setup/build serializer rewrites were restored. The pre-existing `Mobile_RPAsset.asset` change was restored byte-for-byte from its pre-run backup and remains excluded from this milestone.
+9. Post-cleanup full EditMode against the exact retained task-owned files: exit `0`; `76/76` passed in `0.1488652s`; `Logs/run70-editmode-postcleanup-results.xml` and `Logs/run70-editmode-postcleanup.log`. Final critical scans and `git diff --check` were clean.
+
+### Bugs fixed, limitations, playtest evidence, and next step
+
+- The previous promoted response was guaranteed to enter, but not to influence play: its farther gate is roughly 14.6 metres from extraction, so the 2.5-second entry warning plus a 2.4 m/s approach and one-second field warning could outlast the six-second uplink. The locked opening sweep removes that timing contradiction without a close spawn or stat increase.
+- Automated runtime evidence proves the fair-response sequence: full safe entry, stationary amber warning, active field, caught-player state, successful boundary escape, and more than one second of uplink remaining. The test also completes the run with two older responses still banked, preserving the four-response budget.
+- No human playtest was performed. Remote-projection readability, warning comfort, perceived fairness during mixed pressure, and whether players notice that the ring is stationary remain subjective risks. No presentation asset was added because the existing amber/magenta ring already carries the required warning language.
+- Manual playtest next: complete one combat-heavy route and one two-reserve avoidance route. At uplink start remain still until the amber ring appears, then cross its nearest edge before magenta activation. Record entry-warning recognition, ring-lock recognition, time to exit, field entries, shield block or Signal loss, live threat mix, uplink start/end reserve, and whether the forced maneuver feels earned. Repeat once while deliberately staying inside to verify the penalty remains readable rather than run-deciding.
