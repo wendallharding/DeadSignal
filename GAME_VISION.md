@@ -40,6 +40,7 @@ This autonomous run is accepted when a fresh Play session provides all of the fo
 - A closer tactical camera follows the maintenance drone with restrained movement look-ahead while clamping to authored arena edges, keeping navigation readable now and supporting future modular room expansion.
 - The central tower approach is a scene-placed modular junction whose authored coolant-manifold obstacles create distinct safe and exposed lanes for the player and awakened threats.
 - The extraction dock opens into a scene-placed capacitor channel aligned toward the tower, creating a readable first movement lane and a clear powered-to-dead-zone threshold.
+- Five scene-authored illuminated floor inlays form a continuous Signal spine from extraction toward the tower, making the first objective readable from the environment without requiring the HUD.
 - The northeast salvage cache sits inside a scene-placed cargo annex whose single readable entrance turns an optional reward into a positioning commitment without moving the objective.
 - The southeast salvage cache sits inside a scene-placed coolant reclamation gauntlet whose staggered baffles create a pressured collection lane without moving the objective.
 - The northwest salvage cache sits beyond a scene-placed relay fork whose tight central throat and longer outside approaches create a readable route decision without moving the objective.
@@ -94,6 +95,8 @@ The camera now prioritizes local tactical readability over displaying the entire
 The first true room extension is an optional east salvage vault connected through a guarded opening in the original shell. Its copper route splitter offers two internal lanes, its amber lock lighting distinguishes it from the central station, and its fourth cache lets the player skip one of four salvage routes while still meeting the three-cache extraction requirement. This was selected over a mandatory corridor because route choice creates replay value, and over a new hazard because the established dead-zone clock, Warden pressure, and salvage economy already supply risk without another system.
 
 Combat now respects that authored layout: every registered object-aligned movement blocker also stops the player's fast Signal bolts, including rotated shields, pylons, room walls, and the closed shortcut gate. A short original cyan impact bloom confirms the interception without adding hit-stop or camera impulse. This was selected over another room, reward, or enemy because the expanding map's cover choices were misleading while projectiles ignored them; shared spatial rules make existing encounter spaces tactical before more content is added.
+
+The opening route now carries an authored Signal spine: five large cyan maintenance inlays advance continuously from the extraction dock toward the central tower without collision or gameplay authority. This was selected over another HUD prompt because the first objective should be understandable from the station itself, and over a new branch because clear environmental navigation is the prerequisite for making later route choices feel intentional.
 
 ## Experience target
 

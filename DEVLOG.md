@@ -2929,3 +2929,64 @@ Validation used the main workspace because no Unity Editor process was open, wit
 ### Best next step
 
 Fight the Warden around its three blast shields, then shoot across the Sapper cradle, relay fork, east-vault splitter, and shortcut before and after opening it. Confirm each interception reads instantly and that clear firing lanes remain easy to find.
+
+## 2026-08-21 - Autonomous Run 48
+
+### Today's single idea
+
+**Authored opening Signal spine.** Five illuminated maintenance inlays now form a continuous scene-authored route from the extraction dock toward the central Signal tower.
+
+Player benefit: a first-time player can read the immediate destination from the station floor within seconds instead of relying entirely on the HUD objective beacon. The route reinforces the cyan powered-network language while leaving movement, combat, and resource decisions untouched.
+
+Alternatives considered: another HUD prompt would increase instruction density without improving environmental navigation; another optional room would expand choice before the opening route is sufficiently self-explanatory; a runtime-drawn path would conflict with the project's scene-authoring direction. A reusable scene-authored floor-inlay route was selected because it improves first-minute comprehension and remains directly adjustable in the Editor.
+
+Acceptance criteria:
+
+- create original commercially safe navigation-inlay art readable from the tactical camera;
+- build a reusable textured, non-colliding inlay prefab and a five-marker route prefab;
+- place the route directly in `SampleScene` from extraction toward the unchanged tower coordinate;
+- prove every marker decreases distance to the tower and introduces no colliders;
+- include the texture, material, and prefabs in packaged-player readiness checks;
+- preserve gameplay rules, map obstacles, objective positions, tuning, input, packages, and project settings; and
+- pass Unity import/compile, EditMode, PlayMode, Windows build, packaged smoke, and repository checks.
+
+### Files and systems changed
+
+- `Assets/DeadSignal/Resources/Environment/SignalSpineInlay.png` and Unity-generated `.meta`: added an original `1254x1254` RGB graphite, cyan, pale-ceramic, and amber maintenance-navigation texture generated with OpenAI's built-in image-generation mode. SHA-256: `D4FA8DDEEE0CB3EBA1868174A9CED67DA480EC92CD3264933A3F321413DF2237`.
+- Final image-generation prompt: square top-down Unity orbital-station floor-inlay texture with a bold forward cyan chevron, nested circuit rails, small amber threshold accent, pale ceramic markings, broad dark border, and no text, numbers, logos, characters, UI, watermark, franchise styling, or perspective scene.
+- `Assets/DeadSignal/Resources/Environment/SignalSpineInlay.prefab`, `OpeningSignalSpine.prefab`, `Assets/DeadSignal/Resources/Materials/SignalSpineInlay.mat`, and Unity-generated `.meta`: added the reusable collision-free quad, five-marker route assembly, and persistent URP Unlit material.
+- `Assets/Scenes/SampleScene.unity`: now places `Opening Signal Spine` as a scene-authored root connecting the extraction approach to the tower approach.
+- `Assets/DeadSignal/Editor/DeadSignalSignalSpineSetup.cs` and Unity-generated `.meta`: added idempotent texture import, material/prefab construction, placement, and validation. The new class follows current naming, ordering, and private-helper conventions; no unrelated class required a convention refactor.
+- `Assets/DeadSignal/Editor/DeadSignalWindowsBuild.cs`: includes the Signal-spine setup and readiness gate in development builds.
+- `Assets/DeadSignal/Runtime/StandaloneBuildSmokeProbe.cs`: requires the packaged texture, material, marker prefab, and route prefab.
+- `Assets/DeadSignal/Tests/PlayMode/BootstrapSmokeTests.cs`: proves direct scene placement, five rendered inlays, texture/material linkage, zero colliders, and continuously decreasing distance to the tower.
+- `GAME_VISION.md`, `BACKLOG.md`, and `DEVLOG.md`: record player value, selection rationale, acceptance criteria, implementation, evidence, risks, and next step.
+
+The owner's pre-existing uncommitted `AGENTS.md` map-authoring addition and intentionally emptied `OWNER_NOTES.md` were preserved and excluded from this run. No runtime gameplay class, deterministic rule, obstacle, objective coordinate, economy, enemy behavior, input binding, package, project setting, save data, or tuning asset changed.
+
+### Tests run and exact outcomes
+
+The live Unity project opened during the run and was not closed or controlled. Authoritative validation used `C:\Projects\Wendall\CodexPrototype_Run48Validation` with Unity `6000.3.11f1`.
+
+1. OpenAI built-in image generation produced the original inlay texture, which was visually inspected at `1254x1254` for a dominant readable cyan chevron, industrial graphite framing, restrained amber accent, and absence of text/logos.
+2. Unity setup/import wrote `signal-spine-setup-2.log`, compiled successfully, generated all `.meta`, material, and prefab assets, placed the route in `SampleScene`, and exited `0`.
+3. EditMode regression wrote `signal-spine-editmode.xml` and `.log`: `26/26` passed, `0` failed, `0` skipped in `0.0568304` seconds, exit `0`.
+4. PlayMode regression wrote `signal-spine-playmode.xml` and `.log`: `3/3` passed, `0` failed, `0` skipped in `6.2036461` seconds, exit `0`.
+5. Windows development build wrote `signal-spine-build.log`: Unity exited `0`, reported `Build Finished, Result: Success`, emitted one build PASS marker, and produced `218,258,285` reported bytes in `76.49` seconds.
+6. Packaged `-batchmode -nographics -deadSignalBuildSmoke` wrote `signal-spine-standalone.log`, loaded the new Resources, emitted one standalone PASS marker, and exited `0`.
+
+### Bugs found and fixed
+
+- The opening destination was communicated primarily by HUD text and beacon direction. The authored floor spine now embeds that direction in the station itself.
+- The first isolated Unity launch left a validation-only process and lock after the wrapper returned early; the exact orphaned validation PID was stopped, its stale lock was moved aside, and the successful setup rerun exited cleanly. The user's live Editor was untouched.
+- No compiler error, failed assertion, collision regression, missing Resource, build failure, or packaged-player failure remained after validation.
+
+### Known limitations
+
+- Automated validation proves placement order, resource linkage, collision-free composition, and packaged readiness, but cannot judge brightness, moire, floor overlap, or legibility at the user's exact Game-view resolution.
+- The route is intentionally static and points only to the opening tower objective; later salvage navigation remains owned by landmarks and the dynamic objective beacon.
+- Because `SampleScene` was open in the user's Editor while the validated scene file was transferred, saving an older unsaved in-memory scene could overwrite this placement; verify that Unity has imported the external scene change before making unrelated scene edits.
+
+### Best next step
+
+Start at extraction with the HUD briefly ignored, follow the five cyan inlays to the tower, and confirm their arrow orientation and brightness read cleanly at 16:9 and ultrawide without obscuring the maintenance-deck texture.

@@ -44,6 +44,7 @@ namespace DeadSignal.Editor
             DeadSignalSapperCradleSetup.EnsureAssets();
             DeadSignalCameraSetup.EnsureAssets();
             DeadSignalEastVaultSetup.EnsureAssets();
+            DeadSignalSignalSpineSetup.EnsureAssets();
             _validateBuildInputs();
             _configureWindowsPlayer();
 
@@ -211,6 +212,11 @@ namespace DeadSignal.Editor
             if (!DeadSignalEastVaultSetup.HasAssets)
             {
                 throw new BuildFailedException("The optional east salvage-vault assets are missing.");
+            }
+
+            if (!DeadSignalSignalSpineSetup.HasAssets)
+            {
+                throw new BuildFailedException("The authored opening Signal-spine assets are missing.");
             }
 
             if (AssetDatabase.LoadAssetAtPath<Texture2D>(APPLICATION_ICON_PATH) == null)

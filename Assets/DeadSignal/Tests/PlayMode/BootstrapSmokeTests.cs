@@ -75,6 +75,22 @@ namespace DeadSignal.Tests
 
             var game = Object.FindFirstObjectByType<DeadSignalGame>();
             Assert.That(game, Is.Not.Null, "Runtime bootstrap did not create the game controller.");
+            var signalSpine = GameObject.Find("Opening Signal Spine");
+            var signalSpineTexture = Resources.Load<Texture2D>("Environment/SignalSpineInlay");
+            var signalSpineMaterial = Resources.Load<Material>("Materials/SignalSpineInlay");
+            Assert.That(signalSpine, Is.Not.Null, "The opening route should be authored directly in SampleScene.");
+            Assert.That(signalSpine.transform.childCount, Is.EqualTo(5));
+            Assert.That(signalSpine.GetComponentsInChildren<Collider>().Length, Is.Zero,
+                "Navigation inlays must remain presentation-only and never block the opening route.");
+            Assert.That(signalSpine.GetComponentsInChildren<Renderer>().Length, Is.EqualTo(5));
+            Assert.That(signalSpineTexture, Is.Not.Null);
+            Assert.That(signalSpineMaterial, Is.Not.Null);
+            Assert.That(signalSpineMaterial.mainTexture, Is.EqualTo(signalSpineTexture));
+            var towerPosition = new Vector3(-0.6f, 0f, 0.4f);
+            var routeDistances = signalSpine.transform.Cast<Transform>()
+                .Select(inlay => Vector3.Distance(inlay.position, towerPosition)).ToArray();
+            Assert.That(routeDistances.Zip(routeDistances.Skip(1), (current, next) => next < current).All(value => value),
+                Is.True, "Each authored inlay should advance continuously from extraction toward the tower.");
             Assert.That(Object.FindFirstObjectByType<DeadSignalHud>(), Is.Not.Null,
                 "Runtime bootstrap should compose a dedicated HUD presenter.");
             Assert.That(Object.FindFirstObjectByType<ObjectiveBeaconHud>(), Is.Not.Null,

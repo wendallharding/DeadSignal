@@ -89,6 +89,10 @@ namespace DeadSignal
                                 Resources.Load<GameObject>("Environment/DepartureCapacitor") != null &&
                                 Resources.Load<GameObject>("Environment/ExtractionDepartureChannel") != null &&
                                 Resources.Load<Texture2D>("Environment/DepartureCapacitorAlbedo") != null &&
+                                Resources.Load<GameObject>("Environment/SignalSpineInlay") != null &&
+                                Resources.Load<GameObject>("Environment/OpeningSignalSpine") != null &&
+                                Resources.Load<Texture2D>("Environment/SignalSpineInlay") != null &&
+                                Resources.Load<Material>("Materials/SignalSpineInlay") != null &&
                                 Resources.Load<GameObject>("Environment/CoolantBaffle") != null &&
                                 Resources.Load<GameObject>("Environment/SoutheastCoolantGauntlet") != null &&
                                 Resources.Load<Texture2D>("Environment/CoolantGauntletAlbedo") != null &&
