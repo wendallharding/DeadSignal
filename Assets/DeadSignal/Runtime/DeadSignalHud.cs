@@ -11,6 +11,7 @@ namespace DeadSignal
         bool HasHighContrastIcon { get; }
         bool HasInputLinkIcon { get; }
         bool HasAudioLinkIcon { get; }
+        bool HasBindingMatrixIcon { get; }
 
         void Configure(RunModel model, RunMetrics metrics, DeadSignalWorld world, DeadSignalThreatController threats);
         void ShowFeedback(string message);
@@ -41,6 +42,7 @@ namespace DeadSignal
         private Texture2D m_highContrastIcon;
         private Texture2D m_inputLinkIcon;
         private Texture2D m_audioLinkIcon;
+        private Texture2D m_bindingMatrixIcon;
         private float m_feedbackTimer;
         private string m_feedback = string.Empty;
 
@@ -50,6 +52,7 @@ namespace DeadSignal
         public bool HasHighContrastIcon => m_highContrastIcon != null;
         public bool HasInputLinkIcon => m_inputLinkIcon != null;
         public bool HasAudioLinkIcon => m_audioLinkIcon != null;
+        public bool HasBindingMatrixIcon => m_bindingMatrixIcon != null;
 
         [Inject]
         private void _construct(
@@ -78,6 +81,7 @@ namespace DeadSignal
             m_highContrastIcon = Resources.Load<Texture2D>("UI/HighContrastIcon");
             m_inputLinkIcon = Resources.Load<Texture2D>("UI/InputLinkIcon");
             m_audioLinkIcon = Resources.Load<Texture2D>("UI/AudioLinkIcon");
+            m_bindingMatrixIcon = Resources.Load<Texture2D>("UI/BindingMatrixIcon");
         }
 
         void IDeadSignalHud.ShowFeedback(string message)
@@ -258,6 +262,7 @@ namespace DeadSignal
             var right = Screen.width * 0.5f + panelGap * 0.5f;
             var firstRow = Screen.height * 0.5f + 4f;
             var secondRow = firstRow + panelHeight + panelGap;
+            var thirdRow = secondRow + panelHeight + panelGap;
             _drawOptionPanel(
                 new Rect(left, firstRow, panelWidth, panelHeight),
                 m_cameraComfortIcon,
@@ -283,8 +288,33 @@ namespace DeadSignal
                 m_comfortSettings.AudioEnabled,
                 $"{_binding("M", "D-PAD LEFT")}  AUDIO {(m_comfortSettings.AudioEnabled ? "ON" : "MUTED")}");
 
+            GUI.color = new Color(0.025f, 0.07f, 0.085f, 0.98f);
+            GUI.Box(new Rect(left, thirdRow, panelWidth * 2f + panelGap, panelHeight), GUIContent.none);
             GUI.color = Color.white;
-            GUI.Label(new Rect(0f, secondRow + panelHeight + 14f, Screen.width, 36f),
+            if (m_bindingMatrixIcon != null)
+            {
+                GUI.DrawTexture(new Rect(left + 10f, thirdRow + 9f, 54f, 54f), m_bindingMatrixIcon, ScaleMode.ScaleToFit, true);
+            }
+
+            GUI.Label(new Rect(left + 74f, thirdRow + 8f, 178f, 24f), "CONTROL ROUTING", m_labelStyle);
+            m_smallStyle.normal.textColor = m_input.IsRebinding ? new Color(1f, 0.68f, 0.12f) : new Color(0.08f, 0.96f, 1f);
+            GUI.Label(new Rect(left + 74f, thirdRow + 36f, 190f, 25f),
+                m_input.IsRebinding ? "PRESS A KEY  |  ESC CANCELS" : "PERSISTED KEYBOARD BINDINGS", m_smallStyle);
+            GUI.enabled = !m_input.IsRebinding;
+            if (GUI.Button(new Rect(left + 278f, thirdRow + 17f, 190f, 38f), $"FIRE  {m_input.FireKeyboardBinding}"))
+            {
+                m_input.BeginFireKeyboardRebind();
+            }
+
+            if (GUI.Button(new Rect(left + 478f, thirdRow + 17f, 190f, 38f), $"USE  {m_input.InteractKeyboardBinding}"))
+            {
+                m_input.BeginInteractKeyboardRebind();
+            }
+
+            GUI.enabled = true;
+
+            GUI.color = Color.white;
+            GUI.Label(new Rect(0f, thirdRow + panelHeight + 14f, Screen.width, 36f),
                 $"PRESS {_binding("ESC", "GAMEPAD MENU")} TO RESUME", m_centerStyle);
         }
 
@@ -373,7 +403,7 @@ namespace DeadSignal
         {
             return m_input.ActivePromptDevice == InputPromptDevice.Gamepad
                 ? "GAMEPAD LINK\nLS Move  |  RS Aim\nRT / RB Fire  |  X Use\nMenu Pause  |  A Restart"
-                : "KEYBOARD + MOUSE\nWASD Move  |  Mouse Aim\nLMB / Space Fire  |  E Use\nEsc Pause  |  R Restart";
+                : $"KEYBOARD + MOUSE\nWASD Move  |  Mouse Aim\nLMB / {m_input.FireKeyboardBinding} Fire  |  {m_input.InteractKeyboardBinding} Use\nEsc Pause  |  R Restart";
         }
 
         private string _binding(string keyboardMouse, string gamepad)

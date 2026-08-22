@@ -39,6 +39,7 @@ namespace DeadSignal
         public bool LastSignalBoltBlockedByEnvironment => m_threats?.LastShotBlockedByEnvironment ?? false;
         public bool IsPaused => m_combatFeedback?.IsPaused ?? false;
         public bool HasPauseInsignia => m_hud?.HasPauseInsignia ?? false;
+        public bool HasBindingMatrixIcon => m_hud?.HasBindingMatrixIcon ?? false;
         public bool HasCameraComfortIcon => m_hud?.HasCameraComfortIcon ?? false;
         public bool HasReducedFlashesIcon => m_hud?.HasReducedFlashesIcon ?? false;
         public bool HasHighContrastIcon => m_hud?.HasHighContrastIcon ?? false;
@@ -91,6 +92,8 @@ namespace DeadSignal
         public float TowerActivationSweepMaximumDiameter => m_towerActivationSweep?.MaximumDiameter ?? 0f;
         public bool IsAudioEnabled => m_comfortSettings?.AudioEnabled ?? true;
         public InputPromptDevice ActiveInputPromptDevice => m_input?.ActivePromptDevice ?? InputPromptDevice.KeyboardMouse;
+        public string FireKeyboardBinding => m_input?.FireKeyboardBinding ?? string.Empty;
+        public string InteractKeyboardBinding => m_input?.InteractKeyboardBinding ?? string.Empty;
         public ObjectiveBeaconPhase CurrentObjectiveBeaconPhase => m_objectiveBeacon?.CurrentPhase ?? ObjectiveBeaconPhase.Tower;
         public Vector3 CurrentObjectiveBeaconTarget => m_objectiveBeacon?.CurrentTarget ?? Vector3.zero;
         public bool IsCameraImpulseEnabled => m_comfortSettings?.CameraImpulseEnabled ?? true;
@@ -99,6 +102,22 @@ namespace DeadSignal
         public bool HasSalvagePresentationTuning => m_salvageTuning != null;
         public bool HasSignalBoltBulkheadImpact => m_combatFeedback?.HasEnvironmentImpactTexture ?? false;
         public int ActiveSignalBoltCount => transform.Cast<Transform>().Count(child => child.name == "Signal Bolt");
+
+        public void BeginFireKeyboardRebind()
+        {
+            if (IsPaused)
+            {
+                m_input.BeginFireKeyboardRebind();
+            }
+        }
+
+        public void BeginInteractKeyboardRebind()
+        {
+            if (IsPaused)
+            {
+                m_input.BeginInteractKeyboardRebind();
+            }
+        }
 
         /// <summary>
         /// Toggles the persisted camera-impulse preference while the pause overlay is authoritative.

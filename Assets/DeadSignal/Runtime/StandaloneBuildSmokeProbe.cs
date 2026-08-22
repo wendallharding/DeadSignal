@@ -128,7 +128,9 @@ namespace DeadSignal
                                 Resources.Load<Texture2D>("VFX/SapperTetherFlow") != null &&
                                 Resources.Load<SignalSapperTelegraphTuning>("Tuning/SignalSapperTelegraphTuning") != null &&
                                 game.HasLowSignalWarningTexture &&
-                                game.HasTowerActivationSweepTexture;
+                                game.HasTowerActivationSweepTexture &&
+                                game.HasBindingMatrixIcon &&
+                                Resources.Load<Texture2D>("UI/BindingMatrixIcon") != null;
             if (!runtimeReady)
             {
                 Debug.LogError("[DEAD SIGNAL STANDALONE SMOKE] FAIL | Runtime composition is incomplete.");

@@ -18,6 +18,7 @@
 - [x] Add controller support for the complete run loop
 - [x] Add adaptive keyboard/mouse and gamepad guidance with generated input-link art
 - [ ] Add remappable Input Actions and platform-specific button glyph sets
+- [x] Add persisted pause-menu remapping for primary keyboard Fire and Use actions
 - [ ] Replace bootstrap arena with modular authored room prefabs
 - [x] Add a tunable player-follow tactical camera that preserves arena-edge framing and combat impulse
 - [x] Connect a scene-authored optional east salvage vault and allow extraction after any three of four caches

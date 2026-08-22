@@ -13,6 +13,9 @@ namespace DeadSignal
     internal interface IDeadSignalInput
     {
         InputPromptDevice ActivePromptDevice { get; }
+        bool IsRebinding { get; }
+        string FireKeyboardBinding { get; }
+        string InteractKeyboardBinding { get; }
 
         Vector2 ReadMovement();
         Vector3 ReadAimDirection(Camera camera, Transform player);
@@ -24,17 +27,47 @@ namespace DeadSignal
         bool PressedReducedFlashesToggle();
         bool PressedHighContrastToggle();
         bool PressedAudioToggle();
+        void BeginFireKeyboardRebind();
+        void BeginInteractKeyboardRebind();
+        void CancelRebind();
     }
 
     /// <summary>
     /// Centralizes device polling and remembers the last device used for adaptive control prompts.
     /// </summary>
-    internal sealed class DeadSignalInput : IDeadSignalInput
+    internal sealed class DeadSignalInput : IDeadSignalInput, System.IDisposable
     {
         private const float GAMEPAD_STICK_DEADZONE = 0.18f;
         private const float MOUSE_DELTA_THRESHOLD = 0.5f;
+        private const string FIRE_BINDING_KEY = "DeadSignal.Input.FireKeyboard";
+        private const string INTERACT_BINDING_KEY = "DeadSignal.Input.InteractKeyboard";
+
+        private readonly InputAction m_fireAction;
+        private readonly InputAction m_interactAction;
+        private InputAction m_rebindingAction;
+        private int m_rebindingIndex;
+        private string m_rebindingPreferenceKey;
 
         public InputPromptDevice ActivePromptDevice { get; private set; } = InputPromptDevice.KeyboardMouse;
+        public bool IsRebinding => m_rebindingAction != null;
+        public string FireKeyboardBinding => _keyboardBindingName(m_fireAction, 1);
+        public string InteractKeyboardBinding => _keyboardBindingName(m_interactAction, 0);
+
+        public DeadSignalInput()
+        {
+            m_fireAction = new InputAction("Fire", InputActionType.Button);
+            m_fireAction.AddBinding("<Mouse>/leftButton");
+            m_fireAction.AddBinding("<Keyboard>/space");
+            m_fireAction.AddBinding("<Gamepad>/rightTrigger");
+            m_fireAction.AddBinding("<Gamepad>/rightShoulder");
+            m_interactAction = new InputAction("Interact", InputActionType.Button);
+            m_interactAction.AddBinding("<Keyboard>/e");
+            m_interactAction.AddBinding("<Gamepad>/buttonWest");
+            _loadOverride(m_fireAction, 1, FIRE_BINDING_KEY);
+            _loadOverride(m_interactAction, 0, INTERACT_BINDING_KEY);
+            m_fireAction.Enable();
+            m_interactAction.Enable();
+        }
 
         public Vector2 ReadMovement()
         {
@@ -103,17 +136,17 @@ namespace DeadSignal
 
         public bool PressedFire()
         {
-            if ((Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame) ||
-                (Keyboard.current != null && Keyboard.current.spaceKey.wasPressedThisFrame))
+            if (m_fireAction.WasPressedThisFrame())
             {
-                _useKeyboardMouse();
-                return true;
-            }
-
-            if (Gamepad.current != null && (Gamepad.current.rightTrigger.wasPressedThisFrame ||
-                                            Gamepad.current.rightShoulder.wasPressedThisFrame))
-            {
-                _useGamepad();
+                if (Gamepad.current != null &&
+                    (Gamepad.current.rightTrigger.wasPressedThisFrame || Gamepad.current.rightShoulder.wasPressedThisFrame))
+                {
+                    _useGamepad();
+                }
+                else
+                {
+                    _useKeyboardMouse();
+                }
                 return true;
             }
 
@@ -122,7 +155,42 @@ namespace DeadSignal
 
         public bool PressedInteract()
         {
-            return _pressed(Keyboard.current?.eKey, Gamepad.current?.buttonWest);
+            if (!m_interactAction.WasPressedThisFrame())
+            {
+                return false;
+            }
+
+            if (Gamepad.current != null && Gamepad.current.buttonWest.wasPressedThisFrame)
+            {
+                _useGamepad();
+            }
+            else
+            {
+                _useKeyboardMouse();
+            }
+
+            return true;
+        }
+
+        public void BeginFireKeyboardRebind() => _beginKeyboardRebind(m_fireAction, 1, FIRE_BINDING_KEY);
+
+        public void BeginInteractKeyboardRebind() => _beginKeyboardRebind(m_interactAction, 0, INTERACT_BINDING_KEY);
+
+        public void CancelRebind()
+        {
+            if (m_rebindingAction == null)
+            {
+                return;
+            }
+
+            m_rebindingAction.Enable();
+            m_rebindingAction = null;
+        }
+
+        public void Dispose()
+        {
+            m_fireAction.Dispose();
+            m_interactAction.Dispose();
         }
 
         public bool PressedRestart()
@@ -139,6 +207,12 @@ namespace DeadSignal
 
         public bool PressedPause()
         {
+            if (IsRebinding)
+            {
+                _captureKeyboardRebind();
+                return false;
+            }
+
             return _pressed(Keyboard.current?.escapeKey, Gamepad.current?.startButton);
         }
 
@@ -177,6 +251,64 @@ namespace DeadSignal
             }
 
             return false;
+        }
+
+        private void _beginKeyboardRebind(InputAction action, int bindingIndex, string preferenceKey)
+        {
+            CancelRebind();
+            action.Disable();
+            m_rebindingAction = action;
+            m_rebindingIndex = bindingIndex;
+            m_rebindingPreferenceKey = preferenceKey;
+        }
+
+        private void _captureKeyboardRebind()
+        {
+            foreach (var device in InputSystem.devices)
+            {
+                if (device is not Keyboard keyboard)
+                {
+                    continue;
+                }
+
+                foreach (var control in keyboard.allKeys)
+                {
+                    if (!control.wasPressedThisFrame)
+                    {
+                        continue;
+                    }
+
+                    if (control == keyboard.escapeKey)
+                    {
+                        CancelRebind();
+                        return;
+                    }
+
+                    var path = $"<Keyboard>/{control.name}";
+                    m_rebindingAction.ApplyBindingOverride(m_rebindingIndex, path);
+                    PlayerPrefs.SetString(m_rebindingPreferenceKey, path);
+                    PlayerPrefs.Save();
+                    m_rebindingAction.Enable();
+                    m_rebindingAction = null;
+                    _useKeyboardMouse();
+                    return;
+                }
+            }
+        }
+
+        private static void _loadOverride(InputAction action, int bindingIndex, string preferenceKey)
+        {
+            var path = PlayerPrefs.GetString(preferenceKey, string.Empty);
+            if (!string.IsNullOrEmpty(path))
+            {
+                action.ApplyBindingOverride(bindingIndex, path);
+            }
+        }
+
+        private static string _keyboardBindingName(InputAction action, int bindingIndex)
+        {
+            return action.GetBindingDisplayString(bindingIndex, InputBinding.DisplayStringOptions.DontUseShortDisplayNames)
+                .ToUpperInvariant();
         }
 
         private void _useKeyboardMouse()

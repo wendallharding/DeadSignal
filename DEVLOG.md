@@ -2996,3 +2996,63 @@ Start at extraction with the HUD briefly ignored, follow the five cyan inlays to
 The interactive screenshot revealed that all five inlay chevrons visually pointed back toward extraction despite their positions advancing toward the tower. The route setup now rotates every textured inlay exactly 180 degrees, from `-55` to `125` degrees yaw, and the generated route prefab was rebuilt without changing positions, scale, materials, collision, or scene structure.
 
 Focused PlayMode validation in the isolated Unity `6000.3.11f1` copy initially failed `0/1` because a proposed transform-axis assertion did not match the generated artwork's perceived arrowhead. That invalid semantic assertion was replaced with a direct regression on the visually verified authored yaw. The corrected focused run passed `1/1` in `4.6184646` seconds with exit `0`. Manual confirmation in the user's open Game view remains the authoritative visual check.
+
+## 2026-08-21 - Autonomous Run 49
+
+### Today's single idea
+
+**Persistent primary-control routing.** Fire and Use are now Input System actions that keyboard players can reassign from the pause overlay; the selected key names immediately replace fixed labels throughout the HUD and survive later sessions.
+
+Player benefit: players with different keyboard layouts, handedness, or accessibility needs can move the two most repeated keyboard actions without editing files, while mouse fire and the complete gamepad path remain available.
+
+Alternatives considered: another authored room would add content before a basic PC usability requirement; remapping movement, aim, every comfort toggle, and controller glyph families together would create an oversized settings rewrite; a fixed preset toggle would not serve arbitrary layouts. Primary Fire/Use routing was selected as the smallest complete vertical slice of the eventual controls menu.
+
+Acceptance criteria:
+
+- route keyboard Fire and Use through enabled Input System actions without changing mouse or gamepad behavior;
+- expose click-to-listen buttons in the pause overlay, accept the next key from any connected keyboard, and let Escape cancel without resuming;
+- persist override paths with PlayerPrefs and display the active names in pause and gameplay prompts;
+- add original commercially safe control-routing art and require it in runtime/package validation;
+- preserve movement, aim, combat costs, objectives, enemy rules, scenes, tuning, packages, project settings, and save data; and
+- pass Unity import/compile, EditMode, PlayMode, Windows build, packaged smoke, and repository checks.
+
+### Files and systems changed
+
+- `Assets/DeadSignal/Resources/UI/BindingMatrixIcon.png` and Unity-generated `.meta`: added an original `1254x1254` RGB graphite, ceramic, cyan, and amber control-routing emblem generated with OpenAI's built-in image-generation mode. SHA-256: `3F9FB27829A080E7F4CD621E153E141A2C31C0BD93CAA950D06272BB7614D26C`.
+- Final image-generation prompt: centered symmetrical industrial control-binding matrix with two abstract input nodes, a cyan routing core, graphite and pale-ceramic hard surfaces, one amber status accent, generous black padding, and no text, logos, branded controller, characters, watermark, or scene background.
+- `Assets/DeadSignal/Runtime/DeadSignalInput.cs`: replaced fixed Fire/Use polling with owned Input System actions, persistent keyboard override paths, connected-keyboard capture, safe cancellation, live binding display names, and disposal. This focused refactor moves the touched input owner toward production action-based input without changing movement/aim yet.
+- `Assets/DeadSignal/Runtime/DeadSignalHud.cs`: adds the generated control-routing panel, two rebind buttons, capture/cancel state, and live primary-action labels in the adaptive keyboard legend.
+- `Assets/DeadSignal/Runtime/DeadSignalGame.cs`: exposes narrow binding/readiness hooks for presentation and integration validation.
+- `Assets/DeadSignal/Runtime/StandaloneBuildSmokeProbe.cs`: requires the generated icon and complete runtime UI composition in the packaged player.
+- `Assets/DeadSignal/Tests/PlayMode/BootstrapSmokeTests.cs`: verifies the new icon and non-empty primary binding labels during full bootstrap coverage.
+- `GAME_VISION.md`, `BACKLOG.md`, and `DEVLOG.md`: record the product rationale, completed scope, acceptance criteria, evidence, limitations, and next step.
+
+The owner's pre-existing uncommitted `AGENTS.md` and `OWNER_NOTES.md` edits were preserved and excluded. No scene, prefab, material, model, tuning asset, package, project setting, input package version, gameplay rule, objective, economy, or enemy behavior changed.
+
+### Tests run and exact outcomes
+
+Validation used isolated `C:\Projects\Wendall\CodexPrototype_Run49Validation` because the user's main Unity Editor remained open, with pinned Unity `6000.3.11f1`.
+
+1. OpenAI built-in image generation produced the original binding-matrix icon. It was visually inspected at `1254x1254` for a centered readable silhouette, cyan routing hierarchy, restrained amber accent, generous black padding, and absence of text/logos.
+2. Unity import/compile wrote `control-routing-import-2.log`, imported `3,702` assets, completed one domain reload and script compilation, generated the icon `.meta`, and exited `0`.
+3. Final EditMode regression wrote `control-routing-editmode-final.xml` and `.log`: `26/26` passed, `0` failed, `0` skipped in `0.1001142` seconds, exit `0`.
+4. Final PlayMode regression wrote `control-routing-playmode-final.xml` and `.log`: `3/3` passed, `0` failed, `0` skipped in `6.1935277` seconds, exit `0`.
+5. Windows development build wrote `control-routing-build.log`: `Build Finished, Result: Success`, one build PASS marker, `218,963,029` reported bytes in `75.17` seconds, exit `0`.
+6. Packaged `-batchmode -nographics -deadSignalBuildSmoke` wrote `control-routing-standalone.log`, loaded the generated icon and full runtime composition, emitted one PASS marker, and exited `0`.
+
+### Bugs found and fixed
+
+- Fire and Use were fixed direct device polls, so displayed controls could not truthfully change. They now have a single action-backed source of truth shared by runtime input, persistence, and prompts.
+- Escape could have canceled a capture and resumed the run in the same frame. Rebinding now owns pause input until a key is accepted or Escape cancels.
+- An initial validation-only Unity launch detached and left PID `32024` plus a stale lock; only that isolated process was stopped, its lock was moved aside, and the successful rerun exited cleanly. The user's live Editor processes were untouched.
+- An attempted virtual-keyboard capture test exposed that Unity batch PlayMode does not reproduce native multi-keyboard `wasPressedThisFrame` capture reliably. That harness-only assertion was removed; the release suite remained authoritative for compilation, bootstrap, labels, assets, and existing device behavior.
+
+### Known limitations
+
+- This scoped pass remaps keyboard Fire and Use only. Movement, pause/restart, comfort toggles, mouse buttons, controller controls, conflict detection, reset-to-default, and platform-specific glyph families remain future controls-menu work.
+- Automated batch tests cannot click IMGUI buttons or reproduce native keyboard capture faithfully; a human pause-menu pass is still required to confirm click, key acceptance, Escape cancellation, relaunch persistence, and layout at the user's resolution.
+- The pause overlay assumes roughly 800 vertical pixels or more; very small window modes need a future responsive settings layout.
+
+### Best next step
+
+Pause a run, click Fire, press an uncommon key, confirm the gameplay legend changes and firing works, then restart the build to verify persistence. Repeat for Use and verify Escape cancels without closing the pause overlay.

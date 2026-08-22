@@ -691,6 +691,10 @@ namespace DeadSignal.Tests
             Assert.That(game.HasObjectiveBeaconIcon, Is.True, "The generated objective beacon icon should load from Resources.");
             Assert.That(game.HasInputLinkIcon, Is.True, "The generated input-link icon should load from Resources.");
             Assert.That(game.HasAudioLinkIcon, Is.True, "The generated audio-link icon should load from Resources.");
+            Assert.That(game.HasBindingMatrixIcon, Is.True,
+                "The generated control-routing icon should load from Resources.");
+            Assert.That(game.FireKeyboardBinding, Is.Not.Empty);
+            Assert.That(game.InteractKeyboardBinding, Is.Not.Empty);
             Assert.That(game.HasGeneratedAudio, Is.True, "The runtime audio service should synthesize ambience and cue clips.");
             Assert.That(Object.FindFirstObjectByType<SignalDustController>(), Is.Not.Null,
                 "Reflex composition should provide a dedicated ambient Signal-dust presenter.");
