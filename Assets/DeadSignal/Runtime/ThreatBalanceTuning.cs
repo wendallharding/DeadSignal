@@ -46,6 +46,7 @@ namespace DeadSignal
         [SerializeField] private float m_suppressorSignalReward = 15f;
 
         [Header("Security Escalation")]
+        [SerializeField] private float m_deadZoneTraceDuration = 8f;
         [SerializeField] private float m_reinforcementEntryDelay = 2.5f;
         [SerializeField] private float m_reinforcementSafeDistance = 6f;
         [SerializeField] private float m_extractionUplinkDuration = 6f;
@@ -82,6 +83,7 @@ namespace DeadSignal
         public float SuppressorPulseInterval => m_suppressorPulseInterval;
         public float SuppressorSignalDrain => m_suppressorSignalDrain;
         public float SuppressorSignalReward => m_suppressorSignalReward;
+        public float DeadZoneTraceDuration => m_deadZoneTraceDuration;
         public float ReinforcementEntryDelay => m_reinforcementEntryDelay;
         public float ReinforcementSafeDistance => m_reinforcementSafeDistance;
         public float ExtractionUplinkDuration => m_extractionUplinkDuration;
@@ -120,6 +122,7 @@ namespace DeadSignal
             m_suppressorPulseInterval = Mathf.Max(0.1f, m_suppressorPulseInterval);
             m_suppressorSignalDrain = Mathf.Max(0f, m_suppressorSignalDrain);
             m_suppressorSignalReward = Mathf.Max(0f, m_suppressorSignalReward);
+            m_deadZoneTraceDuration = Mathf.Max(0.1f, m_deadZoneTraceDuration);
             m_reinforcementEntryDelay = Mathf.Max(0f, m_reinforcementEntryDelay);
             m_reinforcementSafeDistance = Mathf.Max(0f, m_reinforcementSafeDistance);
             m_extractionUplinkDuration = Mathf.Max(0.1f, m_extractionUplinkDuration);

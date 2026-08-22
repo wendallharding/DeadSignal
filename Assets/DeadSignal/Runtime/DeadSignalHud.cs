@@ -317,8 +317,11 @@ namespace DeadSignal
             var entry = m_threats.PendingReinforcement == SecurityReinforcement.None
                 ? string.Empty
                 : $"  {m_threats.PendingReinforcement.ToString().ToUpperInvariant()} ENTRY {m_threats.ReinforcementEntryCountdown:0.0}s";
+            var trace = m_threats.IsDeadZoneTraceActive
+                ? $"  TRACE {m_threats.DeadZoneTraceSecondsRemaining:0.0}s"
+                : string.Empty;
             var alert = m_extractionUplink.IsActive ? "PURSUIT" : $"ALERT {m_threats.EscalationTier}/{RunModel.SalvageRequired}";
-            return $"{alert}  RESERVE {m_threats.ReinforcementsRemaining}{entry}  //  " +
+            return $"{alert}  RESERVE {m_threats.ReinforcementsRemaining}{trace}{entry}  //  " +
                    $"{warden}  //  {interceptor}  //  {sapper}  //  {suppressor}";
         }
 

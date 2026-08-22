@@ -20,6 +20,54 @@ namespace DeadSignal.Tests
             Assert.That(director.ReinforcementsRemaining, Is.Zero);
         }
 
+        [Test]
+        public void Tick_ContinuousDeadZoneExposureBanksExistingInterceptorResponse()
+        {
+            var director = new SecurityEscalationDirector(2f, 6f, deadZoneTraceDuration: 4f);
+
+            Assert.That(director.Tick(2f, true, false, 0, false, false, true, true, false, 8f, 8f, 8f, 8f),
+                Is.EqualTo(SecurityReinforcement.None));
+            Assert.That(director.IsDeadZoneTraceActive, Is.True);
+            Assert.That(director.DeadZoneTraceSecondsRemaining, Is.EqualTo(2f));
+            Assert.That(director.ReinforcementsRemaining, Is.Zero);
+
+            Assert.That(director.Tick(2f, true, false, 0, false, false, true, true, false, 8f, 8f, 8f, 8f),
+                Is.EqualTo(SecurityReinforcement.None));
+            Assert.That(director.IsDeadZoneTraceCompleted, Is.True);
+            Assert.That(director.PendingReinforcement, Is.EqualTo(SecurityReinforcement.Interceptor));
+            Assert.That(director.ReinforcementsRemaining, Is.EqualTo(1));
+        }
+
+        [Test]
+        public void Tick_ReturningToPowerClearsPartialDeadZoneTrace()
+        {
+            var director = new SecurityEscalationDirector(2f, 6f, deadZoneTraceDuration: 4f);
+
+            director.Tick(2f, true, false, 0, false, false, true, true, false, 8f, 8f, 8f, 8f);
+            director.Tick(1f, true, true, 0, false, false, true, true, false, 8f, 8f, 8f, 8f);
+
+            Assert.That(director.IsDeadZoneTraceActive, Is.False);
+            Assert.That(director.DeadZoneTraceSecondsRemaining, Is.Zero);
+            director.Tick(2f, true, false, 0, false, false, true, true, false, 8f, 8f, 8f, 8f);
+            Assert.That(director.DeadZoneTraceSecondsRemaining, Is.EqualTo(2f));
+            Assert.That(director.IsDeadZoneTraceCompleted, Is.False);
+        }
+
+        [Test]
+        public void Tick_DeadZoneTraceAndFirstCacheShareOneResponseSlot()
+        {
+            var director = new SecurityEscalationDirector(1f, 0f, deadZoneTraceDuration: 2f);
+
+            director.Tick(2f, true, false, 0, false, false, true, true, false, 8f, 8f, 8f, 8f);
+            Assert.That(director.Tick(1f, true, false, 0, false, false, true, true, false, 8f, 8f, 8f, 8f),
+                Is.EqualTo(SecurityReinforcement.Interceptor));
+            Assert.That(director.ReinforcementsRemaining, Is.Zero);
+
+            Assert.That(director.Tick(5f, true, false, 1, false, true, true, true, false, 8f, 8f, 8f, 8f),
+                Is.EqualTo(SecurityReinforcement.None));
+            Assert.That(director.ReinforcementsRemaining, Is.Zero);
+        }
+
         [TestCase(false, SecurityReinforcement.Warden, SecurityReinforcement.Sapper)]
         [TestCase(true, SecurityReinforcement.Sapper, SecurityReinforcement.Warden)]
         public void Tick_BothCoreRolesPurged_UsesRunPreferenceWithoutRepeating(

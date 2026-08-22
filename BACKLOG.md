@@ -14,6 +14,15 @@
 
 ## P1 — Prove the loop
 
+### Run 68 dead-zone security-trace ideas
+
+- [x] Accumulate a designer-tuned security trace only while the tower is online and the player remains outside powered territory
+- [x] Clear partial trace progress immediately when the player returns to powered territory
+- [x] Bank the existing first Interceptor response after eight continuous dead-zone seconds without increasing the four-response cap
+- [x] Make cache one and the completed trace share the same first-response budget slot so neither route can duplicate the Interceptor
+- [x] Show the live trace countdown before lock-on while preserving authored entrances, safe-entry distance, and warning delay
+- [ ] Playtest direct and greedy opening routes for warning recognition, route abandonment, first threat timing, and Signal reserve
+
 ### Run 67 adaptive-security-response ideas
 
 - [x] Preserve the authored Interceptor as the first salvage response and the Suppressor as the extraction-only response

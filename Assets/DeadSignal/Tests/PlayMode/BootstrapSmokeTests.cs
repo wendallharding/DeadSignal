@@ -40,6 +40,46 @@ namespace DeadSignal.Tests
         }
 
         [UnityTest]
+        public IEnumerator DeadZoneGreed_CompletesSecurityTraceAndBanksInterceptor()
+        {
+            yield return SceneManager.LoadSceneAsync("SampleScene");
+            yield return null;
+
+            var gamepad = InputSystem.AddDevice<Gamepad>();
+            try
+            {
+                var game = Object.FindFirstObjectByType<DeadSignalGame>();
+                var player = game.transform.Find("Maintenance Drone");
+                player.position = new Vector3(-0.6f, 0f, 0.4f);
+                InputSystem.QueueStateEvent(gamepad, new GamepadState().WithButton(GamepadButton.West));
+                yield return null;
+                InputSystem.QueueStateEvent(gamepad, new GamepadState());
+                yield return null;
+
+                game.transform.Find("Security Warden").position = new Vector3(18f, 0f, 9f);
+                game.transform.Find("Signal Sapper").position = new Vector3(-18f, 0f, 9f);
+                player.position = new Vector3(-14f, 0f, 0f);
+                yield return new WaitForSeconds(1f);
+
+                Assert.That(game.IsDeadZoneSecurityTraceActive, Is.True);
+                Assert.That(game.DeadZoneSecurityTraceSecondsRemaining, Is.InRange(6.5f, 7.2f));
+                Assert.That(game.SecurityReinforcementsRemaining, Is.Zero,
+                    "A partial trace should warn the player without banking an early response.");
+
+                yield return new WaitForSeconds(7.2f);
+
+                Assert.That(game.IsDeadZoneSecurityTraceActive, Is.False);
+                Assert.That(game.PendingSecurityReinforcement, Is.EqualTo(SecurityReinforcement.Interceptor));
+                Assert.That(game.SecurityReinforcementsRemaining, Is.EqualTo(1),
+                    "A completed trace should bank the existing first Interceptor before salvage is secured.");
+            }
+            finally
+            {
+                InputSystem.RemoveDevice(gamepad);
+            }
+        }
+
+        [UnityTest]
         public IEnumerator FirstSalvage_UseSelectsOverdriveAndAppliesRuntimeSpeedTuning()
         {
             yield return SceneManager.LoadSceneAsync("SampleScene");

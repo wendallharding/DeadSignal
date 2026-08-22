@@ -172,3 +172,7 @@ The second secured cache now adds one economy-defense choice on top of the first
 ### Run 67 product decision — adaptive security response
 
 The two middle security reserves now react to the player's purge order instead of always deploying Warden then Sapper. After the authored Interceptor response, whichever core role the player eliminated first returns first and the other role follows; when both are already gone, a per-run tie-breaker varies their order. This was selected over more enemies, higher stats, or a second region because replayability currently suffers most from a fixed encounter script. The response remains bounded, role-unique, entrance-safe, and fully telegraphed, while the player's decision to fight the pursuer or protect the tower now changes later mixed-role pressure.
+
+### Run 68 product decision — dead-zone security trace
+
+After tower activation, remaining outside powered territory for eight continuous seconds now completes a security trace and banks the existing first Interceptor response before salvage is secured. Returning to powered territory clears partial progress, and cache one shares the same response slot, so the trace changes timing rather than increasing the four-response cap. This was selected over a larger map or stronger enemies because dead-zone greed currently costs Signal but does not change tactical pressure; the trace gives players a readable choice between extending a risky route and retreating to break lock-on while preserving authored entrances and established counterplay.

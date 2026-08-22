@@ -12,32 +12,45 @@ namespace DeadSignal
     }
 
     /// <summary>
-    /// Converts salvage progress and the player's purge order into a small, bounded reinforcement queue.
+    /// Converts route exposure, salvage progress, and the player's purge order into a small, bounded reinforcement queue.
     /// </summary>
     public sealed class SecurityEscalationDirector
     {
         private readonly float m_entryDelay;
         private readonly float m_safeEntryDistance;
+        private readonly float m_deadZoneTraceDuration;
         private readonly SecurityReinforcement m_bothPurgedPreference;
 
         private int m_observedSalvage;
         private int m_nextReinforcement;
         private float m_entryCountdown;
+        private float m_deadZoneTraceProgress;
+        private bool m_deadZoneTraceCompleted;
         private bool m_extractionPressure;
         private SecurityReinforcement m_firstCoreResponse;
 
-        public SecurityEscalationDirector(float entryDelay, float safeEntryDistance, bool preferSapperWhenBothPurged = false)
+        public SecurityEscalationDirector(
+            float entryDelay,
+            float safeEntryDistance,
+            bool preferSapperWhenBothPurged = false,
+            float deadZoneTraceDuration = 8f)
         {
             m_entryDelay = Math.Max(0f, entryDelay);
             m_safeEntryDistance = Math.Max(0f, safeEntryDistance);
+            m_deadZoneTraceDuration = Math.Max(0.1f, deadZoneTraceDuration);
             m_bothPurgedPreference = preferSapperWhenBothPurged
                 ? SecurityReinforcement.Sapper
                 : SecurityReinforcement.Warden;
         }
 
         public int EscalationTier => m_observedSalvage;
-        public int ReinforcementsRemaining => Math.Max(0, m_observedSalvage + (m_extractionPressure ? 1 : 0) - m_nextReinforcement);
+        public int ReinforcementsRemaining => Math.Max(0, _reinforcementBudget() - m_nextReinforcement);
         public float EntryCountdown => m_entryCountdown;
+        public bool IsDeadZoneTraceActive => !m_deadZoneTraceCompleted && m_observedSalvage == 0 && m_deadZoneTraceProgress > 0f;
+        public bool IsDeadZoneTraceCompleted => m_deadZoneTraceCompleted;
+        public float DeadZoneTraceSecondsRemaining => IsDeadZoneTraceActive
+            ? Math.Max(0f, m_deadZoneTraceDuration - m_deadZoneTraceProgress)
+            : 0f;
         public SecurityReinforcement PendingReinforcement => m_entryCountdown > 0f
             ? _getReinforcement(m_nextReinforcement)
             : SecurityReinforcement.None;
@@ -56,14 +69,47 @@ namespace DeadSignal
             float sapperEntryDistance,
             float suppressorEntryDistance)
         {
+            return Tick(
+                seconds,
+                towerOnline,
+                true,
+                salvage,
+                extractionPressure,
+                interceptorAlive,
+                wardenAlive,
+                sapperAlive,
+                suppressorAlive,
+                interceptorEntryDistance,
+                wardenEntryDistance,
+                sapperEntryDistance,
+                suppressorEntryDistance);
+        }
+
+        public SecurityReinforcement Tick(
+            float seconds,
+            bool towerOnline,
+            bool playerPowered,
+            int salvage,
+            bool extractionPressure,
+            bool interceptorAlive,
+            bool wardenAlive,
+            bool sapperAlive,
+            bool suppressorAlive,
+            float interceptorEntryDistance,
+            float wardenEntryDistance,
+            float sapperEntryDistance,
+            float suppressorEntryDistance)
+        {
             if (!towerOnline)
             {
+                m_deadZoneTraceProgress = 0f;
                 return SecurityReinforcement.None;
             }
 
             m_observedSalvage = Math.Min(RunModel.SalvageRequired, Math.Max(m_observedSalvage, salvage));
+            _updateDeadZoneTrace(seconds, playerPowered);
             m_extractionPressure |= extractionPressure && m_observedSalvage >= RunModel.SalvageRequired;
-            var reinforcementBudget = m_observedSalvage + (m_extractionPressure ? 1 : 0);
+            var reinforcementBudget = _reinforcementBudget();
             if (m_nextReinforcement >= reinforcementBudget)
             {
                 m_entryCountdown = 0f;
@@ -112,6 +158,31 @@ namespace DeadSignal
 
             m_nextReinforcement++;
             return reinforcement;
+        }
+
+        private void _updateDeadZoneTrace(float seconds, bool playerPowered)
+        {
+            if (m_deadZoneTraceCompleted || m_observedSalvage > 0 || m_nextReinforcement > 0)
+            {
+                return;
+            }
+
+            if (playerPowered)
+            {
+                m_deadZoneTraceProgress = 0f;
+                return;
+            }
+
+            m_deadZoneTraceProgress = Math.Min(
+                m_deadZoneTraceDuration,
+                m_deadZoneTraceProgress + Math.Max(0f, seconds));
+            m_deadZoneTraceCompleted = m_deadZoneTraceProgress >= m_deadZoneTraceDuration;
+        }
+
+        private int _reinforcementBudget()
+        {
+            var openingBudget = Math.Max(m_observedSalvage, m_deadZoneTraceCompleted ? 1 : 0);
+            return openingBudget + (m_extractionPressure ? 1 : 0);
         }
 
         private void _chooseCoreResponse(bool wardenAlive, bool sapperAlive)

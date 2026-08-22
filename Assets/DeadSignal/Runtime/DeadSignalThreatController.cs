@@ -75,7 +75,8 @@ namespace DeadSignal
             m_director = new SecurityEscalationDirector(
                 tuning.ReinforcementEntryDelay,
                 tuning.ReinforcementSafeDistance,
-                UnityEngine.Random.Range(0, 2) == 1);
+                UnityEngine.Random.Range(0, 2) == 1,
+                tuning.DeadZoneTraceDuration);
             m_showFeedback = showFeedback;
             m_wardenHealth = tuning.WardenHealth;
             m_sapperHealth = tuning.SapperHealth;
@@ -111,6 +112,8 @@ namespace DeadSignal
         public int EscalationTier => m_director.EscalationTier;
         public int ReinforcementsRemaining => m_director.ReinforcementsRemaining;
         public float ReinforcementEntryCountdown => m_director.EntryCountdown;
+        public bool IsDeadZoneTraceActive => m_director.IsDeadZoneTraceActive;
+        public float DeadZoneTraceSecondsRemaining => m_director.DeadZoneTraceSecondsRemaining;
         public SecurityReinforcement PendingReinforcement => m_director.PendingReinforcement;
 
         public void BeginExtractionPressure()
@@ -123,9 +126,9 @@ namespace DeadSignal
             m_shotCooldown = Mathf.Max(0f, m_shotCooldown - dt);
         }
 
-        public void Tick(float dt)
+        public void Tick(float dt, bool playerPowered)
         {
-            _tickDirector(dt);
+            _tickDirector(dt, playerPowered);
             _tickInterceptor(dt);
             _tickSuppressor(dt);
             _tickWarden(dt);
@@ -154,11 +157,13 @@ namespace DeadSignal
             m_projectiles.Add(new Projectile(shot, direction.normalized, m_projectileTuning.Lifetime));
         }
 
-        private void _tickDirector(float dt)
+        private void _tickDirector(float dt, bool playerPowered)
         {
+            var traceWasCompleted = m_director.IsDeadZoneTraceCompleted;
             var reinforcement = m_director.Tick(
                 dt,
                 m_model.TowerOnline,
+                playerPowered,
                 m_model.Salvage,
                 m_extractionPressure,
                 IsInterceptorAlive,
@@ -169,6 +174,11 @@ namespace DeadSignal
                 DeadSignalWorld.FlatDistance(m_world.Player.position, m_world.Warden.position),
                 DeadSignalWorld.FlatDistance(m_world.Player.position, m_world.Sapper.position),
                 m_world.GetSafestInterceptorEntryDistance(m_world.Player.position));
+            if (!traceWasCompleted && m_director.IsDeadZoneTraceCompleted)
+            {
+                m_showFeedback("SECURITY TRACE COMPLETE — INTERCEPTOR DISPATCHED");
+            }
+
             if (reinforcement == SecurityReinforcement.Interceptor)
             {
                 m_interceptorHealth = m_tuning.InterceptorHealth;

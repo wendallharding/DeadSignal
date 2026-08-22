@@ -3892,3 +3892,35 @@ The bounded director now responds to the player's combat choice instead of alway
 - Runtime evidence follows a meaningful combat route: the Sapper is purged first for 16 reclaimed Signal, three caches bank the bounded reserve, the Interceptor enters first, and Sapper is selected as the next response without bypassing safe entry. Deterministic coverage proves the reverse Warden-first route and both double-purge tie-break orders.
 - No human playtest was performed. Subjective readability of the changing response, frequency of each order, mixed-role pressure, and the effect on extraction reserve remain unknown.
 - Manual playtest next: run Sapper-first, Warden-first, and double-purge routes. Record first purge, second/third response order, warning recognition, peak live roles, hits and pulses, Signal spent/reclaimed, any abandoned cache or route, and uplink start/end reserve. Confirm the adaptive response feels reactive rather than arbitrary before expanding to a second tower region.
+## 2026-08-22 — Autonomous Run 68 — Dead-zone security trace
+
+### Milestone, player benefit, and acceptance
+
+Dead-zone greed now changes encounter timing instead of costing Signal alone. After tower activation, eight continuous seconds outside powered territory completes a security trace and banks the existing first Interceptor response before salvage is secured. Acceptance required a designer-tuned threshold, continuous exposure only, immediate partial-progress reset in powered territory, a live HUD countdown, one trace-complete callout, reuse of the existing authored/safe entry flow, and no increase to the four-response cap when cache one is later collected.
+
+### Files and systems changed
+
+- Extended `SecurityEscalationDirector.cs` with continuous dead-zone trace state and a shared opening budget: either cache one or a completed trace unlocks response slot one, never both. Existing purge adaptation, role uniqueness, three salvage tiers, extraction-only Suppressor, safe-entry distance, and warning timing are unchanged.
+- Extended `ThreatBalanceTuning.cs` and `ThreatBalanceTuning.asset` with an eight-second designer-facing trace duration and validation.
+- Updated `DeadSignalGame.cs` and `DeadSignalThreatController.cs` to route authoritative powered-territory state into the director, expose narrow validation state, and issue a single trace-complete Interceptor callout.
+- Updated `DeadSignalHud.cs` to show the remaining trace time only during partial lock-on, before the established reinforcement-entry warning takes over.
+- Expanded `SecurityEscalationDirectorTests.cs`, `ThreatBalanceTuningTests.cs`, and `BootstrapSmokeTests.cs` with continuous-exposure, safety reset, shared-budget, tuning, and full-runtime trace coverage.
+- Updated `GAME_VISION.md`, `BACKLOG.md`, and this devlog. No scene, prefab, material, texture, audio, package, project setting, input, save data, enemy stat, Signal cost/reward, entrance, or map-layout change is owned by this milestone. Sixty Unity setup/build serializer rewrites were restored after validation.
+
+### Exact validation evidence
+
+1. Focused EditMode: exit `0`; `12/12` passed in `0.049986s`; `Logs/run68-editmode-focused-results.xml` and `Logs/run68-editmode-focused.log`.
+2. Focused runtime trace path: exit `0`; `1/1` passed in `9.4129161s`; `Logs/run68-playmode-focused-results.xml` and `Logs/run68-playmode-focused.log`. At one second the trace was active with 6.5–7.2 seconds remaining and no reserve; after 8.2 seconds the trace was complete and exactly one Interceptor response was pending.
+3. Full EditMode: exit `0`; `74/74` passed, `0` failed, `0` skipped in `0.201845s`; `Logs/run68-editmode-final-results.xml` and `Logs/run68-editmode-final.log`.
+4. Full PlayMode: exit `0`; `8/8` passed, `0` failed, `0` skipped in `25.5687778s`; `Logs/run68-playmode-final-results.xml` and `Logs/run68-playmode-final.log`.
+5. Windows x64 development build: exit `0`; Unity reported `241,165,757` bytes in `15.78s`; `Build/Windows/DeadSignal.exe` and `Logs/run68-build.log`.
+6. Packaged null-device smoke: exit `0` with one `[DEAD SIGNAL STANDALONE SMOKE] PASS`; `Logs/run68-standalone.log`.
+7. Post-cleanup full EditMode against the exact retained files: exit `0`; `74/74` passed in `0.1240765s`; `Logs/run68-editmode-postcleanup-results.xml` and `Logs/run68-editmode-postcleanup.log`.
+8. Final critical scans found no compiler errors, null or missing references, unhandled exceptions, failed assertions, build failure, or smoke failure. The logs contain only the known Unity licensing handshake noise and a harmless standalone shutdown curl callback. `git diff --check` passed.
+
+### Bugs found, limitations, playtest evidence, and next step
+
+- The first focused Unity command compiled cleanly but explicit `-quit` ended the editor before the Test Runner emitted XML. The corrected invocation omitted `-quit`; all focused and broad results above are authoritative. No production change was made to hide the harness issue.
+- Deterministic coverage proves powered territory clears a partial trace and a completed trace plus cache one still owns exactly one response slot.
+- Runtime evidence proves the actual powered-area query drives the trace and that completion feeds the authored Interceptor queue. No human playtest was performed, so eight-second readability, willingness to retreat, and whether direct cache routes trigger the trace too often remain subjective risks.
+- Manual playtest next: activate the tower, take a direct cache route once, then repeat while lingering in the dead zone. Record time to trace visibility/completion, whether returning to cyan territory clearly cancels it, first Interceptor warning time, any abandoned cache or route, damage taken, Signal at cache one, and whether the early cutoff feels earned rather than arbitrary.

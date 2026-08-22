@@ -48,6 +48,8 @@ namespace DeadSignal
         public bool IsPlayerSuppressed => m_threats?.IsPlayerSuppressed ?? false;
         public int SecurityEscalationTier => m_threats?.EscalationTier ?? 0;
         public int SecurityReinforcementsRemaining => m_threats?.ReinforcementsRemaining ?? 0;
+        public bool IsDeadZoneSecurityTraceActive => m_threats?.IsDeadZoneTraceActive ?? false;
+        public float DeadZoneSecurityTraceSecondsRemaining => m_threats?.DeadZoneTraceSecondsRemaining ?? 0f;
         public SecurityReinforcement PendingSecurityReinforcement =>
             m_threats?.PendingReinforcement ?? SecurityReinforcement.None;
         public bool IsExtractionUplinkActive => m_extractionUplink?.IsActive ?? false;
@@ -382,7 +384,7 @@ namespace DeadSignal
             }
 
             m_world.TickTower(dt, m_model.TowerOnline);
-            m_threats.Tick(dt);
+            m_threats.Tick(dt, powered);
             _tryTriggerEmergencyCapacitor();
             m_salvage.Tick(dt);
             m_world.TickExtraction(dt, m_model.CanExtract);
