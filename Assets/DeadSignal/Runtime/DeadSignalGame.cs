@@ -52,6 +52,7 @@ namespace DeadSignal
         public float DeadZoneSecurityTraceSecondsRemaining => m_threats?.DeadZoneTraceSecondsRemaining ?? 0f;
         public SecurityReinforcement PendingSecurityReinforcement =>
             m_threats?.PendingReinforcement ?? SecurityReinforcement.None;
+        public float ReinforcementEntryCountdown => m_threats?.ReinforcementEntryCountdown ?? 0f;
         public bool IsExtractionUplinkActive => m_extractionUplink?.IsActive ?? false;
         public float ExtractionUplinkSecondsRemaining => m_extractionUplink?.SecondsRemaining ?? 0f;
         public bool LastSignalBoltBlockedByEnvironment => m_threats?.LastShotBlockedByEnvironment ?? false;

@@ -14,6 +14,15 @@
 
 ## P1 — Prove the loop
 
+### Run 69 extraction-response-priority ideas
+
+- [x] Promote the existing extraction Suppressor ahead of unresolved salvage reserves when the six-second uplink begins
+- [x] Restart the full designer-tuned entry warning when promotion replaces an in-progress salvage warning
+- [x] Preserve the authored safer entrance, six-metre exclusion, and role-uniqueness hold for the promoted response
+- [x] Keep skipped salvage responses available after deployment without duplicating the Suppressor or exceeding four total responses
+- [x] Prove the unresolved-reserve extraction route in deterministic and complete-runtime tests
+- [ ] Playtest clean and avoidance returns for Suppressor warning recognition, field arrival, final maneuver, and uplink reserve
+
 ### Run 68 dead-zone security-trace ideas
 
 - [x] Accumulate a designer-tuned security trace only while the tower is online and the player remains outside powered territory

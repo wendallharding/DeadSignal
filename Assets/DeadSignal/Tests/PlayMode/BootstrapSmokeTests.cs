@@ -1421,6 +1421,10 @@ namespace DeadSignal.Tests
                 Assert.That(game.ExtractionUplinkSecondsRemaining, Is.InRange(5.8f, 6f));
                 Assert.That(game.SecurityReinforcementsRemaining, Is.EqualTo(3),
                     "The extraction pursuit should bank exactly one response beyond the two remaining salvage reserves.");
+                Assert.That(game.PendingSecurityReinforcement, Is.EqualTo(SecurityReinforcement.Suppressor),
+                    "Extraction readiness should promote its unique denial threat ahead of unresolved salvage reserves.");
+                Assert.That(game.ReinforcementEntryCountdown, Is.InRange(2.3f, 2.5f),
+                    "The promoted response should retain its full readable entry warning.");
                 Assert.That(runHud.activeSelf, Is.True, "The player must retain movement and combat control during the uplink.");
                 var initialUplinkCountdown = game.ExtractionUplinkSecondsRemaining;
                 yield return new WaitForSeconds(0.2f);

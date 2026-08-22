@@ -148,5 +148,45 @@ namespace DeadSignal.Tests
             Assert.That(director.Tick(2f, true, 3, true, false, false, false, false, 8f, 8f, 8f, 8f), Is.EqualTo(SecurityReinforcement.Suppressor));
             Assert.That(director.ReinforcementsRemaining, Is.Zero);
         }
+
+        [Test]
+        public void Tick_ExtractionPromotesSuppressorAheadOfUnresolvedSalvageResponses()
+        {
+            var director = new SecurityEscalationDirector(2f, 6f);
+
+            director.Tick(0f, true, 3, false, false, false, false, false, 8f, 8f, 8f, 8f);
+            Assert.That(director.PendingReinforcement, Is.EqualTo(SecurityReinforcement.Interceptor));
+
+            director.Tick(0f, true, 3, true, false, false, false, false, 8f, 8f, 8f, 8f);
+
+            Assert.That(director.PendingReinforcement, Is.EqualTo(SecurityReinforcement.Suppressor));
+            Assert.That(director.EntryCountdown, Is.EqualTo(2f),
+                "Changing roles at uplink start must restart the full readable entry warning.");
+            Assert.That(director.ReinforcementsRemaining, Is.EqualTo(4));
+            Assert.That(director.Tick(2f, true, 3, true, false, false, false, false, 8f, 8f, 8f, 8f),
+                Is.EqualTo(SecurityReinforcement.Suppressor));
+            Assert.That(director.ReinforcementsRemaining, Is.EqualTo(3));
+
+            director.Tick(0f, true, 3, true, false, false, false, true, 8f, 8f, 8f, 8f);
+            Assert.That(director.PendingReinforcement, Is.EqualTo(SecurityReinforcement.Interceptor),
+                "The earlier bounded salvage response should remain available after the promoted Suppressor.");
+        }
+
+        [Test]
+        public void Tick_PromotedSuppressorStillRequiresSafeUniqueEntry()
+        {
+            var director = new SecurityEscalationDirector(2f, 6f);
+
+            Assert.That(director.Tick(5f, true, 3, true, false, false, false, true, 8f, 8f, 8f, 8f),
+                Is.EqualTo(SecurityReinforcement.None));
+            Assert.That(director.PendingReinforcement, Is.EqualTo(SecurityReinforcement.None));
+            Assert.That(director.Tick(5f, true, 3, true, false, false, false, false, 8f, 8f, 8f, 3f),
+                Is.EqualTo(SecurityReinforcement.None));
+            Assert.That(director.PendingReinforcement, Is.EqualTo(SecurityReinforcement.None));
+            Assert.That(director.Tick(0f, true, 3, true, false, false, false, false, 8f, 8f, 8f, 8f),
+                Is.EqualTo(SecurityReinforcement.None));
+            Assert.That(director.PendingReinforcement, Is.EqualTo(SecurityReinforcement.Suppressor));
+            Assert.That(director.EntryCountdown, Is.EqualTo(2f));
+        }
     }
 }

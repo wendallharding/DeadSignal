@@ -69,7 +69,7 @@ This autonomous run is accepted when a fresh Play session provides all of the fo
 - The Sapper's target tether carries repeated authored energy packets toward the tower during approach and latch, making drain direction readable without changing threat timing.
 - The first salvage escalation deploys a red-and-amber Interceptor from the safer of two scene-authored flank gates; it moves toward the extraction route, shows a locked charge line, and commits to an avoidable dash that combines with Warden pursuit and Sapper tower pressure.
 - The next two bounded security responses adapt to the player's combat choices: the first purged Warden or Sapper returns first, the other role follows, and clearing both before the response creates a per-run order variation without duplicate roles or added threat count.
-- The final bounded extraction response is a magenta Suppressor that enters through the safer authored flank gate, warns before projecting a finite slowing Signal-drain field, and forces the player to abandon controlled space or spend Signal to purge it.
+- The final bounded extraction response is a magenta Suppressor that is promoted ahead of unresolved salvage reserves, enters through the safer authored flank gate, warns before projecting a finite slowing Signal-drain field, and forces the player to abandon controlled space or spend Signal to purge it.
 - Three warm salvage pickups can be collected outside the safe starting area.
 - The first salvage cache offers one run-long combat overclock: Chain Arc rewards grouping tactical roles, while Overdrive Thrusters rewards evasion and route greed.
 - Returning to the extraction pad with all salvage starts a six-second mobile uplink; surviving the final bounded security pursuit completes the run.
@@ -176,3 +176,7 @@ The two middle security reserves now react to the player's purge order instead o
 ### Run 68 product decision — dead-zone security trace
 
 After tower activation, remaining outside powered territory for eight continuous seconds now completes a security trace and banks the existing first Interceptor response before salvage is secured. Returning to powered territory clears partial progress, and cache one shares the same response slot, so the trace changes timing rather than increasing the four-response cap. This was selected over a larger map or stronger enemies because dead-zone greed currently costs Signal but does not change tactical pressure; the trace gives players a readable choice between extending a risky route and retreating to break lock-on while preserving authored entrances and established counterplay.
+
+### Run 69 product decision — extraction response priority
+
+Starting the uplink now promotes the existing Suppressor response ahead of any unresolved salvage reinforcements. The promoted role restarts the full safe-entry warning, deploys only once, and leaves earlier bounded reserves available without raising the four-response cap. This was selected over a longer uplink or added wave because the climax already owns a distinct denial threat; guaranteeing its timely introduction creates a more reliable final maneuver without increasing enemy stats, quantity, or unavoidable pressure.

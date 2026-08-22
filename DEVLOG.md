@@ -3924,3 +3924,35 @@ Dead-zone greed now changes encounter timing instead of costing Signal alone. Af
 - Deterministic coverage proves powered territory clears a partial trace and a completed trace plus cache one still owns exactly one response slot.
 - Runtime evidence proves the actual powered-area query drives the trace and that completion feeds the authored Interceptor queue. No human playtest was performed, so eight-second readability, willingness to retreat, and whether direct cache routes trigger the trace too often remain subjective risks.
 - Manual playtest next: activate the tower, take a direct cache route once, then repeat while lingering in the dead zone. Record time to trace visibility/completion, whether returning to cyan territory clearly cancels it, first Interceptor warning time, any abandoned cache or route, damage taken, Signal at cache one, and whether the early cutoff feels earned rather than arbitrary.
+
+## 2026-08-22 — Autonomous Run 69 — Extraction response priority
+
+### Milestone, player benefit, and acceptance
+
+The six-second uplink now promotes its unique Suppressor ahead of unresolved salvage reinforcements, making the return climax reliably introduce space denial instead of spending its warning budget on an older response. Acceptance required the existing response to move to the front without increasing the four-response cap, restart the full 2.5-second warning when it replaces a pending role, preserve role uniqueness and the six-metre safe-entry hold, deploy only once, and leave skipped salvage reserves available afterward.
+
+### Files and systems changed
+
+- Refactored `SecurityEscalationDirector.cs` to track salvage and extraction response ownership separately. Extraction readiness now selects the undeployed Suppressor first, then resumes the bounded Interceptor/adaptive-core sequence; live pending state is explicit so changing roles resets the warning cleanly.
+- Added the narrow read-only `ReinforcementEntryCountdown` surface in `DeadSignalGame.cs` for runtime acceptance evidence.
+- Expanded `SecurityEscalationDirectorTests.cs` with promotion-order, four-response-budget, warning-reset, no-duplicate, deferred-salvage, safe-distance, and live-role holds.
+- Updated `BootstrapSmokeTests.cs` so the complete run starts its uplink with two unresolved salvage responses and proves the Suppressor is immediately pending with the full warning while exactly three total responses remain.
+- Updated `GAME_VISION.md`, `BACKLOG.md`, and this devlog. No enemy stats, Signal costs or rewards, tuning asset, entrance, prefab, scene, map layout, input, audio, package, project setting, or serialized data changed. Sixty Unity setup/build serializer rewrites were restored.
+
+### Exact validation evidence
+
+1. Focused EditMode: exit `0`; `12/12` passed in `0.1034129s`; `Logs/run69-editmode-focused-results.xml` and `Logs/run69-editmode-focused.log`.
+2. Focused complete-runtime PlayMode: exit `0`; `1/1` passed in `12.9929722s`; `Logs/run69-playmode-focused-results.xml` and `Logs/run69-playmode-focused.log`.
+3. Full EditMode: exit `0`; `76/76` passed, `0` failed, `0` skipped in `0.2202168s`; `Logs/run69-editmode-final-results.xml` and `Logs/run69-editmode-final.log`.
+4. Full PlayMode: exit `0`; `8/8` passed, `0` failed, `0` skipped in `25.6527244s`; `Logs/run69-playmode-final-results.xml` and `Logs/run69-playmode-final.log`.
+5. Windows x64 development build: exit `0`; Unity reported `241,165,877` bytes in `11.20s`; `Build/Windows/DeadSignal.exe` and `Logs/run69-build.log`.
+6. Packaged null-device smoke: exit `0` with one `[DEAD SIGNAL STANDALONE SMOKE] PASS`; `Logs/run69-standalone.log`.
+7. Post-cleanup full EditMode against the exact retained task-owned files: exit `0`; `76/76` passed in `0.1335675s`; `Logs/run69-editmode-postcleanup-results.xml` and `Logs/run69-editmode-postcleanup.log`.
+8. Final critical scans found no compiler errors or warnings, null or missing references, unhandled exceptions, failed assertions, build failure, or smoke failure. `git diff --check` passed.
+
+### Bugs fixed, limitations, playtest evidence, and next step
+
+- The prior single index represented both queue order and deployed count. Promoting the Suppressor by changing that index would either lose an older response or repeat the Suppressor at slot four; separate salvage/extraction ownership prevents both failure modes.
+- Automated runtime evidence covers the avoidance route that reaches extraction with two salvage responses unresolved: uplink start reports three total responses remaining, the Suppressor immediately owns a fresh 2.5-second warning, and the run still completes after six seconds. Deterministic evidence proves the deferred Interceptor remains next after Suppressor deployment.
+- No human playtest was performed. The field's actual arrival time after its entry and approach, warning recognition during the uplink, and whether the promoted denial threat creates a meaningful final maneuver remain subjective risks.
+- Manual playtest next: complete one combat-heavy route that clears every reserve before extraction and one avoidance route that leaves two banked. At uplink start record the announced role, warning recognition, Suppressor field activation time, field entries/exits, Signal lost, final movement route, threats purged, uplink start/end reserve, and whether either run ends before the Suppressor can influence a decision.

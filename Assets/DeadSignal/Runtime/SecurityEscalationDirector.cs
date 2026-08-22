@@ -22,12 +22,14 @@ namespace DeadSignal
         private readonly SecurityReinforcement m_bothPurgedPreference;
 
         private int m_observedSalvage;
-        private int m_nextReinforcement;
+        private int m_nextSalvageReinforcement;
         private float m_entryCountdown;
         private float m_deadZoneTraceProgress;
         private bool m_deadZoneTraceCompleted;
         private bool m_extractionPressure;
+        private bool m_extractionResponseDeployed;
         private SecurityReinforcement m_firstCoreResponse;
+        private SecurityReinforcement m_pendingReinforcement;
 
         public SecurityEscalationDirector(
             float entryDelay,
@@ -44,16 +46,16 @@ namespace DeadSignal
         }
 
         public int EscalationTier => m_observedSalvage;
-        public int ReinforcementsRemaining => Math.Max(0, _reinforcementBudget() - m_nextReinforcement);
+        public int ReinforcementsRemaining =>
+            Math.Max(0, _salvageReinforcementBudget() - m_nextSalvageReinforcement) +
+            (m_extractionPressure && !m_extractionResponseDeployed ? 1 : 0);
         public float EntryCountdown => m_entryCountdown;
         public bool IsDeadZoneTraceActive => !m_deadZoneTraceCompleted && m_observedSalvage == 0 && m_deadZoneTraceProgress > 0f;
         public bool IsDeadZoneTraceCompleted => m_deadZoneTraceCompleted;
         public float DeadZoneTraceSecondsRemaining => IsDeadZoneTraceActive
             ? Math.Max(0f, m_deadZoneTraceDuration - m_deadZoneTraceProgress)
             : 0f;
-        public SecurityReinforcement PendingReinforcement => m_entryCountdown > 0f
-            ? _getReinforcement(m_nextReinforcement)
-            : SecurityReinforcement.None;
+        public SecurityReinforcement PendingReinforcement => m_pendingReinforcement;
 
         public SecurityReinforcement Tick(
             float seconds,
@@ -109,18 +111,11 @@ namespace DeadSignal
             m_observedSalvage = Math.Min(RunModel.SalvageRequired, Math.Max(m_observedSalvage, salvage));
             _updateDeadZoneTrace(seconds, playerPowered);
             m_extractionPressure |= extractionPressure && m_observedSalvage >= RunModel.SalvageRequired;
-            var reinforcementBudget = _reinforcementBudget();
-            if (m_nextReinforcement >= reinforcementBudget)
-            {
-                m_entryCountdown = 0f;
-                return SecurityReinforcement.None;
-            }
-
             _chooseCoreResponse(wardenAlive, sapperAlive);
-            var reinforcement = _getReinforcement(m_nextReinforcement);
+            var reinforcement = _getNextReinforcement();
             if (reinforcement == SecurityReinforcement.None)
             {
-                m_entryCountdown = 0f;
+                _clearPendingEntry();
                 return SecurityReinforcement.None;
             }
 
@@ -140,14 +135,18 @@ namespace DeadSignal
             };
             if (roleAlive || entryDistance < m_safeEntryDistance)
             {
-                m_entryCountdown = 0f;
+                _clearPendingEntry();
                 return SecurityReinforcement.None;
             }
 
-            if (m_entryCountdown <= 0f)
+            if (m_pendingReinforcement != reinforcement)
             {
+                m_pendingReinforcement = reinforcement;
                 m_entryCountdown = m_entryDelay;
-                return SecurityReinforcement.None;
+                if (m_entryCountdown > 0f)
+                {
+                    return SecurityReinforcement.None;
+                }
             }
 
             m_entryCountdown = Math.Max(0f, m_entryCountdown - Math.Max(0f, seconds));
@@ -156,13 +155,22 @@ namespace DeadSignal
                 return SecurityReinforcement.None;
             }
 
-            m_nextReinforcement++;
+            if (reinforcement == SecurityReinforcement.Suppressor)
+            {
+                m_extractionResponseDeployed = true;
+            }
+            else
+            {
+                m_nextSalvageReinforcement++;
+            }
+
+            _clearPendingEntry();
             return reinforcement;
         }
 
         private void _updateDeadZoneTrace(float seconds, bool playerPowered)
         {
-            if (m_deadZoneTraceCompleted || m_observedSalvage > 0 || m_nextReinforcement > 0)
+            if (m_deadZoneTraceCompleted || m_observedSalvage > 0 || m_nextSalvageReinforcement > 0)
             {
                 return;
             }
@@ -179,15 +187,14 @@ namespace DeadSignal
             m_deadZoneTraceCompleted = m_deadZoneTraceProgress >= m_deadZoneTraceDuration;
         }
 
-        private int _reinforcementBudget()
+        private int _salvageReinforcementBudget()
         {
-            var openingBudget = Math.Max(m_observedSalvage, m_deadZoneTraceCompleted ? 1 : 0);
-            return openingBudget + (m_extractionPressure ? 1 : 0);
+            return Math.Max(m_observedSalvage, m_deadZoneTraceCompleted ? 1 : 0);
         }
 
         private void _chooseCoreResponse(bool wardenAlive, bool sapperAlive)
         {
-            if (m_nextReinforcement != 1 || m_firstCoreResponse != SecurityReinforcement.None)
+            if (m_nextSalvageReinforcement != 1 || m_firstCoreResponse != SecurityReinforcement.None)
             {
                 return;
             }
@@ -206,7 +213,19 @@ namespace DeadSignal
             }
         }
 
-        private SecurityReinforcement _getReinforcement(int index)
+        private SecurityReinforcement _getNextReinforcement()
+        {
+            if (m_extractionPressure && !m_extractionResponseDeployed)
+            {
+                return SecurityReinforcement.Suppressor;
+            }
+
+            return m_nextSalvageReinforcement < _salvageReinforcementBudget()
+                ? _getSalvageReinforcement(m_nextSalvageReinforcement)
+                : SecurityReinforcement.None;
+        }
+
+        private SecurityReinforcement _getSalvageReinforcement(int index)
         {
             return index switch
             {
@@ -217,6 +236,12 @@ namespace DeadSignal
                     : SecurityReinforcement.Warden,
                 _ => SecurityReinforcement.Suppressor
             };
+        }
+
+        private void _clearPendingEntry()
+        {
+            m_entryCountdown = 0f;
+            m_pendingReinforcement = SecurityReinforcement.None;
         }
     }
 }
