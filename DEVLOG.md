@@ -2990,3 +2990,9 @@ The live Unity project opened during the run and was not closed or controlled. A
 ### Best next step
 
 Start at extraction with the HUD briefly ignored, follow the five cyan inlays to the tower, and confirm their arrow orientation and brightness read cleanly at 16:9 and ultrawide without obscuring the maintenance-deck texture.
+
+### Follow-up: Signal-spine direction correction
+
+The interactive screenshot revealed that all five inlay chevrons visually pointed back toward extraction despite their positions advancing toward the tower. The route setup now rotates every textured inlay exactly 180 degrees, from `-55` to `125` degrees yaw, and the generated route prefab was rebuilt without changing positions, scale, materials, collision, or scene structure.
+
+Focused PlayMode validation in the isolated Unity `6000.3.11f1` copy initially failed `0/1` because a proposed transform-axis assertion did not match the generated artwork's perceived arrowhead. That invalid semantic assertion was replaced with a direct regression on the visually verified authored yaw. The corrected focused run passed `1/1` in `4.6184646` seconds with exit `0`. Manual confirmation in the user's open Game view remains the authoritative visual check.

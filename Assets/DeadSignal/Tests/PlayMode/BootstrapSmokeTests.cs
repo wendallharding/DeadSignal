@@ -91,6 +91,9 @@ namespace DeadSignal.Tests
                 .Select(inlay => Vector3.Distance(inlay.position, towerPosition)).ToArray();
             Assert.That(routeDistances.Zip(routeDistances.Skip(1), (current, next) => next < current).All(value => value),
                 Is.True, "Each authored inlay should advance continuously from extraction toward the tower.");
+            Assert.That(signalSpine.transform.Cast<Transform>().All(inlay =>
+                    Mathf.Abs(Mathf.DeltaAngle(inlay.eulerAngles.y, 125f)) < 0.1f),
+                Is.True, "Every generated inlay must retain the visually verified tower-facing yaw.");
             Assert.That(Object.FindFirstObjectByType<DeadSignalHud>(), Is.Not.Null,
                 "Runtime bootstrap should compose a dedicated HUD presenter.");
             Assert.That(Object.FindFirstObjectByType<ObjectiveBeaconHud>(), Is.Not.Null,

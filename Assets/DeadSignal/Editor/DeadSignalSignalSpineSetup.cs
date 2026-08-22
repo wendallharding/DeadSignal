@@ -130,7 +130,7 @@ namespace DeadSignal.Editor
                     inlay.name = $"Signal Spine Inlay {index + 1}";
                     inlay.transform.SetParent(route.transform, false);
                     inlay.transform.position = s_routePositions[index];
-                    inlay.transform.rotation = Quaternion.Euler(90f, -55f, 0f);
+                    inlay.transform.rotation = Quaternion.Euler(90f, 125f, 0f);
                 }
 
                 PrefabUtility.SaveAsPrefabAsset(route, ROUTE_PREFAB_PATH);
