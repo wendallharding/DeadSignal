@@ -15,3 +15,5 @@ MonoBehaviour:
   m_chainArcRadius: 4.5
   m_thrusterSpeedMultiplier: 1.25
   m_thrusterAccelerationMultiplier: 1.2
+  m_emergencyCapacitorThreshold: 25
+  m_emergencyCapacitorRestore: 22

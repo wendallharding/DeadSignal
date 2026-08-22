@@ -140,7 +140,12 @@ namespace DeadSignal
         public int CurrentSalvageChain => m_salvage?.ChainCount ?? 0;
         public float SalvageChainSecondsRemaining => m_salvage?.ChainSecondsRemaining ?? 0f;
         public bool IsOverclockChoicePending => m_overclockChoice?.IsPending ?? false;
+        public bool IsAuxiliaryOverclockChoicePending => m_overclockChoice?.IsAuxiliaryPending ?? false;
         public SignalOverclock SelectedOverclock => m_overclockChoice?.Selected ?? SignalOverclock.None;
+        public SignalAuxiliaryOverclock SelectedAuxiliaryOverclock =>
+            m_overclockChoice?.SelectedAuxiliary ?? SignalAuxiliaryOverclock.None;
+        public bool IsEmergencyCapacitorAvailable => m_overclockChoice?.IsEmergencyCapacitorAvailable ?? false;
+        public bool IsFeedbackShieldCharged => m_overclockChoice?.IsFeedbackShieldCharged ?? false;
         public int ChainArcsPlayed => (m_combatFeedback as CombatFeedbackController)?.ChainArcsPlayed ?? 0;
         public float CurrentPlayerMaximumSpeed => m_playerMovementTuning == null
             ? 0f
@@ -346,6 +351,7 @@ namespace DeadSignal
             var powered = m_world.IsPowered(m_world.Player.position, m_model.TowerOnline);
             m_audio.Tick(powered, m_model.TowerOnline, m_model.Signal / RunModel.MaximumSignal);
             m_model.Advance(dt, movement.sqrMagnitude > 0.01f, powered);
+            _tryTriggerEmergencyCapacitor();
             m_signalDust.Tick(powered, m_model.TowerOnline, m_model.Signal / RunModel.MaximumSignal);
             m_lowSignalWarning.Tick(dt);
             m_metrics.Advance(dt, powered);
@@ -375,6 +381,7 @@ namespace DeadSignal
 
             m_world.TickTower(dt, m_model.TowerOnline);
             m_threats.Tick(dt);
+            _tryTriggerEmergencyCapacitor();
             m_salvage.Tick(dt);
             m_world.TickExtraction(dt, m_model.CanExtract);
             if (m_extractionUplink.Tick(dt) && m_model.TryExtract())
@@ -515,6 +522,12 @@ namespace DeadSignal
 
         private void _handleOverclockChoice()
         {
+            if (m_overclockChoice.IsAuxiliaryPending)
+            {
+                _handleAuxiliaryOverclockChoice();
+                return;
+            }
+
             if (m_fireBuffered || m_input.PressedFire())
             {
                 m_fireBuffered = false;
@@ -529,6 +542,35 @@ namespace DeadSignal
             if (m_input.PressedInteract() && m_overclockChoice.TrySelect(SignalOverclock.OverdriveThrusters))
             {
                 _showFeedback("OVERDRIVE THRUSTERS ONLINE — SPEED AND RESPONSE BOOSTED");
+            }
+        }
+
+        private void _handleAuxiliaryOverclockChoice()
+        {
+            if (m_fireBuffered || m_input.PressedFire())
+            {
+                m_fireBuffered = false;
+                if (m_overclockChoice.TrySelect(SignalAuxiliaryOverclock.EmergencyCapacitor))
+                {
+                    _showFeedback("EMERGENCY CAPACITOR ARMED — LOW SIGNAL TRIGGERS ONE REFILL");
+                    _tryTriggerEmergencyCapacitor();
+                }
+
+                return;
+            }
+
+            if (m_input.PressedInteract() && m_overclockChoice.TrySelect(SignalAuxiliaryOverclock.FeedbackShield))
+            {
+                _showFeedback("FEEDBACK SHIELD CHARGED — PURGE A THREAT TO RECHARGE");
+            }
+        }
+
+        private void _tryTriggerEmergencyCapacitor()
+        {
+            var restored = m_overclockChoice.TryTriggerEmergencyCapacitor(m_model, m_overclockTuning);
+            if (restored > 0f)
+            {
+                _showFeedback($"EMERGENCY CAPACITOR FIRED  +{restored:0} SIGNAL");
             }
         }
 

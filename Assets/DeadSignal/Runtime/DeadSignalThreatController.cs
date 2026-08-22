@@ -218,8 +218,11 @@ namespace DeadSignal
                 if (IsPlayerSuppressed && m_suppressorPulseCountdown <= 0f)
                 {
                     m_suppressorPulseCountdown = m_tuning.SuppressorPulseInterval;
-                    m_model.TakeSuppressionPulse(m_tuning.SuppressorSignalDrain);
-                    m_showFeedback($"SUPPRESSION FIELD  −{m_tuning.SuppressorSignalDrain:0} SIGNAL — BREAK OUT");
+                    if (!_tryAbsorbThreatDamage("SUPPRESSION PULSE"))
+                    {
+                        m_model.TakeSuppressionPulse(m_tuning.SuppressorSignalDrain);
+                        m_showFeedback($"SUPPRESSION FIELD  −{m_tuning.SuppressorSignalDrain:0} SIGNAL — BREAK OUT");
+                    }
                 }
 
                 if (m_suppressorFieldCountdown <= 0f)
@@ -357,6 +360,11 @@ namespace DeadSignal
             }
 
             m_interceptorHitCooldown = m_tuning.InterceptorHitCooldown;
+            if (_tryAbsorbThreatDamage("INTERCEPTOR IMPACT"))
+            {
+                return;
+            }
+
             m_model.TakeSecurityHit();
             m_metrics.RecordSecurityHit();
             m_combatFeedback.PlaySecurityImpact(m_world.Player.position + Vector3.up * 0.58f);
@@ -392,6 +400,11 @@ namespace DeadSignal
             else if (m_wardenAttackCooldown <= 0f)
             {
                 m_wardenAttackCooldown = m_tuning.WardenAttackCooldown;
+                if (_tryAbsorbThreatDamage("WARDEN IMPACT"))
+                {
+                    return;
+                }
+
                 m_model.TakeSecurityHit();
                 m_metrics.RecordSecurityHit();
                 m_combatFeedback.PlaySecurityImpact(m_world.Player.position + Vector3.up * 0.58f);
@@ -448,13 +461,16 @@ namespace DeadSignal
             }
 
             m_sapperPulseCooldown = m_tuning.SapperPulseInterval;
-            m_model.TakeSapperPulse();
-            m_metrics.RecordSapperPulse();
             m_combatFeedback.PlaySapperImpact(m_world.TowerPosition + Vector3.up * 0.65f);
             m_audio.Play(DeadSignalAudioCue.SapperPulse);
             m_world.SapperTelegraph.SetThreatState(true, true, m_sapperPulseCooldown, m_tuning.SapperPulseInterval);
             m_world.SapperTelegraph.NotifyPulse();
-            m_showFeedback($"SAPPER DRAIN  -{RunModel.SapperPulseCost:0} SIGNAL");
+            if (!_tryAbsorbThreatDamage("SAPPER PULSE"))
+            {
+                m_model.TakeSapperPulse();
+                m_metrics.RecordSapperPulse();
+                m_showFeedback($"SAPPER DRAIN  -{RunModel.SapperPulseCost:0} SIGNAL");
+            }
         }
 
         private void _tickProjectiles(float dt)
@@ -656,7 +672,7 @@ namespace DeadSignal
                 m_metrics.RecordThreatPurge(restored);
                 m_world.PurgeWarden();
                 m_combatFeedback.PlaySignalRecovery(m_world.Warden.position + Vector3.up * 0.55f);
-                m_showFeedback($"WARDEN PURGED  +{restored:0} SIGNAL");
+                m_showFeedback($"WARDEN PURGED  +{restored:0} SIGNAL{_feedbackShieldRechargeText()}");
                 return;
             }
 
@@ -674,7 +690,7 @@ namespace DeadSignal
                 m_metrics.RecordThreatPurge(restored);
                 m_world.PurgeSapper();
                 m_combatFeedback.PlaySignalRecovery(m_world.Sapper.position + Vector3.up * 0.55f);
-                m_showFeedback($"SAPPER PURGED  +{restored:0} SIGNAL");
+                m_showFeedback($"SAPPER PURGED  +{restored:0} SIGNAL{_feedbackShieldRechargeText()}");
                 return;
             }
 
@@ -692,7 +708,7 @@ namespace DeadSignal
                 m_metrics.RecordThreatPurge(restored);
                 m_world.PurgeInterceptor();
                 m_combatFeedback.PlaySignalRecovery(m_world.Interceptor.position + Vector3.up * 0.5f);
-                m_showFeedback($"INTERCEPTOR PURGED  +{restored:0} SIGNAL");
+                m_showFeedback($"INTERCEPTOR PURGED  +{restored:0} SIGNAL{_feedbackShieldRechargeText()}");
                 return;
             }
 
@@ -710,12 +726,28 @@ namespace DeadSignal
                 m_metrics.RecordThreatPurge(restored);
                 m_world.PurgeSuppressor();
                 m_combatFeedback.PlaySignalRecovery(m_world.Suppressor.position + Vector3.up * 0.5f);
-                m_showFeedback($"SUPPRESSOR PURGED  +{restored:0} SIGNAL");
+                m_showFeedback($"SUPPRESSOR PURGED  +{restored:0} SIGNAL{_feedbackShieldRechargeText()}");
                 return;
             }
 
             m_showFeedback("SUPPRESSOR ARMOR HIT");
         }
+
+        private bool _tryAbsorbThreatDamage(string threatName)
+        {
+            if (!m_overclockChoice.TryAbsorbThreatDamage())
+            {
+                return false;
+            }
+
+            m_combatFeedback.PlaySignalRecovery(m_world.Player.position + Vector3.up * 0.58f);
+            m_audio.Play(DeadSignalAudioCue.SignalImpact);
+            m_showFeedback($"FEEDBACK SHIELD — {threatName} NEGATED  //  PURGE TO RECHARGE");
+            return true;
+        }
+
+        private string _feedbackShieldRechargeText() =>
+            m_overclockChoice.NotifyThreatPurged() ? "  //  SHIELD RECHARGED" : string.Empty;
 
         private sealed class Projectile
         {

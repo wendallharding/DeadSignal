@@ -163,3 +163,7 @@ The first secured cache now offers one run-long choice while threats and movemen
 ### Run 65 product decision — extraction Suppressor
 
 The fourth bounded security response is now a Suppressor rather than another Interceptor. It reuses the safer authored flank gate, advances toward the lane between the drone and extraction, warns with an amber 3.25-metre ring for one second, then projects a magenta field for 2.5 seconds. A caught drone retains control but moves at 55% speed and loses 4 Signal per second until it exits; three hits purge the unit and reclaim up to 15 Signal. This was selected over raw pursuit scaling because extraction needed a fourth tactical role that denies comfortable space while preserving readable counterplay through movement, route abandonment, or combat.
+
+### Run 66 product decision — second-cache auxiliary overclock
+
+The second secured cache now adds one economy-defense choice on top of the first cache's combat-mobility fork, creating four possible run builds. Emergency Capacitor performs one automatic 22-Signal refill at 25 Signal or lower; Feedback Shield negates one discrete enemy impact or pulse and recharges only when a threat is purged. Both retain passive dead-zone pressure and use the existing Fire/Use routes without also firing or interacting. This was selected over more random drops or a larger map because the current short run needs surprising combinations and a reason to change fighting, fleeing, and reserve-management plans before adding another region.

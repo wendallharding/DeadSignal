@@ -3825,3 +3825,37 @@ The final bounded extraction response now introduces a Suppressor that denies co
 - The warning and active ring are separate colors, the field has a fixed lifetime, and the player retains input, so entering the ring always has movement, route, or combat counterplay.
 - Automated coverage proves director ordering, tuning bounds, authored composition, build inclusion, and regression safety, but it does not yet drive a full purge sequence far enough to observe the fourth unit's warning/field lifecycle in PlayMode. No human playtest was performed.
 - Best next step: play one combat-heavy return that clears earlier reserves and one avoidance return, recording whether the Suppressor enters during the six-second uplink, warning recognition, field entries/exits, Signal lost, movement escape time, purge choice, and whether Overdrive trivializes the field or Chain Arc dominates its mixed encounter.
+
+## 2026-08-22 — Autonomous Run 66 — Second-cache auxiliary overclock
+
+### Milestone, player benefit, and acceptance
+
+The second required cache now adds an economy-defense decision on top of the first cache's combat-mobility fork, expanding the short run from two builds to four without increasing enemy stats or map size. Acceptance required exactly one live-pressure cache-two choice, input consumption, a designer-tuned one-use low-Signal refill, one discrete enemy-damage shield, purge-only shield recharge, persistent HUD state, run reset through normal scene reload, and deterministic plus runtime coverage of both branches.
+
+### Files and systems changed
+
+- Extended `SignalOverclockChoice.cs` with queued primary/auxiliary stages, Emergency Capacitor state, Feedback Shield state, threat-damage absorption, and purge recharge. Collecting cache two before resolving cache one safely queues the second choice.
+- Extended `SignalOverclockTuning.cs` and `SignalOverclockTuning.asset` with a 25-Signal trigger and 22-Signal capacitor refill. Existing Chain Arc and Overdrive values are unchanged.
+- Updated `DeadSignalGame.cs` and `DeadSignalSalvageController.cs` so cache two offers the auxiliary choice under live simulation, Fire selects Capacitor, Use selects Shield, choice inputs cannot also shoot/interact, and Capacitor evaluates after passive and combat drain.
+- Updated `DeadSignalThreatController.cs` so a charged shield negates one Warden/Interceptor impact, Sapper pulse, or Suppressor pulse; passive dead-zone drain remains authoritative. Purging any threat recharges an empty shield and reports the state.
+- Updated `DeadSignalHud.cs` with stage-specific prompts and persistent `CAPACITOR: ARMED/SPENT` or `SHIELD: CHARGED/EMPTY` build state.
+- Expanded `SignalOverclockChoiceTests.cs`, `ThreatBalanceTuningTests.cs`, and `BootstrapSmokeTests.cs` with queued-choice, one-shot capacitor, shield consume/recharge, both runtime selection routes, choice-input consumption, and a real shielded Warden impact.
+- Updated `GAME_VISION.md`, `BACKLOG.md`, and this devlog. No scene, prefab, texture, audio, package, project-setting, input-binding, save-data, base economy, enemy-stat, extraction-duration, or map-layout change is owned by this milestone. Sixty Unity build/setup serializer side effects were restored.
+
+### Exact validation evidence
+
+1. Unity `6000.3.11f1` import and compilation completed with return code `0`; `Logs/run66-compile.log`.
+2. Focused EditMode: exit `0`; `5/5` passed in `0.0332347s`; `Logs/run66-editmode-focused-results.xml` and `Logs/run66-editmode-focused.log`.
+3. Focused runtime Feedback Shield path: exit `0`; `1/1` passed in `0.9249074s`. Cache two offered the choice, gamepad Use selected Shield, and one live Warden impact spent it without Signal loss; `Logs/run66-playmode-focused-results.xml` and `Logs/run66-playmode-focused.log`.
+4. Final EditMode: exit `0`; `68/68` passed, `0` failed, `0` skipped in `0.1338162s`; `Logs/run66-editmode-final-results.xml` and `Logs/run66-editmode-final.log`.
+5. Corrected complete-runtime flow: exit `0`; `1/1` passed in `12.93332s`; `Logs/run66-playmode-runtime-results.xml` and `Logs/run66-playmode-runtime.log`.
+6. Final PlayMode: exit `0`; `7/7` passed, `0` failed, `0` skipped in `16.7952077s`; both auxiliary input routes and the established complete run/extraction/restart flow passed; `Logs/run66-playmode-final2-results.xml` and `Logs/run66-playmode-final2.log`.
+7. Windows x64 development build: exit `0`; Unity reported `241,162,952` bytes in `15.71s`; `Build/Windows/DeadSignal.exe`; `Logs/run66-build.log`.
+8. Packaged null-device smoke: exit `0` with one `[DEAD SIGNAL STANDALONE SMOKE] PASS`; `Logs/run66-standalone.log`. Final critical scans found no compiler errors, null/missing references, unhandled exceptions, failed assertions, build failure, or smoke failure; `git diff --check` passed.
+9. Post-cleanup Unity compile and final EditMode: exit `0`; `68/68` passed in `0.1199376s` against the exact retained task-owned files; `Logs/run66-editmode-postcleanup-results.xml` and `Logs/run66-editmode-postcleanup.log`.
+
+### Bugs found, limitations, playtest evidence, and next step
+
+- The initial full PlayMode run passed `6/7`: the established complete-run test attempted extraction while the deliberate cache-two choice was pending, so Use correctly selected Feedback Shield instead of starting uplink. The lifecycle scenario now resolves the required choice explicitly; the focused rerun and final suite passed. No production bypass was added.
+- Automated evidence proves four legal primary/auxiliary combinations, Capacitor remains idle above 25 Signal and restores exactly 22 once below it, Shield negates one live Warden hit without reserve loss, and an empty Shield cannot absorb again until a purge. No human playtest was performed, so choice-panel fit, decision time under mixed pressure, actual recharge frequency, and comparative extraction reserve remain unjudged.
+- Manual playtest next: run Chain Arc + Capacitor, Chain Arc + Shield, Overdrive + Capacitor, and Overdrive + Shield. Record selection time, Signal at cache two, capacitor trigger reserve, shield blocks/recharges, threats purged, abandoned caches/routes, uplink start/end reserve, hits taken, and whether any combination removes the need to fight or flee.

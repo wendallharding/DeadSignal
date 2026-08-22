@@ -14,6 +14,15 @@
 
 ## P1 — Prove the loop
 
+### Run 66 second-cache auxiliary-overclock ideas
+
+- [x] Offer exactly one complementary economy-defense choice after the second required cache while pressure continues
+- [x] Let Fire arm Emergency Capacitor for one designer-tuned 22-Signal refill when reserve falls to 25 or lower
+- [x] Let Use charge Feedback Shield to negate one discrete enemy impact or pulse without removing dead-zone drain
+- [x] Recharge an empty Feedback Shield only when the player purges a threat, preserving a reason to fight
+- [x] Combine either auxiliary with Chain Arc or Overdrive for four distinct run builds and keep both layers visible in the HUD
+- [ ] Playtest all four combinations for choice readability, capacitor timing, shield recharge frequency, and extraction reserve
+
 ### Run 65 extraction-Suppressor ideas
 
 - [x] Reserve the fourth bounded security response for a Suppressor instead of repeating the Interceptor during extraction

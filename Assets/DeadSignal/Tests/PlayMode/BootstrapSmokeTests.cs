@@ -65,6 +65,77 @@ namespace DeadSignal.Tests
                 Assert.That(game.SelectedOverclock, Is.EqualTo(SignalOverclock.OverdriveThrusters));
                 Assert.That(game.CurrentPlayerMaximumSpeed, Is.EqualTo(baselineSpeed * 1.25f).Within(0.001f));
                 Assert.That(game.IsOverclockChoicePending, Is.False);
+
+                var secondCache = game.transform.Cast<Transform>()
+                    .First(child => child.name == "Salvage Cache" && child.gameObject.activeSelf);
+                player.position = secondCache.position;
+                yield return null;
+                Assert.That(game.IsAuxiliaryOverclockChoicePending, Is.True);
+                InputSystem.QueueStateEvent(gamepad, new GamepadState().WithButton(GamepadButton.West));
+                yield return null;
+                InputSystem.QueueStateEvent(gamepad, new GamepadState());
+                yield return null;
+
+                Assert.That(game.SelectedAuxiliaryOverclock, Is.EqualTo(SignalAuxiliaryOverclock.FeedbackShield));
+                Assert.That(game.IsFeedbackShieldCharged, Is.True);
+                Assert.That(game.IsOverclockChoicePending, Is.False);
+
+                var warden = game.transform.Find("Security Warden");
+                warden.position = new Vector3(20f, 0f, 20f);
+                player.position = new Vector3(-0.6f, 0f, 0.4f);
+                InputSystem.QueueStateEvent(gamepad, new GamepadState().WithButton(GamepadButton.West));
+                yield return null;
+                InputSystem.QueueStateEvent(gamepad, new GamepadState());
+                yield return null;
+                warden.position = player.position;
+                var signalBeforeShieldedHit = game.CurrentSignal;
+                yield return null;
+
+                Assert.That(game.IsFeedbackShieldCharged, Is.False,
+                    "The first live Warden impact should spend the charged Feedback Shield.");
+                Assert.That(game.CurrentSignal, Is.EqualTo(signalBeforeShieldedHit).Within(0.01f),
+                    "A shielded enemy impact should not consume Signal in powered territory.");
+            }
+            finally
+            {
+                InputSystem.RemoveDevice(gamepad);
+            }
+        }
+
+        [UnityTest]
+        public IEnumerator SecondSalvage_FireSelectsCapacitorWithoutFiringSignalBolt()
+        {
+            yield return SceneManager.LoadSceneAsync("SampleScene");
+            yield return null;
+
+            var gamepad = InputSystem.AddDevice<Gamepad>();
+            try
+            {
+                var game = Object.FindFirstObjectByType<DeadSignalGame>();
+                var player = game.transform.Find("Maintenance Drone");
+                var firstCache = game.transform.Cast<Transform>()
+                    .First(child => child.name == "Salvage Cache" && child.gameObject.activeSelf);
+                player.position = firstCache.position;
+                yield return null;
+                InputSystem.QueueStateEvent(gamepad, new GamepadState().WithButton(GamepadButton.West));
+                yield return null;
+                InputSystem.QueueStateEvent(gamepad, new GamepadState());
+                yield return null;
+
+                var secondCache = game.transform.Cast<Transform>()
+                    .First(child => child.name == "Salvage Cache" && child.gameObject.activeSelf);
+                player.position = secondCache.position;
+                yield return null;
+                Assert.That(game.IsAuxiliaryOverclockChoicePending, Is.True);
+                var shotsBeforeChoice = game.ShotsFired;
+                InputSystem.QueueStateEvent(gamepad, new GamepadState().WithButton(GamepadButton.RightShoulder));
+                yield return null;
+                InputSystem.QueueStateEvent(gamepad, new GamepadState());
+                yield return null;
+
+                Assert.That(game.SelectedAuxiliaryOverclock, Is.EqualTo(SignalAuxiliaryOverclock.EmergencyCapacitor));
+                Assert.That(game.IsEmergencyCapacitorAvailable, Is.True);
+                Assert.That(game.ShotsFired, Is.EqualTo(shotsBeforeChoice));
             }
             finally
             {
@@ -1235,6 +1306,14 @@ namespace DeadSignal.Tests
                     player.position = child.position;
                     yield return null;
                 }
+
+                Assert.That(game.IsAuxiliaryOverclockChoicePending, Is.True,
+                    "The second secured cache should offer the complementary economy-defense choice.");
+                InputSystem.QueueStateEvent(gamepad, new GamepadState().WithButton(GamepadButton.West));
+                yield return null;
+                InputSystem.QueueStateEvent(gamepad, new GamepadState());
+                yield return null;
+                Assert.That(game.SelectedAuxiliaryOverclock, Is.EqualTo(SignalAuxiliaryOverclock.FeedbackShield));
 
                 yield return null;
                 Assert.That(game.CurrentObjectiveBeaconPhase, Is.EqualTo(ObjectiveBeaconPhase.Extraction),

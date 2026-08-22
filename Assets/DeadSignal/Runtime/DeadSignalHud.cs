@@ -203,16 +203,23 @@ namespace DeadSignal
             var overclockText = m_overclockChoice.Selected == SignalOverclock.None
                 ? string.Empty
                 : $"  //  {_overclockName(m_overclockChoice.Selected)}";
-            m_salvageText.text = $"SALVAGE  {m_model.Salvage}/{RunModel.SalvageRequired}{chainText}{overclockText}";
+            var auxiliaryText = m_overclockChoice.SelectedAuxiliary == SignalAuxiliaryOverclock.None
+                ? string.Empty
+                : $"  //  {_auxiliaryOverclockName()}";
+            m_salvageText.text =
+                $"SALVAGE  {m_model.Salvage}/{RunModel.SalvageRequired}{chainText}{overclockText}{auxiliaryText}";
             var powered = m_world.IsPowered(m_world.Player.position, m_model.TowerOnline);
             m_zoneText.text = powered ? "● POWERED TERRITORY" : "▲ DEAD ZONE — ACTIVE DRAIN";
             m_zoneText.color = powered ? new Color(0.05f, 0.95f, 1f) : new Color(1f, 0.22f, 0.18f);
             var guidance = MissionGuidance.Evaluate(m_model, m_threats.IsSapperAlive, m_threats.IsSapperLatched,
                 m_threats.SapperPulseCooldown);
             CurrentMissionPhase = guidance.Phase;
-            m_objectiveText.text = m_overclockChoice.IsPending
+            m_objectiveText.text = m_overclockChoice.IsPrimaryPending
                 ? $"SIGNAL OVERCLOCK AVAILABLE\nFIRE [{m_input.FireKeyboardBinding}]  CHAIN ARC — BOLTS JUMP\n" +
                   $"USE [{m_input.InteractKeyboardBinding}]  OVERDRIVE — MOVE FASTER"
+                : m_overclockChoice.IsAuxiliaryPending
+                ? $"AUXILIARY OVERCLOCK AVAILABLE\nFIRE [{m_input.FireKeyboardBinding}]  CAPACITOR — LOW-SIGNAL REFILL\n" +
+                  $"USE [{m_input.InteractKeyboardBinding}]  SHIELD — NEGATE ONE THREAT"
                 : m_extractionUplink.IsActive
                 ? $"PHASE 3/3  //  EXTRACTION UPLINK\nSURVIVE PURSUIT  {m_extractionUplink.SecondsRemaining:0.0}s\n" +
                   "MANEUVER AND FIRE — DOCK LINK IS LOCKED"
@@ -317,9 +324,12 @@ namespace DeadSignal
 
         private string _contextPrompt()
         {
-            if (m_overclockChoice.IsPending)
+            if (m_overclockChoice.IsPrimaryPending)
                 return $"CHOOSE NOW  —  {_binding("FIRE: CHAIN ARC", "RB: CHAIN ARC")}  |  " +
                        $"{_binding("USE: OVERDRIVE", "X: OVERDRIVE")}";
+            if (m_overclockChoice.IsAuxiliaryPending)
+                return $"CHOOSE NOW  —  {_binding("FIRE: CAPACITOR", "RB: CAPACITOR")}  |  " +
+                       $"{_binding("USE: SHIELD", "X: SHIELD")}";
             if (!m_model.ShortcutOpen && DeadSignalWorld.FlatDistance(m_world.Player.position, m_world.ShortcutPosition) < 1.9f)
                 return m_model.TowerOnline ? $"[{_binding("E", "GAMEPAD X")}]  BURN {RunModel.ShortcutCost:0} SIGNAL FOR SHORTCUT"
                     : "SHORTCUT OFFLINE - ACTIVATE TOWER FIRST";
@@ -348,6 +358,15 @@ namespace DeadSignal
         {
             SignalOverclock.ChainArc => "OVERCLOCK: CHAIN ARC",
             SignalOverclock.OverdriveThrusters => "OVERCLOCK: OVERDRIVE",
+            _ => string.Empty
+        };
+
+        private string _auxiliaryOverclockName() => m_overclockChoice.SelectedAuxiliary switch
+        {
+            SignalAuxiliaryOverclock.EmergencyCapacitor =>
+                m_overclockChoice.IsEmergencyCapacitorAvailable ? "CAPACITOR: ARMED" : "CAPACITOR: SPENT",
+            SignalAuxiliaryOverclock.FeedbackShield =>
+                m_overclockChoice.IsFeedbackShieldCharged ? "SHIELD: CHARGED" : "SHIELD: EMPTY",
             _ => string.Empty
         };
     }

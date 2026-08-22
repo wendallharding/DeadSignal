@@ -38,7 +38,7 @@ namespace DeadSignal.Tests
         }
 
         [Test]
-        public void OverclockDefaults_CreateDistinctCombatAndMobilityBuilds()
+        public void OverclockDefaults_CreateDistinctCombatMobilityAndEconomyBuilds()
         {
             var tuning = ScriptableObject.CreateInstance<SignalOverclockTuning>();
             try
@@ -46,6 +46,8 @@ namespace DeadSignal.Tests
                 Assert.That(tuning.ChainArcRadius, Is.InRange(3f, 6f));
                 Assert.That(tuning.ThrusterSpeedMultiplier, Is.GreaterThan(1f));
                 Assert.That(tuning.ThrusterAccelerationMultiplier, Is.GreaterThan(1f));
+                Assert.That(tuning.EmergencyCapacitorThreshold, Is.InRange(20f, 30f));
+                Assert.That(tuning.EmergencyCapacitorRestore, Is.GreaterThan(RunModel.SecurityHitCost));
             }
             finally
             {

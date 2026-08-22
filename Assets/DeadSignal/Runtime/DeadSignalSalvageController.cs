@@ -79,8 +79,10 @@ namespace DeadSignal
                 m_audio.Play(DeadSignalAudioCue.Salvage);
                 m_feedback.PlaySalvageChain(pickup.transform.position, m_chain.Count);
                 var rewardText = recovered > 0f ? $"  +{recovered:0} SIGNAL" : string.Empty;
-                m_showFeedback(m_overclockChoice.IsPending
-                    ? "SALVAGE CORE UNLOCKED — CHOOSE AN OVERCLOCK"
+                m_showFeedback(m_overclockChoice.IsPrimaryPending
+                    ? "SALVAGE CORE UNLOCKED — CHOOSE A PRIMARY OVERCLOCK"
+                    : m_overclockChoice.IsAuxiliaryPending
+                    ? "SALVAGE CORE SYNCED — CHOOSE AN AUXILIARY OVERCLOCK"
                     : $"SALVAGE CHAIN x{m_chain.Count}{rewardText}  {m_model.Salvage}/{RunModel.SalvageRequired}");
             }
         }
