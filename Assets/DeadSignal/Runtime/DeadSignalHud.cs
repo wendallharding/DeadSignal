@@ -21,7 +21,8 @@ namespace DeadSignal
         SignalReserveState CurrentSignalReserveState { get; }
         int CurrentMissionPhase { get; }
 
-        void Configure(RunModel model, RunMetrics metrics, DeadSignalWorld world, DeadSignalThreatController threats);
+        void Configure(RunModel model, RunMetrics metrics, DeadSignalWorld world, DeadSignalThreatController threats,
+            DeadSignalSalvageController salvage);
         void ShowFeedback(string message);
         void Tick(float dt);
     }
@@ -75,6 +76,7 @@ namespace DeadSignal
         private RunMetrics m_metrics;
         private DeadSignalWorld m_world;
         private DeadSignalThreatController m_threats;
+        private DeadSignalSalvageController m_salvage;
         private ICombatFeedback m_combatFeedback;
         private IComfortSettings m_comfortSettings;
         private IDeadSignalInput m_input;
@@ -108,12 +110,14 @@ namespace DeadSignal
             m_input = input;
         }
 
-        void IDeadSignalHud.Configure(RunModel model, RunMetrics metrics, DeadSignalWorld world, DeadSignalThreatController threats)
+        void IDeadSignalHud.Configure(RunModel model, RunMetrics metrics, DeadSignalWorld world, DeadSignalThreatController threats,
+            DeadSignalSalvageController salvage)
         {
             m_model = model;
             m_metrics = metrics;
             m_world = world;
             m_threats = threats;
+            m_salvage = salvage;
             m_signalHudTuning = Resources.Load<SignalHudTuning>("Tuning/SignalHudTuning");
             var signalSprite = Resources.Load<Sprite>("UI/SignalReserveConduit");
             m_runDebriefTexture = Resources.Load<Texture2D>("UI/RunDebriefInsignia");
@@ -189,7 +193,10 @@ namespace DeadSignal
             signalColor.a = presentation.Alpha;
             m_signalFill.color = signalColor;
             m_signalText.text = $"SIGNAL  {Mathf.CeilToInt(m_model.Signal):000}  //  {presentation.State.ToString().ToUpperInvariant()}";
-            m_salvageText.text = $"SALVAGE  {m_model.Salvage}/{RunModel.SalvageRequired}";
+            var chainText = m_salvage.ChainCount > 0 && m_model.Salvage < RunModel.SalvageRequired
+                ? $"  //  CHAIN x{m_salvage.ChainCount}  {m_salvage.ChainSecondsRemaining:0.0}s"
+                : string.Empty;
+            m_salvageText.text = $"SALVAGE  {m_model.Salvage}/{RunModel.SalvageRequired}{chainText}";
             var powered = m_world.IsPowered(m_world.Player.position, m_model.TowerOnline);
             m_zoneText.text = powered ? "● POWERED TERRITORY" : "▲ DEAD ZONE — ACTIVE DRAIN";
             m_zoneText.color = powered ? new Color(0.05f, 0.95f, 1f) : new Color(1f, 0.22f, 0.18f);
@@ -257,6 +264,7 @@ namespace DeadSignal
             return $"RUN REPORT   {totalSeconds / 60:00}:{totalSeconds % 60:00}   |   DEAD ZONE {m_metrics.DeadZoneSeconds:0.0}s   |   " +
                    $"SHOTS {m_metrics.ShotsFired}   |   HITS {m_metrics.SecurityHits}   |   DRAINS {m_metrics.SapperPulses}   |   " +
                    $"PURGES {m_metrics.ThreatsPurged}   |   RECLAIMED {m_metrics.SignalRecovered:0}   |   " +
+                   $"BEST CHAIN x{m_metrics.BestSalvageChain}   |   CHAIN SIGNAL {m_metrics.SalvageSignalRecovered:0}   |   " +
                    $"SIGNAL {Mathf.CeilToInt(m_model.Signal)}";
         }
 

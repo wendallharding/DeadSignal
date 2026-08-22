@@ -186,5 +186,42 @@ namespace DeadSignal.Tests
             Assert.That(metrics.SecurityHits, Is.EqualTo(1));
             Assert.That(metrics.SapperPulses, Is.EqualTo(1));
         }
+
+        [Test]
+        public void SalvageChain_EscalatesRewardsInsideWindow()
+        {
+            var chain = new SalvageChain();
+
+            Assert.That(chain.RecordCollection(12f, 4f, 8f), Is.Zero);
+            chain.Advance(5f);
+            Assert.That(chain.RecordCollection(12f, 4f, 8f), Is.EqualTo(4f));
+            chain.Advance(11.9f);
+            Assert.That(chain.RecordCollection(12f, 4f, 8f), Is.EqualTo(8f));
+            Assert.That(chain.BestCount, Is.EqualTo(3));
+        }
+
+        [Test]
+        public void SalvageChain_ExpiresAndRestartsWithoutReward()
+        {
+            var chain = new SalvageChain();
+            chain.RecordCollection(12f, 4f, 8f);
+
+            chain.Advance(12f);
+
+            Assert.That(chain.Count, Is.Zero);
+            Assert.That(chain.RecordCollection(12f, 4f, 8f), Is.Zero);
+            Assert.That(chain.Count, Is.EqualTo(1));
+        }
+
+        [Test]
+        public void RunMetrics_TrackBestSalvageChainAndActualRecovery()
+        {
+            var metrics = new RunMetrics();
+            metrics.RecordSalvageChain(2, 4f);
+            metrics.RecordSalvageChain(3, 2f);
+
+            Assert.That(metrics.BestSalvageChain, Is.EqualTo(3));
+            Assert.That(metrics.SalvageSignalRecovered, Is.EqualTo(6f));
+        }
     }
 }

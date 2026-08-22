@@ -17,3 +17,6 @@ MonoBehaviour:
   m_hoverAmplitude: 0.04
   m_hoverFrequency: 3
   m_collectionRadius: 0.85
+  m_chainWindow: 12
+  m_secondCacheSignalReward: 4
+  m_thirdCacheSignalReward: 8

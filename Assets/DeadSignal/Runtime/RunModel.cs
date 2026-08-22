@@ -22,6 +22,8 @@ namespace DeadSignal
         public int SapperPulses { get; private set; }
         public int ThreatsPurged { get; private set; }
         public float SignalRecovered { get; private set; }
+        public int BestSalvageChain { get; private set; }
+        public float SalvageSignalRecovered { get; private set; }
 
         public void Advance(float seconds, bool isPowered)
         {
@@ -56,6 +58,12 @@ namespace DeadSignal
         {
             ThreatsPurged++;
             SignalRecovered += Math.Max(0f, signalRecovered);
+        }
+
+        public void RecordSalvageChain(int chainCount, float signalRecovered)
+        {
+            BestSalvageChain = Math.Max(BestSalvageChain, chainCount);
+            SalvageSignalRecovered += Math.Max(0f, signalRecovered);
         }
     }
 

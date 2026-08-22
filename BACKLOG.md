@@ -14,6 +14,15 @@
 
 ## P1 — Prove the loop
 
+### Run 60 salvage-chain momentum ideas
+
+- [x] Start a designer-tuned 12-second chain window when a cache is secured
+- [x] Restore 4 Signal for the second cache collected inside the active window
+- [x] Restore 8 Signal for the third cache while preserving the 100-Signal cap
+- [x] Show live chain count/countdown and record best chain plus actual Signal recovered
+- [x] Confirm each collection with original chain art whose scale and tint escalate by tier
+- [ ] Playtest direct and conservation routes to verify 12 seconds rewards mastery without requiring the shortcut
+
 ### Run 59 security-purge recovery ideas
 
 - [x] Warden recovery bounty — player value: fighting the pursuer can offset most of its ammunition cost; acceptance: purging it restores up to 12 Signal exactly once.

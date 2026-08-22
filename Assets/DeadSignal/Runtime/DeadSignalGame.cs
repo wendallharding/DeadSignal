@@ -118,6 +118,9 @@ namespace DeadSignal
         public bool HasPlayerSignalWake => m_world?.PlayerSignalWake?.HasTexture ?? false;
         public bool HasSignalBoltBulkheadImpact => m_combatFeedback?.HasEnvironmentImpactTexture ?? false;
         public bool HasSignalRecoveryBurst => m_combatFeedback?.HasSignalRecoveryTexture ?? false;
+        public bool HasSalvageChainBurst => m_combatFeedback?.HasSalvageChainTexture ?? false;
+        public int CurrentSalvageChain => m_salvage?.ChainCount ?? 0;
+        public float SalvageChainSecondsRemaining => m_salvage?.ChainSecondsRemaining ?? 0f;
         public int ThreatsPurged => m_metrics?.ThreatsPurged ?? 0;
         public float SignalRecovered => m_metrics?.SignalRecovered ?? 0f;
         public int ActiveSignalBoltCount => transform.Cast<Transform>().Count(child => child.name == "Signal Bolt");
@@ -261,8 +264,9 @@ namespace DeadSignal
                 signalBoltTuning,
                 threatTuning,
                 _showFeedback);
-            m_salvage = new DeadSignalSalvageController(m_model, m_world, m_audio, m_salvageTuning, _showFeedback);
-            m_hud.Configure(m_model, m_metrics, m_world, m_threats);
+            m_salvage = new DeadSignalSalvageController(
+                m_model, m_metrics, m_world, m_audio, m_combatFeedback, m_salvageTuning, _showFeedback);
+            m_hud.Configure(m_model, m_metrics, m_world, m_threats, m_salvage);
             m_objectiveBeacon.Configure(m_model, m_world);
             m_lastPoweredState = m_world.IsPowered(m_world.Player.position, m_model.TowerOnline);
             m_signalDust.Configure();

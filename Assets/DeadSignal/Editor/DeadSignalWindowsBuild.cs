@@ -48,6 +48,7 @@ namespace DeadSignal.Editor
             DeadSignalBoundaryThresholdSetup.EnsureAssets();
             DeadSignalHudSetup.EnsureAssets();
             DeadSignalThreatSetup.EnsureAssets();
+            DeadSignalSalvageChainSetup.EnsureAssets();
             _validateBuildInputs();
             _configureWindowsPlayer();
 
@@ -110,6 +111,11 @@ namespace DeadSignal.Editor
             if (!DeadSignalThreatSetup.HasAssets)
             {
                 throw new BuildFailedException("Threat balance tuning or Signal recovery art is missing.");
+            }
+
+            if (!DeadSignalSalvageChainSetup.HasAssets)
+            {
+                throw new BuildFailedException("The authored salvage-chain feedback art is missing.");
             }
 
             if (!DeadSignalProjectSetup.HasMaintenanceDeckAssets)

@@ -123,6 +123,10 @@ The shared Signal reserve now reads as operational telemetry rather than a gener
 
 ## Experience target
 
+### Run 60 product decision — salvage chain momentum
+
+Consecutive cache recoveries now form a 12-second chain that pays 4 Signal on the second cache and 8 on the third. This turns the authored route network into a readable tempo decision without making deliberate exploration invalid: the first cache remains safe, chain rewards are capped by the existing 100-Signal authority, and the HUD exposes the remaining window. Best chain and actual recovery appear in the debrief so future tuning can use play evidence. This was selected over another room or enemy because the current map already offers route choice but lacked a positive incentive to execute a fast line.
+
 ### Run 59 product decision — security-purge recovery
 
 Destroyed threats now return part of the shared resource they forced the player to risk: the Warden offsets most of its minimum ammunition cost, while the time-critical Sapper is deliberately net-positive if intercepted cleanly. This was selected over another room or HUD-only pass because combat previously consumed Signal without creating an economic reason to engage. The asymmetric 12/16 rewards preserve avoidance as a valid Warden choice while making a fast Sapper purge an active recovery tactic. Enemy health, bounty values, actual reclaimed Signal, and purge counts are visible and deterministic; all prior enemy behavior is preserved in a new designer-facing tuning asset.

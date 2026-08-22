@@ -725,6 +725,9 @@ namespace DeadSignal.Tests
                 Is.EqualTo((RunModel.SalvageRequired + 1) * 2));
             Assert.That(game.HasSalvagePresentationTuning, Is.True);
             Assert.That(Resources.Load<SalvagePresentationTuning>("Tuning/SalvagePresentationTuning"), Is.Not.Null);
+            Assert.That(Resources.Load<Texture2D>("VFX/SalvageChainBurst"), Is.Not.Null,
+                "The original salvage-chain feedback art should load from Resources.");
+            Assert.That(game.HasSalvageChainBurst, Is.True);
             Assert.That(salvageCaches.Sum(cache => cache.GetComponentsInChildren<Collider>().Length), Is.Zero,
                 "The authored salvage caches should remain presentation-only so collection rules stay authoritative.");
             Assert.That(salvageCaches[0].Find("Salvage Case").GetComponent<Renderer>().sharedMaterial.mainTexture,

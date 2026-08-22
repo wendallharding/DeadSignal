@@ -3619,3 +3619,49 @@ Final image prompt: original compact top-down Signal recovery VFX sprite, reclai
 
 - Headless validation cannot judge recovery-burst size/brightness or whether the expanded threat strip fits comfortably at 1280x720 and ultrawide. The payout values are first-pass product tuning and still need recorded play-session evidence.
 - Best next step: activate the tower below 70 Signal, purge the Sapper and Warden separately, confirm the +16/+12 burst and HUD status are legible, then assess whether the Warden's net three-Signal cost and Sapper's net six-Signal gain create the intended fight-versus-flight decisions.
+## 2026-08-22 — Autonomous Run 60 — Salvage-chain momentum
+
+### Today's five tightly scoped ideas
+
+1. **Twelve-second chain window.** Player benefit: authored route execution has an immediately readable tempo target. Acceptance: each cache starts or refreshes a designer-facing 12-second timer, which expires deterministically and resets the chain.
+2. **Second-cache recovery.** Player benefit: a clean two-cache route offsets most of one Signal bolt. Acceptance: cache two inside the window advertises 4 Signal and awards only the cap-safe amount actually received.
+3. **Third-cache recovery.** Player benefit: mastering a complete fast line earns a meaningful 8-Signal climax. Acceptance: cache three inside the window awards 8 Signal, clamps at 100, and does not alter the extraction requirement.
+4. **Live and debrief telemetry.** Player benefit: players can read the countdown during the run and understand their best execution afterward. Acceptance: the HUD shows chain count/time; metrics record best chain and actual chain Signal recovered.
+5. **Escalating authored feedback.** Player benefit: each chain tier feels distinct without interrupting control. Acceptance: an original transparent three-link emblem bursts at every cache, grows by tier, turns amber at tier three, and respects Reduced Flashes.
+
+This cohesive route-mastery pass was selected over another room, enemy, or permanent progression system because the existing four-cache authored map already supports meaningful path choice but did not positively reward fast execution. The core Signal-economy extraction vision remains unchanged.
+
+### Files and systems changed
+
+- Added `SalvageChain.cs` and focused EditMode coverage for escalation, expiry/reset, and telemetry. The tracker is deterministic and engine-independent.
+- Refactored `DeadSignalSalvageController.cs` to own chain lifetime, cap-safe rewards, metrics, audio/feedback orchestration, and concise reward copy instead of expanding `DeadSignalGame` with another rule system.
+- Extended the existing designer-facing `SalvagePresentationTuning.cs` and asset with the 12-second window and 4/8-Signal rewards. Existing rotation, hover, and collection values are unchanged.
+- Updated `RunModel.cs`, `DeadSignalGame.cs`, and `DeadSignalHud.cs` with actual recovery accounting, smoke-test state, live chain countdown, and debrief telemetry.
+- Added original `SalvageChainBurst.png`, Unity-generated metadata, `DeadSignalSalvageChainSetup.cs`, build/package gates, and PlayMode resource checks. OpenAI's built-in image tool generated the transparent ceramic/graphite/cyan/amber three-link emblem; SHA-256 `C1A513BA3AC2D6B235244D1D6301D8DA3D483573A1C0752F57E32DA1FDDE1B3A`.
+- Updated `GAME_VISION.md` and `BACKLOG.md` with the rationale, player value, and five acceptance contracts.
+- No scene, prefab, package, project setting, input route, threat tuning, salvage requirement, extraction rule, save data, or generated source changed.
+
+Final image prompt: original compact salvage-chain telemetry emblem with three interlocking angular circuit links converging on a bright data core, ceramic and graphite hard-surface construction, cyan-white emission and restrained amber progression, genuine transparency, 64–96 pixel readability, and no text, logo, brand, character, frame, or watermark. Built-in image generation was used.
+
+### Tests run and exact outcomes
+
+1. Unity `6000.3.11f1` isolated import/compile and `DeadSignalSalvageChainSetup.EnsureAssets`: exit `0`; scripts compiled and the new texture/metadata imported; `C:\Projects\Wendall\CodexPrototype_Run60Validation\Logs\run60-import.log`.
+2. Final EditMode: exit `0`; `52/52` passed, `0` failed, `0` skipped in `0.1398853s`; `Logs/run60-editmode-final-results.xml` and `.log`.
+3. Corrected final PlayMode: exit `0`; `5/5` passed, `0` failed, `0` skipped in `7.7477093s`; `Logs/run60-playmode-corrected-results.xml` and `.log`.
+4. Final Windows x64 development build: exit `0`; Unity reported `241,114,600` bytes in `13.77s`; isolated `Build/Windows/DeadSignal.exe`; `Logs/run60-build-final.log`.
+5. Final packaged Direct3D 11 smoke: exit `0` with one `[DEAD SIGNAL STANDALONE SMOKE] PASS`; `Logs/run60-standalone-final.log`.
+6. Final critical scans found no compiler errors, null/missing-reference exceptions, unhandled exceptions, failed assertions, or smoke failure. `git diff --check` passed.
+
+### Bugs found and fixed
+
+- Ensured chain payouts use `RunModel.RestoreSignal`, so near-cap rewards report and record only the Signal actually received rather than the advertised tier value.
+- Chain lifetime advances only with gameplay `dt`; pause/hit-stop cannot silently consume the mastery window.
+- Added Editor, build-input, PlayMode, runtime-readiness, and packaged-player gates so missing chain art cannot silently ship.
+- The final rule review prevented the optional fourth route-choice cache from paying another tier-three reward after the three-cache extraction requirement was already complete.
+- A post-build PlayMode run exposed `DeadSignalSignalSpineSetup` regenerating the owner's inlay quaternion incorrectly even though the checked-in prefab was correct. The setup now uses the exact owner-authored local quaternion; the corrected post-build suite passed, and serializer-only Euler-hint rewrites were not copied back.
+
+### Known limitations and best next step
+
+- Headless validation cannot judge whether the longer salvage HUD line fits at 1280x720/ultrawide or whether the tier-three amber burst is comfortably bright with Reduced Flashes on and off.
+- The 12-second window and 4/8 rewards are first-pass tuning and need recorded route evidence.
+- Best next step: activate the tower, collect three caches on both the direct and conservation routes, verify the countdown/payouts, then assess whether either route makes the third tier impossible or automatic.

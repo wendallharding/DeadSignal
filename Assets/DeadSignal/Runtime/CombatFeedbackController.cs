@@ -11,6 +11,7 @@ namespace DeadSignal
         bool HasImpactTexture { get; }
         bool HasEnvironmentImpactTexture { get; }
         bool HasSignalRecoveryTexture { get; }
+        bool HasSalvageChainTexture { get; }
 
         void Configure(Camera targetCamera);
         void PlaySignalImpact(Vector3 position, bool decisive);
@@ -18,6 +19,7 @@ namespace DeadSignal
         void PlaySapperImpact(Vector3 position);
         void PlayEnvironmentImpact(Vector3 position);
         void PlaySignalRecovery(Vector3 position);
+        void PlaySalvageChain(Vector3 position, int chainCount);
         void SetPaused(bool paused);
     }
 
@@ -32,6 +34,7 @@ namespace DeadSignal
         private const string ENVIRONMENT_IMPACT_TEXTURE_PATH = "Projectiles/SignalBoltBulkheadImpact";
         private const string ENVIRONMENT_IMPACT_MATERIAL_PATH = "Materials/SignalBoltBulkheadImpact";
         private const string SIGNAL_RECOVERY_TEXTURE_PATH = "VFX/SignalRecoveryBurst";
+        private const string SALVAGE_CHAIN_TEXTURE_PATH = "VFX/SalvageChainBurst";
         private const float LIGHT_HIT_STOP = 0.035f;
         private const float HEAVY_HIT_STOP = 0.06f;
         private const float IMPACT_DURATION = 0.22f;
@@ -52,6 +55,8 @@ namespace DeadSignal
         private Sprite m_environmentImpactSprite;
         private Texture2D m_signalRecoveryTexture;
         private Sprite m_signalRecoverySprite;
+        private Texture2D m_salvageChainTexture;
+        private Sprite m_salvageChainSprite;
         private Material m_environmentImpactMaterial;
         private Vector3 m_cameraRestPosition;
         private float m_hitStopEndsAt;
@@ -66,6 +71,7 @@ namespace DeadSignal
         public bool HasImpactTexture => m_impactTexture != null;
         public bool HasEnvironmentImpactTexture => m_environmentImpactTexture != null && m_environmentImpactMaterial != null;
         public bool HasSignalRecoveryTexture => m_signalRecoveryTexture != null;
+        public bool HasSalvageChainTexture => m_salvageChainTexture != null;
         public bool CameraImpulseEnabled => m_comfortSettings?.CameraImpulseEnabled ?? true;
         public bool ReducedFlashesEnabled => m_comfortSettings?.ReducedFlashesEnabled ?? false;
         public int ActiveImpactCount => m_impacts.Count;
@@ -137,6 +143,19 @@ namespace DeadSignal
                 new Rect(0f, 0f, m_signalRecoveryTexture.width, m_signalRecoveryTexture.height),
                 new Vector2(0.5f, 0.5f), pixelsPerUnit);
             m_signalRecoverySprite.name = "Signal Recovery Burst Sprite";
+
+            m_salvageChainTexture = Resources.Load<Texture2D>(SALVAGE_CHAIN_TEXTURE_PATH);
+            if (m_salvageChainTexture == null)
+            {
+                Debug.LogWarning($"Salvage chain art was not found at Resources/{SALVAGE_CHAIN_TEXTURE_PATH}.", this);
+                return;
+            }
+
+            pixelsPerUnit = m_salvageChainTexture.width / 3.4f;
+            m_salvageChainSprite = Sprite.Create(m_salvageChainTexture,
+                new Rect(0f, 0f, m_salvageChainTexture.width, m_salvageChainTexture.height),
+                new Vector2(0.5f, 0.5f), pixelsPerUnit);
+            m_salvageChainSprite.name = "Salvage Chain Burst Sprite";
         }
 
         public void PlaySignalImpact(Vector3 position, bool decisive)
@@ -164,6 +183,13 @@ namespace DeadSignal
         public void PlaySignalRecovery(Vector3 position)
         {
             _playImpact(position, Color.white, 1.45f, 0f, 0f, m_signalRecoverySprite, null, "Signal Recovery Burst");
+        }
+
+        public void PlaySalvageChain(Vector3 position, int chainCount)
+        {
+            var tint = chainCount >= 3 ? new Color(1f, 0.72f, 0.12f) : Color.white;
+            _playImpact(position, tint, 0.85f + Mathf.Min(chainCount, 3) * 0.22f, 0f, 0f,
+                m_salvageChainSprite, null, "Salvage Chain Burst");
         }
 
         public void SetPaused(bool paused)
@@ -216,6 +242,11 @@ namespace DeadSignal
             if (m_signalRecoverySprite != null)
             {
                 Destroy(m_signalRecoverySprite);
+            }
+
+            if (m_salvageChainSprite != null)
+            {
+                Destroy(m_salvageChainSprite);
             }
         }
 

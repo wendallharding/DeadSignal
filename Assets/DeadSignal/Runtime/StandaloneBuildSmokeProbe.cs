@@ -155,7 +155,9 @@ namespace DeadSignal
                                 Resources.Load<SignalHudTuning>("Tuning/SignalHudTuning") != null &&
                                 Resources.Load<ThreatBalanceTuning>("Tuning/ThreatBalanceTuning") != null &&
                                 game.HasSignalRecoveryBurst &&
-                                Resources.Load<Texture2D>("VFX/SignalRecoveryBurst") != null;
+                                Resources.Load<Texture2D>("VFX/SignalRecoveryBurst") != null &&
+                                game.HasSalvageChainBurst &&
+                                Resources.Load<Texture2D>("VFX/SalvageChainBurst") != null;
             if (!runtimeReady)
             {
                 Debug.LogError("[DEAD SIGNAL STANDALONE SMOKE] FAIL | Runtime composition is incomplete.");

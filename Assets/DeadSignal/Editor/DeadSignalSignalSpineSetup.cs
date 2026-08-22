@@ -9,6 +9,8 @@ namespace DeadSignal.Editor
 {
     public static class DeadSignalSignalSpineSetup
     {
+        private static readonly Quaternion s_authoredInlayRotation =
+            new(-0.32650557f, 0.6272114f, -0.6272114f, -0.32650557f);
         private const string TEXTURE_PATH = "Assets/DeadSignal/Resources/Environment/SignalSpineInlay.png";
         private const string MATERIAL_PATH = "Assets/DeadSignal/Resources/Materials/SignalSpineInlay.mat";
         private const string INLAY_PREFAB_PATH = "Assets/DeadSignal/Resources/Environment/SignalSpineInlay.prefab";
@@ -132,7 +134,7 @@ namespace DeadSignal.Editor
                     inlay.name = $"Signal Spine Inlay {index + 1}";
                     inlay.transform.SetParent(route.transform, false);
                     inlay.transform.position = s_routePositions[index];
-                    inlay.transform.rotation = Quaternion.Euler(90f, 125f, 0f);
+                    inlay.transform.localRotation = s_authoredInlayRotation;
                 }
 
                 PrefabUtility.SaveAsPrefabAsset(route, ROUTE_PREFAB_PATH);
