@@ -5,16 +5,16 @@ namespace DeadSignal.Tests
     public sealed class SecurityEscalationDirectorTests
     {
         [Test]
-        public void Tick_EachSalvageQueuesOneAlternatingReinforcement()
+        public void Tick_EachSalvageQueuesInterceptorThenExistingRoles()
         {
             var director = new SecurityEscalationDirector(2f, 6f);
 
-            Assert.That(director.Tick(0f, true, 1, false, true, 8f, 8f), Is.EqualTo(SecurityReinforcement.None));
-            Assert.That(director.Tick(2f, true, 1, false, true, 8f, 8f), Is.EqualTo(SecurityReinforcement.Warden));
-            Assert.That(director.Tick(0f, true, 2, true, false, 8f, 8f), Is.EqualTo(SecurityReinforcement.None));
-            Assert.That(director.Tick(2f, true, 2, true, false, 8f, 8f), Is.EqualTo(SecurityReinforcement.Sapper));
-            Assert.That(director.Tick(0f, true, 3, false, true, 8f, 8f), Is.EqualTo(SecurityReinforcement.None));
-            Assert.That(director.Tick(2f, true, 3, false, true, 8f, 8f), Is.EqualTo(SecurityReinforcement.Warden));
+            Assert.That(director.Tick(0f, true, 1, false, true, true, 8f, 8f, 8f), Is.EqualTo(SecurityReinforcement.None));
+            Assert.That(director.Tick(2f, true, 1, false, true, true, 8f, 8f, 8f), Is.EqualTo(SecurityReinforcement.Interceptor));
+            Assert.That(director.Tick(0f, true, 2, true, false, true, 8f, 8f, 8f), Is.EqualTo(SecurityReinforcement.None));
+            Assert.That(director.Tick(2f, true, 2, true, false, true, 8f, 8f, 8f), Is.EqualTo(SecurityReinforcement.Warden));
+            Assert.That(director.Tick(0f, true, 3, true, true, false, 8f, 8f, 8f), Is.EqualTo(SecurityReinforcement.None));
+            Assert.That(director.Tick(2f, true, 3, true, true, false, 8f, 8f, 8f), Is.EqualTo(SecurityReinforcement.Sapper));
             Assert.That(director.ReinforcementsRemaining, Is.Zero);
         }
 
@@ -23,13 +23,13 @@ namespace DeadSignal.Tests
         {
             var director = new SecurityEscalationDirector(2f, 6f);
 
-            Assert.That(director.Tick(5f, true, 1, true, true, 8f, 8f), Is.EqualTo(SecurityReinforcement.None));
+            Assert.That(director.Tick(5f, true, 1, true, true, true, 8f, 8f, 8f), Is.EqualTo(SecurityReinforcement.None));
             Assert.That(director.EntryCountdown, Is.Zero);
-            Assert.That(director.Tick(5f, true, 1, false, true, 3f, 8f), Is.EqualTo(SecurityReinforcement.None));
+            Assert.That(director.Tick(5f, true, 1, false, true, true, 3f, 8f, 8f), Is.EqualTo(SecurityReinforcement.None));
             Assert.That(director.EntryCountdown, Is.Zero);
-            Assert.That(director.Tick(0f, true, 1, false, true, 8f, 8f), Is.EqualTo(SecurityReinforcement.None));
+            Assert.That(director.Tick(0f, true, 1, false, true, true, 8f, 8f, 8f), Is.EqualTo(SecurityReinforcement.None));
             Assert.That(director.EntryCountdown, Is.EqualTo(2f));
-            Assert.That(director.PendingReinforcement, Is.EqualTo(SecurityReinforcement.Warden));
+            Assert.That(director.PendingReinforcement, Is.EqualTo(SecurityReinforcement.Interceptor));
         }
 
         [Test]
@@ -37,9 +37,9 @@ namespace DeadSignal.Tests
         {
             var director = new SecurityEscalationDirector(1f, 0f);
 
-            director.Tick(10f, false, 9, false, false, 10f, 10f);
+            director.Tick(10f, false, 9, false, false, false, 10f, 10f, 10f);
             Assert.That(director.EscalationTier, Is.Zero);
-            director.Tick(0f, true, 9, false, false, 10f, 10f);
+            director.Tick(0f, true, 9, false, false, false, 10f, 10f, 10f);
             Assert.That(director.EscalationTier, Is.EqualTo(RunModel.SalvageRequired));
             Assert.That(director.ReinforcementsRemaining, Is.EqualTo(RunModel.SalvageRequired));
         }

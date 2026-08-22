@@ -11,9 +11,11 @@ namespace DeadSignal
     {
         private const float WARDEN_COLLISION_RADIUS = 0.54f;
         private const float SAPPER_COLLISION_RADIUS = 0.42f;
+        private const float INTERCEPTOR_COLLISION_RADIUS = 0.46f;
 
         private static readonly float s_wardenProjectileHitRadius = Mathf.Sqrt(0.9f);
         private static readonly float s_sapperProjectileHitRadius = Mathf.Sqrt(0.75f);
+        private static readonly float s_interceptorProjectileHitRadius = Mathf.Sqrt(0.78f);
 
         private readonly RunModel m_model;
         private readonly RunMetrics m_metrics;
@@ -28,10 +30,16 @@ namespace DeadSignal
 
         private float m_wardenHealth;
         private float m_sapperHealth;
+        private float m_interceptorHealth;
         private float m_wardenAttackCooldown;
         private float m_sapperPulseCooldown;
         private float m_shotCooldown;
         private bool m_sapperLatched;
+        private float m_interceptorChargeCountdown;
+        private float m_interceptorDashRemaining;
+        private float m_interceptorHitCooldown;
+        private Vector3 m_interceptorDashDirection;
+        private Vector3 m_interceptorDashTarget;
 
         public DeadSignalThreatController(
             RunModel model,
@@ -59,6 +67,7 @@ namespace DeadSignal
         public bool IsSapperLatched => m_sapperLatched;
         public bool IsSapperAlive => m_sapperHealth > 0f;
         public bool IsWardenAlive => m_wardenHealth > 0f;
+        public bool IsInterceptorAlive => m_interceptorHealth > 0f;
         public float WardenHealth => m_wardenHealth;
         public float WardenMaximumHealth => m_tuning.WardenHealth;
         public float SapperMaximumHealth => m_tuning.SapperHealth;
@@ -66,6 +75,10 @@ namespace DeadSignal
         public float SapperSignalReward => m_tuning.SapperSignalReward;
         public float SapperPulseInterval => m_tuning.SapperPulseInterval;
         public float SapperHealth => m_sapperHealth;
+        public float InterceptorHealth => m_interceptorHealth;
+        public float InterceptorMaximumHealth => m_tuning.InterceptorHealth;
+        public float InterceptorSignalReward => m_tuning.InterceptorSignalReward;
+        public bool IsInterceptorCharging => m_interceptorChargeCountdown > 0f;
         public bool LastShotBlockedByEnvironment { get; private set; }
         public float SapperPulseCooldown => m_sapperPulseCooldown;
         public bool CanFire => m_shotCooldown <= 0f;
@@ -82,6 +95,7 @@ namespace DeadSignal
         public void Tick(float dt)
         {
             _tickDirector(dt);
+            _tickInterceptor(dt);
             _tickWarden(dt);
             _tickSapper(dt);
             _tickProjectiles(dt);
@@ -114,11 +128,22 @@ namespace DeadSignal
                 dt,
                 m_model.TowerOnline,
                 m_model.Salvage,
+                IsInterceptorAlive,
                 IsWardenAlive,
                 IsSapperAlive,
+                m_world.GetSafestInterceptorEntryDistance(m_world.Player.position),
                 DeadSignalWorld.FlatDistance(m_world.Player.position, m_world.Warden.position),
                 DeadSignalWorld.FlatDistance(m_world.Player.position, m_world.Sapper.position));
-            if (reinforcement == SecurityReinforcement.Warden)
+            if (reinforcement == SecurityReinforcement.Interceptor)
+            {
+                m_interceptorHealth = m_tuning.InterceptorHealth;
+                m_interceptorChargeCountdown = 0f;
+                m_interceptorDashRemaining = 0f;
+                m_interceptorHitCooldown = 0f;
+                m_world.DeployInterceptorReinforcement();
+                m_showFeedback("FLANK GATES OPEN — INTERCEPTOR INBOUND");
+            }
+            else if (reinforcement == SecurityReinforcement.Warden)
             {
                 m_wardenHealth = m_tuning.WardenHealth;
                 m_wardenAttackCooldown = m_tuning.WardenAttackCooldown;
@@ -133,6 +158,95 @@ namespace DeadSignal
                 m_world.DeploySapperReinforcement(m_tuning.SapperPulseInterval);
                 m_showFeedback("SIPHON CRADLE OPEN — SAPPER REINFORCEMENT");
             }
+        }
+
+        private void _tickInterceptor(float dt)
+        {
+            if (!m_model.TowerOnline || m_interceptorHealth <= 0f)
+            {
+                return;
+            }
+
+            m_interceptorHitCooldown = Mathf.Max(0f, m_interceptorHitCooldown - dt);
+            m_world.InterceptorCore.Rotate(Vector3.up, 320f * dt, Space.Self);
+            if (m_interceptorDashRemaining > 0f)
+            {
+                m_interceptorDashRemaining = Mathf.Max(0f, m_interceptorDashRemaining - dt);
+                var desired = m_world.Interceptor.position + m_interceptorDashDirection * (m_tuning.InterceptorDashSpeed * dt);
+                m_world.Interceptor.position = m_world.ResolveMovement(
+                    m_world.Interceptor.position,
+                    desired,
+                    INTERCEPTOR_COLLISION_RADIUS,
+                    m_model.ShortcutOpen);
+                _tryApplyInterceptorHit();
+                return;
+            }
+
+            if (m_interceptorChargeCountdown > 0f)
+            {
+                m_interceptorChargeCountdown = Mathf.Max(0f, m_interceptorChargeCountdown - dt);
+                m_world.SetInterceptorTelegraph(true, m_interceptorDashTarget);
+                _faceInterceptor(m_interceptorDashTarget);
+                if (m_interceptorChargeCountdown <= 0f)
+                {
+                    var dashDelta = m_interceptorDashTarget - m_world.Interceptor.position;
+                    dashDelta.y = 0f;
+                    m_interceptorDashDirection = dashDelta.sqrMagnitude > 0.01f ? dashDelta.normalized : m_world.Interceptor.forward;
+                    m_interceptorDashRemaining = m_tuning.InterceptorDashDuration;
+                    m_world.SetInterceptorTelegraph(false, m_interceptorDashTarget);
+                }
+
+                return;
+            }
+
+            var cutoff = InterceptorTactics.CalculateCutoffPoint(
+                m_world.Player.position,
+                m_world.ExtractionPosition,
+                m_tuning.InterceptorCutoffFraction);
+            var delta = cutoff - m_world.Interceptor.position;
+            delta.y = 0f;
+            _faceInterceptor(cutoff);
+            if (delta.magnitude > m_tuning.InterceptorChargeDistance)
+            {
+                var desired = m_world.Interceptor.position + delta.normalized * (m_tuning.InterceptorApproachSpeed * dt);
+                m_world.Interceptor.position = m_world.ResolveMovement(
+                    m_world.Interceptor.position,
+                    desired,
+                    INTERCEPTOR_COLLISION_RADIUS,
+                    m_model.ShortcutOpen);
+                return;
+            }
+
+            m_interceptorDashTarget = m_world.Player.position;
+            m_interceptorChargeCountdown = m_tuning.InterceptorChargeDuration;
+            m_world.SetInterceptorTelegraph(true, m_interceptorDashTarget);
+            m_showFeedback("INTERCEPTOR LOCK — BREAK THE LINE");
+        }
+
+        private void _faceInterceptor(Vector3 target)
+        {
+            var delta = target - m_world.Interceptor.position;
+            delta.y = 0f;
+            if (delta.sqrMagnitude > 0.01f)
+            {
+                m_world.Interceptor.rotation = Quaternion.LookRotation(delta.normalized, Vector3.up);
+            }
+        }
+
+        private void _tryApplyInterceptorHit()
+        {
+            if (m_interceptorHitCooldown > 0f ||
+                DeadSignalWorld.FlatDistance(m_world.Interceptor.position, m_world.Player.position) > m_tuning.InterceptorHitDistance)
+            {
+                return;
+            }
+
+            m_interceptorHitCooldown = m_tuning.InterceptorHitCooldown;
+            m_model.TakeSecurityHit();
+            m_metrics.RecordSecurityHit();
+            m_combatFeedback.PlaySecurityImpact(m_world.Player.position + Vector3.up * 0.58f);
+            m_audio.Play(DeadSignalAudioCue.SecurityImpact);
+            m_showFeedback($"INTERCEPTOR IMPACT  −{RunModel.SecurityHitCost:0} SIGNAL");
         }
 
         private void _tickWarden(float dt)
@@ -240,6 +354,13 @@ namespace DeadSignal
                     start, end, m_world.Warden, m_wardenHealth, s_wardenProjectileHitRadius, out var wardenHitFraction);
                 var hitSapper = _tryGetThreatHitFraction(
                     start, end, m_world.Sapper, m_sapperHealth, s_sapperProjectileHitRadius, out var sapperHitFraction);
+                var hitInterceptor = _tryGetThreatHitFraction(
+                    start,
+                    end,
+                    m_world.Interceptor,
+                    m_interceptorHealth,
+                    s_interceptorProjectileHitRadius,
+                    out var interceptorHitFraction);
                 var hitObstacle = m_world.TryGetProjectileObstacleHit(
                     start,
                     end,
@@ -247,8 +368,10 @@ namespace DeadSignal
                     m_model.ShortcutOpen,
                     out var obstacleHitFraction);
                 var nearestThreatFraction = Mathf.Min(
-                    hitWarden ? wardenHitFraction : float.PositiveInfinity,
-                    hitSapper ? sapperHitFraction : float.PositiveInfinity);
+                    Mathf.Min(
+                        hitWarden ? wardenHitFraction : float.PositiveInfinity,
+                        hitSapper ? sapperHitFraction : float.PositiveInfinity),
+                    hitInterceptor ? interceptorHitFraction : float.PositiveInfinity);
                 if (hitObstacle && obstacleHitFraction < nearestThreatFraction)
                 {
                     LastShotBlockedByEnvironment = true;
@@ -260,22 +383,20 @@ namespace DeadSignal
                 }
 
                 shot.Visual.transform.position = end;
-                if (hitWarden && hitSapper)
-                {
-                    hitWarden = wardenHitFraction <= sapperHitFraction;
-                    hitSapper = !hitWarden;
-                }
-                if (hitWarden)
+                if (hitWarden && wardenHitFraction <= sapperHitFraction && wardenHitFraction <= interceptorHitFraction)
                 {
                     _hitWarden();
                 }
-
-                if (hitSapper)
+                else if (hitSapper && sapperHitFraction <= interceptorHitFraction)
                 {
                     _hitSapper();
                 }
+                else if (hitInterceptor)
+                {
+                    _hitInterceptor();
+                }
 
-                if (hitWarden || hitSapper || shot.Life <= 0f)
+                if (hitWarden || hitSapper || hitInterceptor || shot.Life <= 0f)
                 {
                     UnityEngine.Object.Destroy(shot.Visual);
                     m_projectiles.RemoveAt(index);
@@ -346,6 +467,24 @@ namespace DeadSignal
             }
 
             m_showFeedback("SAPPER SHELL HIT");
+        }
+
+        private void _hitInterceptor()
+        {
+            m_interceptorHealth -= 1f;
+            m_combatFeedback.PlaySignalImpact(m_world.Interceptor.position + Vector3.up * 0.5f, m_interceptorHealth <= 0f);
+            m_audio.Play(DeadSignalAudioCue.SignalImpact);
+            if (m_interceptorHealth <= 0f)
+            {
+                var restored = m_model.RestoreSignal(m_tuning.InterceptorSignalReward);
+                m_metrics.RecordThreatPurge(restored);
+                m_world.PurgeInterceptor();
+                m_combatFeedback.PlaySignalRecovery(m_world.Interceptor.position + Vector3.up * 0.5f);
+                m_showFeedback($"INTERCEPTOR PURGED  +{restored:0} SIGNAL");
+                return;
+            }
+
+            m_showFeedback("INTERCEPTOR ARMOR HIT");
         }
 
         private sealed class Projectile

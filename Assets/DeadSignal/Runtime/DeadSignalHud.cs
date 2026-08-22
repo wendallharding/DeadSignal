@@ -272,7 +272,7 @@ namespace DeadSignal
         {
             if (!m_model.TowerOnline)
             {
-                return $"SECURITY DORMANT  //  BOUNTIES +{m_threats.WardenSignalReward:0} / +{m_threats.SapperSignalReward:0}";
+                return $"SECURITY DORMANT  //  BOUNTIES W+{m_threats.WardenSignalReward:0} I+{m_threats.InterceptorSignalReward:0} S+{m_threats.SapperSignalReward:0}";
             }
 
             var warden = m_threats.IsWardenAlive
@@ -283,11 +283,16 @@ namespace DeadSignal
                 : m_threats.IsSapperLatched
                     ? $"SAPPER {m_threats.SapperHealth:0}/{m_threats.SapperMaximumHealth:0} DRAIN {m_threats.SapperPulseCooldown:0.0}s (+{m_threats.SapperSignalReward:0})"
                     : $"SAPPER {m_threats.SapperHealth:0}/{m_threats.SapperMaximumHealth:0} APPROACHING (+{m_threats.SapperSignalReward:0})";
+            var interceptor = !m_threats.IsInterceptorAlive
+                ? "INTERCEPTOR CLEAR"
+                : m_threats.IsInterceptorCharging
+                    ? $"INTERCEPTOR {m_threats.InterceptorHealth:0}/{m_threats.InterceptorMaximumHealth:0} LOCKING (+{m_threats.InterceptorSignalReward:0})"
+                    : $"INTERCEPTOR {m_threats.InterceptorHealth:0}/{m_threats.InterceptorMaximumHealth:0} FLANKING (+{m_threats.InterceptorSignalReward:0})";
             var entry = m_threats.PendingReinforcement == SecurityReinforcement.None
                 ? string.Empty
                 : $"  {m_threats.PendingReinforcement.ToString().ToUpperInvariant()} ENTRY {m_threats.ReinforcementEntryCountdown:0.0}s";
             return $"ALERT {m_threats.EscalationTier}/{RunModel.SalvageRequired}  RESERVE {m_threats.ReinforcementsRemaining}{entry}  //  " +
-                   $"{warden}  //  {sapper}";
+                   $"{warden}  //  {interceptor}  //  {sapper}";
         }
 
         private string _contextPrompt()

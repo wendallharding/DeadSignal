@@ -27,6 +27,8 @@ namespace DeadSignal
         public Transform Sapper { get; private set; }
         public Transform SapperCore { get; private set; }
         public Vector3 SapperCoreBaseScale { get; private set; }
+        public Transform Interceptor { get; private set; }
+        public Transform InterceptorCore { get; private set; }
         public Transform TowerCore { get; private set; }
         public SignalSapperTelegraph SapperTelegraph { get; private set; }
         public IReadOnlyList<GameObject> SalvagePickups => m_salvagePickups;
@@ -55,6 +57,9 @@ namespace DeadSignal
         public bool LastSignalBoltUsedAuthoredPrefab { get; private set; }
         public bool HasSignalSapperAssets { get; private set; }
         public int SignalSapperPartCount { get; private set; }
+        public bool HasSecurityInterceptorAssets { get; private set; }
+        public int SecurityInterceptorPartCount { get; private set; }
+        public int AuthoredInterceptorEntranceCount { get; private set; }
         public int AuthoredMapObstacleCount { get; private set; }
         public int AuthoredSalvageSocketCount { get; private set; }
         public bool HasPlayerCameraTuning { get; private set; }
@@ -213,6 +218,42 @@ namespace DeadSignal
         {
             Sapper.gameObject.SetActive(false);
             SapperTelegraph.SetThreatState(false, false, 0f, 1f);
+        }
+
+        public void PurgeInterceptor()
+        {
+            Interceptor.gameObject.SetActive(false);
+            SetInterceptorTelegraph(false, Interceptor.position);
+        }
+
+        public float GetSafestInterceptorEntryDistance(Vector3 playerPosition)
+        {
+            var first = m_interceptorEntrances[0];
+            var second = m_interceptorEntrances[1];
+            var index = InterceptorTactics.SelectSafestEntrance(playerPosition, first, second);
+            return FlatDistance(playerPosition, index == 0 ? first : second);
+        }
+
+        public void DeployInterceptorReinforcement()
+        {
+            var index = InterceptorTactics.SelectSafestEntrance(
+                Player.position,
+                m_interceptorEntrances[0],
+                m_interceptorEntrances[1]);
+            Interceptor.position = m_interceptorEntrances[index];
+            Interceptor.gameObject.SetActive(true);
+        }
+
+        public void SetInterceptorTelegraph(bool visible, Vector3 target)
+        {
+            m_interceptorTelegraph.gameObject.SetActive(visible);
+            if (!visible)
+            {
+                return;
+            }
+
+            m_interceptorTelegraph.SetPosition(0, Interceptor.position + Vector3.up * 0.18f);
+            m_interceptorTelegraph.SetPosition(1, target + Vector3.up * 0.18f);
         }
 
         public void DeployWardenReinforcement()
@@ -684,6 +725,9 @@ namespace DeadSignal
         {
             _buildPlayer();
 
+            _registerInterceptorEntrances();
+            _buildInterceptor();
+
             _buildWarden();
 
             var wardenTelegraphRoot = new GameObject("Warden Strike Warning");
@@ -708,6 +752,77 @@ namespace DeadSignal
             }
 
             AuthoredSalvageSocketCount = authoredSockets.Length;
+        }
+
+        private void _registerInterceptorEntrances()
+        {
+            var authoredEntrances = Object.FindObjectsByType<AuthoredInterceptorEntrance>(FindObjectsSortMode.None);
+            AuthoredInterceptorEntranceCount = authoredEntrances.Length;
+            System.Array.Sort(authoredEntrances, (first, second) => first.Priority.CompareTo(second.Priority));
+            foreach (var entrance in authoredEntrances)
+            {
+                m_interceptorEntrances.Add(entrance.Position);
+            }
+
+            if (m_interceptorEntrances.Count < 2)
+            {
+                m_interceptorEntrances.Clear();
+                m_interceptorEntrances.Add(s_interceptorNorthSpawn);
+                m_interceptorEntrances.Add(s_interceptorSouthSpawn);
+            }
+        }
+
+        private void _buildInterceptor()
+        {
+            var prefab = Resources.Load<GameObject>(SECURITY_INTERCEPTOR_PREFAB_RESOURCE);
+            var hasValidPrefab = prefab != null &&
+                                 prefab.transform.Find("Interceptor Chassis") != null &&
+                                 prefab.transform.Find("Interceptor Blade Left") != null &&
+                                 prefab.transform.Find("Interceptor Blade Right") != null &&
+                                 prefab.transform.Find("Interceptor Core") != null;
+            if (hasValidPrefab)
+            {
+                var root = Object.Instantiate(prefab, m_root);
+                root.name = "Security Interceptor";
+                Interceptor = root.transform;
+                Interceptor.Find("Interceptor Chassis").GetComponent<Renderer>().sharedMaterial = m_palette.WardenHousing;
+                Interceptor.Find("Interceptor Blade Left").GetComponent<Renderer>().sharedMaterial = m_palette.RedDim;
+                Interceptor.Find("Interceptor Blade Right").GetComponent<Renderer>().sharedMaterial = m_palette.RedDim;
+                InterceptorCore = Interceptor.Find("Interceptor Core");
+                InterceptorCore.GetComponent<Renderer>().sharedMaterial = m_palette.Amber;
+                HasSecurityInterceptorAssets = true;
+                SecurityInterceptorPartCount = 4;
+            }
+            else
+            {
+                var root = new GameObject("Security Interceptor");
+                root.transform.SetParent(m_root);
+                Interceptor = root.transform;
+                _createPrimitive("Interceptor Chassis", PrimitiveType.Cube, new Vector3(0f, 0.3f, 0f),
+                    new Vector3(0.75f, 0.28f, 1.1f), m_palette.WardenHousing, Interceptor);
+                _createPrimitive("Interceptor Blade Left", PrimitiveType.Cube, new Vector3(-0.56f, 0.22f, 0f),
+                    new Vector3(0.16f, 0.12f, 1.5f), m_palette.RedDim, Interceptor);
+                _createPrimitive("Interceptor Blade Right", PrimitiveType.Cube, new Vector3(0.56f, 0.22f, 0f),
+                    new Vector3(0.16f, 0.12f, 1.5f), m_palette.RedDim, Interceptor);
+                InterceptorCore = _createPrimitive("Interceptor Core", PrimitiveType.Sphere, new Vector3(0f, 0.42f, -0.3f),
+                    new Vector3(0.26f, 0.18f, 0.26f), m_palette.Amber, Interceptor).transform;
+                HasSecurityInterceptorAssets = false;
+                SecurityInterceptorPartCount = 4;
+            }
+
+            Interceptor.position = m_interceptorEntrances[0];
+            Interceptor.gameObject.SetActive(false);
+            var telegraphRoot = new GameObject("Interceptor Charge Telegraph");
+            telegraphRoot.transform.SetParent(m_root);
+            m_interceptorTelegraph = telegraphRoot.AddComponent<LineRenderer>();
+            m_interceptorTelegraph.positionCount = 2;
+            m_interceptorTelegraph.startWidth = 0.16f;
+            m_interceptorTelegraph.endWidth = 0.05f;
+            m_interceptorTelegraph.sharedMaterial = m_palette.Red;
+            m_interceptorTelegraph.textureMode = LineTextureMode.Stretch;
+            m_interceptorTelegraph.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+            m_interceptorTelegraph.receiveShadows = false;
+            telegraphRoot.SetActive(false);
         }
 
         private void _buildSapper()
@@ -945,6 +1060,7 @@ namespace DeadSignal
         private const string PLAYER_DRONE_PREFAB_RESOURCE = "Actors/MaintenanceDroneAssembly";
         private const string SECURITY_WARDEN_PREFAB_RESOURCE = "Actors/SecurityWardenAssembly";
         private const string SIGNAL_SAPPER_PREFAB_RESOURCE = "Actors/SignalSapperAssembly";
+        private const string SECURITY_INTERCEPTOR_PREFAB_RESOURCE = "Actors/SecurityInterceptorAssembly";
         private const string SIGNAL_BOLT_PREFAB_RESOURCE = "Projectiles/SignalBoltAssembly";
         private const string PLAYER_CAMERA_TUNING_RESOURCE = "Tuning/PlayerCameraTuning";
         private const float DECK_MODULE_WIDTH = 3.9f;
@@ -952,6 +1068,8 @@ namespace DeadSignal
 
         private static readonly Vector3 s_securityWardenSpawn = new(6.8f, 0f, 4.7f);
         private static readonly Vector3 s_signalSapperSpawn = new(-10.8f, 0f, 5.7f);
+        private static readonly Vector3 s_interceptorNorthSpawn = new(-16.4f, 0f, 7.1f);
+        private static readonly Vector3 s_interceptorSouthSpawn = new(1.5f, 0f, -7.5f);
 
         private readonly Transform m_root;
         private readonly DeadSignalPalette m_palette;
@@ -959,12 +1077,14 @@ namespace DeadSignal
         private readonly List<MovementBlocker> m_movementBlockers = new();
         private readonly List<GameObject> m_salvagePickups = new();
         private readonly List<Vector3> m_machineSockets = new();
+        private readonly List<Vector3> m_interceptorEntrances = new();
 
         private GameObject m_towerTerritory;
         private GameObject m_towerSignalLines;
         private GameObject m_extractionBeacon;
         private GameObject m_shortcutGate;
         private Transform m_cameraRig;
+        private LineRenderer m_interceptorTelegraph;
 
         private sealed class MovementBlocker
         {

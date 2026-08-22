@@ -3696,3 +3696,35 @@ The existing arena now converts salvage greed into a bounded reinforcement reser
 - Reinforcement purges currently pay the same bounded role bounty as the opening units. This intentionally sustains the combat economy but needs playtest evidence to ensure repeated clean Sapper purges do not overfund the run.
 - Automated evidence does not judge whether the threat strip remains comfortable at 1280x720 or whether the 2.5-second bay warning is visually sufficient during combat.
 - Best next step: add a dedicated Interceptor that uses separate authored entrances to cut off retreat, then test it in mixed Warden/Sapper waves rather than increasing existing enemy stats.
+
+## 2026-08-22 — Autonomous Run 62 — Flanking Interceptor
+
+### Milestone, player benefit, and acceptance
+
+The first salvage escalation now introduces a dedicated Interceptor that pressures the route back to extraction while the opening Warden pursues and Sapper attacks the tower. Acceptance required an Interceptor/Warden/Sapper reserve order, one live Interceptor maximum, the safer of two authored flank gates, the existing six-metre exclusion and 2.5-second entry warning, route-cutoff movement, a 0.8-second visible charge line, a short collision-bounded dash, one cooldown-limited Signal impact, projectile and cover interaction, a tuned purge bounty, and live HUD state.
+
+### Files and systems changed
+
+- Added `AuthoredInterceptorEntrance.cs`, `InterceptorTactics.cs`, and `InterceptorTacticsTests.cs` with Unity-generated metadata. The deterministic tactics select the farther gate and calculate a point between the drone and extraction.
+- Added `SecurityInterceptorAssembly.prefab` and `InterceptorEntryGate.prefab` with Unity-generated metadata. `DeadSignalInterceptorSetup.cs` creates and validates the four-part red/amber actor plus two non-blocking scene-authored warning gates at the north and south arena edges.
+- Updated `SampleScene.unity` with exactly two Interceptor gate instances. No existing object, obstacle, objective, cache, spawn, or GUID was moved or replaced.
+- Updated `SecurityEscalationDirector.cs` so the three-cache reserve is Interceptor/Warden/Sapper. Existing budget, tower gate, duplicate-role prevention, proximity exclusion, and entry delay remain authoritative.
+- Updated `DeadSignalThreatController.cs`, `DeadSignalWorld.cs`, `ThreatBalanceTuning.cs`, and `ThreatBalanceTuning.asset` with Interceptor health, approach/cutoff/charge/dash rules, collision, damage cooldown, 14-Signal recovery, projectile hits, entrance selection, and charge presentation.
+- Updated `DeadSignalGame.cs`, `DeadSignalHud.cs`, `StandaloneBuildSmokeProbe.cs`, `DeadSignalWindowsBuild.cs`, and focused EditMode/PlayMode tests with runtime state, HUD status, asset/build gates, deployment coverage, and charge-line coverage.
+- Updated `GAME_VISION.md` and `BACKLOG.md` with the product decision and remaining playtest question. No package, project-setting, input, save-data, audio, existing reward/cost, or generated-source change is owned by this milestone. Fifty-nine Unity build serializer side effects were restored.
+
+### Exact validation evidence
+
+1. Unity `6000.3.11f1` import/compile and `DeadSignalInterceptorSetup.EnsureAssets`: exit `0`; scripts compiled, both prefabs and all metadata imported, and two scene placements were saved; `Logs/run62-import.log`.
+2. Final EditMode: exit `0`; `57/57` passed, `0` failed, `0` skipped in `0.1103525s`; `Logs/run62-editmode-final-results.xml` and `Logs/run62-editmode-final.log`.
+3. Final PlayMode: exit `0`; `5/5` passed, `0` failed, `0` skipped in `10.2942746s`; complete-runtime assertions proved authored composition, two flank gates, first-reserve deployment, three health, reserve consumption, cutoff transition, and visible charge telegraph; `Logs/run62-playmode-final-results.xml` and `Logs/run62-playmode-final.log`.
+4. Windows x64 development build: exit `0`; Unity reported `241,132,565` bytes in `16.61s`; `Build/Windows/DeadSignal.exe`; `Logs/run62-build.log`.
+5. Packaged Direct3D 11 smoke: exit `0` with one `[DEAD SIGNAL STANDALONE SMOKE] PASS`; `Logs/run62-standalone.log`.
+6. Final critical scan found only Unity licensing-service handshake noise; no compiler errors, null/missing-reference exceptions, unhandled exceptions, failed assertions, or smoke failure. `git diff --check` passed after generated-side-effect cleanup.
+
+### Bugs prevented, limitations, and next step
+
+- The gate selector always uses the farther authored entrance, so a cache pickup cannot spawn the Interceptor directly beside the drone when either edge gate is safe.
+- The dash locks its target before the charge completes and movement still uses authored oriented-obstacle collision, creating a real dodge window without allowing the threat to phase through cover.
+- Automated tests prove the state sequence but cannot judge whether the 0.8-second red line is legible amid Warden/Sapper pressure, whether the HUD remains comfortable at 1280x720, or whether the 18-Signal impact and 14-Signal bounty are fair. No interactive playtest was performed.
+- Best next step: record clean and greedy three-cache runs, measuring first Interceptor arrival, dash hits/avoids, route abandonment, Signal spent/reclaimed, peak mixed threats, and extraction time; tune the charge/dash window before adding extraction holdout pressure.

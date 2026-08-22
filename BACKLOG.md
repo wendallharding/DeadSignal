@@ -14,10 +14,19 @@
 
 ## P1 — Prove the loop
 
+### Run 62 flanking-Interceptor ideas
+
+- [x] Deploy one dedicated Interceptor as the first salvage escalation while the opening Warden and Sapper remain active
+- [x] Choose the farther of two scene-authored flank gates and preserve the six-metre exclusion plus 2.5-second entry warning
+- [x] Move toward a point between the drone and extraction instead of directly pursuing the player
+- [x] Telegraph a locked 0.8-second dash line, then commit to a short collision-bounded burst with an impact cooldown
+- [x] Give the Interceptor tuned health, a 14-Signal purge bounty, projectile/cover interaction, and live HUD state
+- [ ] Playtest whether the cutoff reliably changes the return route without making the locked dash trivial or unavoidable
+
 ### Run 61 bounded security-escalation ideas
 
 - [x] Raise one deterministic alert tier for each required cache secured after tower activation
-- [x] Bank exactly one alternating Warden/Sapper/Warden reinforcement per alert tier
+- [x] Bank exactly one bounded reinforcement per alert tier; the initial alternating sequence was superseded by Run 62's Interceptor/Warden/Sapper mix
 - [x] Hold each deployment until its tactical role is purged and a concurrent slot is available
 - [x] Prevent bay-side ambushes with a designer-tuned six-metre player exclusion radius and 2.5-second entry delay
 - [x] Show the live alert tier and remaining reinforcement reserve in the threat strip

@@ -620,6 +620,15 @@ namespace DeadSignal.Tests
             Assert.That(signalSapper.Find("Sapper Chassis").GetComponent<Renderer>().sharedMaterial.mainTexture, Is.Not.Null,
                 "The Sapper chassis should render the original parasitic armor texture.");
             Assert.That(signalSapper.gameObject.activeSelf, Is.False);
+            var interceptor = game.transform.Find("Security Interceptor");
+            Assert.That(interceptor, Is.Not.Null, "The dormant Interceptor should be composed with the runtime arena.");
+            Assert.That(game.HasSecurityInterceptorAssets, Is.True,
+                "The Interceptor should use its authored assembly rather than fallback primitives.");
+            Assert.That(game.SecurityInterceptorPartCount, Is.EqualTo(4));
+            Assert.That(game.AuthoredInterceptorEntranceCount, Is.EqualTo(2),
+                "Two scene-authored flank gates should give the director a safe route choice.");
+            Assert.That(interceptor.gameObject.activeSelf, Is.False);
+            Assert.That(game.transform.Find("Interceptor Charge Telegraph"), Is.Not.Null);
             var telegraphRoot = game.transform.Find("Sapper Drain Telegraph");
             Assert.That(telegraphRoot, Is.Not.Null, "The Sapper telegraph should be constructed with the runtime arena.");
             var telegraph = telegraphRoot.GetComponent<SignalSapperTelegraph>();
@@ -1163,6 +1172,26 @@ namespace DeadSignal.Tests
                     "Every required cache should raise the bounded security alert tier.");
                 Assert.That(game.SecurityReinforcementsRemaining, Is.EqualTo(RunModel.SalvageRequired),
                     "The director should bank one reinforcement per cache while its requested combat role remains alive.");
+                player.position = Vector3.zero;
+                var interceptorEntryDeadline = Time.time + 3.2f;
+                while (!interceptor.gameObject.activeSelf && Time.time < interceptorEntryDeadline)
+                {
+                    yield return null;
+                }
+
+                Assert.That(interceptor.gameObject.activeSelf, Is.True,
+                    "The first salvage reserve should deploy the Interceptor from a safe authored flank gate.");
+                Assert.That(game.InterceptorHealth, Is.EqualTo(3f));
+                Assert.That(game.SecurityReinforcementsRemaining, Is.EqualTo(RunModel.SalvageRequired - 1));
+                interceptor.position = InterceptorTactics.CalculateCutoffPoint(
+                    player.position,
+                    new Vector3(-9.2f, 0f, -5.6f),
+                    0.48f);
+                yield return null;
+                Assert.That(game.IsInterceptorCharging, Is.True,
+                    "Reaching the retreat cutoff should begin the readable dash charge before impact.");
+                Assert.That(game.transform.Find("Interceptor Charge Telegraph").gameObject.activeSelf, Is.True,
+                    "The Interceptor charge should reveal its locked dash line.");
                 Assert.That(game.transform.Cast<Transform>().Count(child =>
                         child.name == "Salvage Cache" && child.gameObject.activeSelf), Is.EqualTo(1),
                     "One optional cache should remain available after the extraction requirement is met.");

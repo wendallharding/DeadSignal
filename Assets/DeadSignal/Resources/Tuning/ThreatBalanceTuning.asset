@@ -23,5 +23,15 @@ MonoBehaviour:
   m_sapperFirstPulseDelay: 1.6
   m_sapperPulseInterval: 1.35
   m_sapperSignalReward: 16
+  m_interceptorHealth: 3
+  m_interceptorApproachSpeed: 3.1
+  m_interceptorCutoffFraction: 0.48
+  m_interceptorChargeDistance: 1.35
+  m_interceptorChargeDuration: 0.8
+  m_interceptorDashSpeed: 8.5
+  m_interceptorDashDuration: 0.65
+  m_interceptorHitDistance: 0.9
+  m_interceptorHitCooldown: 1.2
+  m_interceptorSignalReward: 14
   m_reinforcementEntryDelay: 2.5
   m_reinforcementSafeDistance: 6

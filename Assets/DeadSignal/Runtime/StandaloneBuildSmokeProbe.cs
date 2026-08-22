@@ -80,6 +80,11 @@ namespace DeadSignal
                                 game.HasWardenWarningTexture &&
                                 Resources.Load<Texture2D>("VFX/WardenStrikeWarning") != null &&
                                 Resources.Load<WardenThreatTelegraphTuning>("Tuning/WardenThreatTelegraphTuning") != null &&
+                                game.HasSecurityInterceptorAssets &&
+                                game.SecurityInterceptorPartCount == 4 &&
+                                game.AuthoredInterceptorEntranceCount == 2 &&
+                                Resources.Load<GameObject>("Actors/SecurityInterceptorAssembly") != null &&
+                                Resources.Load<GameObject>("Environment/InterceptorEntryGate") != null &&
                                 game.AuthoredMapObstacleCount == EXPECTED_AUTHORED_OBSTACLE_COUNT &&
                                 Resources.Load<GameObject>("Environment/CoolantManifoldAssembly") != null &&
                                 Resources.Load<GameObject>("Environment/TowerApproachJunction") != null &&

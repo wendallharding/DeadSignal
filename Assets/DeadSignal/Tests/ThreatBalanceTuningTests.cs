@@ -17,6 +17,11 @@ namespace DeadSignal.Tests
                 Assert.That(tuning.SapperPulseInterval, Is.GreaterThan(0f));
                 Assert.That(tuning.ReinforcementEntryDelay, Is.GreaterThanOrEqualTo(2f));
                 Assert.That(tuning.ReinforcementSafeDistance, Is.GreaterThan(4f));
+                Assert.That(tuning.InterceptorHealth, Is.GreaterThan(0));
+                Assert.That(tuning.InterceptorChargeDuration, Is.GreaterThanOrEqualTo(0.5f));
+                Assert.That(tuning.InterceptorDashSpeed, Is.GreaterThan(tuning.InterceptorApproachSpeed));
+                Assert.That(tuning.InterceptorSignalReward,
+                    Is.LessThanOrEqualTo(tuning.InterceptorHealth * RunModel.ShotCost));
             }
             finally
             {

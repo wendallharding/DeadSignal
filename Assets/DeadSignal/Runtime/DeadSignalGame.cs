@@ -37,6 +37,8 @@ namespace DeadSignal
         public float CurrentSignal => m_model?.Signal ?? 0f;
         public bool IsSapperLatched => m_threats?.IsSapperLatched ?? false;
         public float SapperHealth => m_threats?.SapperHealth ?? 0f;
+        public float InterceptorHealth => m_threats?.InterceptorHealth ?? 0f;
+        public bool IsInterceptorCharging => m_threats?.IsInterceptorCharging ?? false;
         public int SecurityEscalationTier => m_threats?.EscalationTier ?? 0;
         public int SecurityReinforcementsRemaining => m_threats?.ReinforcementsRemaining ?? 0;
         public bool LastSignalBoltBlockedByEnvironment => m_threats?.LastShotBlockedByEnvironment ?? false;
@@ -87,6 +89,9 @@ namespace DeadSignal
         public bool IsWardenWarningMotionSuppressed => m_world?.WardenTelegraph?.IsMotionSuppressed ?? false;
         public bool HasSignalSapperAssets => m_world?.HasSignalSapperAssets ?? false;
         public int SignalSapperPartCount => m_world?.SignalSapperPartCount ?? 0;
+        public bool HasSecurityInterceptorAssets => m_world?.HasSecurityInterceptorAssets ?? false;
+        public int SecurityInterceptorPartCount => m_world?.SecurityInterceptorPartCount ?? 0;
+        public int AuthoredInterceptorEntranceCount => m_world?.AuthoredInterceptorEntranceCount ?? 0;
         public int AuthoredMapObstacleCount => m_world?.AuthoredMapObstacleCount ?? 0;
         public int AuthoredSalvageSocketCount => m_world?.AuthoredSalvageSocketCount ?? 0;
         public bool HasPlayerCameraTuning => m_world?.HasPlayerCameraTuning ?? false;

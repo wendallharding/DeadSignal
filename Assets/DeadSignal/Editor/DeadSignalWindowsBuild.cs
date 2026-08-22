@@ -48,6 +48,7 @@ namespace DeadSignal.Editor
             DeadSignalBoundaryThresholdSetup.EnsureAssets();
             DeadSignalHudSetup.EnsureAssets();
             DeadSignalThreatSetup.EnsureAssets();
+            DeadSignalInterceptorSetup.EnsureAssets();
             DeadSignalSalvageChainSetup.EnsureAssets();
             _validateBuildInputs();
             _configureWindowsPlayer();
@@ -111,6 +112,11 @@ namespace DeadSignal.Editor
             if (!DeadSignalThreatSetup.HasAssets)
             {
                 throw new BuildFailedException("Threat balance tuning or Signal recovery art is missing.");
+            }
+
+            if (!DeadSignalInterceptorSetup.HasAssets)
+            {
+                throw new BuildFailedException("The authored Security Interceptor and flank gates are missing.");
             }
 
             if (!DeadSignalSalvageChainSetup.HasAssets)

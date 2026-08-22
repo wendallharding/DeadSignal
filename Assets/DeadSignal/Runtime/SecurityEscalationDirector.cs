@@ -5,6 +5,7 @@ namespace DeadSignal
     public enum SecurityReinforcement
     {
         None,
+        Interceptor,
         Warden,
         Sapper
     }
@@ -31,15 +32,17 @@ namespace DeadSignal
         public int ReinforcementsRemaining => Math.Max(0, m_observedSalvage - m_nextReinforcement);
         public float EntryCountdown => m_entryCountdown;
         public SecurityReinforcement PendingReinforcement => m_entryCountdown > 0f
-            ? m_nextReinforcement % 2 == 0 ? SecurityReinforcement.Warden : SecurityReinforcement.Sapper
+            ? _getReinforcement(m_nextReinforcement)
             : SecurityReinforcement.None;
 
         public SecurityReinforcement Tick(
             float seconds,
             bool towerOnline,
             int salvage,
+            bool interceptorAlive,
             bool wardenAlive,
             bool sapperAlive,
+            float interceptorEntryDistance,
             float wardenEntryDistance,
             float sapperEntryDistance)
         {
@@ -55,11 +58,19 @@ namespace DeadSignal
                 return SecurityReinforcement.None;
             }
 
-            var reinforcement = m_nextReinforcement % 2 == 0
-                ? SecurityReinforcement.Warden
-                : SecurityReinforcement.Sapper;
-            var roleAlive = reinforcement == SecurityReinforcement.Warden ? wardenAlive : sapperAlive;
-            var entryDistance = reinforcement == SecurityReinforcement.Warden ? wardenEntryDistance : sapperEntryDistance;
+            var reinforcement = _getReinforcement(m_nextReinforcement);
+            var roleAlive = reinforcement switch
+            {
+                SecurityReinforcement.Interceptor => interceptorAlive,
+                SecurityReinforcement.Warden => wardenAlive,
+                _ => sapperAlive
+            };
+            var entryDistance = reinforcement switch
+            {
+                SecurityReinforcement.Interceptor => interceptorEntryDistance,
+                SecurityReinforcement.Warden => wardenEntryDistance,
+                _ => sapperEntryDistance
+            };
             if (roleAlive || entryDistance < m_safeEntryDistance)
             {
                 m_entryCountdown = 0f;
@@ -80,6 +91,16 @@ namespace DeadSignal
 
             m_nextReinforcement++;
             return reinforcement;
+        }
+
+        private static SecurityReinforcement _getReinforcement(int index)
+        {
+            return index switch
+            {
+                0 => SecurityReinforcement.Interceptor,
+                1 => SecurityReinforcement.Warden,
+                _ => SecurityReinforcement.Sapper
+            };
         }
     }
 }

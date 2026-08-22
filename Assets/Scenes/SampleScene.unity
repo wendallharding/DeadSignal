@@ -119,6 +119,67 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
+--- !u!1001 &37548333
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 1255123135536593285, guid: e55746de96b57ba41a3ebf4a0fda9104, type: 3}
+      propertyPath: m_Name
+      value: South Interceptor Flank Gate
+      objectReference: {fileID: 0}
+    - target: {fileID: 1751625543977767163, guid: e55746de96b57ba41a3ebf4a0fda9104, type: 3}
+      propertyPath: m_priority
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5565913508980418164, guid: e55746de96b57ba41a3ebf4a0fda9104, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 1.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 5565913508980418164, guid: e55746de96b57ba41a3ebf4a0fda9104, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5565913508980418164, guid: e55746de96b57ba41a3ebf4a0fda9104, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -7.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 5565913508980418164, guid: e55746de96b57ba41a3ebf4a0fda9104, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5565913508980418164, guid: e55746de96b57ba41a3ebf4a0fda9104, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5565913508980418164, guid: e55746de96b57ba41a3ebf4a0fda9104, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5565913508980418164, guid: e55746de96b57ba41a3ebf4a0fda9104, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5565913508980418164, guid: e55746de96b57ba41a3ebf4a0fda9104, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5565913508980418164, guid: e55746de96b57ba41a3ebf4a0fda9104, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5565913508980418164, guid: e55746de96b57ba41a3ebf4a0fda9104, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: e55746de96b57ba41a3ebf4a0fda9104, type: 3}
 --- !u!1001 &172770432
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1002,6 +1063,63 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 06951022e04580748a0fe133ca92ecb6, type: 3}
+--- !u!1001 &2085948864
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 1255123135536593285, guid: e55746de96b57ba41a3ebf4a0fda9104, type: 3}
+      propertyPath: m_Name
+      value: North Interceptor Flank Gate
+      objectReference: {fileID: 0}
+    - target: {fileID: 5565913508980418164, guid: e55746de96b57ba41a3ebf4a0fda9104, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -16.4
+      objectReference: {fileID: 0}
+    - target: {fileID: 5565913508980418164, guid: e55746de96b57ba41a3ebf4a0fda9104, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5565913508980418164, guid: e55746de96b57ba41a3ebf4a0fda9104, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 7.1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5565913508980418164, guid: e55746de96b57ba41a3ebf4a0fda9104, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 0.7071068
+      objectReference: {fileID: 0}
+    - target: {fileID: 5565913508980418164, guid: e55746de96b57ba41a3ebf4a0fda9104, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5565913508980418164, guid: e55746de96b57ba41a3ebf4a0fda9104, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0.7071068
+      objectReference: {fileID: 0}
+    - target: {fileID: 5565913508980418164, guid: e55746de96b57ba41a3ebf4a0fda9104, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5565913508980418164, guid: e55746de96b57ba41a3ebf4a0fda9104, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5565913508980418164, guid: e55746de96b57ba41a3ebf4a0fda9104, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5565913508980418164, guid: e55746de96b57ba41a3ebf4a0fda9104, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: e55746de96b57ba41a3ebf4a0fda9104, type: 3}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
@@ -1019,3 +1137,5 @@ SceneRoots:
   - {fileID: 890906250}
   - {fileID: 436783840}
   - {fileID: 1775431680}
+  - {fileID: 2085948864}
+  - {fileID: 37548333}

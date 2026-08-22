@@ -67,6 +67,7 @@ This autonomous run is accepted when a fresh Play session provides all of the fo
 - The dormant Sapper waits inside a scene-placed magenta service cradle whose southeast opening foreshadows its tower-bound emergence and whose pylons become post-activation combat cover without trapping it.
 - The Sapper's successful drain uses an authored inward-pulling floor glyph whose expansion remains optional under Reduced Flashes while timing stays readable through the countdown reticle.
 - The Sapper's target tether carries repeated authored energy packets toward the tower during approach and latch, making drain direction readable without changing threat timing.
+- The first salvage escalation deploys a red-and-amber Interceptor from the safer of two scene-authored flank gates; it moves toward the extraction route, shows a locked charge line, and commits to an avoidable dash that combines with Warden pursuit and Sapper tower pressure.
 - Three warm salvage pickups can be collected outside the safe starting area.
 - Returning to the extraction pad with all salvage and pressing E wins.
 - A central powered gate offers a readable choice: spend Signal for a direct salvage route or detour through the dead zone.
@@ -143,4 +144,8 @@ The first minute should teach the entire promise without a tutorial panel: leave
 
 ### Run 61 product decision — bounded security escalation
 
-Salvage progress now raises a deterministic three-tier security alert instead of leaving the opening pair as the run's entire combat budget. Each required cache banks one alternating Warden/Sapper/Warden reinforcement, but a role can re-enter only after its current unit is purged, the player has left a six-metre exclusion around the authored bay, and a 2.5-second warning window elapses. This was selected over adding a larger map or simply scaling enemy stats because the current arena needs repeated mixed-role pressure and a dangerous return leg. The fixed three-unit reserve keeps pressure legible and bounded while preserving avoidance: players who refuse a purge do not receive an unavoidable duplicate of that role.
+Salvage progress now raises a deterministic three-tier security alert instead of leaving the opening pair as the run's entire combat budget. Each required cache banks one bounded reinforcement, but a role can enter only when its current unit is absent, the player has left a six-metre exclusion around its authored entrance, and a 2.5-second warning window elapses. This was selected over adding a larger map or simply scaling enemy stats because the current arena needs repeated mixed-role pressure and a dangerous return leg. The fixed three-unit reserve keeps pressure legible and bounded while preserving avoidance: players who refuse a purge do not receive an unavoidable duplicate of that role.
+
+### Run 62 product decision — flanking Interceptor
+
+The first salvage escalation now introduces an Interceptor before the existing Warden and Sapper reserves. It selects the farther of two scene-authored edge gates, advances toward a point between the drone and extraction, locks a visible line for 0.8 seconds, and then commits to a short collision-bounded dash. This was selected over increasing enemy health, speed, or count because the return leg needed a threat that changes route and dodge decisions while combining cleanly with direct pursuit and tower denial. Three health and a 14-Signal purge bounty keep fighting economically competitive without making a clean purge profitable after its minimum shot cost.
