@@ -3310,3 +3310,53 @@ The user's open Unity Editor remained untouched. Authoritative validation used `
 ### Best next step
 
 Accelerate, coast, brake, reverse, and scrape along rotated cover with keyboard and controller; confirm the twin wake remains behind the drone, clears on pause, and reads without overpowering the cyan route art.
+
+## 2026-08-21 - Autonomous Run 54 - Complete keyboard movement routing
+
+### Today's five tightly scoped ideas
+
+1. **Remappable Move Up.** Player benefit: alternate layouts and one-handed configurations can move north without changing controller support. Acceptance: the chosen key persists, appears live, resets to W, and Up Arrow remains a fixed fallback.
+2. **Remappable Move Down.** Player benefit: vertical movement can be placed for comfort. Acceptance: the chosen key persists, appears live, resets to S, and Down Arrow remains a fixed fallback.
+3. **Remappable Move Left.** Player benefit: non-WASD layouts remain fully playable. Acceptance: the chosen key persists, appears live, resets to A, and Left Arrow remains a fixed fallback.
+4. **Remappable Move Right.** Player benefit: independently configured movement is complete. Acceptance: the chosen key persists, appears live, resets to D, and Right Arrow remains a fixed fallback.
+5. **Six-action duplicate protection.** Player benefit: rebinding cannot silently disable a movement, Fire, or Use route. Acceptance: duplicates across all six primary keyboard actions are rejected, the prior valid route remains active, capture stays open, and concise conflict feedback identifies the occupied key.
+
+These were selected as one cohesive accessibility milestone over new combat content, another authored room, camera polish, or economy tuning because keyboard movement was the largest remaining gap in the otherwise complete input paths. The core Signal-economy vision, balance, encounters, scene layout, packages, project settings, and save-data contracts are unchanged.
+
+### Files and systems changed
+
+- `DeadSignalInput.cs`: replaced fixed WASD polling with four owned Input System actions, independent PlayerPrefs overrides, arrow-key fallback bindings, normalized combined movement, all-action duplicate arbitration, complete reset, and symmetric disposal. This is the run's focused production refactor; the class has no designer-facing gameplay tuning values to migrate into a ScriptableObject.
+- `DeadSignalHud.cs`: expanded the pause control-routing panel to expose four movement routes plus Fire/Use/Reset and changed the live HUD movement legend to use current bindings.
+- `DeadSignalGame.cs`: exposed movement binding and movement-icon readiness for integration validation.
+- `MovementRoutingIcon.png` and Unity-generated `.meta`: original 1254x1254 transparent cyan/white/graphite/amber four-way maintenance-routing emblem generated with OpenAI's built-in image tool. SHA-256 `38DC0F7EAEDA93EC416635E65A3FCE3626C0AD980A28D69FBD881E83C06BF4AE`.
+- `StandaloneBuildSmokeProbe.cs`, `DeadSignalInputTests.cs`, and `BootstrapSmokeTests.cs`: require the packaged icon, binding labels, persistence/reset behavior, and conflicts spanning movement/combat/use.
+- `GAME_VISION.md` and `BACKLOG.md`: recorded the product rationale, player value, five acceptance contracts, and remaining platform-glyph work.
+- Observed the pre-existing uncommitted `OpeningSignalSpine.prefab` orientation change and did not stage or write it; it was no longer present after the owner's open Editor refreshed during the run. No scenes, prefabs, tuning assets, packages, project settings, generated source, or gameplay rules changed by this feature.
+
+Final image prompt: original top-down four-branch sci-fi maintenance movement-routing matrix, centered and readable at 54 pixels, cyan-white emissive circuitry on graphite/ceramic with restrained amber nodes, genuine transparency, and no text, logo, brand, character, environment, or watermark. Built-in image generation was used.
+
+### Tests run and exact outcomes
+
+The user's open Unity Editor remained untouched. Authoritative validation used `C:\Projects\Wendall\CodexPrototype_Run50Validation` with pinned Unity `6000.3.11f1`.
+
+1. Import/compile completed successfully and generated `MovementRoutingIcon.png.meta`; the first accidentally asynchronous launcher and a second launcher overlapped, causing the second process to return `1`, while the original process completed import and logged `Exiting batchmode successfully` with return code `0`. No compile errors were logged.
+2. Final EditMode: `Logs/run54-editmode-final-results.xml` and `.log`; `35/35` passed, `0` failed, `0` skipped in `0.161233s`; exit `0`.
+3. Final PlayMode: `Logs/run54-playmode-final-results.xml` and `.log`; `4/4` passed, `0` failed, `0` skipped in `6.7826903s`; exit `0`.
+4. Final Windows development build: `Logs/run54-build-final.log`; `Build Finished, Result: Success`, `225,278,861` bytes in `9.74s`; exit `0`.
+5. Final packaged smoke: `Logs/run54-standalone-final.log`; emitted one `[DEAD SIGNAL STANDALONE SMOKE] PASS` marker and exited `0`.
+6. `git diff --check` passed before documentation. Unity logs contained the known licensing-client handshake fallback before successful entitlement resolution; scans found no compiler errors, failed assertions, unhandled exceptions, or runtime smoke failures.
+
+### Bugs found and fixed
+
+- Fixed the remaining fixed-keyboard movement path: W/A/S/D can now be changed without losing normalized diagonal motion, controller left-stick input, or arrow-key fallback.
+- Extended duplicate protection from only Fire versus Use to every primary movement/combat/use action, preventing an accepted binding from making another action unreachable.
+
+### Known limitations
+
+- Headless validation cannot judge whether the taller pause panel fits every supported resolution or whether long localized key names remain legible. The current UI is English-only and immediate-mode.
+- Movement capture is validated through deterministic persistence and private conflict arbitration; physical multi-keyboard capture remains a manual Editor/player check because batch virtual-key timing was previously unreliable.
+- Platform-specific graphical glyph sets remain backlog work.
+
+### Best next step
+
+Pause at 16:9 and ultrawide, remap movement to I/J/K/L, attempt Right = current Fire and confirm the conflict recovery, resume and complete a diagonal obstacle route, then relaunch to verify persistence and Reset.

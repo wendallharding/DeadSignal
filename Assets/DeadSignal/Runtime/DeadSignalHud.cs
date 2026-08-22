@@ -13,6 +13,7 @@ namespace DeadSignal
         bool HasAudioLinkIcon { get; }
         bool HasBindingMatrixIcon { get; }
         bool HasBindingConflictIcon { get; }
+        bool HasMovementRoutingIcon { get; }
 
         void Configure(RunModel model, RunMetrics metrics, DeadSignalWorld world, DeadSignalThreatController threats);
         void ShowFeedback(string message);
@@ -45,6 +46,7 @@ namespace DeadSignal
         private Texture2D m_audioLinkIcon;
         private Texture2D m_bindingMatrixIcon;
         private Texture2D m_bindingConflictIcon;
+        private Texture2D m_movementRoutingIcon;
         private float m_feedbackTimer;
         private string m_feedback = string.Empty;
 
@@ -56,6 +58,7 @@ namespace DeadSignal
         public bool HasAudioLinkIcon => m_audioLinkIcon != null;
         public bool HasBindingMatrixIcon => m_bindingMatrixIcon != null;
         public bool HasBindingConflictIcon => m_bindingConflictIcon != null;
+        public bool HasMovementRoutingIcon => m_movementRoutingIcon != null;
 
         [Inject]
         private void _construct(
@@ -86,6 +89,7 @@ namespace DeadSignal
             m_audioLinkIcon = Resources.Load<Texture2D>("UI/AudioLinkIcon");
             m_bindingMatrixIcon = Resources.Load<Texture2D>("UI/BindingMatrixIcon");
             m_bindingConflictIcon = Resources.Load<Texture2D>("UI/BindingConflictIcon");
+            m_movementRoutingIcon = Resources.Load<Texture2D>("UI/MovementRoutingIcon");
         }
 
         void IDeadSignalHud.ShowFeedback(string message)
@@ -293,9 +297,10 @@ namespace DeadSignal
                 $"{_binding("M", "D-PAD LEFT")}  AUDIO {(m_comfortSettings.AudioEnabled ? "ON" : "MUTED")}");
 
             GUI.color = new Color(0.025f, 0.07f, 0.085f, 0.98f);
-            GUI.Box(new Rect(left, thirdRow, panelWidth * 2f + panelGap, panelHeight), GUIContent.none);
+            const float routingHeight = 122f;
+            GUI.Box(new Rect(left, thirdRow, panelWidth * 2f + panelGap, routingHeight), GUIContent.none);
             GUI.color = Color.white;
-            var routingIcon = string.IsNullOrEmpty(m_input.RebindStatusMessage) ? m_bindingMatrixIcon : m_bindingConflictIcon;
+            var routingIcon = string.IsNullOrEmpty(m_input.RebindStatusMessage) ? m_movementRoutingIcon : m_bindingConflictIcon;
             if (routingIcon != null)
             {
                 GUI.DrawTexture(new Rect(left + 10f, thirdRow + 9f, 54f, 54f), routingIcon, ScaleMode.ScaleToFit, true);
@@ -310,17 +315,37 @@ namespace DeadSignal
                 hasConflict ? m_input.RebindStatusMessage :
                 m_input.IsRebinding ? "PRESS A KEY  |  ESC CANCELS" : "PERSISTED KEYBOARD BINDINGS", m_smallStyle);
             GUI.enabled = !m_input.IsRebinding;
-            if (GUI.Button(new Rect(left + 268f, thirdRow + 17f, 156f, 38f), $"FIRE  {m_input.FireKeyboardBinding}"))
+            if (GUI.Button(new Rect(left + 268f, thirdRow + 10f, 96f, 38f), $"UP  {m_input.MoveUpKeyboardBinding}"))
+            {
+                m_input.BeginMoveUpKeyboardRebind();
+            }
+
+            if (GUI.Button(new Rect(left + 374f, thirdRow + 10f, 96f, 38f), $"DOWN  {m_input.MoveDownKeyboardBinding}"))
+            {
+                m_input.BeginMoveDownKeyboardRebind();
+            }
+
+            if (GUI.Button(new Rect(left + 480f, thirdRow + 10f, 96f, 38f), $"LEFT  {m_input.MoveLeftKeyboardBinding}"))
+            {
+                m_input.BeginMoveLeftKeyboardRebind();
+            }
+
+            if (GUI.Button(new Rect(left + 586f, thirdRow + 10f, 94f, 38f), $"RIGHT  {m_input.MoveRightKeyboardBinding}"))
+            {
+                m_input.BeginMoveRightKeyboardRebind();
+            }
+
+            if (GUI.Button(new Rect(left + 268f, thirdRow + 64f, 156f, 38f), $"FIRE  {m_input.FireKeyboardBinding}"))
             {
                 m_input.BeginFireKeyboardRebind();
             }
 
-            if (GUI.Button(new Rect(left + 434f, thirdRow + 17f, 146f, 38f), $"USE  {m_input.InteractKeyboardBinding}"))
+            if (GUI.Button(new Rect(left + 434f, thirdRow + 64f, 146f, 38f), $"USE  {m_input.InteractKeyboardBinding}"))
             {
                 m_input.BeginInteractKeyboardRebind();
             }
 
-            if (GUI.Button(new Rect(left + 590f, thirdRow + 17f, 90f, 38f), "RESET"))
+            if (GUI.Button(new Rect(left + 590f, thirdRow + 64f, 90f, 38f), "RESET"))
             {
                 m_input.ResetKeyboardBindings();
             }
@@ -328,7 +353,7 @@ namespace DeadSignal
             GUI.enabled = true;
 
             GUI.color = Color.white;
-            GUI.Label(new Rect(0f, thirdRow + panelHeight + 14f, Screen.width, 36f),
+            GUI.Label(new Rect(0f, thirdRow + routingHeight + 10f, Screen.width, 36f),
                 $"PRESS {_binding("ESC", "GAMEPAD MENU")} TO RESUME", m_centerStyle);
         }
 
@@ -417,7 +442,9 @@ namespace DeadSignal
         {
             return m_input.ActivePromptDevice == InputPromptDevice.Gamepad
                 ? "GAMEPAD LINK\nLS Move  |  RS Aim\nRT / RB Fire  |  X Use\nMenu Pause  |  A Restart"
-                : $"KEYBOARD + MOUSE\nWASD Move  |  Mouse Aim\nLMB / {m_input.FireKeyboardBinding} Fire  |  {m_input.InteractKeyboardBinding} Use\nEsc Pause  |  R Restart";
+                : $"KEYBOARD + MOUSE\n{m_input.MoveUpKeyboardBinding}{m_input.MoveLeftKeyboardBinding}" +
+                  $"{m_input.MoveDownKeyboardBinding}{m_input.MoveRightKeyboardBinding} Move  |  Mouse Aim\n" +
+                  $"LMB / {m_input.FireKeyboardBinding} Fire  |  {m_input.InteractKeyboardBinding} Use\nEsc Pause  |  R Restart";
         }
 
         private string _binding(string keyboardMouse, string gamepad)

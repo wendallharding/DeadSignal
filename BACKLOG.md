@@ -17,7 +17,16 @@
 - [x] Split runtime orchestration into focused input, world, combat, salvage, and HUD classes
 - [x] Add controller support for the complete run loop
 - [x] Add adaptive keyboard/mouse and gamepad guidance with generated input-link art
-- [ ] Add remappable Input Actions and platform-specific button glyph sets
+- [x] Add persistent remappable Input Actions for Fire, Use, and all four movement directions with conflict-safe reset recovery
+- [ ] Add platform-specific button glyph sets
+
+### Run 54 control-routing ideas
+
+- [x] Move Up rerouting — player value: supports alternate layouts and one-handed play; acceptance: any keyboard key persists, updates prompts, and keeps Up Arrow available.
+- [x] Move Down rerouting — player value: completes vertical-layout accessibility; acceptance: any non-conflicting key persists, resets to S, and keeps Down Arrow available.
+- [x] Move Left rerouting — player value: supports non-WASD hand placement; acceptance: any non-conflicting key persists, resets to A, and keeps Left Arrow available.
+- [x] Move Right rerouting — player value: completes independently configurable movement; acceptance: any non-conflicting key persists, resets to D, and keeps Right Arrow available.
+- [x] Six-action conflict safety — player value: prevents a valid movement/combat route from being silently lost; acceptance: Move Up/Down/Left/Right, Fire, and Use reject every duplicate primary key while capture remains active and the prior binding remains valid.
 - [x] Add persisted pause-menu remapping for primary keyboard Fire and Use actions
 - [x] Add one-click reset-to-default recovery for primary keyboard bindings
 - [x] Reject duplicate primary keyboard bindings with persistent-safe conflict feedback

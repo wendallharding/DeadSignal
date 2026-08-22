@@ -722,7 +722,13 @@ namespace DeadSignal.Tests
                 "The generated control-routing icon should load from Resources.");
             Assert.That(game.HasBindingConflictIcon, Is.True,
                 "The generated binding-conflict icon should load from Resources.");
+            Assert.That(game.HasMovementRoutingIcon, Is.True,
+                "The generated movement-routing icon should load from Resources.");
             Assert.That(game.FireKeyboardBinding, Is.Not.Empty);
+            Assert.That(game.MoveUpKeyboardBinding, Is.Not.Empty);
+            Assert.That(game.MoveDownKeyboardBinding, Is.Not.Empty);
+            Assert.That(game.MoveLeftKeyboardBinding, Is.Not.Empty);
+            Assert.That(game.MoveRightKeyboardBinding, Is.Not.Empty);
             Assert.That(game.InteractKeyboardBinding, Is.Not.Empty);
             Assert.That(game.HasGeneratedAudio, Is.True, "The runtime audio service should synthesize ambience and cue clips.");
             Assert.That(Object.FindFirstObjectByType<SignalDustController>(), Is.Not.Null,

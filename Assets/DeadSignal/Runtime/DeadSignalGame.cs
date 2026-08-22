@@ -42,6 +42,7 @@ namespace DeadSignal
         public bool HasPauseInsignia => m_hud?.HasPauseInsignia ?? false;
         public bool HasBindingMatrixIcon => m_hud?.HasBindingMatrixIcon ?? false;
         public bool HasBindingConflictIcon => m_hud?.HasBindingConflictIcon ?? false;
+        public bool HasMovementRoutingIcon => m_hud?.HasMovementRoutingIcon ?? false;
         public bool HasCameraComfortIcon => m_hud?.HasCameraComfortIcon ?? false;
         public bool HasReducedFlashesIcon => m_hud?.HasReducedFlashesIcon ?? false;
         public bool HasHighContrastIcon => m_hud?.HasHighContrastIcon ?? false;
@@ -96,6 +97,10 @@ namespace DeadSignal
         public InputPromptDevice ActiveInputPromptDevice => m_input?.ActivePromptDevice ?? InputPromptDevice.KeyboardMouse;
         public string FireKeyboardBinding => m_input?.FireKeyboardBinding ?? string.Empty;
         public string InteractKeyboardBinding => m_input?.InteractKeyboardBinding ?? string.Empty;
+        public string MoveUpKeyboardBinding => m_input?.MoveUpKeyboardBinding ?? string.Empty;
+        public string MoveDownKeyboardBinding => m_input?.MoveDownKeyboardBinding ?? string.Empty;
+        public string MoveLeftKeyboardBinding => m_input?.MoveLeftKeyboardBinding ?? string.Empty;
+        public string MoveRightKeyboardBinding => m_input?.MoveRightKeyboardBinding ?? string.Empty;
         public string RebindStatusMessage => m_input?.RebindStatusMessage ?? string.Empty;
         public ObjectiveBeaconPhase CurrentObjectiveBeaconPhase => m_objectiveBeacon?.CurrentPhase ?? ObjectiveBeaconPhase.Tower;
         public Vector3 CurrentObjectiveBeaconTarget => m_objectiveBeacon?.CurrentTarget ?? Vector3.zero;

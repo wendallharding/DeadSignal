@@ -17,6 +17,10 @@ namespace DeadSignal
         string RebindStatusMessage { get; }
         string FireKeyboardBinding { get; }
         string InteractKeyboardBinding { get; }
+        string MoveUpKeyboardBinding { get; }
+        string MoveDownKeyboardBinding { get; }
+        string MoveLeftKeyboardBinding { get; }
+        string MoveRightKeyboardBinding { get; }
 
         Vector2 ReadMovement();
         Vector3 ReadAimDirection(Camera camera, Transform player);
@@ -30,6 +34,10 @@ namespace DeadSignal
         bool PressedAudioToggle();
         void BeginFireKeyboardRebind();
         void BeginInteractKeyboardRebind();
+        void BeginMoveUpKeyboardRebind();
+        void BeginMoveDownKeyboardRebind();
+        void BeginMoveLeftKeyboardRebind();
+        void BeginMoveRightKeyboardRebind();
         void ResetKeyboardBindings();
         void CancelRebind();
     }
@@ -43,9 +51,17 @@ namespace DeadSignal
         private const float MOUSE_DELTA_THRESHOLD = 0.5f;
         private const string FIRE_BINDING_KEY = "DeadSignal.Input.FireKeyboard";
         private const string INTERACT_BINDING_KEY = "DeadSignal.Input.InteractKeyboard";
+        private const string MOVE_UP_BINDING_KEY = "DeadSignal.Input.MoveUpKeyboard";
+        private const string MOVE_DOWN_BINDING_KEY = "DeadSignal.Input.MoveDownKeyboard";
+        private const string MOVE_LEFT_BINDING_KEY = "DeadSignal.Input.MoveLeftKeyboard";
+        private const string MOVE_RIGHT_BINDING_KEY = "DeadSignal.Input.MoveRightKeyboard";
 
         private readonly InputAction m_fireAction;
         private readonly InputAction m_interactAction;
+        private readonly InputAction m_moveUpAction;
+        private readonly InputAction m_moveDownAction;
+        private readonly InputAction m_moveLeftAction;
+        private readonly InputAction m_moveRightAction;
         private InputAction m_rebindingAction;
         private int m_rebindingIndex;
         private string m_rebindingPreferenceKey;
@@ -55,6 +71,10 @@ namespace DeadSignal
         public string RebindStatusMessage { get; private set; } = string.Empty;
         public string FireKeyboardBinding => _keyboardBindingName(m_fireAction, 1);
         public string InteractKeyboardBinding => _keyboardBindingName(m_interactAction, 0);
+        public string MoveUpKeyboardBinding => _keyboardBindingName(m_moveUpAction, 0);
+        public string MoveDownKeyboardBinding => _keyboardBindingName(m_moveDownAction, 0);
+        public string MoveLeftKeyboardBinding => _keyboardBindingName(m_moveLeftAction, 0);
+        public string MoveRightKeyboardBinding => _keyboardBindingName(m_moveRightAction, 0);
 
         public DeadSignalInput()
         {
@@ -66,22 +86,27 @@ namespace DeadSignal
             m_interactAction = new InputAction("Interact", InputActionType.Button);
             m_interactAction.AddBinding("<Keyboard>/e");
             m_interactAction.AddBinding("<Gamepad>/buttonWest");
+            m_moveUpAction = _createMovementAction("Move Up", "<Keyboard>/w", "<Keyboard>/upArrow");
+            m_moveDownAction = _createMovementAction("Move Down", "<Keyboard>/s", "<Keyboard>/downArrow");
+            m_moveLeftAction = _createMovementAction("Move Left", "<Keyboard>/a", "<Keyboard>/leftArrow");
+            m_moveRightAction = _createMovementAction("Move Right", "<Keyboard>/d", "<Keyboard>/rightArrow");
             _loadOverride(m_fireAction, 1, FIRE_BINDING_KEY);
             _loadOverride(m_interactAction, 0, INTERACT_BINDING_KEY);
+            _loadOverride(m_moveUpAction, 0, MOVE_UP_BINDING_KEY);
+            _loadOverride(m_moveDownAction, 0, MOVE_DOWN_BINDING_KEY);
+            _loadOverride(m_moveLeftAction, 0, MOVE_LEFT_BINDING_KEY);
+            _loadOverride(m_moveRightAction, 0, MOVE_RIGHT_BINDING_KEY);
             m_fireAction.Enable();
             m_interactAction.Enable();
         }
 
         public Vector2 ReadMovement()
         {
-            var keyboard = Keyboard.current;
             var keyboardMovement = Vector2.zero;
-            if (keyboard != null)
+            if (Keyboard.current != null)
             {
-                keyboardMovement.x = (keyboard.dKey.isPressed || keyboard.rightArrowKey.isPressed ? 1f : 0f) -
-                                     (keyboard.aKey.isPressed || keyboard.leftArrowKey.isPressed ? 1f : 0f);
-                keyboardMovement.y = (keyboard.wKey.isPressed || keyboard.upArrowKey.isPressed ? 1f : 0f) -
-                                     (keyboard.sKey.isPressed || keyboard.downArrowKey.isPressed ? 1f : 0f);
+                keyboardMovement.x = (m_moveRightAction.IsPressed() ? 1f : 0f) - (m_moveLeftAction.IsPressed() ? 1f : 0f);
+                keyboardMovement.y = (m_moveUpAction.IsPressed() ? 1f : 0f) - (m_moveDownAction.IsPressed() ? 1f : 0f);
                 if (keyboardMovement.sqrMagnitude > 0f)
                 {
                     _useKeyboardMouse();
@@ -178,14 +203,26 @@ namespace DeadSignal
         public void BeginFireKeyboardRebind() => _beginKeyboardRebind(m_fireAction, 1, FIRE_BINDING_KEY);
 
         public void BeginInteractKeyboardRebind() => _beginKeyboardRebind(m_interactAction, 0, INTERACT_BINDING_KEY);
+        public void BeginMoveUpKeyboardRebind() => _beginKeyboardRebind(m_moveUpAction, 0, MOVE_UP_BINDING_KEY);
+        public void BeginMoveDownKeyboardRebind() => _beginKeyboardRebind(m_moveDownAction, 0, MOVE_DOWN_BINDING_KEY);
+        public void BeginMoveLeftKeyboardRebind() => _beginKeyboardRebind(m_moveLeftAction, 0, MOVE_LEFT_BINDING_KEY);
+        public void BeginMoveRightKeyboardRebind() => _beginKeyboardRebind(m_moveRightAction, 0, MOVE_RIGHT_BINDING_KEY);
 
         public void ResetKeyboardBindings()
         {
             CancelRebind();
             m_fireAction.RemoveBindingOverride(1);
             m_interactAction.RemoveBindingOverride(0);
+            m_moveUpAction.RemoveBindingOverride(0);
+            m_moveDownAction.RemoveBindingOverride(0);
+            m_moveLeftAction.RemoveBindingOverride(0);
+            m_moveRightAction.RemoveBindingOverride(0);
             PlayerPrefs.DeleteKey(FIRE_BINDING_KEY);
             PlayerPrefs.DeleteKey(INTERACT_BINDING_KEY);
+            PlayerPrefs.DeleteKey(MOVE_UP_BINDING_KEY);
+            PlayerPrefs.DeleteKey(MOVE_DOWN_BINDING_KEY);
+            PlayerPrefs.DeleteKey(MOVE_LEFT_BINDING_KEY);
+            PlayerPrefs.DeleteKey(MOVE_RIGHT_BINDING_KEY);
             PlayerPrefs.Save();
             RebindStatusMessage = string.Empty;
             _useKeyboardMouse();
@@ -207,6 +244,10 @@ namespace DeadSignal
         {
             m_fireAction.Dispose();
             m_interactAction.Dispose();
+            m_moveUpAction.Dispose();
+            m_moveDownAction.Dispose();
+            m_moveLeftAction.Dispose();
+            m_moveRightAction.Dispose();
         }
 
         public bool PressedRestart()
@@ -312,11 +353,15 @@ namespace DeadSignal
 
         private bool _tryApplyKeyboardRebind(string path)
         {
-            var otherAction = m_rebindingAction == m_fireAction ? m_interactAction : m_fireAction;
-            var otherBindingIndex = otherAction == m_fireAction ? 1 : 0;
-            if (string.Equals(path, otherAction.bindings[otherBindingIndex].effectivePath, System.StringComparison.OrdinalIgnoreCase))
+            foreach (var binding in _primaryKeyboardBindings())
             {
-                RebindStatusMessage = $"{_keyboardBindingName(otherAction, otherBindingIndex)} IS ALREADY ASSIGNED";
+                if (binding.action == m_rebindingAction ||
+                    !string.Equals(path, binding.action.bindings[binding.index].effectivePath, System.StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+
+                RebindStatusMessage = $"{_keyboardBindingName(binding.action, binding.index)} IS ALREADY ASSIGNED";
                 return false;
             }
 
@@ -337,6 +382,32 @@ namespace DeadSignal
             {
                 action.ApplyBindingOverride(bindingIndex, path);
             }
+        }
+
+        private static InputAction _createMovementAction(string name, string primaryPath, string fallbackPath)
+        {
+            var action = new InputAction(name, InputActionType.Button);
+            action.AddBinding(primaryPath);
+            action.AddBinding(fallbackPath);
+            action.Enable();
+            return action;
+        }
+
+        private (InputAction action, int index)[] _primaryKeyboardBindings()
+        {
+            return new[]
+            {
+                (m_fireAction, 1),
+                (m_interactAction, 0),
+                (m_moveUpAction, 0),
+                (m_moveUpAction, 1),
+                (m_moveDownAction, 0),
+                (m_moveDownAction, 1),
+                (m_moveLeftAction, 0),
+                (m_moveLeftAction, 1),
+                (m_moveRightAction, 0),
+                (m_moveRightAction, 1)
+            };
         }
 
         private static string _keyboardBindingName(InputAction action, int bindingIndex)
