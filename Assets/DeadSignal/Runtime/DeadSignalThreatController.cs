@@ -23,6 +23,7 @@ namespace DeadSignal
         private readonly SignalBoltPresentationTuning m_projectileTuning;
         private readonly ThreatBalanceTuning m_tuning;
         private readonly Action<string> m_showFeedback;
+        private readonly SecurityEscalationDirector m_director;
         private readonly List<Projectile> m_projectiles = new();
 
         private float m_wardenHealth;
@@ -49,6 +50,7 @@ namespace DeadSignal
             m_audio = audio;
             m_projectileTuning = projectileTuning;
             m_tuning = tuning;
+            m_director = new SecurityEscalationDirector(tuning.ReinforcementEntryDelay, tuning.ReinforcementSafeDistance);
             m_showFeedback = showFeedback;
             m_wardenHealth = tuning.WardenHealth;
             m_sapperHealth = tuning.SapperHealth;
@@ -67,6 +69,10 @@ namespace DeadSignal
         public bool LastShotBlockedByEnvironment { get; private set; }
         public float SapperPulseCooldown => m_sapperPulseCooldown;
         public bool CanFire => m_shotCooldown <= 0f;
+        public int EscalationTier => m_director.EscalationTier;
+        public int ReinforcementsRemaining => m_director.ReinforcementsRemaining;
+        public float ReinforcementEntryCountdown => m_director.EntryCountdown;
+        public SecurityReinforcement PendingReinforcement => m_director.PendingReinforcement;
 
         public void TickCooldown(float dt)
         {
@@ -75,6 +81,7 @@ namespace DeadSignal
 
         public void Tick(float dt)
         {
+            _tickDirector(dt);
             _tickWarden(dt);
             _tickSapper(dt);
             _tickProjectiles(dt);
@@ -99,6 +106,33 @@ namespace DeadSignal
             LastShotBlockedByEnvironment = false;
             var shot = m_world.CreateSignalBolt(direction);
             m_projectiles.Add(new Projectile(shot, direction.normalized, m_projectileTuning.Lifetime));
+        }
+
+        private void _tickDirector(float dt)
+        {
+            var reinforcement = m_director.Tick(
+                dt,
+                m_model.TowerOnline,
+                m_model.Salvage,
+                IsWardenAlive,
+                IsSapperAlive,
+                DeadSignalWorld.FlatDistance(m_world.Player.position, m_world.Warden.position),
+                DeadSignalWorld.FlatDistance(m_world.Player.position, m_world.Sapper.position));
+            if (reinforcement == SecurityReinforcement.Warden)
+            {
+                m_wardenHealth = m_tuning.WardenHealth;
+                m_wardenAttackCooldown = m_tuning.WardenAttackCooldown;
+                m_world.DeployWardenReinforcement();
+                m_showFeedback("SECURITY BAY OPEN — WARDEN REINFORCEMENT");
+            }
+            else if (reinforcement == SecurityReinforcement.Sapper)
+            {
+                m_sapperHealth = m_tuning.SapperHealth;
+                m_sapperLatched = false;
+                m_sapperPulseCooldown = 0f;
+                m_world.DeploySapperReinforcement(m_tuning.SapperPulseInterval);
+                m_showFeedback("SIPHON CRADLE OPEN — SAPPER REINFORCEMENT");
+            }
         }
 
         private void _tickWarden(float dt)

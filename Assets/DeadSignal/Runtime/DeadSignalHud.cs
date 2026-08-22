@@ -283,7 +283,11 @@ namespace DeadSignal
                 : m_threats.IsSapperLatched
                     ? $"SAPPER {m_threats.SapperHealth:0}/{m_threats.SapperMaximumHealth:0} DRAIN {m_threats.SapperPulseCooldown:0.0}s (+{m_threats.SapperSignalReward:0})"
                     : $"SAPPER {m_threats.SapperHealth:0}/{m_threats.SapperMaximumHealth:0} APPROACHING (+{m_threats.SapperSignalReward:0})";
-            return $"{warden}  //  {sapper}";
+            var entry = m_threats.PendingReinforcement == SecurityReinforcement.None
+                ? string.Empty
+                : $"  {m_threats.PendingReinforcement.ToString().ToUpperInvariant()} ENTRY {m_threats.ReinforcementEntryCountdown:0.0}s";
+            return $"ALERT {m_threats.EscalationTier}/{RunModel.SalvageRequired}  RESERVE {m_threats.ReinforcementsRemaining}{entry}  //  " +
+                   $"{warden}  //  {sapper}";
         }
 
         private string _contextPrompt()

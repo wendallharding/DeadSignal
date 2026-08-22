@@ -37,6 +37,8 @@ namespace DeadSignal
         public float CurrentSignal => m_model?.Signal ?? 0f;
         public bool IsSapperLatched => m_threats?.IsSapperLatched ?? false;
         public float SapperHealth => m_threats?.SapperHealth ?? 0f;
+        public int SecurityEscalationTier => m_threats?.EscalationTier ?? 0;
+        public int SecurityReinforcementsRemaining => m_threats?.ReinforcementsRemaining ?? 0;
         public bool LastSignalBoltBlockedByEnvironment => m_threats?.LastShotBlockedByEnvironment ?? false;
         public bool IsPaused => m_combatFeedback?.IsPaused ?? false;
         public bool HasPauseInsignia => m_hud?.HasPauseInsignia ?? false;

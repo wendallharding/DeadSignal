@@ -215,6 +215,19 @@ namespace DeadSignal
             SapperTelegraph.SetThreatState(false, false, 0f, 1f);
         }
 
+        public void DeployWardenReinforcement()
+        {
+            Warden.position = s_securityWardenSpawn;
+            Warden.gameObject.SetActive(true);
+        }
+
+        public void DeploySapperReinforcement(float pulseInterval)
+        {
+            Sapper.position = s_signalSapperSpawn;
+            Sapper.gameObject.SetActive(true);
+            SapperTelegraph.SetThreatState(true, false, 0f, pulseInterval);
+        }
+
         public GameObject CreateSignalBolt(Vector3 direction)
         {
             GameObject bolt;

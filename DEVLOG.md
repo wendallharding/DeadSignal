@@ -3665,3 +3665,34 @@ Final image prompt: original compact salvage-chain telemetry emblem with three i
 - Headless validation cannot judge whether the longer salvage HUD line fits at 1280x720/ultrawide or whether the tier-three amber burst is comfortably bright with Reduced Flashes on and off.
 - The 12-second window and 4/8 rewards are first-pass tuning and need recorded route evidence.
 - Best next step: activate the tower, collect three caches on both the direct and conservation routes, verify the countdown/payouts, then assess whether either route makes the third tier impossible or automatic.
+
+## 2026-08-22 — Autonomous Run 61 — Bounded security escalation
+
+### Milestone, player benefit, and acceptance
+
+The existing arena now converts salvage greed into a bounded reinforcement reserve, so purging the opening threats creates temporary relief rather than permanently emptying the return route. Acceptance required one alert tier per required cache, a deterministic Warden/Sapper/Warden queue, no duplicate live role, a strict three-reinforcement budget, a six-metre bay exclusion, a 2.5-second readable entry delay, authored-bay deployment, and visible alert/reserve state.
+
+### Files and systems changed
+
+- Added `SecurityEscalationDirector.cs` and `SecurityEscalationDirectorTests.cs` with tracked metadata. The pure deterministic director owns escalation tiers, alternating role selection, queue bounds, entry timing, and proximity safety.
+- Updated `DeadSignalThreatController.cs` and `DeadSignalWorld.cs` to redeploy purged roles from their existing authored Warden bay and Sapper cradle, reset per-life combat state, and preserve the two-role concurrent cap.
+- Extended `ThreatBalanceTuning.cs` and `ThreatBalanceTuning.asset` with designer-facing `2.5s` reinforcement delay and `6m` safe-entry distance. Existing health, speed, damage, pulse, and bounty values are unchanged.
+- Updated `DeadSignalGame.cs` and `DeadSignalHud.cs` to expose and display live alert tier plus queued reserves.
+- Expanded `ThreatBalanceTuningTests.cs` and `BootstrapSmokeTests.cs` with tuning-safety and full-runtime escalation assertions.
+- Updated `GAME_VISION.md` and `BACKLOG.md`. No scene, prefab, texture, material, package, project setting, input, save-data, audio, map-layout, objective, or generated-source change is owned by this milestone. Fifty-nine Unity build-time serializer side effects were restored after validation.
+
+### Exact validation evidence
+
+1. Unity `6000.3.11f1` main-workspace import/compile completed successfully with exit `0`; `Logs/run61-main-import.log`. The first direct launch correctly refused while the owner's Editor held the project lock; after the user closed it, validation continued without controlling or terminating the Editor.
+2. Final EditMode: exit `0`; `55/55` passed, `0` failed, `0` skipped in `0.1102528s`; `Logs/run61-editmode-final-results.xml` and `Logs/run61-editmode-final.log`. Tests prove the three-role order, budget cap, tower gate, role/concurrency gate, proximity exclusion, entry delay, and pending-role warning state.
+3. Final PlayMode: exit `0`; `5/5` passed, `0` failed, `0` skipped in `7.6782962s`; `Logs/run61-playmode-final-results.xml` and `Logs/run61-playmode-final.log`. The complete runtime proved tower activation, Sapper combat, three-cache extraction readiness, alert tier three, and all three reserves banked while the requested Warden role remained alive.
+4. Final Windows x64 development build: exit `0`; Unity reported `241,110,217` bytes in `10.75s`; `Build/Windows/DeadSignal.exe`; `Logs/run61-build-final.log`.
+5. Final packaged Direct3D 11 smoke: exit `0` with one `[DEAD SIGNAL STANDALONE SMOKE] PASS`; `Logs/run61-standalone-final.log`.
+6. Final critical scans found no compiler errors, null/missing-reference exceptions, unhandled exceptions, failed assertions, or smoke failure. `git diff --check` passed before documentation.
+
+### Bugs prevented, limitations, and next step
+
+- The director never creates a second live copy of a tactical role, never exceeds three reinforcements, and will not begin its entry countdown while the player camps within six metres of that role's authored entrance.
+- Reinforcement purges currently pay the same bounded role bounty as the opening units. This intentionally sustains the combat economy but needs playtest evidence to ensure repeated clean Sapper purges do not overfund the run.
+- Automated evidence does not judge whether the threat strip remains comfortable at 1280x720 or whether the 2.5-second bay warning is visually sufficient during combat.
+- Best next step: add a dedicated Interceptor that uses separate authored entrances to cut off retreat, then test it in mixed Warden/Sapper waves rather than increasing existing enemy stats.

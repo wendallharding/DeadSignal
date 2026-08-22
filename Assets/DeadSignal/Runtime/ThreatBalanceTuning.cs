@@ -20,6 +20,10 @@ namespace DeadSignal
         [SerializeField] private float m_sapperPulseInterval = 1.35f;
         [SerializeField] private float m_sapperSignalReward = 16f;
 
+        [Header("Security Escalation")]
+        [SerializeField] private float m_reinforcementEntryDelay = 2.5f;
+        [SerializeField] private float m_reinforcementSafeDistance = 6f;
+
         public int WardenHealth => m_wardenHealth;
         public float WardenSpeed => m_wardenSpeed;
         public float WardenAttackDistance => m_wardenAttackDistance;
@@ -31,6 +35,8 @@ namespace DeadSignal
         public float SapperFirstPulseDelay => m_sapperFirstPulseDelay;
         public float SapperPulseInterval => m_sapperPulseInterval;
         public float SapperSignalReward => m_sapperSignalReward;
+        public float ReinforcementEntryDelay => m_reinforcementEntryDelay;
+        public float ReinforcementSafeDistance => m_reinforcementSafeDistance;
 
         private void OnValidate()
         {
@@ -45,6 +51,8 @@ namespace DeadSignal
             m_sapperFirstPulseDelay = Mathf.Max(0.1f, m_sapperFirstPulseDelay);
             m_sapperPulseInterval = Mathf.Max(0.1f, m_sapperPulseInterval);
             m_sapperSignalReward = Mathf.Max(0f, m_sapperSignalReward);
+            m_reinforcementEntryDelay = Mathf.Max(0f, m_reinforcementEntryDelay);
+            m_reinforcementSafeDistance = Mathf.Max(0f, m_reinforcementSafeDistance);
         }
     }
 }

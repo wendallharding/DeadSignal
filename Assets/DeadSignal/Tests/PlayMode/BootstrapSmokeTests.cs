@@ -1159,6 +1159,10 @@ namespace DeadSignal.Tests
                     "Securing any three of four caches should advance guidance to extraction.");
                 Assert.That(game.CurrentMissionPhase, Is.EqualTo(3),
                     "The mission command strip should advance to extraction when the required cargo is secured.");
+                Assert.That(game.SecurityEscalationTier, Is.EqualTo(RunModel.SalvageRequired),
+                    "Every required cache should raise the bounded security alert tier.");
+                Assert.That(game.SecurityReinforcementsRemaining, Is.EqualTo(RunModel.SalvageRequired),
+                    "The director should bank one reinforcement per cache while its requested combat role remains alive.");
                 Assert.That(game.transform.Cast<Transform>().Count(child =>
                         child.name == "Salvage Cache" && child.gameObject.activeSelf), Is.EqualTo(1),
                     "One optional cache should remain available after the extraction requirement is met.");

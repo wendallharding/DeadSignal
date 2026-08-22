@@ -14,6 +14,15 @@
 
 ## P1 — Prove the loop
 
+### Run 61 bounded security-escalation ideas
+
+- [x] Raise one deterministic alert tier for each required cache secured after tower activation
+- [x] Bank exactly one alternating Warden/Sapper/Warden reinforcement per alert tier
+- [x] Hold each deployment until its tactical role is purged and a concurrent slot is available
+- [x] Prevent bay-side ambushes with a designer-tuned six-metre player exclusion radius and 2.5-second entry delay
+- [x] Show the live alert tier and remaining reinforcement reserve in the threat strip
+- [ ] Playtest whether all three reserves are encountered on clean and combat-avoidant routes without making extraction attritional
+
 ### Run 60 salvage-chain momentum ideas
 
 - [x] Start a designer-tuned 12-second chain window when a cache is secured
