@@ -4157,3 +4157,38 @@ The four existing overclock combinations now create four trigger-driven tactics 
 - Deterministic evidence proves both Capacitor and Shield triggers prime exactly one arc overload with Chain Arc, and both start the exact tuned surge with Overdrive. Runtime evidence proves Shield Surge reaches 1.5× baseline maximum speed for two seconds and a live suppression pulse primes Reactive Arc; the next real bolt draws and applies two different secondary jumps before clearing the charge.
 - No human playtest was performed. The HUD line length, recognition of the trigger-to-pair relationship, whether 1.5× peak speed is controllable near cover, and whether Reactive Arc over-rewards dense extraction groups remain subjective risks.
 - Manual playtest next: play all four builds. For each, record auxiliary trigger time, whether the pair payoff was noticed, Signal before/after, threats aligned or escaped, hits, shots, purges, extraction mode, finish time, and final Signal. For Chain pairs, deliberately trigger with only two roles and verify the ready state persists until three roles align; for Overdrive pairs, test the two-second surge across open floor and near cover. If no pair dominates, the next milestone should use play evidence to tune security pacing before adding a second tower region.
+
+## 2026-08-22 — Autonomous Run 76 — Combat-reactive reinforcement order
+
+### Milestone, player benefit, and acceptance
+
+The first salvage response now records the player's opening combat decision instead of always beginning with the same Interceptor script. Leaving both opening roles alive still provokes the route-cutting Interceptor; purging Warden or Sapper before cache one restores that missing role first and delays the Interceptor to cache two. Acceptance required exactly one Interceptor, Warden, and Sapper across the three salvage reserves, the existing Suppressor as the fourth extraction response, unchanged role uniqueness and safe-entry warnings, and deterministic plus live-runtime evidence for avoidance, single-purge, double-purge, and dead-zone-trace routes.
+
+### Files and systems changed
+
+- `SecurityEscalationDirector.cs` now chooses and locks the first salvage response from the opening core-role state. Early single purges restore that role, double purges use the existing per-run Warden/Sapper preference, avoidance and pre-salvage dead-zone trace preserve the Interceptor, and later slots contain the remaining distinct roles.
+- `SecurityEscalationDirectorTests.cs` adds single- and double-purge route matrices and updates bounded/extraction regressions to assert invariants without assuming an invalid route order.
+- `BootstrapSmokeTests.cs` proves an actual pre-cache Sapper purge triggers the full 2.5-second Sapper entry warning and deployment, then banks the Interceptor at cache two. The complete runtime still proves the avoidance-route Interceptor, coordinated extraction Suppressor, combat-assisted Stable uplink, victory, and restart.
+- `GAME_VISION.md`, `BACKLOG.md`, and this devlog record the product decision. No enemy statistic, Signal cost or reward, entrance, warning duration, response count, overclock, extraction profile, scene, prefab, art, audio, input, package, project setting, or serialized gameplay asset changed.
+
+### Exact validation evidence
+
+1. Initial focused EditMode compiled but passed `12/16`; four legacy expectations encoded the superseded fixed order. The new route tests passed, and the fixtures were corrected to retain their bounded-count, no-repeat, and extraction-priority intent. This run is excluded from passing evidence; `Logs/run76-editmode-focused-results.xml` and `Logs/run76-editmode-focused.log`.
+2. Corrected focused EditMode: exit `0`; `16/16` passed in `0.1051119s`; `Logs/run76-editmode-focused2-results.xml` and `Logs/run76-editmode-focused2.log`.
+3. The first two focused PlayMode attempts exposed test setup issues: two scripted shots did not reliably purge the moving Sapper, then the drone remained inside the preserved six-metre safe-entry radius. Production behavior was unchanged; the fixture now stops after the real purge and moves to a verified safe point. Both failed runs are excluded; `Logs/run76-playmode-focused-results.xml`, `Logs/run76-playmode-focused2-results.xml`, and matching logs.
+4. Corrected live early-purge PlayMode: exit `0`; `1/1` passed in `3.9438917s`; `Logs/run76-playmode-focused3-results.xml` and `Logs/run76-playmode-focused3.log`.
+5. Focused complete-runtime PlayMode: exit `0`; `1/1` passed in `11.3152106s`; `Logs/run76-playmode-complete-results.xml` and `Logs/run76-playmode-complete.log`.
+6. Full EditMode: exit `0`; `90/90` passed, `0` failed, `0` skipped in `0.2189196s`; `Logs/run76-editmode-final-results.xml` and `Logs/run76-editmode-final.log`.
+7. Full PlayMode: exit `0`; `10/10` passed, `0` failed, `0` skipped in `28.5795826s`; `Logs/run76-playmode-final-results.xml` and `Logs/run76-playmode-final.log`.
+8. Windows x64 development build: exit `0`; Unity reported `241,177,716` bytes in `16.45s`; `Build/Windows/DeadSignal.exe` and `Logs/run76-build.log`.
+9. Packaged null-device smoke: exit `0` with one `[DEAD SIGNAL STANDALONE SMOKE] PASS`; `Logs/run76-standalone.log`.
+10. Unity's build setup rewrote 60 unrelated tracked assets/settings; all were restored from the clean baseline. The pre-existing `Assets/Settings/Mobile_RPAsset.asset` user change remained byte-for-byte at SHA-256 `2D5182D2B8884AC88BC6ED033A0A722C23CFB15A7BC8B7DAA38DB37227BAFD09` and is excluded from this milestone.
+11. Batch launches logged transient licensing handshake/access-token messages but completed compilation, all requested tests, and the build successfully. Final scans found no compiler warnings, missing or null references, unhandled gameplay exceptions, failed assertions, build failure, or smoke failure.
+12. Final post-cleanup full EditMode against the exact retained gameplay files: exit `0`; `90/90` passed in `0.2042843s`; `Logs/run76-editmode-postcleanup2-results.xml` and `Logs/run76-editmode-postcleanup2.log`.
+
+### Bugs fixed, limitations, playtest evidence, and next step
+
+- The old fixed first Interceptor meant purging an opening role before salvage produced the same later script as avoidance. The new order turns that fight into a real route consequence while retaining the same bounded tactical-role budget.
+- Deterministic evidence proves avoidance produces Interceptor–core–core, early Warden or Sapper purges produce core–Interceptor–other-core, double purges retain the per-run tie-breaker, and dead-zone greed still dispatches the Interceptor. Live evidence proves a real four-shot-or-fewer Sapper purge, cache collection, 2.5-second warning, safe authored deployment, and cache-two Interceptor reserve.
+- No human playtest was performed. Whether players connect the replacement warning to their earlier purge, whether delaying the Interceptor feels like a reward or counter-escalation, and whether either route dominates Signal economy remain subjective risks.
+- Manual playtest next: run one avoidance opening and one early-Sapper-purge opening. In each, record first cache time, first response name and warning recognition, peak live roles, shots, hits, Signal reclaimed, abandoned cache or route, extraction mode, finish time, and final reserve. The intended result is an immediate Interceptor cutoff for avoidance versus restored tower pressure for combat, with neither route universally safer.

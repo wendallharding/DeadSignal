@@ -29,6 +29,7 @@ namespace DeadSignal
         private bool m_extractionPressure;
         private bool m_extractionResponseDeployed;
         private SecurityReinforcement m_firstCoreResponse;
+        private SecurityReinforcement m_firstSalvageResponse;
         private SecurityReinforcement m_pendingReinforcement;
 
         public SecurityEscalationDirector(
@@ -111,6 +112,7 @@ namespace DeadSignal
             m_observedSalvage = Math.Min(RunModel.SalvageRequired, Math.Max(m_observedSalvage, salvage));
             _updateDeadZoneTrace(seconds, playerPowered);
             m_extractionPressure |= extractionPressure && m_observedSalvage >= RunModel.SalvageRequired;
+            _chooseFirstSalvageResponse(wardenAlive, sapperAlive);
             _chooseCoreResponse(wardenAlive, sapperAlive);
             var reinforcement = _getNextReinforcement();
             if (reinforcement == SecurityReinforcement.None)
@@ -194,7 +196,9 @@ namespace DeadSignal
 
         private void _chooseCoreResponse(bool wardenAlive, bool sapperAlive)
         {
-            if (m_nextSalvageReinforcement != 1 || m_firstCoreResponse != SecurityReinforcement.None)
+            if (m_firstSalvageResponse != SecurityReinforcement.Interceptor ||
+                m_nextSalvageReinforcement != 1 ||
+                m_firstCoreResponse != SecurityReinforcement.None)
             {
                 return;
             }
@@ -213,6 +217,40 @@ namespace DeadSignal
             }
         }
 
+        private void _chooseFirstSalvageResponse(bool wardenAlive, bool sapperAlive)
+        {
+            if (m_firstSalvageResponse != SecurityReinforcement.None || _salvageReinforcementBudget() == 0)
+            {
+                return;
+            }
+
+            if (m_deadZoneTraceCompleted && m_observedSalvage == 0)
+            {
+                m_firstSalvageResponse = SecurityReinforcement.Interceptor;
+                return;
+            }
+
+            if (!wardenAlive && sapperAlive)
+            {
+                m_firstSalvageResponse = SecurityReinforcement.Warden;
+                m_firstCoreResponse = SecurityReinforcement.Warden;
+            }
+            else if (wardenAlive && !sapperAlive)
+            {
+                m_firstSalvageResponse = SecurityReinforcement.Sapper;
+                m_firstCoreResponse = SecurityReinforcement.Sapper;
+            }
+            else if (!wardenAlive && !sapperAlive)
+            {
+                m_firstSalvageResponse = m_bothPurgedPreference;
+                m_firstCoreResponse = m_bothPurgedPreference;
+            }
+            else
+            {
+                m_firstSalvageResponse = SecurityReinforcement.Interceptor;
+            }
+        }
+
         private SecurityReinforcement _getNextReinforcement()
         {
             if (m_extractionPressure && !m_extractionResponseDeployed)
@@ -227,9 +265,22 @@ namespace DeadSignal
 
         private SecurityReinforcement _getSalvageReinforcement(int index)
         {
+            if (m_firstSalvageResponse != SecurityReinforcement.Interceptor)
+            {
+                return index switch
+                {
+                    0 => m_firstSalvageResponse,
+                    1 => SecurityReinforcement.Interceptor,
+                    2 => m_firstCoreResponse == SecurityReinforcement.Warden
+                        ? SecurityReinforcement.Sapper
+                        : SecurityReinforcement.Warden,
+                    _ => SecurityReinforcement.Suppressor
+                };
+            }
+
             return index switch
             {
-                0 => SecurityReinforcement.Interceptor,
+                0 => m_firstSalvageResponse,
                 1 => m_firstCoreResponse,
                 2 => m_firstCoreResponse == SecurityReinforcement.Warden
                     ? SecurityReinforcement.Sapper

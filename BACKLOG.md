@@ -14,6 +14,16 @@
 
 ## P1 — Prove the loop
 
+### Run 76 combat-reactive-reinforcement ideas
+
+- [x] Let an avoidance route provoke the established first-cache Interceptor cutoff when both opening core roles survive
+- [x] Let an early Warden or Sapper purge provoke that missing role's replacement first and delay the Interceptor to cache two
+- [x] Preserve one bounded Interceptor, Warden, and Sapper response across three caches regardless of purge order
+- [x] Preserve role uniqueness, authored entrances, six-metre safe entry, 2.5-second warnings, enemy stats, and Signal rewards
+- [x] Keep the promoted extraction Suppressor as the fourth and final bounded response
+- [x] Prove avoidance, single-purge, double-purge, dead-zone-trace, and complete runtime routes in Unity tests
+- [ ] Playtest avoidance and early-purge routes for response recognition, mixed-role pressure, abandoned rewards, and extraction reserve
+
 ### Run 75 overclock-pair-synergy ideas
 
 - [x] Give Chain Arc plus Emergency Capacitor one primed double jump when the low-reserve refill fires

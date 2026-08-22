@@ -80,6 +80,83 @@ namespace DeadSignal.Tests
         }
 
         [UnityTest]
+        public IEnumerator EarlySapperPurge_FirstCacheRestoresSapperBeforeInterceptor()
+        {
+            yield return SceneManager.LoadSceneAsync("SampleScene");
+            yield return null;
+
+            var gamepad = InputSystem.AddDevice<Gamepad>();
+            try
+            {
+                var game = Object.FindFirstObjectByType<DeadSignalGame>();
+                var player = game.transform.Find("Maintenance Drone");
+                var sapper = game.transform.Find("Signal Sapper");
+                player.position = new Vector3(-0.6f, 0f, 0.4f);
+                InputSystem.QueueStateEvent(gamepad, new GamepadState().WithButton(GamepadButton.West));
+                yield return null;
+                InputSystem.QueueStateEvent(gamepad, new GamepadState());
+                yield return null;
+
+                player.position = new Vector3(3f, 0f, 0.4f);
+                sapper.position = new Vector3(5f, 0f, 0.4f);
+                game.transform.Find("Security Warden").position = new Vector3(18f, 0f, 9f);
+                for (var shot = 0; shot < 4 && sapper.gameObject.activeSelf; shot++)
+                {
+                    InputSystem.QueueStateEvent(gamepad,
+                        new GamepadState { rightStick = Vector2.right }.WithButton(GamepadButton.RightShoulder));
+                    yield return null;
+                    InputSystem.QueueStateEvent(gamepad, new GamepadState { rightStick = Vector2.right });
+                    yield return new WaitForSeconds(0.22f);
+                }
+
+                Assert.That(sapper.gameObject.activeSelf, Is.False,
+                    "The route must purge a core role before its first salvage response is selected; " +
+                    $"health was {game.SapperHealth:0.##}.");
+                var firstCache = game.transform.Cast<Transform>()
+                    .First(child => child.name == "Salvage Cache" && child.gameObject.activeSelf);
+                player.position = firstCache.position;
+                yield return null;
+                InputSystem.QueueStateEvent(gamepad, new GamepadState().WithButton(GamepadButton.West));
+                yield return null;
+                InputSystem.QueueStateEvent(gamepad, new GamepadState());
+                player.position = new Vector3(-4f, 0f, 0f);
+                yield return null;
+
+                Assert.That(game.PendingSecurityReinforcement, Is.EqualTo(SecurityReinforcement.Sapper),
+                    "An early Sapper purge should provoke its readable replacement before the Interceptor cutoff.");
+                Assert.That(game.ReinforcementEntryCountdown, Is.InRange(2.3f, 2.5f));
+                var sapperEntryDeadline = Time.time + 3.2f;
+                while (!sapper.gameObject.activeSelf && Time.time < sapperEntryDeadline)
+                {
+                    yield return null;
+                }
+
+                Assert.That(sapper.gameObject.activeSelf, Is.True);
+                Assert.That(game.SecurityReinforcementsRemaining, Is.Zero,
+                    "One cache should spend exactly one response without increasing the bounded budget.");
+                sapper.position = new Vector3(18f, 0f, 9f);
+
+                var secondCache = game.transform.Cast<Transform>()
+                    .First(child => child.name == "Salvage Cache" && child.gameObject.activeSelf);
+                player.position = secondCache.position;
+                yield return null;
+                InputSystem.QueueStateEvent(gamepad, new GamepadState().WithButton(GamepadButton.West));
+                yield return null;
+                InputSystem.QueueStateEvent(gamepad, new GamepadState());
+                player.position = new Vector3(-4f, 0f, 0f);
+                yield return null;
+
+                Assert.That(game.PendingSecurityReinforcement, Is.EqualTo(SecurityReinforcement.Interceptor),
+                    "The Interceptor should remain the next distinct response instead of being removed from the run.");
+                Assert.That(game.SecurityReinforcementsRemaining, Is.EqualTo(1));
+            }
+            finally
+            {
+                InputSystem.RemoveDevice(gamepad);
+            }
+        }
+
+        [UnityTest]
         public IEnumerator FirstSalvage_UseSelectsOverdriveAndAppliesRuntimeSpeedTuning()
         {
             yield return SceneManager.LoadSceneAsync("SampleScene");
