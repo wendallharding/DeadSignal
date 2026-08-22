@@ -22,6 +22,32 @@ namespace DeadSignal
             return cutoff;
         }
 
+        public static Vector3 CalculateSuppressionExitPoint(
+            Vector3 fieldCenter,
+            Vector3 playerPosition,
+            Vector3 interceptorPosition,
+            float fieldRadius,
+            float exitMargin)
+        {
+            var escapeDirection = playerPosition - fieldCenter;
+            escapeDirection.y = 0f;
+            if (escapeDirection.sqrMagnitude < 0.01f)
+            {
+                escapeDirection = fieldCenter - interceptorPosition;
+                escapeDirection.y = 0f;
+            }
+
+            if (escapeDirection.sqrMagnitude < 0.01f)
+            {
+                escapeDirection = Vector3.forward;
+            }
+
+            var cutoff = fieldCenter +
+                         escapeDirection.normalized * (Mathf.Max(0f, fieldRadius) + Mathf.Max(0f, exitMargin));
+            cutoff.y = 0f;
+            return cutoff;
+        }
+
         private static float _flatSqrDistance(Vector3 first, Vector3 second)
         {
             var delta = first - second;

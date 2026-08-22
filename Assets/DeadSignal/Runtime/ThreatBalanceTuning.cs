@@ -31,6 +31,7 @@ namespace DeadSignal
         [SerializeField] private float m_interceptorHitDistance = 0.9f;
         [SerializeField] private float m_interceptorHitCooldown = 1.2f;
         [SerializeField] private float m_interceptorSignalReward = 14f;
+        [SerializeField] private float m_interceptorSuppressionExitMargin = 0.65f;
 
         [Header("Security Suppressor")]
         [SerializeField] private int m_suppressorHealth = 3;
@@ -73,6 +74,7 @@ namespace DeadSignal
         public float InterceptorHitDistance => m_interceptorHitDistance;
         public float InterceptorHitCooldown => m_interceptorHitCooldown;
         public float InterceptorSignalReward => m_interceptorSignalReward;
+        public float InterceptorSuppressionExitMargin => m_interceptorSuppressionExitMargin;
         public int SuppressorHealth => m_suppressorHealth;
         public float SuppressorApproachSpeed => m_suppressorApproachSpeed;
         public float SuppressorAnchorDistance => m_suppressorAnchorDistance;
@@ -113,6 +115,7 @@ namespace DeadSignal
             m_interceptorHitDistance = Mathf.Max(0.1f, m_interceptorHitDistance);
             m_interceptorHitCooldown = Mathf.Max(0.1f, m_interceptorHitCooldown);
             m_interceptorSignalReward = Mathf.Max(0f, m_interceptorSignalReward);
+            m_interceptorSuppressionExitMargin = Mathf.Max(0f, m_interceptorSuppressionExitMargin);
             m_suppressorHealth = Mathf.Max(1, m_suppressorHealth);
             m_suppressorApproachSpeed = Mathf.Max(0.1f, m_suppressorApproachSpeed);
             m_suppressorAnchorDistance = Mathf.Max(0.1f, m_suppressorAnchorDistance);

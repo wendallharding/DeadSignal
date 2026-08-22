@@ -46,6 +46,7 @@ namespace DeadSignal
         private float m_interceptorHitCooldown;
         private Vector3 m_interceptorDashDirection;
         private Vector3 m_interceptorDashTarget;
+        private Vector3 m_interceptorCutoffTarget;
         private bool m_extractionPressure;
         private float m_suppressorWarningCountdown;
         private float m_suppressorFieldCountdown;
@@ -105,6 +106,7 @@ namespace DeadSignal
         public float SuppressorMaximumHealth => m_tuning.SuppressorHealth;
         public float SuppressorSignalReward => m_tuning.SuppressorSignalReward;
         public bool IsInterceptorCharging => m_interceptorChargeCountdown > 0f;
+        public Vector3 InterceptorCutoffTarget => m_interceptorCutoffTarget;
         public bool IsSuppressorFieldActive => m_suppressorFieldCountdown > 0f;
         public bool IsSuppressorFieldWarningActive => m_suppressorWarningCountdown > 0f;
         public Vector3 SuppressorFieldCenter => m_suppressorFieldCenter;
@@ -343,13 +345,10 @@ namespace DeadSignal
                 return;
             }
 
-            var cutoff = InterceptorTactics.CalculateCutoffPoint(
-                m_world.Player.position,
-                m_world.ExtractionPosition,
-                m_tuning.InterceptorCutoffFraction);
-            var delta = cutoff - m_world.Interceptor.position;
+            m_interceptorCutoffTarget = _calculateInterceptorCutoffTarget();
+            var delta = m_interceptorCutoffTarget - m_world.Interceptor.position;
             delta.y = 0f;
-            _faceInterceptor(cutoff);
+            _faceInterceptor(m_interceptorCutoffTarget);
             if (delta.magnitude > m_tuning.InterceptorChargeDistance)
             {
                 var desired = m_world.Interceptor.position + delta.normalized * (m_tuning.InterceptorApproachSpeed * dt);
@@ -365,6 +364,25 @@ namespace DeadSignal
             m_interceptorChargeCountdown = m_tuning.InterceptorChargeDuration;
             m_world.SetInterceptorTelegraph(true, m_interceptorDashTarget);
             m_showFeedback("INTERCEPTOR LOCK — BREAK THE LINE");
+        }
+
+        private Vector3 _calculateInterceptorCutoffTarget()
+        {
+            if (m_suppressorHealth > 0f &&
+                (m_suppressorWarningCountdown > 0f || (m_suppressorFieldCountdown > 0f && IsPlayerSuppressed)))
+            {
+                return InterceptorTactics.CalculateSuppressionExitPoint(
+                    m_suppressorFieldCenter,
+                    m_world.Player.position,
+                    m_world.Interceptor.position,
+                    m_tuning.SuppressorFieldRadius,
+                    m_tuning.InterceptorSuppressionExitMargin);
+            }
+
+            return InterceptorTactics.CalculateCutoffPoint(
+                m_world.Player.position,
+                m_world.ExtractionPosition,
+                m_tuning.InterceptorCutoffFraction);
         }
 
         private void _faceInterceptor(Vector3 target)

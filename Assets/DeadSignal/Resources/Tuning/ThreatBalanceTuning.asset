@@ -33,6 +33,7 @@ MonoBehaviour:
   m_interceptorHitDistance: 0.9
   m_interceptorHitCooldown: 1.2
   m_interceptorSignalReward: 14
+  m_interceptorSuppressionExitMargin: 0.65
   m_suppressorHealth: 3
   m_suppressorApproachSpeed: 2.4
   m_suppressorAnchorDistance: 0.9

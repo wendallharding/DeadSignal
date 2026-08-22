@@ -14,6 +14,14 @@
 
 ## P1 — Prove the loop
 
+### Run 72 coordinated-suppression-intercept ideas
+
+- [x] During a live Suppressor warning, route a surviving Interceptor toward the player's most obvious ring exit
+- [x] Lock the existing readable dash across that predicted exit while preserving alternate escape angles
+- [x] Fall back to the established extraction-route cutoff whenever no Suppressor warning or field is present
+- [x] Preserve enemy counts, health, speeds, damage, Signal rewards, warning durations, and the four-response budget
+- [x] Prove the coordinated target deterministically and in the complete extraction flow
+
 ### Run 71 combat-assisted-extraction ideas
 
 - [x] Reward each threat purged during the active uplink with a designer-tuned 0.75-second link advance

@@ -1445,6 +1445,19 @@ namespace DeadSignal.Tests
                         new Vector2(suppressor.position.x, suppressor.position.z),
                         new Vector2(player.position.x, player.position.z)), Is.GreaterThan(6f),
                     "Remote projection must preserve the authored safe-gate separation instead of spawning beside the drone.");
+                player.position = game.SuppressorFieldCenter + Vector3.forward;
+                yield return null;
+                var suppressionCutoff = game.InterceptorCutoffTarget;
+                var suppressionCutoffOffset = suppressionCutoff - game.SuppressorFieldCenter;
+                suppressionCutoffOffset.y = 0f;
+                Assert.That(suppressionCutoffOffset.magnitude, Is.EqualTo(3.9f).Within(0.05f),
+                    "A surviving Interceptor should contest the tuned edge of the warning ring without entering it beside the player.");
+                Assert.That(Vector3.Dot(suppressionCutoffOffset.normalized, Vector3.forward), Is.GreaterThan(0.99f),
+                    "The coordinated cutoff should follow the player's obvious escape direction during the warning.");
+                Assert.That(Vector3.Distance(
+                        suppressionCutoff,
+                        game.SuppressorFieldCenter + Vector3.right * 3.9f), Is.GreaterThan(5f),
+                    "A perpendicular escape must remain open instead of turning the ring into an unavoidable trap.");
                 Assert.That(game.ExtractionUplinkSecondsRemaining, Is.GreaterThan(2.2f),
                     "The full entry warning must still leave time for the one-second field telegraph and an escape.");
 

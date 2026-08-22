@@ -4022,3 +4022,37 @@ Fighting during the six-second extraction uplink now has an immediate tactical p
 - Deterministic evidence proves inactive purges cannot bank time and an oversized reward caps at the exact remainder. Runtime evidence proves the combat route first purges the Sapper before extraction for no link credit, then escapes the Suppressor ring, spends three bolts, receives the 0.75-second credit, remains in the active holdout, and completes normally.
 - No human playtest was performed. The 0.75-second value, whether the combined bounty/time/shield payoff over-rewards combat, and whether players notice the timer jump remain subjective risks.
 - Manual playtest next: extract once without firing and once after purging the Suppressor. Record uplink start time and Signal, bolts spent, threats alive, field entries, purge time, timer jump recognition, finish time and Signal, and whether fighting feels like a tempting risk rather than the automatic answer.
+
+## 2026-08-22 — Autonomous Run 72 — Coordinated suppression intercept
+
+### Milestone, player benefit, and acceptance
+
+Mixed Interceptor and Suppressor encounters will create a tactical pincer instead of two independent movement threats. While a Suppressor ring is warning or active, a surviving Interceptor will approach the player's most obvious ring exit and lock its existing 0.8-second telegraphed dash across that route, leaving the rest of the finite ring open for a deliberate alternate escape. Acceptance requires deterministic exit prediction, normal extraction-route behavior outside suppression, complete-runtime evidence during the six-second uplink, and no changes to enemy count, health, speed, damage, Signal economy, warning duration, field size, dash duration, authored entrances, or the four-response budget.
+
+### Files and systems changed
+
+- `InterceptorTactics.cs` adds the deterministic suppression-exit rule. It follows an already-moving drone's radial escape direction; a centered drone chooses the edge away from the Interceptor, and coincident fallback state remains deterministic.
+- `DeadSignalThreatController.cs` uses that rule only while the Suppressor is warning or while its active field still contains the drone. The existing extraction-route cutoff resumes immediately outside that state, and the existing approach, 0.8-second lock, dash, collision, damage, and cooldown remain authoritative.
+- `ThreatBalanceTuning.cs` and `ThreatBalanceTuning.asset` add a designer-facing 0.65-metre intercept margin beyond the unchanged 3.25-metre field edge.
+- `DeadSignalGame.cs` exposes the current cutoff target narrowly for complete-runtime acceptance evidence.
+- `InterceptorTacticsTests.cs`, `ThreatBalanceTuningTests.cs`, and `BootstrapSmokeTests.cs` protect exit prediction, open perpendicular counterplay, centered fallback, the tuning range, and the live mixed-role extraction flow.
+- `GAME_VISION.md`, `BACKLOG.md`, and this devlog record the product decision. No scene, prefab, model, texture, material, audio, input, package, project setting, enemy statistic, economy value, response count, or serialized map data changed.
+
+### Exact validation evidence
+
+1. The first focused launch compiled cleanly and exited `0`, but Unity honored the supplied `-quit` before the Test Runner and created no result XML; it is not counted as validation.
+2. Corrected focused EditMode: exit `0`; `6/6` passed in `0.0384746s`; `Logs/run72-editmode-focused2-results.xml` and `Logs/run72-editmode-focused2.log`.
+3. Focused complete-runtime PlayMode: exit `0`; `1/1` passed in `12.8502719s`; `Logs/run72-playmode-focused-results.xml` and `Logs/run72-playmode-focused.log`.
+4. Full EditMode: exit `0`; `79/79` passed in `0.2015649s`; `Logs/run72-editmode-final-results.xml` and `Logs/run72-editmode-final.log`.
+5. Full PlayMode: exit `0`; `8/8` passed in `24.9314509s`; `Logs/run72-playmode-final-results.xml` and `Logs/run72-playmode-final.log`.
+6. Windows x64 development build: exit `0`; Unity reported `241,168,876` bytes in `15.68s`; `Build/Windows/DeadSignal.exe` and `Logs/run72-build.log`.
+7. Packaged null-device smoke: exit `0` with one `[DEAD SIGNAL STANDALONE SMOKE] PASS`; `Logs/run72-standalone.log`.
+8. Sixty unrelated Unity setup/build serializer rewrites were restored. The pre-existing `Assets/Settings/Mobile_RPAsset.asset` change was verified byte-for-byte against its pre-run backup and remains excluded from this milestone.
+9. Post-cleanup full EditMode against the exact retained task-owned files: exit `0`; `79/79` passed in `0.1464389s`; `Logs/run72-editmode-postcleanup-results.xml` and `Logs/run72-editmode-postcleanup.log`.
+
+### Bugs fixed, limitations, playtest evidence, and next step
+
+- A centered drone provides no movement vector to predict. The final rule deterministically contests the edge away from the Interceptor, avoiding a zero-vector stall and preserving lateral exits.
+- Automated runtime evidence proves a surviving Interceptor retargets to the tuned 3.9-metre edge during the locked Suppressor warning, follows the drone's chosen direction, leaves the perpendicular edge more than five metres away, and still permits the established field escape, Suppressor purge, combat-assisted uplink, victory, and restart flow.
+- No human playtest was performed. Whether players read the pincer before the Interceptor reaches the edge, whether the 0.65-metre margin produces meaningful near-misses, and whether mixed pressure makes the one-second ring warning too demanding remain subjective risks.
+- Manual playtest next: leave the first Interceptor alive, start extraction, then test an obvious radial escape and a late perpendicular feint. Record warning recognition, Interceptor target edge, dash-line recognition, chosen exit, hits, field entries, bolts, Signal at uplink start/end, and whether the alternate route feels discovered rather than arbitrary.

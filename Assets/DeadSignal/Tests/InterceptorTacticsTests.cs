@@ -26,5 +26,35 @@ namespace DeadSignal.Tests
 
             Assert.That(cutoff, Is.EqualTo(Vector3.zero));
         }
+
+        [Test]
+        public void CalculateSuppressionExitPoint_BlocksObviousExitAndLeavesOtherAnglesOpen()
+        {
+            var center = new Vector3(2f, 3f, -1f);
+            var cutoff = InterceptorTactics.CalculateSuppressionExitPoint(
+                center,
+                center + Vector3.right,
+                center + Vector3.left * 6f,
+                3.25f,
+                0.65f);
+
+            Assert.That(cutoff, Is.EqualTo(new Vector3(5.9f, 0f, -1f)));
+            Assert.That(Vector3.Distance(cutoff, new Vector3(2f, 0f, 2.9f)), Is.GreaterThan(5f),
+                "Only the predicted exit should be contested; perpendicular ring exits must remain open.");
+        }
+
+        [Test]
+        public void CalculateSuppressionExitPoint_CenteredPlayerChoosesExitAwayFromInterceptor()
+        {
+            var center = Vector3.zero;
+            var cutoff = InterceptorTactics.CalculateSuppressionExitPoint(
+                center,
+                center,
+                Vector3.left * 5f,
+                3.25f,
+                0.65f);
+
+            Assert.That(cutoff, Is.EqualTo(Vector3.right * 3.9f));
+        }
     }
 }

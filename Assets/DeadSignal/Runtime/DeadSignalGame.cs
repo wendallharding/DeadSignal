@@ -44,6 +44,7 @@ namespace DeadSignal
         public float WardenHealth => m_threats?.WardenHealth ?? 0f;
         public float InterceptorHealth => m_threats?.InterceptorHealth ?? 0f;
         public bool IsInterceptorCharging => m_threats?.IsInterceptorCharging ?? false;
+        public Vector3 InterceptorCutoffTarget => m_threats?.InterceptorCutoffTarget ?? Vector3.zero;
         public float SuppressorHealth => m_threats?.SuppressorHealth ?? 0f;
         public bool IsSuppressorFieldActive => m_threats?.IsSuppressorFieldActive ?? false;
         public bool IsSuppressorFieldWarningActive => m_threats?.IsSuppressorFieldWarningActive ?? false;
