@@ -37,12 +37,22 @@ namespace DeadSignal
 
             var comfortSettings = new ComfortSettings();
             var input = new DeadSignalInput();
+            var hudPrefab = Resources.Load<GameObject>("UI/DeadSignalHud");
+            if (hudPrefab == null)
+            {
+                Debug.LogError("The authored HUD prefab was not found at Resources/UI/DeadSignalHud.");
+                Object.Destroy(root);
+                return;
+            }
+
+            var hudInstance = Object.Instantiate(hudPrefab, root.transform);
+            hudInstance.name = hudPrefab.name;
             var audio = root.AddComponent<DeadSignalAudio>();
             var combatFeedback = root.AddComponent<CombatFeedbackController>();
-            var hud = root.AddComponent<DeadSignalHud>();
-            var objectiveBeacon = root.AddComponent<ObjectiveBeaconHud>();
+            var hud = hudInstance.GetComponent<DeadSignalHud>();
+            var objectiveBeacon = hudInstance.GetComponent<ObjectiveBeaconHud>();
             var signalDust = root.AddComponent<SignalDustController>();
-            var lowSignalWarning = root.AddComponent<LowSignalWarningController>();
+            var lowSignalWarning = hudInstance.GetComponent<LowSignalWarningController>();
             var towerActivationSweep = root.AddComponent<TowerActivationSweepController>();
             root.AddComponent<DeadSignalGame>();
 
@@ -59,6 +69,7 @@ namespace DeadSignal
                 .RegisterValue(towerActivationSweep, new[] { typeof(ITowerActivationSweep) })
                 .Build();
             GameObjectInjector.InjectObject(root, container);
+            GameObjectInjector.InjectObject(hudInstance, container);
             root.SetActive(true);
         }
     }

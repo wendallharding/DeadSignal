@@ -3,7 +3,8 @@
   "rootNamespace": "DeadSignal.Tests",
   "references": [
     "DeadSignal.Runtime",
-    "Unity.InputSystem"
+    "Unity.InputSystem",
+    "Unity.ugui"
   ],
   "optionalUnityReferences": [
     "TestAssemblies"

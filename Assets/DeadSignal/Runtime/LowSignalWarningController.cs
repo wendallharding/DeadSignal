@@ -1,5 +1,6 @@
 using Reflex.Attributes;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace DeadSignal
 {
@@ -29,9 +30,10 @@ namespace DeadSignal
         private ICombatFeedback m_combatFeedback;
         private IComfortSettings m_comfortSettings;
         private Texture2D m_texture;
+        [SerializeField] private RawImage m_vignette;
         private float m_pulseTime;
 
-        public bool HasTexture => m_texture != null;
+        public bool HasTexture => m_vignette != null && m_vignette.texture != null;
         public float CurrentIntensity { get; private set; }
 
         [Inject]
@@ -56,7 +58,7 @@ namespace DeadSignal
         public void Configure(RunModel model)
         {
             m_model = model;
-            m_texture = Resources.Load<Texture2D>(TEXTURE_PATH);
+            m_texture = m_vignette != null ? m_vignette.texture as Texture2D : null;
         }
 
         public void Tick(float dt)
@@ -64,24 +66,27 @@ namespace DeadSignal
             if (m_model == null || m_model.Outcome != RunOutcome.Running)
             {
                 CurrentIntensity = 0f;
+                _refreshPresentation();
                 return;
             }
 
             m_pulseTime += Mathf.Max(0f, dt);
             float pulsePhase = Mathf.Sin(m_pulseTime * PULSE_SPEED) * 0.5f + 0.5f;
             CurrentIntensity = CalculateIntensity(m_model.Signal, m_comfortSettings.ReducedFlashesEnabled, pulsePhase);
+            _refreshPresentation();
         }
 
-        private void OnGUI()
+        private void _refreshPresentation()
         {
-            if (m_texture == null || CurrentIntensity <= 0f || m_combatFeedback.IsPaused || m_model.Outcome != RunOutcome.Running)
+            if (m_vignette == null)
             {
                 return;
             }
 
-            GUI.color = new Color(1f, 1f, 1f, CurrentIntensity);
-            GUI.DrawTexture(new Rect(0f, 0f, Screen.width, Screen.height), m_texture, ScaleMode.StretchToFill, true);
-            GUI.color = Color.white;
+            bool visible = m_texture != null && CurrentIntensity > 0f && !m_combatFeedback.IsPaused &&
+                           m_model.Outcome == RunOutcome.Running;
+            m_vignette.gameObject.SetActive(visible);
+            m_vignette.color = new Color(1f, 1f, 1f, CurrentIntensity);
         }
     }
 }

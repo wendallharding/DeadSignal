@@ -3409,3 +3409,25 @@ The owner's open Unity Editor remained untouched. Authoritative validation used 
 ### Best next step
 
 Play once with keyboard/mouse and once with a controller at 16:9 and ultrawide; verify each glyph reads before its label, the use icon improves tower/shortcut/extraction prompts, and the right HUD panel remains comfortably clear.
+
+## 2026-08-21 — Authored uGUI conversion
+
+- Replaced the runtime IMGUI HUD, objective beacon, pause/rebinding screen, outcome screen, contextual prompts, and low-Signal vignette with the authored `Resources/UI/DeadSignalHud.prefab` hierarchy.
+- The prefab owns its `Canvas`, `CanvasScaler`, `Image`, `RawImage`, `Text`, `Button`, `GraphicRaycaster`, and Input System `EventSystem` components. Runtime presenters now only update serialized view references and bind button actions.
+- `DeadSignalBootstrap.cs` now instantiates the authored HUD prefab and registers its three presenters with the existing Reflex container. `DeadSignal.Runtime.asmdef` and the PlayMode test assembly now explicitly reference uGUI.
+- Added `SceneLoad_UsesAuthoredCanvasUi`, which verifies prefab composition, scale-with-screen-size behavior, the Signal fill Image, reset Button, and prefab-owned EventSystem.
+- No scenes, packages, project settings, gameplay rules, tuning assets, save data, input mappings, audio, or generated source changed.
+
+### Validation
+
+- The owner's open Unity Editor was left untouched. Import, prefab generation, compilation, and tests used an isolated project copy at `C:\Projects\Wendall\CodexPrototype-HudBuild` with Unity `6000.3.11f1`.
+- Import/compile and prefab serialization completed successfully with Unity exit code `0`; log: `C:\Projects\Wendall\CodexPrototype-HudBuild\hud-build.log`.
+- EditMode: `35/35` passed, `0` failed, `0` skipped in `0.0947953` seconds; results: `editmode-results.xml`.
+- Focused authored-Canvas PlayMode: `1/1` passed in `0.4517938` seconds; results: `ui-playmode-results.xml`.
+- Full PlayMode: `4/5` passed and `1/5` failed in `2.9147771` seconds. The failure is the existing Signal Spine yaw assertion at `BootstrapSmokeTests.cs:127`, before the HUD assertions; the focused UI test and the other three integration tests pass. Results: `playmode-results-2.xml`.
+- Strict runtime-source scan found no remaining `OnGUI`, `GUI`, or `GUILayout` usage. `git diff --check` passed.
+
+### Known limitations and next step
+
+- Headless tests validate composition and state binding, but not final layout quality across aspect ratios. Inspect the prefab at 16:9, 16:10, and ultrawide in the open Editor, including pause/rebinding with mouse and controller.
+- Investigate the isolated validation copy's pre-existing Signal Spine yaw assertion separately; this UI refactor did not modify the scene, Signal Spine prefab, or its setup code.

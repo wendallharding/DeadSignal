@@ -6,11 +6,29 @@ using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.LowLevel;
 using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
+using UnityEngine.UI;
 
 namespace DeadSignal.Tests
 {
     public sealed class BootstrapSmokeTests
     {
+        [UnityTest]
+        public IEnumerator SceneLoad_UsesAuthoredCanvasUi()
+        {
+            yield return SceneManager.LoadSceneAsync("SampleScene");
+            yield return null;
+
+            var hud = Object.FindFirstObjectByType<DeadSignalHud>();
+            Assert.That(hud, Is.Not.Null);
+            var hudCanvas = hud.GetComponent<Canvas>();
+            Assert.That(hudCanvas, Is.Not.Null, "The HUD should be an authored uGUI Canvas rather than immediate-mode GUI.");
+            Assert.That(hudCanvas.GetComponent<CanvasScaler>().uiScaleMode,
+                Is.EqualTo(CanvasScaler.ScaleMode.ScaleWithScreenSize));
+            Assert.That(hudCanvas.transform.Find("Run HUD/Signal Status/Signal Bar/Fill").GetComponent<Image>(), Is.Not.Null);
+            Assert.That(hudCanvas.transform.Find("Pause Overlay/Control Routing/Reset").GetComponent<Button>(), Is.Not.Null);
+            Assert.That(hudCanvas.transform.Find("UI Event System").GetComponent<UnityEngine.EventSystems.EventSystem>(), Is.Not.Null);
+        }
+
         [UnityTest]
         public IEnumerator SignalBolt_AuthoredCoverBlocksClosedGateButOpenDoorwayStaysClear()
         {
@@ -114,6 +132,12 @@ namespace DeadSignal.Tests
                 "Runtime bootstrap should compose a dedicated HUD presenter.");
             Assert.That(Object.FindFirstObjectByType<ObjectiveBeaconHud>(), Is.Not.Null,
                 "Runtime bootstrap should compose a dedicated objective beacon presenter.");
+            var hudCanvas = Object.FindFirstObjectByType<DeadSignalHud>().GetComponent<Canvas>();
+            Assert.That(hudCanvas, Is.Not.Null, "The HUD should be an authored uGUI Canvas rather than immediate-mode GUI.");
+            Assert.That(hudCanvas.GetComponent<CanvasScaler>().uiScaleMode,
+                Is.EqualTo(CanvasScaler.ScaleMode.ScaleWithScreenSize));
+            Assert.That(hudCanvas.transform.Find("Run HUD/Signal Status/Signal Bar/Fill").GetComponent<Image>(), Is.Not.Null);
+            Assert.That(hudCanvas.transform.Find("Pause Overlay/Control Routing/Reset").GetComponent<Button>(), Is.Not.Null);
             var maintenanceDrone = game.transform.Find("Maintenance Drone");
             Assert.That(maintenanceDrone, Is.Not.Null);
             Assert.That(game.HasPlayerDroneAssets, Is.True,

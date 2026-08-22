@@ -1,5 +1,6 @@
 using Reflex.Attributes;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace DeadSignal
 {
@@ -29,11 +30,13 @@ namespace DeadSignal
         private RunModel m_model;
         private DeadSignalWorld m_world;
         private ICombatFeedback m_combatFeedback;
-        private Texture2D m_icon;
-        private GUIStyle m_labelStyle;
-        private GUIStyle m_distanceStyle;
+        [SerializeField] private GameObject m_panel;
+        [SerializeField] private RawImage m_icon;
+        [SerializeField] private Text m_label;
+        [SerializeField] private Text m_hint;
+        [SerializeField] private Text m_distance;
 
-        public bool HasIcon => m_icon != null;
+        public bool HasIcon => m_icon != null && m_icon.texture != null;
         public ObjectiveBeaconPhase CurrentPhase { get; private set; }
         public Vector3 CurrentTarget { get; private set; }
 
@@ -47,8 +50,7 @@ namespace DeadSignal
         {
             m_model = model;
             m_world = world;
-            m_icon = Resources.Load<Texture2D>(ICON_PATH);
-            if (m_icon == null)
+            if (!HasIcon)
             {
                 Debug.LogWarning($"Objective beacon icon was not found at Resources/{ICON_PATH}.", this);
             }
@@ -61,37 +63,23 @@ namespace DeadSignal
             if (m_model != null)
             {
                 _refreshTarget();
+                _refreshPresentation();
             }
         }
 
-        private void OnGUI()
+        private void _refreshPresentation()
         {
-            if (m_model == null || m_world == null || m_model.Outcome != RunOutcome.Running || m_combatFeedback.IsPaused)
+            bool visible = m_model != null && m_world != null && m_model.Outcome == RunOutcome.Running && !m_combatFeedback.IsPaused;
+            m_panel.SetActive(visible);
+            if (!visible)
             {
                 return;
             }
 
-            _ensureGuiStyles();
-
-            var panel = new Rect(Screen.width * 0.5f - 210f, Screen.height - 154f, 420f, 58f);
-            GUI.color = new Color(0.015f, 0.025f, 0.035f, 0.93f);
-            GUI.Box(panel, GUIContent.none);
-            GUI.color = Color.white;
-
-            var iconRect = new Rect(panel.x + 8f, panel.y + 5f, 48f, 48f);
-            if (m_icon != null)
-            {
-                Matrix4x4 previousMatrix = GUI.matrix;
-                GUIUtility.RotateAroundPivot(_directionAngle(), iconRect.center);
-                GUI.DrawTexture(iconRect, m_icon, ScaleMode.ScaleToFit, true);
-                GUI.matrix = previousMatrix;
-            }
-
-            GUI.Label(new Rect(panel.x + 66f, panel.y + 7f, 275f, 23f), $"NEXT  {_currentLabel()}", m_labelStyle);
-            float distance = DeadSignalWorld.FlatDistance(m_world.Player.position, CurrentTarget);
-            GUI.Label(new Rect(panel.x + 66f, panel.y + 30f, 275f, 20f), _currentHint(), m_distanceStyle);
-            GUI.Label(new Rect(panel.x + 338f, panel.y + 14f, 68f, 28f), $"{Mathf.CeilToInt(distance)}m", m_labelStyle);
-            GUI.color = Color.white;
+            m_icon.rectTransform.localRotation = Quaternion.Euler(0f, 0f, _directionAngle());
+            m_label.text = $"NEXT  {_currentLabel()}";
+            m_hint.text = _currentHint();
+            m_distance.text = $"{Mathf.CeilToInt(DeadSignalWorld.FlatDistance(m_world.Player.position, CurrentTarget))}m";
         }
 
         private void _refreshTarget()
@@ -166,26 +154,5 @@ namespace DeadSignal
             };
         }
 
-        private void _ensureGuiStyles()
-        {
-            if (m_labelStyle != null)
-            {
-                return;
-            }
-
-            m_labelStyle = new GUIStyle(GUI.skin.label)
-            {
-                fontSize = 16,
-                fontStyle = FontStyle.Bold,
-                alignment = TextAnchor.MiddleLeft
-            };
-            m_labelStyle.normal.textColor = new Color(0.12f, 0.96f, 1f);
-            m_distanceStyle = new GUIStyle(GUI.skin.label)
-            {
-                fontSize = 13,
-                alignment = TextAnchor.MiddleLeft
-            };
-            m_distanceStyle.normal.textColor = new Color(0.72f, 0.82f, 0.86f);
-        }
     }
 }
