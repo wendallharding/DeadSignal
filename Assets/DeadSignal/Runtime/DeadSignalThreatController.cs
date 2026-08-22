@@ -72,7 +72,10 @@ namespace DeadSignal
             m_tuning = tuning;
             m_overclockChoice = overclockChoice;
             m_overclockTuning = overclockTuning;
-            m_director = new SecurityEscalationDirector(tuning.ReinforcementEntryDelay, tuning.ReinforcementSafeDistance);
+            m_director = new SecurityEscalationDirector(
+                tuning.ReinforcementEntryDelay,
+                tuning.ReinforcementSafeDistance,
+                UnityEngine.Random.Range(0, 2) == 1);
             m_showFeedback = showFeedback;
             m_wardenHealth = tuning.WardenHealth;
             m_sapperHealth = tuning.SapperHealth;

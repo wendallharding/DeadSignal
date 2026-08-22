@@ -48,6 +48,8 @@ namespace DeadSignal
         public bool IsPlayerSuppressed => m_threats?.IsPlayerSuppressed ?? false;
         public int SecurityEscalationTier => m_threats?.EscalationTier ?? 0;
         public int SecurityReinforcementsRemaining => m_threats?.ReinforcementsRemaining ?? 0;
+        public SecurityReinforcement PendingSecurityReinforcement =>
+            m_threats?.PendingReinforcement ?? SecurityReinforcement.None;
         public bool IsExtractionUplinkActive => m_extractionUplink?.IsActive ?? false;
         public float ExtractionUplinkSecondsRemaining => m_extractionUplink?.SecondsRemaining ?? 0f;
         public bool LastSignalBoltBlockedByEnvironment => m_threats?.LastShotBlockedByEnvironment ?? false;

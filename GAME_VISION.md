@@ -68,6 +68,7 @@ This autonomous run is accepted when a fresh Play session provides all of the fo
 - The Sapper's successful drain uses an authored inward-pulling floor glyph whose expansion remains optional under Reduced Flashes while timing stays readable through the countdown reticle.
 - The Sapper's target tether carries repeated authored energy packets toward the tower during approach and latch, making drain direction readable without changing threat timing.
 - The first salvage escalation deploys a red-and-amber Interceptor from the safer of two scene-authored flank gates; it moves toward the extraction route, shows a locked charge line, and commits to an avoidable dash that combines with Warden pursuit and Sapper tower pressure.
+- The next two bounded security responses adapt to the player's combat choices: the first purged Warden or Sapper returns first, the other role follows, and clearing both before the response creates a per-run order variation without duplicate roles or added threat count.
 - The final bounded extraction response is a magenta Suppressor that enters through the safer authored flank gate, warns before projecting a finite slowing Signal-drain field, and forces the player to abandon controlled space or spend Signal to purge it.
 - Three warm salvage pickups can be collected outside the safe starting area.
 - The first salvage cache offers one run-long combat overclock: Chain Arc rewards grouping tactical roles, while Overdrive Thrusters rewards evasion and route greed.
@@ -167,3 +168,7 @@ The fourth bounded security response is now a Suppressor rather than another Int
 ### Run 66 product decision — second-cache auxiliary overclock
 
 The second secured cache now adds one economy-defense choice on top of the first cache's combat-mobility fork, creating four possible run builds. Emergency Capacitor performs one automatic 22-Signal refill at 25 Signal or lower; Feedback Shield negates one discrete enemy impact or pulse and recharges only when a threat is purged. Both retain passive dead-zone pressure and use the existing Fire/Use routes without also firing or interacting. This was selected over more random drops or a larger map because the current short run needs surprising combinations and a reason to change fighting, fleeing, and reserve-management plans before adding another region.
+
+### Run 67 product decision — adaptive security response
+
+The two middle security reserves now react to the player's purge order instead of always deploying Warden then Sapper. After the authored Interceptor response, whichever core role the player eliminated first returns first and the other role follows; when both are already gone, a per-run tie-breaker varies their order. This was selected over more enemies, higher stats, or a second region because replayability currently suffers most from a fixed encounter script. The response remains bounded, role-unique, entrance-safe, and fully telegraphed, while the player's decision to fight the pursuer or protect the tower now changes later mixed-role pressure.

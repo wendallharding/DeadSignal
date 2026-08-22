@@ -1342,6 +1342,12 @@ namespace DeadSignal.Tests
                 yield return null;
                 Assert.That(game.IsInterceptorCharging, Is.True,
                     "Reaching the retreat cutoff should begin the readable dash charge before impact.");
+                Assert.That(game.PendingSecurityReinforcement, Is.EqualTo(SecurityReinforcement.None),
+                    "The adaptive response should remain held while the player is inside its safe-entry radius.");
+                sapper.position = new Vector3(18f, 0f, 9f);
+                yield return null;
+                Assert.That(game.PendingSecurityReinforcement, Is.EqualTo(SecurityReinforcement.Sapper),
+                    "Purging the Sapper first should make it the next adaptive core response.");
                 Assert.That(game.transform.Find("Interceptor Charge Telegraph").gameObject.activeSelf, Is.True,
                     "The Interceptor charge should reveal its locked dash line.");
                 Assert.That(game.transform.Cast<Transform>().Count(child =>

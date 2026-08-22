@@ -3859,3 +3859,36 @@ The second required cache now adds an economy-defense decision on top of the fir
 - The initial full PlayMode run passed `6/7`: the established complete-run test attempted extraction while the deliberate cache-two choice was pending, so Use correctly selected Feedback Shield instead of starting uplink. The lifecycle scenario now resolves the required choice explicitly; the focused rerun and final suite passed. No production bypass was added.
 - Automated evidence proves four legal primary/auxiliary combinations, Capacitor remains idle above 25 Signal and restores exactly 22 once below it, Shield negates one live Warden hit without reserve loss, and an empty Shield cannot absorb again until a purge. No human playtest was performed, so choice-panel fit, decision time under mixed pressure, actual recharge frequency, and comparative extraction reserve remain unjudged.
 - Manual playtest next: run Chain Arc + Capacitor, Chain Arc + Shield, Overdrive + Capacitor, and Overdrive + Shield. Record selection time, Signal at cache two, capacitor trigger reserve, shield blocks/recharges, threats purged, abandoned caches/routes, uplink start/end reserve, hits taken, and whether any combination removes the need to fight or flee.
+
+## 2026-08-22 — Autonomous Run 67 — Adaptive security response
+
+### Milestone, player benefit, and acceptance
+
+The bounded director now responds to the player's combat choice instead of always replaying the same Warden-then-Sapper middle sequence. Acceptance required the first salvage response to remain the authored Interceptor, the first purged Warden or Sapper to become the second response, the other core role to become the third, a per-run tie-breaker when both were already purged, and the extraction-only Suppressor to remain fourth. The existing role-uniqueness, six-metre exclusion, 2.5-second warning, four-response cap, health, speed, damage, bounty, and authored entrances had to remain unchanged.
+
+### Files and systems changed
+
+- Updated `SecurityEscalationDirector.cs` to lock a core-role response only after one role is eligible, remember the first response so the next cannot repeat it, and accept a deterministic tie-break preference for direct testing.
+- Updated `DeadSignalThreatController.cs` to choose that tie-break preference once per runtime composition while preserving all designer-facing threat tuning and deployment behavior.
+- Updated `DeadSignalGame.cs` with read-only pending-response state used by runtime validation.
+- Expanded `SecurityEscalationDirectorTests.cs` to cover first-purge adaptation, both per-run tie-break orders, no repeats, safe holding while both roles remain active, budget caps, entrance safety, and the final Suppressor.
+- Updated `BootstrapSmokeTests.cs` so the complete playable flow proves a purged Sapper is held while inside the safe-entry radius and announced once entry becomes safe.
+- Updated `GAME_VISION.md`, `BACKLOG.md`, and this devlog with the product decision and manual tuning question. No scene, prefab, material, texture, audio, tuning asset, package, project setting, input, save data, enemy stat, Signal economy, extraction duration, or map-layout change is owned by this milestone.
+
+### Exact validation evidence
+
+1. Focused EditMode: exit `0`; `7/7` passed in `0.035492s`; `Logs/run67-editmode-focused-results.xml` and `Logs/run67-editmode-focused.log`.
+2. Full EditMode: exit `0`; `71/71` passed, `0` failed, `0` skipped in `0.126208s`; `Logs/run67-editmode-final-results.xml` and `Logs/run67-editmode-final.log`.
+3. Focused complete-runtime PlayMode after correcting the safety assertion: exit `0`; `1/1` passed in `12.9610868s`; `Logs/run67-playmode-focused-results.xml` and `Logs/run67-playmode-focused.log`.
+4. Final PlayMode: exit `0`; `7/7` passed, `0` failed, `0` skipped in `16.7646214s`; `Logs/run67-playmode-final2-results.xml` and `Logs/run67-playmode-final2.log`.
+5. Windows x64 development build: exit `0`; Unity reported `241,163,677` bytes in `10.80s`; `Build/Windows/DeadSignal.exe`; `Logs/run67-build.log`.
+6. Packaged null-device smoke: exit `0` with one `[DEAD SIGNAL STANDALONE SMOKE] PASS`; `Logs/run67-standalone.log`.
+7. Restored 60 unrelated Unity setup/build serializer rewrites, then ran final EditMode against the retained task-owned files: exit `0`; `71/71` passed in `0.125298s`; `Logs/run67-editmode-postcleanup-results.xml` and `Logs/run67-editmode-postcleanup.log`.
+8. Final critical scans found no compiler errors, null or missing references, unhandled exceptions, failed assertions, build failure, or smoke failure. `git diff --check` passed.
+
+### Bugs found, limitations, playtest evidence, and next step
+
+- The first full PlayMode attempt passed `6/7`: the new assertion expected an immediate Sapper warning while the inactive Sapper entry reference was five metres from the player. Production correctly preserved the six-metre exclusion. The corrected scenario explicitly proves the hold, moves the entry reference safely away, and then proves the Sapper announcement; focused and final suites passed.
+- Runtime evidence follows a meaningful combat route: the Sapper is purged first for 16 reclaimed Signal, three caches bank the bounded reserve, the Interceptor enters first, and Sapper is selected as the next response without bypassing safe entry. Deterministic coverage proves the reverse Warden-first route and both double-purge tie-break orders.
+- No human playtest was performed. Subjective readability of the changing response, frequency of each order, mixed-role pressure, and the effect on extraction reserve remain unknown.
+- Manual playtest next: run Sapper-first, Warden-first, and double-purge routes. Record first purge, second/third response order, warning recognition, peak live roles, hits and pulses, Signal spent/reclaimed, any abandoned cache or route, and uplink start/end reserve. Confirm the adaptive response feels reactive rather than arbitrary before expanding to a second tower region.

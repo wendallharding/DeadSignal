@@ -5,17 +5,55 @@ namespace DeadSignal.Tests
     public sealed class SecurityEscalationDirectorTests
     {
         [Test]
-        public void Tick_EachSalvageQueuesInterceptorThenExistingRoles()
+        public void Tick_EachSalvageQueuesInterceptorThenFirstPurgedCoreRole()
         {
             var director = new SecurityEscalationDirector(2f, 6f);
 
             Assert.That(director.Tick(0f, true, 1, false, false, true, true, false, 8f, 8f, 8f, 8f), Is.EqualTo(SecurityReinforcement.None));
             Assert.That(director.Tick(2f, true, 1, false, false, true, true, false, 8f, 8f, 8f, 8f), Is.EqualTo(SecurityReinforcement.Interceptor));
-            Assert.That(director.Tick(0f, true, 2, false, true, false, true, false, 8f, 8f, 8f, 8f), Is.EqualTo(SecurityReinforcement.None));
-            Assert.That(director.Tick(2f, true, 2, false, true, false, true, false, 8f, 8f, 8f, 8f), Is.EqualTo(SecurityReinforcement.Warden));
-            Assert.That(director.Tick(0f, true, 3, false, true, true, false, false, 8f, 8f, 8f, 8f), Is.EqualTo(SecurityReinforcement.None));
-            Assert.That(director.Tick(2f, true, 3, false, true, true, false, false, 8f, 8f, 8f, 8f), Is.EqualTo(SecurityReinforcement.Sapper));
+            Assert.That(director.Tick(0f, true, 2, false, true, true, false, false, 8f, 8f, 8f, 8f), Is.EqualTo(SecurityReinforcement.None));
+            Assert.That(director.PendingReinforcement, Is.EqualTo(SecurityReinforcement.Sapper));
+            Assert.That(director.Tick(2f, true, 2, false, true, true, false, false, 8f, 8f, 8f, 8f), Is.EqualTo(SecurityReinforcement.Sapper));
+            Assert.That(director.Tick(0f, true, 3, false, true, false, true, false, 8f, 8f, 8f, 8f), Is.EqualTo(SecurityReinforcement.None));
+            Assert.That(director.PendingReinforcement, Is.EqualTo(SecurityReinforcement.Warden));
+            Assert.That(director.Tick(2f, true, 3, false, true, false, true, false, 8f, 8f, 8f, 8f), Is.EqualTo(SecurityReinforcement.Warden));
             Assert.That(director.ReinforcementsRemaining, Is.Zero);
+        }
+
+        [TestCase(false, SecurityReinforcement.Warden, SecurityReinforcement.Sapper)]
+        [TestCase(true, SecurityReinforcement.Sapper, SecurityReinforcement.Warden)]
+        public void Tick_BothCoreRolesPurged_UsesRunPreferenceWithoutRepeating(
+            bool preferSapper,
+            SecurityReinforcement first,
+            SecurityReinforcement second)
+        {
+            var director = new SecurityEscalationDirector(1f, 6f, preferSapper);
+
+            director.Tick(0f, true, 1, false, false, false, false, false, 8f, 8f, 8f, 8f);
+            Assert.That(director.Tick(1f, true, 1, false, false, false, false, false, 8f, 8f, 8f, 8f),
+                Is.EqualTo(SecurityReinforcement.Interceptor));
+            director.Tick(0f, true, 2, false, true, false, false, false, 8f, 8f, 8f, 8f);
+            Assert.That(director.PendingReinforcement, Is.EqualTo(first));
+            Assert.That(director.Tick(1f, true, 2, false, true, false, false, false, 8f, 8f, 8f, 8f), Is.EqualTo(first));
+            director.Tick(0f, true, 3, false, true, first == SecurityReinforcement.Warden, first == SecurityReinforcement.Sapper,
+                false, 8f, 8f, 8f, 8f);
+            Assert.That(director.PendingReinforcement, Is.EqualTo(second));
+            Assert.That(director.Tick(1f, true, 3, false, true, first == SecurityReinforcement.Warden,
+                first == SecurityReinforcement.Sapper, false, 8f, 8f, 8f, 8f), Is.EqualTo(second));
+        }
+
+        [Test]
+        public void Tick_HoldsCoreResponseUntilEitherRoleHasBeenPurged()
+        {
+            var director = new SecurityEscalationDirector(2f, 6f);
+
+            director.Tick(0f, true, 1, false, false, true, true, false, 8f, 8f, 8f, 8f);
+            director.Tick(2f, true, 1, false, false, true, true, false, 8f, 8f, 8f, 8f);
+
+            Assert.That(director.Tick(5f, true, 2, false, true, true, true, false, 8f, 8f, 8f, 8f),
+                Is.EqualTo(SecurityReinforcement.None));
+            Assert.That(director.PendingReinforcement, Is.EqualTo(SecurityReinforcement.None));
+            Assert.That(director.EntryCountdown, Is.Zero);
         }
 
         [Test]

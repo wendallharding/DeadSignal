@@ -14,6 +14,15 @@
 
 ## P1 — Prove the loop
 
+### Run 67 adaptive-security-response ideas
+
+- [x] Preserve the authored Interceptor as the first salvage response and the Suppressor as the extraction-only response
+- [x] Replace whichever Warden or Sapper the player purges first as the next bounded response
+- [x] Reserve the other core role for the third response without repeats or additional threat count
+- [x] Vary the response order per run when both core roles were already purged before the director observes them
+- [x] Preserve role uniqueness, safe entry distance, warning delay, alert budget, tuning, and existing enemy counterplay
+- [ ] Playtest both purge orders and one double-purge route for response readability, mixed-role pressure, and extraction reserve
+
 ### Run 66 second-cache auxiliary-overclock ideas
 
 - [x] Offer exactly one complementary economy-defense choice after the second required cache while pressure continues

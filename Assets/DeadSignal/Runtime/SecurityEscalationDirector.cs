@@ -12,22 +12,27 @@ namespace DeadSignal
     }
 
     /// <summary>
-    /// Deterministically converts salvage progress into a small, bounded reinforcement queue.
+    /// Converts salvage progress and the player's purge order into a small, bounded reinforcement queue.
     /// </summary>
     public sealed class SecurityEscalationDirector
     {
         private readonly float m_entryDelay;
         private readonly float m_safeEntryDistance;
+        private readonly SecurityReinforcement m_bothPurgedPreference;
 
         private int m_observedSalvage;
         private int m_nextReinforcement;
         private float m_entryCountdown;
         private bool m_extractionPressure;
+        private SecurityReinforcement m_firstCoreResponse;
 
-        public SecurityEscalationDirector(float entryDelay, float safeEntryDistance)
+        public SecurityEscalationDirector(float entryDelay, float safeEntryDistance, bool preferSapperWhenBothPurged = false)
         {
             m_entryDelay = Math.Max(0f, entryDelay);
             m_safeEntryDistance = Math.Max(0f, safeEntryDistance);
+            m_bothPurgedPreference = preferSapperWhenBothPurged
+                ? SecurityReinforcement.Sapper
+                : SecurityReinforcement.Warden;
         }
 
         public int EscalationTier => m_observedSalvage;
@@ -65,7 +70,14 @@ namespace DeadSignal
                 return SecurityReinforcement.None;
             }
 
+            _chooseCoreResponse(wardenAlive, sapperAlive);
             var reinforcement = _getReinforcement(m_nextReinforcement);
+            if (reinforcement == SecurityReinforcement.None)
+            {
+                m_entryCountdown = 0f;
+                return SecurityReinforcement.None;
+            }
+
             var roleAlive = reinforcement switch
             {
                 SecurityReinforcement.Interceptor => interceptorAlive,
@@ -102,13 +114,36 @@ namespace DeadSignal
             return reinforcement;
         }
 
-        private static SecurityReinforcement _getReinforcement(int index)
+        private void _chooseCoreResponse(bool wardenAlive, bool sapperAlive)
+        {
+            if (m_nextReinforcement != 1 || m_firstCoreResponse != SecurityReinforcement.None)
+            {
+                return;
+            }
+
+            if (!wardenAlive && sapperAlive)
+            {
+                m_firstCoreResponse = SecurityReinforcement.Warden;
+            }
+            else if (wardenAlive && !sapperAlive)
+            {
+                m_firstCoreResponse = SecurityReinforcement.Sapper;
+            }
+            else if (!wardenAlive && !sapperAlive)
+            {
+                m_firstCoreResponse = m_bothPurgedPreference;
+            }
+        }
+
+        private SecurityReinforcement _getReinforcement(int index)
         {
             return index switch
             {
                 0 => SecurityReinforcement.Interceptor,
-                1 => SecurityReinforcement.Warden,
-                2 => SecurityReinforcement.Sapper,
+                1 => m_firstCoreResponse,
+                2 => m_firstCoreResponse == SecurityReinforcement.Warden
+                    ? SecurityReinforcement.Sapper
+                    : SecurityReinforcement.Warden,
                 _ => SecurityReinforcement.Suppressor
             };
         }
