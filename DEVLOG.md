@@ -3218,7 +3218,7 @@ The user's main Unity Editor remained open and untouched. Authoritative validati
 4. Signal-spine setup regeneration wrote `Logs/run52-spine-setup.log`: exit `0`. Final PlayMode wrote `Logs/run52-playmode-final-results.xml` and `Logs/run52-playmode-final.log`: `3/3` passed, `0` failed, `0` skipped in `6.458332` seconds; exit `0`.
 5. Windows development build wrote `Logs/run52-build.log`: succeeded in `17.01` seconds at `221,068,189` total bytes; exit `0`.
 6. Packaged `-batchmode -nographics -deadSignalBuildSmoke` wrote `Logs/run52-standalone.log`: loaded the complete runtime and new threshold Resources, emitted one PASS marker, and exited `0`.
-7. Strict compiler/runtime failure-pattern scans and `git diff --check` were clean after correction.
+7. Strict compiler/runtime failure-pattern scans were clean. `git diff --check` was clean for tracked source edits before staging; after staging, it reported Unity-serializer spaces on empty YAML fields in the newly generated `.meta` and `.mat` files. Those generated files were preserved byte-for-byte rather than hand-edited.
 
 ### Bugs found and fixed
 
@@ -3229,6 +3229,7 @@ The user's main Unity Editor remained open and untouched. Authoritative validati
 
 - Headless tests prove placement, resource packaging, and collision-free composition but cannot judge threshold brightness, orientation, z-fighting, or small-screen readability.
 - The threshold is aligned to the present authored opening route and fixed extraction radius. A future modular-room conversion should derive or serialize equivalent placement rather than duplicate this coordinate across layouts.
+- Unity 6000.3-generated `.meta` and `.mat` YAML retains spaces after several empty-field colons; these are serializer-owned generated artifacts and were intentionally not hand-normalized despite the repository's ordinary no-trailing-whitespace convention.
 
 ### Best next step
 
