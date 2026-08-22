@@ -3431,3 +3431,49 @@ Play once with keyboard/mouse and once with a controller at 16:9 and ultrawide; 
 
 - Headless tests validate composition and state binding, but not final layout quality across aspect ratios. Inspect the prefab at 16:9, 16:10, and ultrawide in the open Editor, including pause/rebinding with mouse and controller.
 - Investigate the isolated validation copy's pre-existing Signal Spine yaw assertion separately; this UI refactor did not modify the scene, Signal Spine prefab, or its setup code.
+## 2026-08-21 — Autonomous Run 56
+
+### Today's single idea
+
+Signal reserve telemetry: make DEAD SIGNAL's shared resource immediately readable in the newly authored Canvas HUD through one cohesive five-feature pass.
+
+### Player benefit and acceptance criteria
+
+- Authored conduit fill: original transparent cyan maintenance-conduit art must import as a Sprite and fill the live Signal bar.
+- Stable state: reserves above 60% must show cyan and explicitly read `STABLE`.
+- Strained state: reserves from 25% through 60% must show amber and explicitly read `STRAINED`.
+- Critical state: reserves at or below 25% must show red and explicitly read `CRITICAL`.
+- Comfort-safe critical pulse: critical fill motion must remain restrained, freeze while paused, and become static under Reduced Flashes.
+
+This pass was selected over another objective or room because Signal is the commercial hook and the owner-authored Canvas needed to communicate its condition without relying on number interpretation. Gameplay balance and Signal rules are unchanged.
+
+### Files and systems changed
+
+- Added `SignalReserveConduit.png`, generated with the built-in image tool from an original transparent industrial-cyan conduit prompt. SHA-256: `E4B25C45957284F9BD14B08A196347705497B0F8E90B063C5FCE885CEF49F3D9`.
+- Added `SignalHudTuning` plus its Resources asset so thresholds, colors, pulse speed, and pulse floor are designer-facing rather than hardcoded in `DeadSignalHud`.
+- Added deterministic `SignalHudPresentation` evaluation and integrated it into the Canvas fill, state label, pause behavior, Reduced Flashes behavior, runtime readiness surface, build validation, and packaged smoke gate.
+- Focused production refactor: `DeadSignalHud` now delegates reserve-state calculation to the pure presentation type and adopts repository `var` conventions in the touched methods. Existing serialized Canvas references and prefab layout remain unchanged.
+- Updated `BootstrapSmokeTests` to verify the authored Sprite/tuning composition and corrected its stale Signal-spine rotation contract to the exact owner-authored quaternion from commit `5422615`.
+- Updated `GAME_VISION.md` and `BACKLOG.md` with the product rationale, player value, and all five acceptance criteria.
+- No gameplay rules, Signal economy values, scenes, prefabs, packages, project settings, save data, input routes, audio, world art, or threat tuning changed. Unity's unrelated build-time serialization rewrites were removed after validation.
+
+### Validation and exact outcomes
+
+- Unity `6000.3.11f1` HUD setup/import/compilation: exit `0`; Sprite metadata and `SignalHudTuning.asset` generated successfully; log `Logs/run56-hud-setup.log`.
+- EditMode: exit `0`, `41/41` passed, `0` failed, `0` skipped in `0.1167305s`; results `Logs/run56-editmode-results.xml`, log `Logs/run56-editmode.log`.
+- Initial PlayMode: exit `2`, `4/5` passed; the only failure was a stale pre-existing assertion expecting the pre-owner-edit `125°` Signal-spine yaw. The telemetry Canvas test passed.
+- Corrected PlayMode: exit `0`, `5/5` passed, `0` failed, `0` skipped in `7.1871803s`; results `Logs/run56-playmode-results.xml`, log `Logs/run56-playmode.log`.
+- Windows x64 development build: exit `0`; Unity reported `237,943,617` bytes in `17.78s`; executable `Build/Windows/DeadSignal.exe`, log `Logs/run56-build.log`.
+- Packaged standalone smoke: exit `0` with one `[DEAD SIGNAL STANDALONE SMOKE] PASS` marker; log `Logs/run56-standalone.log`.
+- Final critical-log scan found no C# compiler error/warning, null/missing-reference exception, unhandled exception, assertion failure, or smoke FAIL marker. `git diff --check` is clean after excluding documented Unity serializer whitespace from generated side effects by restoring those unrelated files.
+
+### Bugs found and fixed
+
+- Fixed the stale Signal-spine PlayMode assertion so it protects the owner's floor-facing, tower-directed authored rotation instead of failing against the older yaw-only representation.
+- Prevented the build pipeline from shipping without the new Signal HUD Sprite or tuning asset by adding Editor and packaged-player resource gates.
+
+### Known limitations and best next step
+
+- Headless validation cannot judge conduit detail at the bar's final pixel height, amber/red contrast in the complete scene, or whether the critical pulse feels restrained at 16:9 and ultrawide.
+- The generated conduit has detailed end caps that may compress at small HUD sizes; the fill mask can crop them as Signal falls. A manual visual pass should determine whether a simpler center-only variant is preferable.
+- Best next step: play one run at 16:9 and ultrawide with Reduced Flashes both off and on, deliberately cross 60% and 25% Signal, and assess label fit, tint separation, pulse comfort, and fill cropping before changing thresholds.

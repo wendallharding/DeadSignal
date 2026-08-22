@@ -25,6 +25,11 @@ namespace DeadSignal.Tests
             Assert.That(hudCanvas.GetComponent<CanvasScaler>().uiScaleMode,
                 Is.EqualTo(CanvasScaler.ScaleMode.ScaleWithScreenSize));
             Assert.That(hudCanvas.transform.Find("Run HUD/Signal Status/Signal Bar/Fill").GetComponent<Image>(), Is.Not.Null);
+            Assert.That(hud.HasSignalReserveArt, Is.True,
+                "The Canvas Signal bar should use the original authored conduit art.");
+            Assert.That(hud.CurrentSignalReserveState, Is.EqualTo(SignalReserveState.Stable),
+                "A fresh full reserve should identify itself as stable.");
+            Assert.That(Resources.Load<SignalHudTuning>("Tuning/SignalHudTuning"), Is.Not.Null);
             Assert.That(hudCanvas.transform.Find("Pause Overlay/Control Routing/Reset").GetComponent<Button>(), Is.Not.Null);
             Assert.That(hudCanvas.transform.Find("UI Event System").GetComponent<UnityEngine.EventSystems.EventSystem>(), Is.Not.Null);
         }
@@ -125,9 +130,10 @@ namespace DeadSignal.Tests
                 .Select(inlay => Vector3.Distance(inlay.position, towerPosition)).ToArray();
             Assert.That(routeDistances.Zip(routeDistances.Skip(1), (current, next) => next < current).All(value => value),
                 Is.True, "Each authored inlay should advance continuously from extraction toward the tower.");
+            var authoredInlayRotation = new Quaternion(-0.32650557f, 0.6272114f, -0.6272114f, -0.32650557f);
             Assert.That(signalSpine.transform.Cast<Transform>().All(inlay =>
-                    Mathf.Abs(Mathf.DeltaAngle(inlay.eulerAngles.y, 125f)) < 0.1f),
-                Is.True, "Every generated inlay must retain the visually verified tower-facing yaw.");
+                    Mathf.Abs(Quaternion.Dot(inlay.localRotation, authoredInlayRotation)) > 0.9999f),
+                Is.True, "Every inlay must retain the owner's floor-facing, tower-directed rotation.");
             Assert.That(Object.FindFirstObjectByType<DeadSignalHud>(), Is.Not.Null,
                 "Runtime bootstrap should compose a dedicated HUD presenter.");
             Assert.That(Object.FindFirstObjectByType<ObjectiveBeaconHud>(), Is.Not.Null,
@@ -137,6 +143,8 @@ namespace DeadSignal.Tests
             Assert.That(hudCanvas.GetComponent<CanvasScaler>().uiScaleMode,
                 Is.EqualTo(CanvasScaler.ScaleMode.ScaleWithScreenSize));
             Assert.That(hudCanvas.transform.Find("Run HUD/Signal Status/Signal Bar/Fill").GetComponent<Image>(), Is.Not.Null);
+            Assert.That(game.HasSignalReserveArt, Is.True);
+            Assert.That(game.CurrentSignalReserveState, Is.EqualTo(SignalReserveState.Stable));
             Assert.That(hudCanvas.transform.Find("Pause Overlay/Control Routing/Reset").GetComponent<Button>(), Is.Not.Null);
             var maintenanceDrone = game.transform.Find("Maintenance Drone");
             Assert.That(maintenanceDrone, Is.Not.Null);

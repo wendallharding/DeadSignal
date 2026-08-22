@@ -29,6 +29,14 @@
 - [x] System glyph — player value: pause and restart recovery remain discoverable during play and outcomes; acceptance: original system-ring art loads in the legend and outcome screen while adaptive labels remain authoritative.
 - [ ] Add hardware-family-specific face-button variants after visual testing confirms the device-neutral action set
 
+### Run 56 Signal reserve telemetry ideas
+
+- [x] Authored conduit fill — player value: Signal reads as fragile station energy rather than a generic bar; acceptance: original transparent conduit art imports as a Sprite and fills the live Canvas bar.
+- [x] Stable reserve state — player value: healthy capacity is confirmed without interpreting a number; acceptance: reserves above 60% show cyan and the explicit `STABLE` label.
+- [x] Strained reserve state — player value: the player receives useful warning before imminent failure; acceptance: reserves from 25% through 60% transition to amber and the explicit `STRAINED` label.
+- [x] Critical reserve state — player value: immediate danger is unmistakable; acceptance: reserves at or below 25% transition to red and the explicit `CRITICAL` label.
+- [x] Comfort-safe critical pulse — player value: urgency gains motion without violating accessibility preferences; acceptance: the critical fill breathes within a restrained alpha range, freezes while paused, and remains static with Reduced Flashes.
+
 ### Run 54 control-routing ideas
 
 - [x] Move Up rerouting — player value: supports alternate layouts and one-handed play; acceptance: any keyboard key persists, updates prompts, and keeps Up Arrow available.

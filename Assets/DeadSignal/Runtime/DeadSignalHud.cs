@@ -16,6 +16,8 @@ namespace DeadSignal
         bool HasBindingConflictIcon { get; }
         bool HasMovementRoutingIcon { get; }
         bool HasControlGlyphSet { get; }
+        bool HasSignalReserveArt { get; }
+        SignalReserveState CurrentSignalReserveState { get; }
 
         void Configure(RunModel model, RunMetrics metrics, DeadSignalWorld world, DeadSignalThreatController threats);
         void ShowFeedback(string message);
@@ -73,7 +75,9 @@ namespace DeadSignal
         private ICombatFeedback m_combatFeedback;
         private IComfortSettings m_comfortSettings;
         private IDeadSignalInput m_input;
+        private SignalHudTuning m_signalHudTuning;
         private float m_feedbackTimer;
+        private float m_signalPulseTime;
         private string m_feedback = string.Empty;
 
         public bool HasPauseInsignia => _hasTexture(m_pauseInsignia);
@@ -87,6 +91,8 @@ namespace DeadSignal
         public bool HasMovementRoutingIcon => _hasTexture(m_movementRoutingIcon);
         public bool HasControlGlyphSet => m_controlGlyphs != null && m_controlGlyphs.Length == 5 &&
                                           System.Array.TrueForAll(m_controlGlyphs, _hasTexture);
+        public bool HasSignalReserveArt => m_signalFill != null && m_signalFill.sprite != null;
+        public SignalReserveState CurrentSignalReserveState { get; private set; }
 
         [Inject]
         private void _construct(ICombatFeedback combatFeedback, IComfortSettings comfortSettings, IDeadSignalInput input)
@@ -102,6 +108,15 @@ namespace DeadSignal
             m_metrics = metrics;
             m_world = world;
             m_threats = threats;
+            m_signalHudTuning = Resources.Load<SignalHudTuning>("Tuning/SignalHudTuning");
+            var signalSprite = Resources.Load<Sprite>("UI/SignalReserveConduit");
+            if (m_signalHudTuning == null || signalSprite == null)
+            {
+                Debug.LogError("The authored Signal HUD tuning or reserve conduit art is missing.");
+                return;
+            }
+
+            m_signalFill.sprite = signalSprite;
             _wireButtons();
             _refresh();
         }
@@ -115,6 +130,10 @@ namespace DeadSignal
         void IDeadSignalHud.Tick(float dt)
         {
             m_feedbackTimer = Mathf.Max(0f, m_feedbackTimer - dt);
+            if (!m_combatFeedback.IsPaused)
+            {
+                m_signalPulseTime += Mathf.Max(0f, dt);
+            }
             _refresh();
         }
 
@@ -141,8 +160,8 @@ namespace DeadSignal
                 return;
             }
 
-            bool paused = m_combatFeedback.IsPaused;
-            bool running = m_model.Outcome == RunOutcome.Running;
+            var paused = m_combatFeedback.IsPaused;
+            var running = m_model.Outcome == RunOutcome.Running;
             m_runHud.SetActive(running && !paused);
             m_pauseOverlay.SetActive(paused);
             m_outcomeOverlay.SetActive(!running && !paused);
@@ -153,18 +172,23 @@ namespace DeadSignal
 
         private void _refreshRunHud()
         {
-            float ratio = Mathf.Clamp01(m_model.Signal / RunModel.MaximumSignal);
+            var ratio = Mathf.Clamp01(m_model.Signal / RunModel.MaximumSignal);
+            var presentation = SignalHudPresentation.Evaluate(m_model.Signal, RunModel.MaximumSignal,
+                m_comfortSettings.ReducedFlashesEnabled, m_signalPulseTime, m_signalHudTuning);
+            CurrentSignalReserveState = presentation.State;
             m_signalFill.fillAmount = ratio;
-            m_signalFill.color = ratio > 0.25f ? new Color(0.02f, 0.9f, 1f) : new Color(1f, 0.06f, 0.05f);
-            m_signalText.text = $"SIGNAL  {Mathf.CeilToInt(m_model.Signal):000}";
+            var signalColor = presentation.Color;
+            signalColor.a = presentation.Alpha;
+            m_signalFill.color = signalColor;
+            m_signalText.text = $"SIGNAL  {Mathf.CeilToInt(m_model.Signal):000}  //  {presentation.State.ToString().ToUpperInvariant()}";
             m_salvageText.text = $"SALVAGE  {m_model.Salvage}/{RunModel.SalvageRequired}";
-            bool powered = m_world.IsPowered(m_world.Player.position, m_model.TowerOnline);
+            var powered = m_world.IsPowered(m_world.Player.position, m_model.TowerOnline);
             m_zoneText.text = powered ? "● POWERED TERRITORY" : "▲ DEAD ZONE — ACTIVE DRAIN";
             m_zoneText.color = powered ? new Color(0.05f, 0.95f, 1f) : new Color(1f, 0.22f, 0.18f);
             m_objectiveText.text = _currentObjective();
             m_threatText.text = _sapperStatus();
             m_controlLegendText.text = _activeControlLegend();
-            string prompt = _contextPrompt();
+            var prompt = _contextPrompt();
             m_contextPrompt.SetActive(!string.IsNullOrEmpty(prompt));
             m_contextPromptText.text = prompt;
             m_feedbackText.gameObject.SetActive(m_feedbackTimer > 0f);
@@ -180,7 +204,7 @@ namespace DeadSignal
                 return;
             }
 
-            bool victory = m_model.Outcome == RunOutcome.Victory;
+            var victory = m_model.Outcome == RunOutcome.Victory;
             m_outcomeTitle.text = victory ? "SIGNAL RECOVERED" : "DRONE OFFLINE";
             m_outcomeTitle.color = victory ? new Color(0.08f, 0.96f, 1f) : new Color(1f, 0.08f, 0.06f);
             m_outcomeDetail.text = victory ? "Salvage extracted. The station lives a little longer." : "Signal depleted in the dark.";
@@ -199,13 +223,13 @@ namespace DeadSignal
             m_optionStateTexts[1].text = $"{_binding("F", "D-PAD DOWN")}  REDUCTION {(m_comfortSettings.ReducedFlashesEnabled ? "ON" : "OFF")}";
             m_optionStateTexts[2].text = $"{_binding("H", "D-PAD UP")}  CONTRAST {(m_comfortSettings.HighContrastEnabled ? "ON" : "OFF")}";
             m_optionStateTexts[3].text = $"{_binding("M", "D-PAD LEFT")}  AUDIO {(m_comfortSettings.AudioEnabled ? "ON" : "MUTED")}";
-            bool conflict = !string.IsNullOrEmpty(m_input.RebindStatusMessage);
+            var conflict = !string.IsNullOrEmpty(m_input.RebindStatusMessage);
             m_routingStatusText.text = conflict ? m_input.RebindStatusMessage :
                 m_input.IsRebinding ? "PRESS A KEY  |  ESC CANCELS" : "PERSISTED KEYBOARD BINDINGS";
-            string[] labels = { $"UP  {m_input.MoveUpKeyboardBinding}", $"DOWN  {m_input.MoveDownKeyboardBinding}",
+            var labels = new[] { $"UP  {m_input.MoveUpKeyboardBinding}", $"DOWN  {m_input.MoveDownKeyboardBinding}",
                 $"LEFT  {m_input.MoveLeftKeyboardBinding}", $"RIGHT  {m_input.MoveRightKeyboardBinding}",
                 $"FIRE  {m_input.FireKeyboardBinding}", $"USE  {m_input.InteractKeyboardBinding}", "RESET" };
-            for (int i = 0; i < m_rebindButtons.Length; i++)
+            for (var i = 0; i < m_rebindButtons.Length; i++)
             {
                 m_rebindButtons[i].interactable = !m_input.IsRebinding;
                 m_rebindButtonTexts[i].text = labels[i];
@@ -224,7 +248,7 @@ namespace DeadSignal
 
         private string _runReport()
         {
-            int totalSeconds = Mathf.FloorToInt(m_metrics.ElapsedSeconds);
+            var totalSeconds = Mathf.FloorToInt(m_metrics.ElapsedSeconds);
             return $"RUN REPORT   {totalSeconds / 60:00}:{totalSeconds % 60:00}   |   DEAD ZONE {m_metrics.DeadZoneSeconds:0.0}s   |   " +
                    $"SHOTS {m_metrics.ShotsFired}   |   HITS {m_metrics.SecurityHits}   |   DRAINS {m_metrics.SapperPulses}   |   " +
                    $"SIGNAL {Mathf.CeilToInt(m_model.Signal)}";

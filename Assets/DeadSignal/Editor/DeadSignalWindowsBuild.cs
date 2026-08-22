@@ -46,6 +46,7 @@ namespace DeadSignal.Editor
             DeadSignalEastVaultSetup.EnsureAssets();
             DeadSignalSignalSpineSetup.EnsureAssets();
             DeadSignalBoundaryThresholdSetup.EnsureAssets();
+            DeadSignalHudSetup.EnsureAssets();
             _validateBuildInputs();
             _configureWindowsPlayer();
 
@@ -98,6 +99,11 @@ namespace DeadSignal.Editor
             if (!DeadSignalProjectSetup.HasRuntimeMaterialTemplates)
             {
                 throw new BuildFailedException("Runtime material templates are missing.");
+            }
+
+            if (!DeadSignalHudSetup.HasAssets)
+            {
+                throw new BuildFailedException("The authored Signal HUD assets are missing.");
             }
 
             if (!DeadSignalProjectSetup.HasMaintenanceDeckAssets)

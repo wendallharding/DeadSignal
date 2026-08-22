@@ -147,7 +147,10 @@ namespace DeadSignal
                                 Resources.Load<Texture2D>("UI/AimControlGlyph") != null &&
                                 Resources.Load<Texture2D>("UI/FireControlGlyph") != null &&
                                 Resources.Load<Texture2D>("UI/UseControlGlyph") != null &&
-                                Resources.Load<Texture2D>("UI/SystemControlGlyph") != null;
+                                Resources.Load<Texture2D>("UI/SystemControlGlyph") != null &&
+                                game.HasSignalReserveArt &&
+                                Resources.Load<Sprite>("UI/SignalReserveConduit") != null &&
+                                Resources.Load<SignalHudTuning>("Tuning/SignalHudTuning") != null;
             if (!runtimeReady)
             {
                 Debug.LogError("[DEAD SIGNAL STANDALONE SMOKE] FAIL | Runtime composition is incomplete.");
