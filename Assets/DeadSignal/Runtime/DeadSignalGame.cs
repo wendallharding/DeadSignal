@@ -31,7 +31,6 @@ namespace DeadSignal
         private SignalOverclockChoice m_overclockChoice;
         private SignalOverclockTuning m_overclockTuning;
         private ExtractionUplink m_extractionUplink;
-        private float m_extractionPurgeAcceleration;
         private ILowSignalWarning m_lowSignalWarning;
         private ITowerActivationSweep m_towerActivationSweep;
         private Container m_container;
@@ -60,6 +59,7 @@ namespace DeadSignal
         public bool IsExtractionUplinkActive => m_extractionUplink?.IsActive ?? false;
         public float ExtractionUplinkSecondsRemaining => m_extractionUplink?.SecondsRemaining ?? 0f;
         public ExtractionUplinkMode CurrentExtractionUplinkMode => m_extractionUplink?.Mode ?? ExtractionUplinkMode.None;
+        public float CurrentExtractionPurgeAcceleration => m_extractionUplink?.CurrentPurgeAcceleration ?? 0f;
         public bool LastSignalBoltBlockedByEnvironment => m_threats?.LastShotBlockedByEnvironment ?? false;
         public bool IsPaused => m_combatFeedback?.IsPaused ?? false;
         public bool HasPauseInsignia => m_hud?.HasPauseInsignia ?? false;
@@ -301,8 +301,9 @@ namespace DeadSignal
             m_extractionUplink = new ExtractionUplink(
                 threatTuning.ExtractionUplinkDuration,
                 threatTuning.ExtractionOverdriveDuration,
-                threatTuning.ExtractionOverdriveSignalCost);
-            m_extractionPurgeAcceleration = threatTuning.ExtractionPurgeAcceleration;
+                threatTuning.ExtractionOverdriveSignalCost,
+                threatTuning.StableExtractionPurgeAcceleration,
+                threatTuning.OverdriveExtractionPurgeAcceleration);
 
             m_threats = new DeadSignalThreatController(
                 m_model,
@@ -605,7 +606,7 @@ namespace DeadSignal
 
         private float _rewardExtractionPurge()
         {
-            var accelerated = m_extractionUplink.Accelerate(m_extractionPurgeAcceleration);
+            var accelerated = m_extractionUplink.RewardPurge();
             if (m_extractionUplink.IsComplete)
             {
                 _completeExtraction();

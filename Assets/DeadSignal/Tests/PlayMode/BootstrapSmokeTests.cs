@@ -234,6 +234,9 @@ namespace DeadSignal.Tests
                 Assert.That(game.CurrentExtractionUplinkMode, Is.EqualTo(ExtractionUplinkMode.Overdrive));
                 Assert.That(game.ExtractionUplinkSecondsRemaining,
                     Is.InRange(tuning.ExtractionOverdriveDuration - 0.2f, tuning.ExtractionOverdriveDuration));
+                Assert.That(game.CurrentExtractionPurgeAcceleration,
+                    Is.EqualTo(tuning.OverdriveExtractionPurgeAcceleration).Within(0.001f),
+                    "Overdrive should remain the short evasion route with only its smaller combat credit.");
                 Assert.That(game.CurrentSignal,
                     Is.EqualTo(signalBeforeChoice - tuning.ExtractionOverdriveSignalCost).Within(0.05f));
                 Assert.That(game.ShotsFired, Is.EqualTo(shotsBeforeChoice),
@@ -310,7 +313,9 @@ namespace DeadSignal.Tests
             yield return null;
 
             var game = Object.FindFirstObjectByType<DeadSignalGame>();
+            var tuning = Resources.Load<ThreatBalanceTuning>("Tuning/ThreatBalanceTuning");
             Assert.That(game, Is.Not.Null, "Runtime bootstrap did not create the game controller.");
+            Assert.That(tuning, Is.Not.Null, "Runtime bootstrap requires the extraction combat-profile tuning.");
             var signalSpine = GameObject.Find("Opening Signal Spine");
             var signalSpineTexture = Resources.Load<Texture2D>("Environment/SignalSpineInlay");
             var signalSpineMaterial = Resources.Load<Material>("Materials/SignalSpineInlay");
@@ -1484,6 +1489,9 @@ namespace DeadSignal.Tests
                     "Extraction input should start a pursuit uplink instead of granting instant victory.");
                 Assert.That(game.CurrentExtractionUplinkMode, Is.EqualTo(ExtractionUplinkMode.Stable));
                 Assert.That(game.ExtractionUplinkSecondsRemaining, Is.InRange(5.8f, 6f));
+                Assert.That(game.CurrentExtractionPurgeAcceleration,
+                    Is.EqualTo(tuning.StableExtractionPurgeAcceleration).Within(0.001f),
+                    "Stable should expose its stronger combat-assisted link profile at runtime.");
                 Assert.That(game.SecurityReinforcementsRemaining, Is.EqualTo(3),
                     "The extraction pursuit should bank exactly one response beyond the two remaining salvage reserves.");
                 Assert.That(game.PendingSecurityReinforcement, Is.EqualTo(SecurityReinforcement.Suppressor),
@@ -1564,8 +1572,8 @@ namespace DeadSignal.Tests
                     "Three deliberate bolts should purge the extraction Suppressor.");
                 var elapsedDuringPurge = Time.time - purgeStartedAt;
                 Assert.That(game.ExtractionUplinkSecondsRemaining,
-                    Is.LessThan(countdownBeforePurge - elapsedDuringPurge - 0.65f),
-                    "A purge during extraction should advance the uplink by the tuned 0.75-second combat credit.");
+                    Is.LessThan(countdownBeforePurge - elapsedDuringPurge - 0.8f),
+                    "A Stable purge should advance the uplink by its tuned 0.9-second combat credit.");
                 Assert.That(game.IsExtractionUplinkActive, Is.True,
                     "One purge should shorten exposure without bypassing the remainder of the holdout.");
                 var extractionDeadline = Time.time + 7f;

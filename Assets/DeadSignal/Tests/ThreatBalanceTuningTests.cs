@@ -25,9 +25,13 @@ namespace DeadSignal.Tests
                     "The faster link must preserve a meaningful response window after the readable opening sweep.");
                 Assert.That(tuning.ExtractionOverdriveSignalCost,
                     Is.InRange(RunModel.ShotCost * 2f, RunModel.SecurityHitCost));
-                Assert.That(tuning.ExtractionPurgeAcceleration, Is.InRange(0.5f, 1f));
-                Assert.That(tuning.ExtractionPurgeAcceleration, Is.LessThan(tuning.SuppressorWarningDuration),
+                Assert.That(tuning.StableExtractionPurgeAcceleration, Is.InRange(0.75f, 1f));
+                Assert.That(tuning.StableExtractionPurgeAcceleration, Is.LessThan(tuning.SuppressorWarningDuration),
                     "One purge should reward combat without bypassing the readable suppression response.");
+                Assert.That(tuning.OverdriveExtractionPurgeAcceleration, Is.InRange(0.1f, 0.4f));
+                Assert.That(tuning.StableExtractionPurgeAcceleration,
+                    Is.GreaterThan(tuning.OverdriveExtractionPurgeAcceleration * 3f),
+                    "Stable should be the deliberate combat route while Overdrive remains the short evasion route.");
                 Assert.That(tuning.InterceptorHealth, Is.GreaterThan(0));
                 Assert.That(tuning.InterceptorChargeDuration, Is.GreaterThanOrEqualTo(0.5f));
                 Assert.That(tuning.InterceptorDashSpeed, Is.GreaterThan(tuning.InterceptorApproachSpeed));

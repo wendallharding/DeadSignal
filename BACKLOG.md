@@ -14,6 +14,15 @@
 
 ## P1 — Prove the loop
 
+### Run 74 extraction-combat-profile ideas
+
+- [x] Give Stable a designer-tuned 0.9-second link advance per purge so its longer exposure supports a deliberate fight route
+- [x] Limit Overdrive purges to 0.25-second advances so its 12-Signal price primarily buys a shorter evasion route
+- [x] Show both exact purge credits beside duration and price before the player commits at the dock
+- [x] Preserve enemy counts, stats, warnings, entrances, Signal bounties, shield recharge, and the four-response budget
+- [x] Prove mode-specific credit selection, active-only rewards, remaining-time caps, and both runtime input routes
+- [ ] Playtest matched Stable-combat and Overdrive-flight returns for dominance, shots, hits, purges, finish time, and final Signal
+
 ### Run 73 extraction-link-mode ideas
 
 - [x] Offer a free six-second stable link and a designer-tuned 12-Signal 4.75-second overdrive at the extraction dock

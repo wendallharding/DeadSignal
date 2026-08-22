@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace DeadSignal
 {
@@ -53,7 +54,9 @@ namespace DeadSignal
         [SerializeField] private float m_extractionUplinkDuration = 6f;
         [SerializeField] private float m_extractionOverdriveDuration = 4.75f;
         [SerializeField] private float m_extractionOverdriveSignalCost = 12f;
-        [SerializeField] private float m_extractionPurgeAcceleration = 0.75f;
+        [FormerlySerializedAs("m_extractionPurgeAcceleration")]
+        [SerializeField] private float m_stableExtractionPurgeAcceleration = 0.9f;
+        [SerializeField] private float m_overdriveExtractionPurgeAcceleration = 0.25f;
 
         public int WardenHealth => m_wardenHealth;
         public float WardenSpeed => m_wardenSpeed;
@@ -94,7 +97,8 @@ namespace DeadSignal
         public float ExtractionUplinkDuration => m_extractionUplinkDuration;
         public float ExtractionOverdriveDuration => m_extractionOverdriveDuration;
         public float ExtractionOverdriveSignalCost => m_extractionOverdriveSignalCost;
-        public float ExtractionPurgeAcceleration => m_extractionPurgeAcceleration;
+        public float StableExtractionPurgeAcceleration => m_stableExtractionPurgeAcceleration;
+        public float OverdriveExtractionPurgeAcceleration => m_overdriveExtractionPurgeAcceleration;
 
         private void OnValidate()
         {
@@ -137,7 +141,10 @@ namespace DeadSignal
             m_extractionUplinkDuration = Mathf.Max(0.1f, m_extractionUplinkDuration);
             m_extractionOverdriveDuration = Mathf.Clamp(m_extractionOverdriveDuration, 0.1f, m_extractionUplinkDuration);
             m_extractionOverdriveSignalCost = Mathf.Max(0f, m_extractionOverdriveSignalCost);
-            m_extractionPurgeAcceleration = Mathf.Clamp(m_extractionPurgeAcceleration, 0f, m_extractionUplinkDuration);
+            m_stableExtractionPurgeAcceleration = Mathf.Clamp(
+                m_stableExtractionPurgeAcceleration, 0f, m_extractionUplinkDuration);
+            m_overdriveExtractionPurgeAcceleration = Mathf.Clamp(
+                m_overdriveExtractionPurgeAcceleration, 0f, m_stableExtractionPurgeAcceleration);
         }
     }
 }

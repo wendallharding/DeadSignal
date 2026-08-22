@@ -17,12 +17,21 @@ namespace DeadSignal
         private readonly float m_stableDuration;
         private readonly float m_overdriveDuration;
         private readonly float m_overdriveSignalCost;
+        private readonly float m_stablePurgeAcceleration;
+        private readonly float m_overdrivePurgeAcceleration;
 
-        public ExtractionUplink(float stableDuration, float overdriveDuration, float overdriveSignalCost)
+        public ExtractionUplink(
+            float stableDuration,
+            float overdriveDuration,
+            float overdriveSignalCost,
+            float stablePurgeAcceleration,
+            float overdrivePurgeAcceleration)
         {
             m_stableDuration = Math.Max(0.1f, stableDuration);
             m_overdriveDuration = Math.Max(0.1f, Math.Min(overdriveDuration, m_stableDuration));
             m_overdriveSignalCost = Math.Max(0f, overdriveSignalCost);
+            m_stablePurgeAcceleration = Math.Max(0f, stablePurgeAcceleration);
+            m_overdrivePurgeAcceleration = Math.Max(0f, Math.Min(overdrivePurgeAcceleration, m_stablePurgeAcceleration));
         }
 
         public bool IsActive { get; private set; }
@@ -32,6 +41,11 @@ namespace DeadSignal
         public float StableDuration => m_stableDuration;
         public float OverdriveDuration => m_overdriveDuration;
         public float OverdriveSignalCost => m_overdriveSignalCost;
+        public float StablePurgeAcceleration => m_stablePurgeAcceleration;
+        public float OverdrivePurgeAcceleration => m_overdrivePurgeAcceleration;
+        public float CurrentPurgeAcceleration => Mode == ExtractionUplinkMode.Overdrive
+            ? m_overdrivePurgeAcceleration
+            : m_stablePurgeAcceleration;
 
         public bool CanAffordOverdrive(float availableSignal)
         {
@@ -62,15 +76,15 @@ namespace DeadSignal
             return IsComplete;
         }
 
-        public float Accelerate(float seconds)
+        public float RewardPurge()
         {
-            if (!IsActive || seconds <= 0f)
+            if (!IsActive || CurrentPurgeAcceleration <= 0f)
             {
                 return 0f;
             }
 
             var previousRemaining = SecondsRemaining;
-            _advance(seconds);
+            _advance(CurrentPurgeAcceleration);
             return previousRemaining - SecondsRemaining;
         }
 

@@ -222,8 +222,10 @@ namespace DeadSignal
                   $"USE [{m_input.InteractKeyboardBinding}]  SHIELD — NEGATE ONE THREAT"
                 : _isExtractionUplinkChoiceAvailable()
                 ? $"CHOOSE EXTRACTION LINK\nFIRE [{m_input.FireKeyboardBinding}]  OVERDRIVE — " +
-                  $"{m_extractionUplink.OverdriveDuration:0.##}s / −{m_extractionUplink.OverdriveSignalCost:0} SIGNAL\n" +
-                  $"USE [{m_input.InteractKeyboardBinding}]  STABLE — {m_extractionUplink.StableDuration:0.##}s / FREE"
+                  $"{m_extractionUplink.OverdriveDuration:0.##}s / −{m_extractionUplink.OverdriveSignalCost:0} / " +
+                  $"PURGE +{m_extractionUplink.OverdrivePurgeAcceleration:0.##}s\n" +
+                  $"USE [{m_input.InteractKeyboardBinding}]  STABLE — {m_extractionUplink.StableDuration:0.##}s / FREE / " +
+                  $"PURGE +{m_extractionUplink.StablePurgeAcceleration:0.##}s"
                 : m_extractionUplink.IsActive
                 ? $"PHASE 3/3  //  {m_extractionUplink.Mode.ToString().ToUpperInvariant()} UPLINK\n" +
                   $"SURVIVE PURSUIT  {m_extractionUplink.SecondsRemaining:0.0}s\n" +
