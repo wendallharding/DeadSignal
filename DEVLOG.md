@@ -3989,3 +3989,36 @@ The promoted extraction Suppressor will create one guaranteed, avoidable movemen
 - Automated runtime evidence proves the fair-response sequence: full safe entry, stationary amber warning, active field, caught-player state, successful boundary escape, and more than one second of uplink remaining. The test also completes the run with two older responses still banked, preserving the four-response budget.
 - No human playtest was performed. Remote-projection readability, warning comfort, perceived fairness during mixed pressure, and whether players notice that the ring is stationary remain subjective risks. No presentation asset was added because the existing amber/magenta ring already carries the required warning language.
 - Manual playtest next: complete one combat-heavy route and one two-reserve avoidance route. At uplink start remain still until the amber ring appears, then cross its nearest edge before magenta activation. Record entry-warning recognition, ring-lock recognition, time to exit, field entries, shield block or Signal loss, live threat mix, uplink start/end reserve, and whether the forced maneuver feels earned. Repeat once while deliberately staying inside to verify the penalty remains readable rather than run-deciding.
+
+## 2026-08-22 — Autonomous Run 71 — Combat-assisted extraction
+
+### Milestone, player benefit, and acceptance
+
+Fighting during the six-second extraction uplink now has an immediate tactical payoff instead of offering only Signal recovery after the run is nearly won. Each security purge during the active link advances it by a designer-tuned 0.75 seconds. Acceptance required pre-uplink purges to grant no credit, credits to cap at the actual remaining time, all existing Signal bounties and Feedback Shield recharge behavior to remain intact, fleeing to remain viable through the unchanged timer, and complete-runtime evidence that purging the Suppressor shortens without bypassing the holdout.
+
+### Files and systems changed
+
+- `ExtractionUplink.cs` now owns deterministic, capped acceleration using the same completion path as elapsed time.
+- `ThreatBalanceTuning.cs` and `ThreatBalanceTuning.asset` add the validated 0.75-second designer-facing purge credit without changing the six-second uplink.
+- `DeadSignalThreatController.cs` routes every successful role purge through the existing combat reward path and reports the exact credited link time beside Signal and shield rewards.
+- `DeadSignalGame.cs` owns extraction completion and applies purge acceleration only while its uplink is active.
+- `ExtractionUplinkTests.cs` covers inactive, exact, capped, and post-completion acceleration behavior; `ThreatBalanceTuningTests.cs` protects the reward range and keeps one purge below the Suppressor warning duration.
+- `BootstrapSmokeTests.cs` extends the full run through field escape, a three-bolt Suppressor purge, exact timer acceleration, and the remaining holdout.
+- `GAME_VISION.md`, `BACKLOG.md`, and this devlog record the product decision. No enemy health, speed, damage, bounty, field behavior, entrance, response budget, scene, prefab, material, texture, audio, input, package, project setting, map layout, or save data changed.
+
+### Exact validation evidence
+
+1. Focused EditMode: exit `0`; `5/5` passed in `0.0456253s`; `Logs/run71-editmode-focused-results.xml` and `Logs/run71-editmode-focused.log`.
+2. The first focused PlayMode filter used an incorrect namespace and executed `0` tests; it is not counted as validation. The corrected complete-runtime filter passed `1/1` in `12.5330127s`; `Logs/run71-playmode-focused2-results.xml` and `Logs/run71-playmode-focused2.log`.
+3. Full EditMode: exit `0`; `77/77` passed, `0` failed, `0` skipped in `0.2189119s`; `Logs/run71-editmode-final-results.xml` and `Logs/run71-editmode-final.log`.
+4. Full PlayMode: exit `0`; `8/8` passed, `0` failed, `0` skipped in `24.8779528s`; `Logs/run71-playmode-final-results.xml` and `Logs/run71-playmode-final.log`.
+5. Windows x64 development build: exit `0`; Unity reported `241,168,061` bytes in `15.64s`; `Build/Windows/DeadSignal.exe` and `Logs/run71-build.log`.
+6. Packaged null-device smoke: exit `0` with one `[DEAD SIGNAL STANDALONE SMOKE] PASS`; `Logs/run71-standalone-final.log`.
+7. Restored 60 unrelated Unity setup/build serializer rewrites. The pre-existing `Assets/Settings/Mobile_RPAsset.asset` change was restored byte-for-byte from its pre-run backup and remains excluded from this milestone. Post-cleanup full EditMode against the exact retained gameplay files passed `77/77` in `0.1240864s`; `Logs/run71-editmode-postcleanup-results.xml` and `Logs/run71-editmode-postcleanup.log`.
+
+### Bugs fixed, limitations, playtest evidence, and next step
+
+- A purge callback can finish the link between ordinary frame ticks, so extraction completion now has one guarded owner used by both elapsed time and combat acceleration. This prevents a zero-second completed uplink from remaining stuck active or awarding victory twice.
+- Deterministic evidence proves inactive purges cannot bank time and an oversized reward caps at the exact remainder. Runtime evidence proves the combat route first purges the Sapper before extraction for no link credit, then escapes the Suppressor ring, spends three bolts, receives the 0.75-second credit, remains in the active holdout, and completes normally.
+- No human playtest was performed. The 0.75-second value, whether the combined bounty/time/shield payoff over-rewards combat, and whether players notice the timer jump remain subjective risks.
+- Manual playtest next: extract once without firing and once after purging the Suppressor. Record uplink start time and Signal, bolts spent, threats alive, field entries, purge time, timer jump recognition, finish time and Signal, and whether fighting feels like a tempting risk rather than the automatic answer.

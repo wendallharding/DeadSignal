@@ -31,6 +31,7 @@ namespace DeadSignal
         private SignalOverclockChoice m_overclockChoice;
         private SignalOverclockTuning m_overclockTuning;
         private ExtractionUplink m_extractionUplink;
+        private float m_extractionPurgeAcceleration;
         private ILowSignalWarning m_lowSignalWarning;
         private ITowerActivationSweep m_towerActivationSweep;
         private Container m_container;
@@ -296,6 +297,7 @@ namespace DeadSignal
             }
 
             m_extractionUplink = new ExtractionUplink(threatTuning.ExtractionUplinkDuration);
+            m_extractionPurgeAcceleration = threatTuning.ExtractionPurgeAcceleration;
 
             m_threats = new DeadSignalThreatController(
                 m_model,
@@ -307,7 +309,8 @@ namespace DeadSignal
                 threatTuning,
                 m_overclockChoice,
                 m_overclockTuning,
-                _showFeedback);
+                _showFeedback,
+                _rewardExtractionPurge);
             m_salvage = new DeadSignalSalvageController(
                 m_model, m_metrics, m_world, m_audio, m_combatFeedback, m_salvageTuning, m_overclockChoice, _showFeedback);
             m_hud.Configure(m_model, m_metrics, m_world, m_threats, m_salvage, m_extractionUplink, m_overclockChoice);
@@ -391,10 +394,9 @@ namespace DeadSignal
             _tryTriggerEmergencyCapacitor();
             m_salvage.Tick(dt);
             m_world.TickExtraction(dt, m_model.CanExtract);
-            if (m_extractionUplink.Tick(dt) && m_model.TryExtract())
+            if (m_extractionUplink.Tick(dt))
             {
-                m_audio.Play(DeadSignalAudioCue.Extraction);
-                _showFeedback("EXTRACTION COMPLETE");
+                _completeExtraction();
             }
         }
 
@@ -550,6 +552,28 @@ namespace DeadSignal
             {
                 _showFeedback("OVERDRIVE THRUSTERS ONLINE — SPEED AND RESPONSE BOOSTED");
             }
+        }
+
+        private float _rewardExtractionPurge()
+        {
+            var accelerated = m_extractionUplink.Accelerate(m_extractionPurgeAcceleration);
+            if (m_extractionUplink.IsComplete)
+            {
+                _completeExtraction();
+            }
+
+            return accelerated;
+        }
+
+        private void _completeExtraction()
+        {
+            if (!m_model.TryExtract())
+            {
+                return;
+            }
+
+            m_audio.Play(DeadSignalAudioCue.Extraction);
+            _showFeedback("EXTRACTION COMPLETE");
         }
 
         private void _handleAuxiliaryOverclockChoice()

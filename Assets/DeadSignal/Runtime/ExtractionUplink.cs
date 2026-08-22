@@ -37,15 +37,32 @@ namespace DeadSignal
                 return false;
             }
 
+            _advance(seconds);
+            return IsComplete;
+        }
+
+        public float Accelerate(float seconds)
+        {
+            if (!IsActive || seconds <= 0f)
+            {
+                return 0f;
+            }
+
+            var previousRemaining = SecondsRemaining;
+            _advance(seconds);
+            return previousRemaining - SecondsRemaining;
+        }
+
+        private void _advance(float seconds)
+        {
             SecondsRemaining = Math.Max(0f, SecondsRemaining - seconds);
             if (SecondsRemaining > 0f)
             {
-                return false;
+                return;
             }
 
             IsActive = false;
             IsComplete = true;
-            return true;
         }
     }
 }

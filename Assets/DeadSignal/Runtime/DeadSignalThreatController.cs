@@ -29,6 +29,7 @@ namespace DeadSignal
         private readonly SignalOverclockChoice m_overclockChoice;
         private readonly SignalOverclockTuning m_overclockTuning;
         private readonly Action<string> m_showFeedback;
+        private readonly Func<float> m_rewardExtractionPurge;
         private readonly SecurityEscalationDirector m_director;
         private readonly List<Projectile> m_projectiles = new();
 
@@ -62,7 +63,8 @@ namespace DeadSignal
             ThreatBalanceTuning tuning,
             SignalOverclockChoice overclockChoice,
             SignalOverclockTuning overclockTuning,
-            Action<string> showFeedback)
+            Action<string> showFeedback,
+            Func<float> rewardExtractionPurge)
         {
             m_model = model;
             m_metrics = metrics;
@@ -79,6 +81,7 @@ namespace DeadSignal
                 UnityEngine.Random.Range(0, 2) == 1,
                 tuning.DeadZoneTraceDuration);
             m_showFeedback = showFeedback;
+            m_rewardExtractionPurge = rewardExtractionPurge;
             m_wardenHealth = tuning.WardenHealth;
             m_sapperHealth = tuning.SapperHealth;
         }
@@ -695,7 +698,7 @@ namespace DeadSignal
                 m_metrics.RecordThreatPurge(restored);
                 m_world.PurgeWarden();
                 m_combatFeedback.PlaySignalRecovery(m_world.Warden.position + Vector3.up * 0.55f);
-                m_showFeedback($"WARDEN PURGED  +{restored:0} SIGNAL{_feedbackShieldRechargeText()}");
+                m_showFeedback($"WARDEN PURGED  +{restored:0} SIGNAL{_purgeRewardText()}");
                 return;
             }
 
@@ -713,7 +716,7 @@ namespace DeadSignal
                 m_metrics.RecordThreatPurge(restored);
                 m_world.PurgeSapper();
                 m_combatFeedback.PlaySignalRecovery(m_world.Sapper.position + Vector3.up * 0.55f);
-                m_showFeedback($"SAPPER PURGED  +{restored:0} SIGNAL{_feedbackShieldRechargeText()}");
+                m_showFeedback($"SAPPER PURGED  +{restored:0} SIGNAL{_purgeRewardText()}");
                 return;
             }
 
@@ -731,7 +734,7 @@ namespace DeadSignal
                 m_metrics.RecordThreatPurge(restored);
                 m_world.PurgeInterceptor();
                 m_combatFeedback.PlaySignalRecovery(m_world.Interceptor.position + Vector3.up * 0.5f);
-                m_showFeedback($"INTERCEPTOR PURGED  +{restored:0} SIGNAL{_feedbackShieldRechargeText()}");
+                m_showFeedback($"INTERCEPTOR PURGED  +{restored:0} SIGNAL{_purgeRewardText()}");
                 return;
             }
 
@@ -749,7 +752,7 @@ namespace DeadSignal
                 m_metrics.RecordThreatPurge(restored);
                 m_world.PurgeSuppressor();
                 m_combatFeedback.PlaySignalRecovery(m_world.Suppressor.position + Vector3.up * 0.5f);
-                m_showFeedback($"SUPPRESSOR PURGED  +{restored:0} SIGNAL{_feedbackShieldRechargeText()}");
+                m_showFeedback($"SUPPRESSOR PURGED  +{restored:0} SIGNAL{_purgeRewardText()}");
                 return;
             }
 
@@ -769,8 +772,13 @@ namespace DeadSignal
             return true;
         }
 
-        private string _feedbackShieldRechargeText() =>
-            m_overclockChoice.NotifyThreatPurged() ? "  //  SHIELD RECHARGED" : string.Empty;
+        private string _purgeRewardText()
+        {
+            var shieldText = m_overclockChoice.NotifyThreatPurged() ? "  //  SHIELD RECHARGED" : string.Empty;
+            var uplinkAcceleration = m_rewardExtractionPurge();
+            var uplinkText = uplinkAcceleration > 0f ? $"  //  UPLINK +{uplinkAcceleration:0.##} SEC" : string.Empty;
+            return shieldText + uplinkText;
+        }
 
         private sealed class Projectile
         {

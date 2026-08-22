@@ -30,5 +30,21 @@ namespace DeadSignal.Tests
 
             Assert.That(uplink.SecondsRemaining, Is.EqualTo(0.1f));
         }
+
+        [Test]
+        public void Accelerate_OnlyCreditsActiveUplinkAndCapsAtRemainingTime()
+        {
+            var uplink = new ExtractionUplink(6f);
+
+            Assert.That(uplink.Accelerate(0.75f), Is.Zero);
+            uplink.Begin();
+
+            Assert.That(uplink.Accelerate(0.75f), Is.EqualTo(0.75f));
+            Assert.That(uplink.SecondsRemaining, Is.EqualTo(5.25f));
+            Assert.That(uplink.Accelerate(8f), Is.EqualTo(5.25f));
+            Assert.That(uplink.SecondsRemaining, Is.Zero);
+            Assert.That(uplink.IsComplete, Is.True);
+            Assert.That(uplink.Accelerate(0.75f), Is.Zero);
+        }
     }
 }

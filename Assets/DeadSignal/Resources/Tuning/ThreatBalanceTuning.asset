@@ -48,3 +48,4 @@ MonoBehaviour:
   m_reinforcementEntryDelay: 2.5
   m_reinforcementSafeDistance: 6
   m_extractionUplinkDuration: 6
+  m_extractionPurgeAcceleration: 0.75

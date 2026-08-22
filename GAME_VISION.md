@@ -72,7 +72,7 @@ This autonomous run is accepted when a fresh Play session provides all of the fo
 - The final bounded extraction response is a magenta Suppressor that is promoted ahead of unresolved salvage reserves, enters through the safer authored flank gate, then locks its first telegraphed slowing Signal-drain field to the drone's position so the six-second uplink always demands one avoidable movement decision.
 - Three warm salvage pickups can be collected outside the safe starting area.
 - The first salvage cache offers one run-long combat overclock: Chain Arc rewards grouping tactical roles, while Overdrive Thrusters rewards evasion and route greed.
-- Returning to the extraction pad with all salvage starts a six-second mobile uplink; surviving the final bounded security pursuit completes the run.
+- Returning to the extraction pad with all salvage starts a six-second mobile uplink; surviving completes the run, while each threat purged during the link advances it by 0.75 seconds.
 - A central powered gate offers a readable choice: spend Signal for a direct salvage route or detour through the dead zone.
 - Signal depletion causes death; victory/death clearly present a restart action.
 - Victory and death report time, danger exposure, combat usage, damage, and remaining Signal.
@@ -180,3 +180,7 @@ After tower activation, remaining outside powered territory for eight continuous
 ### Run 69 product decision — extraction response priority
 
 Starting the uplink now promotes the existing Suppressor response ahead of any unresolved salvage reinforcements. The promoted role restarts the full safe-entry warning, deploys only once, and leaves earlier bounded reserves available without raising the four-response cap. This was selected over a longer uplink or added wave because the climax already owns a distinct denial threat; guaranteeing its timely introduction creates a more reliable final maneuver without increasing enemy stats, quantity, or unavoidable pressure.
+
+### Run 71 product decision — combat-assisted extraction
+
+Each security purge during the active extraction uplink now advances the link by 0.75 seconds. The unchanged six-second survival route keeps fleeing valid, while spending Signal to fight can shorten exposure and combine the existing bounty, Feedback Shield recharge, and tactical-role counterplay into one climactic decision. Credits cannot be banked before extraction and are capped by the remaining link time. This was selected over a longer holdout or added wave because the existing climax needed a positive reason to turn and fight, not more unavoidable threat count.

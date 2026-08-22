@@ -14,6 +14,15 @@
 
 ## P1 — Prove the loop
 
+### Run 71 combat-assisted-extraction ideas
+
+- [x] Reward each threat purged during the active uplink with a designer-tuned 0.75-second link advance
+- [x] Keep pre-uplink purges from banking extraction progress and cap the credit at the actual remaining link time
+- [x] Preserve each role's Signal bounty and Feedback Shield recharge alongside the new combat reward
+- [x] Keep fleeing viable through the unchanged six-second timer while making an extraction fight shorten exposure
+- [x] Prove a Suppressor purge advances but does not bypass the remaining holdout in the complete runtime flow
+- [ ] Playtest fight and flight extractions for ammunition cost, time saved, live threat mix, and final Signal reserve
+
 ### Run 70 locked-extraction-sweep ideas
 
 - [x] Keep the promoted Suppressor's full 2.5-second entry warning and farther authored safe gate

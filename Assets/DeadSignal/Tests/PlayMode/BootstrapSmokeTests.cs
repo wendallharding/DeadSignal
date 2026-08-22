@@ -1464,6 +1464,32 @@ namespace DeadSignal.Tests
                     "Crossing the finite ring boundary should immediately restore full control.");
                 Assert.That(game.ExtractionUplinkSecondsRemaining, Is.GreaterThan(1f),
                     "Leaving the locked field should remain a meaningful decision before extraction resolves.");
+                var countdownBeforePurge = game.ExtractionUplinkSecondsRemaining;
+                var purgeStartedAt = Time.time;
+                suppressor.position = player.position + Vector3.right * 2f;
+                for (var shotIndex = 0; shotIndex < 3; shotIndex++)
+                {
+                    InputSystem.QueueStateEvent(gamepad,
+                        new GamepadState { rightStick = Vector2.right }.WithButton(GamepadButton.RightShoulder));
+                    yield return null;
+                    InputSystem.QueueStateEvent(gamepad, new GamepadState { rightStick = Vector2.right });
+                    yield return new WaitForSeconds(0.18f);
+                }
+
+                var suppressorPurgeDeadline = Time.time + 0.5f;
+                while (suppressor.gameObject.activeSelf && Time.time < suppressorPurgeDeadline)
+                {
+                    yield return null;
+                }
+
+                Assert.That(suppressor.gameObject.activeSelf, Is.False,
+                    "Three deliberate bolts should purge the extraction Suppressor.");
+                var elapsedDuringPurge = Time.time - purgeStartedAt;
+                Assert.That(game.ExtractionUplinkSecondsRemaining,
+                    Is.LessThan(countdownBeforePurge - elapsedDuringPurge - 0.65f),
+                    "A purge during extraction should advance the uplink by the tuned 0.75-second combat credit.");
+                Assert.That(game.IsExtractionUplinkActive, Is.True,
+                    "One purge should shorten exposure without bypassing the remainder of the holdout.");
                 var extractionDeadline = Time.time + 7f;
                 while (game.IsExtractionUplinkActive && Time.time < extractionDeadline)
                 {

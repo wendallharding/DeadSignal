@@ -50,6 +50,7 @@ namespace DeadSignal
         [SerializeField] private float m_reinforcementEntryDelay = 2.5f;
         [SerializeField] private float m_reinforcementSafeDistance = 6f;
         [SerializeField] private float m_extractionUplinkDuration = 6f;
+        [SerializeField] private float m_extractionPurgeAcceleration = 0.75f;
 
         public int WardenHealth => m_wardenHealth;
         public float WardenSpeed => m_wardenSpeed;
@@ -87,6 +88,7 @@ namespace DeadSignal
         public float ReinforcementEntryDelay => m_reinforcementEntryDelay;
         public float ReinforcementSafeDistance => m_reinforcementSafeDistance;
         public float ExtractionUplinkDuration => m_extractionUplinkDuration;
+        public float ExtractionPurgeAcceleration => m_extractionPurgeAcceleration;
 
         private void OnValidate()
         {
@@ -126,6 +128,7 @@ namespace DeadSignal
             m_reinforcementEntryDelay = Mathf.Max(0f, m_reinforcementEntryDelay);
             m_reinforcementSafeDistance = Mathf.Max(0f, m_reinforcementSafeDistance);
             m_extractionUplinkDuration = Mathf.Max(0.1f, m_extractionUplinkDuration);
+            m_extractionPurgeAcceleration = Mathf.Clamp(m_extractionPurgeAcceleration, 0f, m_extractionUplinkDuration);
         }
     }
 }
