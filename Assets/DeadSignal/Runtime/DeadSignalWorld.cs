@@ -21,6 +21,8 @@ namespace DeadSignal
         public Transform Player { get; private set; }
         public Transform PlayerNose { get; private set; }
         public Transform PlayerPresentation { get; private set; }
+        public Transform PlayerBody { get; private set; }
+        public Transform PlayerTurret { get; private set; }
         public PlayerDroneSignalWake PlayerSignalWake { get; private set; }
         public Transform Warden { get; private set; }
         public WardenThreatTelegraph WardenTelegraph { get; private set; }
@@ -187,16 +189,39 @@ namespace DeadSignal
             RenderSettings.ambientLight = enabled ? new Color(0.055f, 0.065f, 0.08f) : new Color(0.025f, 0.035f, 0.05f);
         }
 
-        public void TickPlayerPresentation(float dt, Vector3 acceleration, PlayerDroneMovementTuning tuning)
+        public void TickPlayerPresentation(
+            float dt,
+            Vector3 acceleration,
+            Vector3 velocity,
+            Vector3 aimDirection,
+            PlayerDroneMovementTuning tuning)
         {
-            var localAcceleration = Player.InverseTransformDirection(acceleration);
+            var bodyForward = velocity.sqrMagnitude > 0.01f ? velocity.normalized : PlayerBody.forward;
+            bodyForward.y = 0f;
+            var bodyYaw = Quaternion.LookRotation(bodyForward, Vector3.up);
+            var localAcceleration = Quaternion.Inverse(bodyYaw) * acceleration;
             var bankScale = tuning.MaximumBankDegrees / tuning.Acceleration;
-            var targetRotation = Quaternion.Euler(
+            var targetBank = Quaternion.Euler(
                 Mathf.Clamp(localAcceleration.z * bankScale, -tuning.MaximumBankDegrees, tuning.MaximumBankDegrees),
                 0f,
                 Mathf.Clamp(-localAcceleration.x * bankScale, -tuning.MaximumBankDegrees, tuning.MaximumBankDegrees));
-            var blend = 1f - Mathf.Exp(-tuning.BankSharpness * dt);
-            PlayerPresentation.localRotation = Quaternion.Slerp(PlayerPresentation.localRotation, targetRotation, blend);
+            var bodyTurnBlend = 1f - Mathf.Exp(-tuning.BodyTurnSharpness * dt);
+            var bankBlend = 1f - Mathf.Exp(-tuning.BankSharpness * dt);
+            var currentYaw = Quaternion.Euler(0f, PlayerBody.localEulerAngles.y, 0f);
+            var smoothedYaw = Quaternion.Slerp(currentYaw, bodyYaw, bodyTurnBlend);
+            var currentBank = Quaternion.Inverse(currentYaw) * PlayerBody.localRotation;
+            var smoothedBank = Quaternion.Slerp(currentBank, targetBank, bankBlend);
+            PlayerBody.localRotation = smoothedYaw * smoothedBank;
+
+            if (aimDirection.sqrMagnitude > 0.01f)
+            {
+                var turretTarget = Quaternion.LookRotation(aimDirection.normalized, Vector3.up);
+                var turretBlend = 1f - Mathf.Exp(-tuning.TurretTurnSharpness * dt);
+                PlayerTurret.rotation = Quaternion.Slerp(PlayerTurret.rotation, turretTarget, turretBlend);
+            }
+
+            PlayerTurret.localPosition = Vector3.up * tuning.TurretMountHeight;
+
             PlayerPresentation.localPosition = Vector3.up *
                                                (Mathf.Sin(Time.time * tuning.HoverFrequency * Mathf.PI * 2f) *
                                                 tuning.HoverAmplitude);
@@ -371,15 +396,15 @@ namespace DeadSignal
 
             var cameraObject = new GameObject("Dead Signal Camera");
             cameraObject.transform.SetParent(m_cameraRig, false);
-            cameraObject.transform.localPosition = new Vector3(0f, 20f, 0f);
-            cameraObject.transform.rotation = Quaternion.Euler(90f, 0f, 0f);
+            cameraObject.transform.localPosition = new Vector3(0f, 12f, -7.4f);
+            cameraObject.transform.localRotation = Quaternion.Euler(55f, 0f, 0f);
             Camera = cameraObject.AddComponent<Camera>();
-            Camera.orthographic = true;
-            Camera.orthographicSize = 10.4f;
+            Camera.orthographic = false;
+            Camera.fieldOfView = 38f;
             Camera.clearFlags = CameraClearFlags.SolidColor;
             Camera.backgroundColor = new Color(0.002f, 0.004f, 0.008f);
             Camera.nearClipPlane = 0.1f;
-            Camera.farClipPlane = 40f;
+            Camera.farClipPlane = 80f;
             cameraObject.AddComponent<AudioListener>();
 
             var lightObject = new GameObject("Cold Overhead Light");
@@ -1033,9 +1058,18 @@ namespace DeadSignal
             var presentation = new GameObject("Drone Presentation");
             PlayerPresentation = presentation.transform;
             PlayerPresentation.SetParent(Player, false);
+
+            var body = new GameObject("Drone Body Facing");
+            PlayerBody = body.transform;
+            PlayerBody.SetParent(PlayerPresentation, false);
+
+            var turret = new GameObject("Drone Turret Facing");
+            PlayerTurret = turret.transform;
+            PlayerTurret.SetParent(PlayerPresentation, false);
             foreach (var child in visualChildren)
             {
-                child.SetParent(PlayerPresentation, false);
+                var facingRoot = child == PlayerNose || child.name == "Drone Core" ? PlayerTurret : PlayerBody;
+                child.SetParent(facingRoot, true);
             }
         }
 

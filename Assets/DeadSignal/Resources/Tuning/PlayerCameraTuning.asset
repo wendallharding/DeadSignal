@@ -12,7 +12,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e546280dd0b62a1439c47a758cab35da, type: 3}
   m_Name: PlayerCameraTuning
   m_EditorClassIdentifier: DeadSignal.Runtime::DeadSignal.PlayerCameraTuning
-  m_orthographicSize: 5.8
+  m_fieldOfView: 38
+  m_pitch: 55
+  m_height: 12
+  m_followDistance: 7.4
   m_followSharpness: 8
   m_lookAheadDistance: 0.9
   m_lookAheadSharpness: 10

@@ -14,6 +14,9 @@ namespace DeadSignal
         private Vector3 m_currentFocus;
         private Vector3 m_currentLookAhead;
         private Vector3 m_lastTargetPosition;
+        private Vector2 m_groundFootprintMinimum;
+        private Vector2 m_groundFootprintMaximum;
+        private float m_lastAspect;
         private bool m_isConfigured;
 
         public Vector3 CurrentFocus => m_currentFocus;
@@ -28,6 +31,11 @@ namespace DeadSignal
             }
 
             float dt = Mathf.Min(Time.deltaTime, 0.05f);
+            if (!Mathf.Approximately(m_lastAspect, m_targetCamera.aspect))
+            {
+                _refreshGroundFootprint();
+            }
+
             var targetPosition = m_target.position;
             var targetDelta = targetPosition - m_lastTargetPosition;
             targetDelta.y = 0f;
@@ -42,8 +50,8 @@ namespace DeadSignal
             var desiredFocus = CalculateClampedFocus(
                 targetPosition + m_currentLookAhead,
                 m_arenaHalfExtents,
-                m_targetCamera.orthographicSize,
-                m_targetCamera.aspect,
+                m_groundFootprintMinimum,
+                m_groundFootprintMaximum,
                 m_tuning.ArenaEdgePadding);
             m_currentFocus = Vector3.Lerp(
                 m_currentFocus,
@@ -69,14 +77,18 @@ namespace DeadSignal
                 return;
             }
 
-            m_targetCamera.orthographicSize = m_tuning.OrthographicSize;
+            m_targetCamera.orthographic = false;
+            m_targetCamera.fieldOfView = m_tuning.FieldOfView;
+            m_targetCamera.transform.localPosition = new Vector3(0f, m_tuning.Height, -m_tuning.FollowDistance);
+            m_targetCamera.transform.localRotation = Quaternion.Euler(m_tuning.Pitch, 0f, 0f);
+            _refreshGroundFootprint();
             m_currentLookAhead = Vector3.zero;
             m_lastTargetPosition = m_target.position;
             m_currentFocus = CalculateClampedFocus(
                 m_target.position,
                 m_arenaHalfExtents,
-                m_targetCamera.orthographicSize,
-                m_targetCamera.aspect,
+                m_groundFootprintMinimum,
+                m_groundFootprintMaximum,
                 m_tuning.ArenaEdgePadding);
             transform.position = m_currentFocus;
         }
@@ -84,22 +96,57 @@ namespace DeadSignal
         public static Vector3 CalculateClampedFocus(
             Vector3 desiredFocus,
             Vector2 arenaHalfExtents,
-            float orthographicSize,
-            float aspect,
+            Vector2 groundFootprintMinimum,
+            Vector2 groundFootprintMaximum,
             float edgePadding)
         {
-            float safeAspect = Mathf.Max(0.01f, aspect);
-            float maximumX = Mathf.Max(0f, arenaHalfExtents.x - orthographicSize * safeAspect - edgePadding);
-            float maximumZ = Mathf.Max(0f, arenaHalfExtents.y - orthographicSize - edgePadding);
+            float minimumX = -arenaHalfExtents.x - groundFootprintMinimum.x + edgePadding;
+            float maximumX = arenaHalfExtents.x - groundFootprintMaximum.x - edgePadding;
+            float minimumZ = -arenaHalfExtents.y - groundFootprintMinimum.y + edgePadding;
+            float maximumZ = arenaHalfExtents.y - groundFootprintMaximum.y - edgePadding;
             return new Vector3(
-                Mathf.Clamp(desiredFocus.x, -maximumX, maximumX),
+                minimumX <= maximumX ? Mathf.Clamp(desiredFocus.x, minimumX, maximumX) : 0f,
                 0f,
-                Mathf.Clamp(desiredFocus.z, -maximumZ, maximumZ));
+                minimumZ <= maximumZ ? Mathf.Clamp(desiredFocus.z, minimumZ, maximumZ) : 0f);
+        }
+
+        public static void CalculateGroundFootprint(Camera targetCamera, out Vector2 minimum, out Vector2 maximum)
+        {
+            minimum = new Vector2(float.PositiveInfinity, float.PositiveInfinity);
+            maximum = new Vector2(float.NegativeInfinity, float.NegativeInfinity);
+            var deck = new Plane(Vector3.up, Vector3.zero);
+            for (int x = 0; x <= 1; x++)
+            {
+                for (int y = 0; y <= 1; y++)
+                {
+                    var ray = targetCamera.ViewportPointToRay(new Vector3(x, y, 0f));
+                    if (!deck.Raycast(ray, out float distance))
+                    {
+                        continue;
+                    }
+
+                    var point = ray.GetPoint(distance) - targetCamera.transform.parent.position;
+                    minimum = Vector2.Min(minimum, new Vector2(point.x, point.z));
+                    maximum = Vector2.Max(maximum, new Vector2(point.x, point.z));
+                }
+            }
+
+            if (float.IsInfinity(minimum.x))
+            {
+                minimum = Vector2.zero;
+                maximum = Vector2.zero;
+            }
         }
 
         private static float _exponentialBlend(float sharpness, float dt)
         {
             return 1f - Mathf.Exp(-sharpness * dt);
+        }
+
+        private void _refreshGroundFootprint()
+        {
+            CalculateGroundFootprint(m_targetCamera, out m_groundFootprintMinimum, out m_groundFootprintMaximum);
+            m_lastAspect = m_targetCamera.aspect;
         }
     }
 }

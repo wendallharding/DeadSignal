@@ -34,6 +34,7 @@ namespace DeadSignal
         private ILowSignalWarning m_lowSignalWarning;
         private ITowerActivationSweep m_towerActivationSweep;
         private Container m_container;
+        private Vector3 m_playerPresentationAcceleration;
         private bool m_lastPoweredState;
         private bool m_fireBuffered;
 
@@ -366,10 +367,13 @@ namespace DeadSignal
 
             var movement = _updatePlayer(dt);
             var aimDirection = m_input.ReadAimDirection(m_world.Camera, m_world.Player);
-            if (aimDirection.sqrMagnitude > 0.01f)
-            {
-                m_world.Player.rotation = Quaternion.LookRotation(aimDirection, Vector3.up);
-            }
+            m_world.TickPlayerPresentation(
+                dt,
+                m_playerPresentationAcceleration,
+                m_playerMovement.Velocity,
+                aimDirection,
+                m_playerMovementTuning);
+            m_world.PlayerSignalWake.Tick(m_playerMovement.Velocity);
 
             var powered = m_world.IsPowered(m_world.Player.position, m_model.TowerOnline);
             m_audio.Tick(powered, m_model.TowerOnline, m_model.Signal / RunModel.MaximumSignal);
@@ -430,6 +434,7 @@ namespace DeadSignal
         {
             if (dt <= 0f)
             {
+                m_playerPresentationAcceleration = Vector3.zero;
                 return Vector3.zero;
             }
 
@@ -457,8 +462,7 @@ namespace DeadSignal
             var resolvedVelocity = (m_world.Player.position - previousPosition) / dt;
             m_playerMovement.ApplyResolvedVelocity(resolvedVelocity);
             var acceleration = (m_playerMovement.Velocity - previousVelocity) / dt;
-            m_world.TickPlayerPresentation(dt, acceleration, m_playerMovementTuning);
-            m_world.PlayerSignalWake.Tick(m_playerMovement.Velocity.magnitude);
+            m_playerPresentationAcceleration = acceleration;
             return resolvedVelocity;
         }
 

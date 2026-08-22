@@ -14,6 +14,9 @@ namespace DeadSignal
         [Header("Presentation")]
         [SerializeField] private float m_maximumBankDegrees = 10f;
         [SerializeField] private float m_bankSharpness = 10f;
+        [SerializeField] private float m_bodyTurnSharpness = 12f;
+        [SerializeField] private float m_turretTurnSharpness = 30f;
+        [SerializeField] private float m_turretMountHeight = 0.14f;
         [SerializeField] private float m_hoverAmplitude = 0.025f;
         [SerializeField] private float m_hoverFrequency = 1.4f;
 
@@ -30,6 +33,9 @@ namespace DeadSignal
         public float ReversalAccelerationMultiplier => m_reversalAccelerationMultiplier;
         public float MaximumBankDegrees => m_maximumBankDegrees;
         public float BankSharpness => m_bankSharpness;
+        public float BodyTurnSharpness => m_bodyTurnSharpness;
+        public float TurretTurnSharpness => m_turretTurnSharpness;
+        public float TurretMountHeight => m_turretMountHeight;
         public float HoverAmplitude => m_hoverAmplitude;
         public float HoverFrequency => m_hoverFrequency;
         public float WakeMinimumSpeed => m_wakeMinimumSpeed;
@@ -46,6 +52,9 @@ namespace DeadSignal
             m_reversalAccelerationMultiplier = Mathf.Clamp(m_reversalAccelerationMultiplier, 0.1f, 1f);
             m_maximumBankDegrees = Mathf.Clamp(m_maximumBankDegrees, 0f, 30f);
             m_bankSharpness = Mathf.Max(0.1f, m_bankSharpness);
+            m_bodyTurnSharpness = Mathf.Max(0.1f, m_bodyTurnSharpness);
+            m_turretTurnSharpness = Mathf.Max(0.1f, m_turretTurnSharpness);
+            m_turretMountHeight = Mathf.Clamp(m_turretMountHeight, 0f, 0.4f);
             m_hoverAmplitude = Mathf.Clamp(m_hoverAmplitude, 0f, 0.15f);
             m_hoverFrequency = Mathf.Max(0f, m_hoverFrequency);
             m_wakeMinimumSpeed = Mathf.Clamp(m_wakeMinimumSpeed, 0f, m_maximumSpeed);

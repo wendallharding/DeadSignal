@@ -4192,3 +4192,45 @@ The first salvage response now records the player's opening combat decision inst
 - Deterministic evidence proves avoidance produces Interceptor–core–core, early Warden or Sapper purges produce core–Interceptor–other-core, double purges retain the per-run tie-breaker, and dead-zone greed still dispatches the Interceptor. Live evidence proves a real four-shot-or-fewer Sapper purge, cache collection, 2.5-second warning, safe authored deployment, and cache-two Interceptor reserve.
 - No human playtest was performed. Whether players connect the replacement warning to their earlier purge, whether delaying the Interceptor feels like a reward or counter-escalation, and whether either route dominates Signal economy remain subjective risks.
 - Manual playtest next: run one avoidance opening and one early-Sapper-purge opening. In each, record first cache time, first response name and warning recognition, peak live roles, shots, hits, Signal reclaimed, abandoned cache or route, extraction mode, finish time, and final reserve. The intended result is an immediate Interceptor cutoff for avoidance versus restored tower pressure for combat, with neither route universally safer.
+## 2026-08-22 — Perspective tactical camera prototype
+
+### Milestone, player benefit, and acceptance
+
+The orthographic follow view is now a restrained high-angle perspective composition. A 55-degree pitch and 38-degree field of view reveal the modeled depth of the drone, station machinery, bulkheads, and lighting while keeping the established XZ movement, deck-plane mouse aim, controller aim, collision, combat, telegraphs, and Signal economy unchanged. The player remains slightly below optical center so forward space stays readable.
+
+### Files and systems changed
+
+- `PlayerCameraTuning.cs` and `PlayerCameraTuning.asset` replace orthographic scale with designer-facing perspective field of view, pitch, height, and follow distance.
+- `PlayerFollowCamera.cs` configures the perspective child camera, preserves the existing parent-follow/child-impulse ownership split, derives clamping from the actual asymmetric deck footprint, and refreshes that footprint when display aspect changes.
+- `DeadSignalWorld.cs` gives the bootstrap camera safe perspective defaults and extends its far clip plane.
+- `PlayerFollowCameraTests.cs` and `PlayerFollowCameraPlayModeTests.cs` cover asymmetric footprint clamping and the new perspective rig contract.
+- `GAME_VISION.md` and `BACKLOG.md` record the high-angle perspective direction. No scene, prefab, input binding, gameplay rule, package, project setting, or generated asset changed.
+
+### Validation and remaining check
+
+- `git diff --check` passed.
+- The live Unity `6000.3.11f1` Editor imported the changes without a C# compiler error in `Editor.log`.
+- Unity Test Runner and a human Game-view traversal were not run because the project was already open in the user's Editor and a competing batch instance could risk live unsaved state. Required manual check: traverse extraction, the tower fight, every salvage branch, and the east vault at 16:9 and ultrawide; verify mouse aim, controller aim, foreground obstruction, camera-edge framing, floor telegraphs, and combat impulse comfort before treating the perspective values as final art direction.
+## 2026-08-22 — Movement-facing drone body and independent turret
+
+### Milestone, player benefit, and acceptance
+
+The maintenance drone now communicates two intentions at once: its chassis and Signal ring smoothly face resolved travel velocity, while its stabilized core/tool turret independently tracks mouse or right-stick aim. Strafing, coasting, and reversals therefore read from the miniature machine itself without changing input, player collision, movement rules, aim calculation, projectile direction, Signal costs, or combat balance.
+
+### Files and systems changed
+
+- `DeadSignalWorld.cs` adds dedicated `Drone Body Facing` and `Drone Turret Facing` presentation roots. The chassis/ring use the movement root; the core/tool use the turret root. Banking is evaluated in travel-local space, the body retains its last heading while stopped, and hover remains shared.
+- `DeadSignalGame.cs` keeps the gameplay player root identity-oriented, passes resolved velocity and authoritative aim into presentation, and leaves bolt creation on the existing aim direction.
+- `PlayerDroneMovementTuning.cs` and `PlayerDroneMovementTuning.asset` add designer-facing body and turret turn sharpness. The turret is intentionally more responsive than the heavier chassis.
+- `PlayerDroneSignalWake.cs` adds an emitter root that follows resolved velocity, keeping the twin trail spacing behind the moving chassis instead of behind cursor aim.
+- `PlayerDroneMovementTests.cs`, `PlayerFollowCameraPlayModeTests.cs`, and `BootstrapSmokeTests.cs` cover tuning, the new hierarchy, movement-versus-aim separation, wake direction, stable gameplay-root orientation, materials, and mesh contracts.
+- `GAME_VISION.md` and `BACKLOG.md` record the presentation decision. The existing authored FBX, `.blend`, generation script, prefab, textures, and materials were inspected but not changed: their independent chassis, ring, core, and tool meshes already provide the required model separation with validated pivots and UVs.
+
+### Validation and remaining check
+
+- `git diff --check` passed.
+- The open Unity `6000.3.11f1` Editor completed its live script refresh with no `error CS` or `Scripts have compiler errors` entries in `Editor.log`.
+- Unity Test Runner and human Game-view validation were not run because the project remained open in the user's Editor. Required manual check: strafe while aiming across the body, reverse at full speed, coast without input, slide along cover, fire during a sharp turn, and pause during active trails. Confirm the chassis feels weighted, the turret does not visually lag behind fired bolts, the core/tool grouping looks mechanically connected, and the perspective camera keeps both headings legible.
+### Perspective turret mount correction
+
+The first independent-turret composition retained the model's original vertical coordinates, which made the core/tool assembly read as embedded in the chassis from the new perspective camera. `PlayerDroneMovementTuning` now exposes a `0.14`-metre turret mount height and `DeadSignalWorld` applies it to the complete stabilized core/tool root after hierarchy separation. Aim, projectile origin math, meshes, pivots, UVs, collision, and gameplay remain unchanged. Focused tuning and PlayMode assertions cover the authored clearance. The owner-provided Game-view capture was visually inspected; a new live capture remains the required confirmation that the raised assembly reads as top-mounted at runtime.

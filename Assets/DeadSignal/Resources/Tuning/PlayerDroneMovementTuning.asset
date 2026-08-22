@@ -18,6 +18,9 @@ MonoBehaviour:
   m_reversalAccelerationMultiplier: 0.7
   m_maximumBankDegrees: 10
   m_bankSharpness: 10
+  m_bodyTurnSharpness: 12
+  m_turretTurnSharpness: 30
+  m_turretMountHeight: 0.14
   m_hoverAmplitude: 0.025
   m_hoverFrequency: 1.4
   m_wakeMinimumSpeed: 0.8

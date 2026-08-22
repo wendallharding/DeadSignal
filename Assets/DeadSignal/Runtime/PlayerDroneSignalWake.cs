@@ -11,6 +11,7 @@ namespace DeadSignal
         private const string TEXTURE_RESOURCE = "VFX/PlayerDroneSignalWake";
 
         private TrailRenderer[] m_trails;
+        private Transform m_emitterRoot;
         private PlayerDroneMovementTuning m_tuning;
         private Material m_material;
         private bool m_paused;
@@ -51,19 +52,28 @@ namespace DeadSignal
             m_material.SetColor("_BaseColor", Color.white);
             m_material.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
 
+            var emitterRoot = new GameObject("Signal Wake Emitters");
+            m_emitterRoot = emitterRoot.transform;
+            m_emitterRoot.SetParent(transform, false);
             m_trails = new[]
             {
                 _createTrail("Signal Wake Left", -m_tuning.WakeEmitterSpacing),
                 _createTrail("Signal Wake Right", m_tuning.WakeEmitterSpacing)
             };
-            Tick(0f);
+            Tick(Vector3.zero);
         }
 
-        public void Tick(float speed)
+        public void Tick(Vector3 velocity)
         {
             if (m_trails == null)
             {
                 return;
+            }
+
+            var speed = velocity.magnitude;
+            if (speed > 0.01f)
+            {
+                m_emitterRoot.rotation = Quaternion.LookRotation(velocity.normalized, Vector3.up);
             }
 
             var speedRatio = Mathf.InverseLerp(m_tuning.WakeMinimumSpeed, m_tuning.MaximumSpeed, speed);
@@ -104,7 +114,7 @@ namespace DeadSignal
         private TrailRenderer _createTrail(string trailName, float lateralOffset)
         {
             var trailObject = new GameObject(trailName);
-            trailObject.transform.SetParent(transform, false);
+            trailObject.transform.SetParent(m_emitterRoot, false);
             trailObject.transform.localPosition = new Vector3(lateralOffset, 0.18f, -0.35f);
             var trail = trailObject.AddComponent<TrailRenderer>();
             trail.sharedMaterial = m_material;

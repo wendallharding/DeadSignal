@@ -16,6 +16,9 @@ namespace DeadSignal.Tests
             Assert.That(tuning.MaximumSpeed / tuning.Braking, Is.EqualTo(0.3f).Within(0.001f));
             Assert.That(tuning.ReversalAccelerationMultiplier, Is.EqualTo(0.7f).Within(0.001f));
             Assert.That(tuning.MaximumBankDegrees, Is.InRange(8f, 12f));
+            Assert.That(tuning.BodyTurnSharpness, Is.GreaterThan(0f));
+            Assert.That(tuning.TurretTurnSharpness, Is.GreaterThan(tuning.BodyTurnSharpness));
+            Assert.That(tuning.TurretMountHeight, Is.InRange(0.1f, 0.25f));
         }
 
         [Test]
