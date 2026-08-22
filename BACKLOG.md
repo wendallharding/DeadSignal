@@ -14,6 +14,15 @@
 
 ## P1 — Prove the loop
 
+### Run 63 extraction-pursuit ideas
+
+- [x] Replace instant victory with a designer-tuned six-second extraction uplink
+- [x] Preserve full movement, aiming, firing, and pause authority while the dock link completes
+- [x] Bank exactly one additional bounded security response when the uplink begins
+- [x] Reuse role uniqueness, authored entrances, six-metre exclusion, and 2.5-second entry warnings for the pursuit
+- [x] Replace routine extraction guidance with a live survival countdown and pursuit-state threat strip
+- [ ] Playtest whether six seconds forces a meaningful last maneuver without making a depleted return unwinnable
+
 ### Run 62 flanking-Interceptor ideas
 
 - [x] Deploy one dedicated Interceptor as the first salvage escalation while the opening Warden and Sapper remain active

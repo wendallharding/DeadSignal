@@ -21,6 +21,7 @@ namespace DeadSignal
         private int m_observedSalvage;
         private int m_nextReinforcement;
         private float m_entryCountdown;
+        private bool m_extractionPressure;
 
         public SecurityEscalationDirector(float entryDelay, float safeEntryDistance)
         {
@@ -29,7 +30,7 @@ namespace DeadSignal
         }
 
         public int EscalationTier => m_observedSalvage;
-        public int ReinforcementsRemaining => Math.Max(0, m_observedSalvage - m_nextReinforcement);
+        public int ReinforcementsRemaining => Math.Max(0, m_observedSalvage + (m_extractionPressure ? 1 : 0) - m_nextReinforcement);
         public float EntryCountdown => m_entryCountdown;
         public SecurityReinforcement PendingReinforcement => m_entryCountdown > 0f
             ? _getReinforcement(m_nextReinforcement)
@@ -39,6 +40,7 @@ namespace DeadSignal
             float seconds,
             bool towerOnline,
             int salvage,
+            bool extractionPressure,
             bool interceptorAlive,
             bool wardenAlive,
             bool sapperAlive,
@@ -52,7 +54,9 @@ namespace DeadSignal
             }
 
             m_observedSalvage = Math.Min(RunModel.SalvageRequired, Math.Max(m_observedSalvage, salvage));
-            if (m_nextReinforcement >= m_observedSalvage)
+            m_extractionPressure |= extractionPressure && m_observedSalvage >= RunModel.SalvageRequired;
+            var reinforcementBudget = m_observedSalvage + (m_extractionPressure ? 1 : 0);
+            if (m_nextReinforcement >= reinforcementBudget)
             {
                 m_entryCountdown = 0f;
                 return SecurityReinforcement.None;
@@ -99,7 +103,8 @@ namespace DeadSignal
             {
                 0 => SecurityReinforcement.Interceptor,
                 1 => SecurityReinforcement.Warden,
-                _ => SecurityReinforcement.Sapper
+                2 => SecurityReinforcement.Sapper,
+                _ => SecurityReinforcement.Interceptor
             };
         }
     }

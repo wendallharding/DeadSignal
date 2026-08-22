@@ -22,7 +22,7 @@ namespace DeadSignal
         int CurrentMissionPhase { get; }
 
         void Configure(RunModel model, RunMetrics metrics, DeadSignalWorld world, DeadSignalThreatController threats,
-            DeadSignalSalvageController salvage);
+            DeadSignalSalvageController salvage, ExtractionUplink extractionUplink);
         void ShowFeedback(string message);
         void Tick(float dt);
     }
@@ -77,6 +77,7 @@ namespace DeadSignal
         private DeadSignalWorld m_world;
         private DeadSignalThreatController m_threats;
         private DeadSignalSalvageController m_salvage;
+        private ExtractionUplink m_extractionUplink;
         private ICombatFeedback m_combatFeedback;
         private IComfortSettings m_comfortSettings;
         private IDeadSignalInput m_input;
@@ -111,13 +112,14 @@ namespace DeadSignal
         }
 
         void IDeadSignalHud.Configure(RunModel model, RunMetrics metrics, DeadSignalWorld world, DeadSignalThreatController threats,
-            DeadSignalSalvageController salvage)
+            DeadSignalSalvageController salvage, ExtractionUplink extractionUplink)
         {
             m_model = model;
             m_metrics = metrics;
             m_world = world;
             m_threats = threats;
             m_salvage = salvage;
+            m_extractionUplink = extractionUplink;
             m_signalHudTuning = Resources.Load<SignalHudTuning>("Tuning/SignalHudTuning");
             var signalSprite = Resources.Load<Sprite>("UI/SignalReserveConduit");
             m_runDebriefTexture = Resources.Load<Texture2D>("UI/RunDebriefInsignia");
@@ -203,7 +205,10 @@ namespace DeadSignal
             var guidance = MissionGuidance.Evaluate(m_model, m_threats.IsSapperAlive, m_threats.IsSapperLatched,
                 m_threats.SapperPulseCooldown);
             CurrentMissionPhase = guidance.Phase;
-            m_objectiveText.text = $"PHASE {guidance.Phase}/3  //  {guidance.Title}\n{guidance.Action}\n{guidance.Advisory}";
+            m_objectiveText.text = m_extractionUplink.IsActive
+                ? $"PHASE 3/3  //  EXTRACTION UPLINK\nSURVIVE PURSUIT  {m_extractionUplink.SecondsRemaining:0.0}s\n" +
+                  "MANEUVER AND FIRE — DOCK LINK IS LOCKED"
+                : $"PHASE {guidance.Phase}/3  //  {guidance.Title}\n{guidance.Action}\n{guidance.Advisory}";
             m_threatText.text = _threatStatus();
             m_controlLegendText.text = _activeControlLegend();
             var prompt = _contextPrompt();
@@ -291,7 +296,8 @@ namespace DeadSignal
             var entry = m_threats.PendingReinforcement == SecurityReinforcement.None
                 ? string.Empty
                 : $"  {m_threats.PendingReinforcement.ToString().ToUpperInvariant()} ENTRY {m_threats.ReinforcementEntryCountdown:0.0}s";
-            return $"ALERT {m_threats.EscalationTier}/{RunModel.SalvageRequired}  RESERVE {m_threats.ReinforcementsRemaining}{entry}  //  " +
+            var alert = m_extractionUplink.IsActive ? "PURSUIT" : $"ALERT {m_threats.EscalationTier}/{RunModel.SalvageRequired}";
+            return $"{alert}  RESERVE {m_threats.ReinforcementsRemaining}{entry}  //  " +
                    $"{warden}  //  {interceptor}  //  {sapper}";
         }
 
@@ -303,7 +309,8 @@ namespace DeadSignal
             if (!m_model.TowerOnline && DeadSignalWorld.FlatDistance(m_world.Player.position, m_world.TowerPosition) < 1.8f)
                 return $"[{_binding("E", "GAMEPAD X")}]  ACTIVATE SIGNAL TOWER  —  COST 10";
             if (DeadSignalWorld.FlatDistance(m_world.Player.position, m_world.ExtractionPosition) < 1.65f)
-                return m_model.CanExtract ? $"[{_binding("E", "GAMEPAD X")}]  EXTRACT SALVAGE"
+                return m_extractionUplink.IsActive ? $"UPLINK LOCKED  —  {m_extractionUplink.SecondsRemaining:0.0}s"
+                    : m_model.CanExtract ? $"[{_binding("E", "GAMEPAD X")}]  START EXTRACTION UPLINK"
                     : $"EXTRACTION LOCKED  —  {RunModel.SalvageRequired - m_model.Salvage} SALVAGE MISSING";
             return string.Empty;
         }

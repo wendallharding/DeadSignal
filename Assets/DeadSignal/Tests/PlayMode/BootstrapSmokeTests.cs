@@ -1210,11 +1210,33 @@ namespace DeadSignal.Tests
 
                 InputSystem.QueueStateEvent(gamepad, new GamepadState());
                 yield return null;
+                securityWarden.position = new Vector3(18f, 0f, 9f);
+                interceptor.position = new Vector3(18f, 0f, -9f);
                 player.position = new Vector3(-9.2f, 0f, -5.6f);
                 InputSystem.QueueStateEvent(gamepad, new GamepadState().WithButton(GamepadButton.West));
                 yield return null;
                 InputSystem.QueueStateEvent(gamepad, new GamepadState());
                 yield return null;
+
+                Assert.That(game.IsExtractionUplinkActive, Is.True,
+                    "Extraction input should start a pursuit uplink instead of granting instant victory.");
+                Assert.That(game.ExtractionUplinkSecondsRemaining, Is.InRange(5.8f, 6f));
+                Assert.That(game.SecurityReinforcementsRemaining, Is.EqualTo(3),
+                    "The extraction pursuit should bank exactly one response beyond the two remaining salvage reserves.");
+                Assert.That(runHud.activeSelf, Is.True, "The player must retain movement and combat control during the uplink.");
+                var initialUplinkCountdown = game.ExtractionUplinkSecondsRemaining;
+                yield return new WaitForSeconds(0.2f);
+                Assert.That(game.ExtractionUplinkSecondsRemaining, Is.LessThan(initialUplinkCountdown));
+                var extractionDeadline = Time.time + 7f;
+                while (game.IsExtractionUplinkActive && Time.time < extractionDeadline)
+                {
+                    yield return null;
+                }
+
+                Assert.That(game.IsExtractionUplinkActive, Is.False, "Surviving the tuned uplink duration should finish extraction.");
+                yield return null;
+                Assert.That(hudCanvas.transform.Find("Outcome Overlay").gameObject.activeSelf, Is.True,
+                    "Completed pursuit should reveal the victory debrief.");
 
                 var completedRunInstanceId = game.GetInstanceID();
                 InputSystem.QueueStateEvent(gamepad, new GamepadState().WithButton(GamepadButton.South));

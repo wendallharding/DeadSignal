@@ -28,6 +28,7 @@ namespace DeadSignal
         private SalvagePresentationTuning m_salvageTuning;
         private PlayerDroneMovementTuning m_playerMovementTuning;
         private PlayerDroneMovement m_playerMovement;
+        private ExtractionUplink m_extractionUplink;
         private ILowSignalWarning m_lowSignalWarning;
         private ITowerActivationSweep m_towerActivationSweep;
         private Container m_container;
@@ -41,6 +42,8 @@ namespace DeadSignal
         public bool IsInterceptorCharging => m_threats?.IsInterceptorCharging ?? false;
         public int SecurityEscalationTier => m_threats?.EscalationTier ?? 0;
         public int SecurityReinforcementsRemaining => m_threats?.ReinforcementsRemaining ?? 0;
+        public bool IsExtractionUplinkActive => m_extractionUplink?.IsActive ?? false;
+        public float ExtractionUplinkSecondsRemaining => m_extractionUplink?.SecondsRemaining ?? 0f;
         public bool LastSignalBoltBlockedByEnvironment => m_threats?.LastShotBlockedByEnvironment ?? false;
         public bool IsPaused => m_combatFeedback?.IsPaused ?? false;
         public bool HasPauseInsignia => m_hud?.HasPauseInsignia ?? false;
@@ -262,6 +265,8 @@ namespace DeadSignal
                 return;
             }
 
+            m_extractionUplink = new ExtractionUplink(threatTuning.ExtractionUplinkDuration);
+
             m_threats = new DeadSignalThreatController(
                 m_model,
                 m_metrics,
@@ -273,7 +278,7 @@ namespace DeadSignal
                 _showFeedback);
             m_salvage = new DeadSignalSalvageController(
                 m_model, m_metrics, m_world, m_audio, m_combatFeedback, m_salvageTuning, _showFeedback);
-            m_hud.Configure(m_model, m_metrics, m_world, m_threats, m_salvage);
+            m_hud.Configure(m_model, m_metrics, m_world, m_threats, m_salvage, m_extractionUplink);
             m_objectiveBeacon.Configure(m_model, m_world);
             m_lastPoweredState = m_world.IsPowered(m_world.Player.position, m_model.TowerOnline);
             m_signalDust.Configure();
@@ -345,6 +350,11 @@ namespace DeadSignal
             m_threats.Tick(dt);
             m_salvage.Tick(dt);
             m_world.TickExtraction(dt, m_model.CanExtract);
+            if (m_extractionUplink.Tick(dt) && m_model.TryExtract())
+            {
+                m_audio.Play(DeadSignalAudioCue.Extraction);
+                _showFeedback("EXTRACTION COMPLETE");
+            }
         }
 
         private void OnDestroy()
@@ -459,14 +469,14 @@ namespace DeadSignal
                 return;
             }
 
-            if (m_model.TryExtract())
-            {
-                m_audio.Play(DeadSignalAudioCue.Extraction);
-                _showFeedback("EXTRACTION COMPLETE");
-            }
-            else
+            if (!m_model.CanExtract)
             {
                 _showFeedback($"EXTRACTION LOCKED — {RunModel.SalvageRequired - m_model.Salvage} SALVAGE MISSING");
+            }
+            else if (m_extractionUplink.Begin())
+            {
+                m_threats.BeginExtractionPressure();
+                _showFeedback("UPLINK STARTED — SECURITY PURSUIT INBOUND");
             }
         }
 

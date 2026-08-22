@@ -69,7 +69,7 @@ This autonomous run is accepted when a fresh Play session provides all of the fo
 - The Sapper's target tether carries repeated authored energy packets toward the tower during approach and latch, making drain direction readable without changing threat timing.
 - The first salvage escalation deploys a red-and-amber Interceptor from the safer of two scene-authored flank gates; it moves toward the extraction route, shows a locked charge line, and commits to an avoidable dash that combines with Warden pursuit and Sapper tower pressure.
 - Three warm salvage pickups can be collected outside the safe starting area.
-- Returning to the extraction pad with all salvage and pressing E wins.
+- Returning to the extraction pad with all salvage starts a six-second mobile uplink; surviving the final bounded security pursuit completes the run.
 - A central powered gate offers a readable choice: spend Signal for a direct salvage route or detour through the dead zone.
 - Signal depletion causes death; victory/death clearly present a restart action.
 - Victory and death report time, danger exposure, combat usage, damage, and remaining Signal.
@@ -149,3 +149,7 @@ Salvage progress now raises a deterministic three-tier security alert instead of
 ### Run 62 product decision — flanking Interceptor
 
 The first salvage escalation now introduces an Interceptor before the existing Warden and Sapper reserves. It selects the farther of two scene-authored edge gates, advances toward a point between the drone and extraction, locks a visible line for 0.8 seconds, and then commits to a short collision-bounded dash. This was selected over increasing enemy health, speed, or count because the return leg needed a threat that changes route and dodge decisions while combining cleanly with direct pursuit and tower denial. Three health and a 14-Signal purge bounty keep fighting economically competitive without making a clean purge profitable after its minimum shot cost.
+
+### Run 63 product decision — extraction pursuit uplink
+
+Extraction now begins a six-second mobile uplink instead of granting instant victory. The player keeps full movement and combat control while one additional bounded security response enters the existing queue, retaining role uniqueness, authored entrances, safe-entry distance, and warning time. This was selected over a stationary capture circle because the climax should reward fighting, fleeing, and route use rather than trap the drone at one point, and over raw stat escalation because one readable tactical response creates pressure without invalidating learned counterplay.

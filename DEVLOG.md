@@ -3728,3 +3728,34 @@ The first salvage escalation now introduces a dedicated Interceptor that pressur
 - The dash locks its target before the charge completes and movement still uses authored oriented-obstacle collision, creating a real dodge window without allowing the threat to phase through cover.
 - Automated tests prove the state sequence but cannot judge whether the 0.8-second red line is legible amid Warden/Sapper pressure, whether the HUD remains comfortable at 1280x720, or whether the 18-Signal impact and 14-Signal bounty are fair. No interactive playtest was performed.
 - Best next step: record clean and greedy three-cache runs, measuring first Interceptor arrival, dash hits/avoids, route abandonment, Signal spent/reclaimed, peak mixed threats, and extraction time; tune the charge/dash window before adding extraction holdout pressure.
+## 2026-08-22 — Autonomous Run 63 — Extraction pursuit uplink
+
+### Milestone, player benefit, and acceptance
+
+The extraction dock now starts a six-second mobile uplink instead of ending the run instantly, turning the return into a final survival decision. Acceptance required a designer-tuned deterministic countdown, retained movement and combat, no instant victory, one additional bounded security response, reuse of every existing safe-entry and role-concurrency rule, live objective/threat/prompt presentation, completion only after survival, and complete-runtime restart coverage.
+
+### Files and systems changed
+
+- Added `ExtractionUplink.cs` and `ExtractionUplinkTests.cs` with Unity-generated metadata. The pure rule owns one start, pause-safe countdown advancement, and one completion transition.
+- Extended `ThreatBalanceTuning.cs` and `ThreatBalanceTuning.asset` with a six-second extraction duration. Existing enemy health, speed, damage, warning, reward, and salvage-escalation values are unchanged.
+- Updated `SecurityEscalationDirector.cs` and `DeadSignalThreatController.cs` so starting extraction permanently banks exactly one fourth response. Its Interceptor/Warden/Sapper/Interceptor order remains bounded, and duplicate roles, the six-metre exclusion, 2.5-second warning, and authored entrance selection remain authoritative.
+- Updated `DeadSignalGame.cs` so dock interaction starts the uplink, the player remains controllable, the director receives pursuit pressure, and victory/audio land only when the countdown completes.
+- Updated `DeadSignalHud.cs` with a live `EXTRACTION UPLINK` survival countdown, `PURSUIT` threat state, reserve visibility, and a locked-uplink dock prompt.
+- Expanded `SecurityEscalationDirectorTests.cs`, `ThreatBalanceTuningTests.cs`, and `BootstrapSmokeTests.cs` with duration, one-extra-response, no-instant-victory, countdown, retained-HUD, completion, and restart assertions.
+- Updated `GAME_VISION.md` and `BACKLOG.md` with the material extraction rule and remaining tuning question. No scene, prefab, visual/audio asset, package, project setting, input route, save data, map layout, base economy, or generated source changed. Sixty Unity build serializer/setup side effects were restored.
+
+### Exact validation evidence
+
+1. Unity `6000.3.11f1` import and compilation completed successfully with return code `0`; two new scripts and metadata imported; `Logs/run63-import.log`. A redundant second launch returned `1` while the original asynchronous batch process owned the project, then the original completed successfully; no user Editor was open or controlled.
+2. Final EditMode after generated-side-effect cleanup: exit `0`; `60/60` passed, `0` failed, `0` skipped in `0.115225s`; `Logs/run63-editmode-final-results.xml` and `Logs/run63-editmode-final.log`.
+3. Corrected final PlayMode: exit `0`; `5/5` passed, `0` failed, `0` skipped in `16.2534803s`; `Logs/run63-playmode-final-results.xml` and `Logs/run63-playmode-final.log`. The complete runtime proves the dock starts a six-second pursuit instead of victory, banks one response beyond the two remaining reserves, retains the run HUD and controls, counts down, completes, shows the debrief, and restarts cleanly.
+4. Windows x64 development build: exit `0`; Unity reported `241,135,588` bytes in `10.34s`; `Build/Windows/DeadSignal.exe`; `Logs/run63-build.log`.
+5. Packaged Direct3D 11 smoke: exit `0` with one `[DEAD SIGNAL STANDALONE SMOKE] PASS`; `Logs/run63-standalone-final.log`. Two diagnostic launches without the required `-deadSignalBuildSmoke` argument were stopped by exact task-owned process ID after proving null/D3D11 initialization only; they produced no gameplay result.
+6. Final Unity compilation after source formatting cleanup: exit `0`; `Logs/run63-compile-final.log`. Final critical scans found no compiler errors, missing/null references, unhandled exceptions, failed assertions, build failures, or smoke failure; `git diff --check` passed.
+
+### Bugs found, limitations, and next step
+
+- The first PlayMode attempt passed the gameplay countdown but asserted the Canvas outcome in the same late-completion frame, before the next frame's normal HUD refresh. The lifecycle-corrected assertion passed; no production presentation delay beyond one frame exists.
+- Extraction pursuit does not spawn beside the player or bypass the existing budget. If its requested role is alive, that live threat supplies pressure and the response waits; if the role is clear, the normal safe warning begins.
+- Automated evidence deliberately moved live Warden and Interceptor actors far away during the six-second completion proof so the test measures lifecycle rather than subjective balance. No human playtest was performed, so final damage load, countdown fit at 1280x720/ultrawide, and whether the extra response commonly enters before victory remain unjudged.
+- Best next step: play one clean and one depleted three-cache return, recording Signal at uplink start/end, live roles, pursuit entry timing, hits, purges, movement route, and whether the player abandons the dock area. Tune duration before adding temporary overclock choices.

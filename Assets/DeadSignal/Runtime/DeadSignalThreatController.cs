@@ -40,6 +40,7 @@ namespace DeadSignal
         private float m_interceptorHitCooldown;
         private Vector3 m_interceptorDashDirection;
         private Vector3 m_interceptorDashTarget;
+        private bool m_extractionPressure;
 
         public DeadSignalThreatController(
             RunModel model,
@@ -87,6 +88,11 @@ namespace DeadSignal
         public float ReinforcementEntryCountdown => m_director.EntryCountdown;
         public SecurityReinforcement PendingReinforcement => m_director.PendingReinforcement;
 
+        public void BeginExtractionPressure()
+        {
+            m_extractionPressure = true;
+        }
+
         public void TickCooldown(float dt)
         {
             m_shotCooldown = Mathf.Max(0f, m_shotCooldown - dt);
@@ -128,6 +134,7 @@ namespace DeadSignal
                 dt,
                 m_model.TowerOnline,
                 m_model.Salvage,
+                m_extractionPressure,
                 IsInterceptorAlive,
                 IsWardenAlive,
                 IsSapperAlive,
