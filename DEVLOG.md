@@ -3532,3 +3532,44 @@ Final image prompt: original compact sci-fi mission-debrief telemetry seal with 
 
 - Headless validation cannot judge four-line debrief fit or 64-pixel insignia clarity at 16:9 and ultrawide. The grade thresholds are intentionally initial heuristics and need recorded play-session evidence before tuning.
 - Best next step: complete one victory and one depletion, compare the five readings to the run experience, and inspect outcome layout at 1280x720 and ultrawide before changing thresholds.
+
+## 2026-08-21 — Autonomous Run 58 — Mission command strip
+
+### Today's five tightly scoped ideas
+
+1. **Three-step phase numbering.** Player benefit: the run structure is visible at a glance. Acceptance: the HUD deterministically advances through Restore, Recover, and Extract.
+2. **Explicit next action.** Player benefit: each phase names its immediate verb and destination. Acceptance: the strip directs the player to the central tower, amber caches, or cyan dock as state changes.
+3. **Tower transaction preview.** Player benefit: the opening bargain is understandable before committing. Acceptance: phase one shows the exact 10-Signal cost and 62-Signal refill.
+4. **Live salvage remainder.** Player benefit: route planning requires no subtraction. Acceptance: phase two reports the exact number still needed with correct singular/plural wording.
+5. **Sapper interrupt advisory.** Player benefit: an imminent drain can supersede routine routing without hiding the mission. Acceptance: a latched Sapper's live countdown appears during salvage and extraction phases.
+
+This command-strip pass was selected over another room, enemy, or balance change because first-minute comprehension is the prerequisite for evaluating the established Signal economy and authored route choices. No new bitmap was required: this is information hierarchy using the existing authored Canvas type system.
+
+### Files and systems changed
+
+- Added `MissionGuidance.cs`, a deterministic engine-independent evaluator, and `MissionGuidanceTests.cs` with phase, transaction, remainder, interrupt, and extraction coverage; both include tracked Unity metadata.
+- Refactored `DeadSignalHud.cs` to delegate objective interpretation to the focused evaluator and render a compact three-line operational strip. This is the run's one-class production refactor; no tuning migration applies because the touched objective strings and three fixed MVP phases are product invariants rather than balance values.
+- Updated `DeadSignalGame.cs` and `BootstrapSmokeTests.cs` to expose and validate live phase transitions in the complete runtime.
+- Updated `GAME_VISION.md` and `BACKLOG.md` with the rationale, player value, and five acceptance contracts.
+- No scene, prefab, texture, material, shader, package, project setting, input route, gameplay cost, timing, enemy rule, save data, audio, or generated source changed. Unity build-time serialization rewrites were restored after validation.
+
+### Tests run and exact outcomes
+
+1. Unity `6000.3.11f1` import/compile: exit `0`; runtime, EditMode, and PlayMode assemblies compiled successfully; log `Logs/run58-import.log`.
+2. EditMode: exit `0`; `47/47` passed, `0` failed, `0` skipped in `0.1152001s`; `Logs/run58-editmode-results.xml` and `.log`.
+3. PlayMode: exit `0`; `5/5` passed, `0` failed, `0` skipped in `7.1122164s`; the full runtime advanced the command strip from phase two to phase three; `Logs/run58-playmode-results.xml` and `.log`.
+4. Windows x64 development build: exit `0`; Unity reported `238,997,424` bytes in `11.69s`; executable `Build/Windows/DeadSignal.exe`; log `Logs/run58-build.log`.
+5. Packaged standalone smoke: exit `0` with one `[DEAD SIGNAL STANDALONE SMOKE] PASS`; log `Logs/run58-standalone.log`.
+6. Final critical scan found no compiler errors, null/missing-reference exceptions, unhandled exceptions, failed assertions, or smoke failure. `git diff --check` passed after restoring Unity serializer side effects.
+
+### Bugs found and fixed
+
+- Replaced the HUD's duplicated objective branching with one deterministic authority, preventing beacon phase and visible mission phase from drifting independently as the slice grows.
+- The first PowerShell Unity launch returned before the GUI process completed; validation waited for that original batch process and then used a blocking hidden launcher for every authoritative command. The second invocation only encountered the expected project lock and made no project changes.
+- Removed 58 unrelated Unity build-time prefab, material, texture-metadata, render-pipeline, and project-setting rewrites before commit.
+
+### Known limitations and best next step
+
+- Headless tests validate content and transitions but cannot judge whether the new three-line objective copy fits comfortably at 1280x720 or ultrawide, especially alongside the existing right-side HUD.
+- The guidance is intentionally English-only pending the broader localization-ready text pass.
+- Best next step: start a run at 1280x720, read the tower transaction before activation, let the Sapper latch during salvage, then secure the third cache and confirm the three-line strip remains legible through every transition.

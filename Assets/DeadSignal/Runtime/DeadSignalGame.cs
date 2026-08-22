@@ -109,6 +109,7 @@ namespace DeadSignal
         public string RebindStatusMessage => m_input?.RebindStatusMessage ?? string.Empty;
         public ObjectiveBeaconPhase CurrentObjectiveBeaconPhase => m_objectiveBeacon?.CurrentPhase ?? ObjectiveBeaconPhase.Tower;
         public Vector3 CurrentObjectiveBeaconTarget => m_objectiveBeacon?.CurrentTarget ?? Vector3.zero;
+        public int CurrentMissionPhase => m_hud?.CurrentMissionPhase ?? 0;
         public bool IsCameraImpulseEnabled => m_comfortSettings?.CameraImpulseEnabled ?? true;
         public bool IsReducedFlashesEnabled => m_comfortSettings?.ReducedFlashesEnabled ?? false;
         public bool IsHighContrastEnabled => m_comfortSettings?.HighContrastEnabled ?? false;

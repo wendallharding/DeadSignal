@@ -1061,6 +1061,8 @@ namespace DeadSignal.Tests
 
                 Assert.That(game.CurrentObjectiveBeaconPhase, Is.EqualTo(ObjectiveBeaconPhase.Salvage),
                     "Tower activation should advance guidance to the nearest live salvage cache.");
+                Assert.That(game.CurrentMissionPhase, Is.EqualTo(2),
+                    "The mission command strip should advance from network restoration to salvage recovery.");
                 var salvageTarget = game.CurrentObjectiveBeaconTarget;
                 Assert.That(new Vector2(salvageTarget.x, salvageTarget.z), Is.EqualTo(new Vector2(-5.8f, 7.2f)),
                     "The beacon should select the closest remaining cache from the tower.");
@@ -1144,6 +1146,8 @@ namespace DeadSignal.Tests
                 yield return null;
                 Assert.That(game.CurrentObjectiveBeaconPhase, Is.EqualTo(ObjectiveBeaconPhase.Extraction),
                     "Securing any three of four caches should advance guidance to extraction.");
+                Assert.That(game.CurrentMissionPhase, Is.EqualTo(3),
+                    "The mission command strip should advance to extraction when the required cargo is secured.");
                 Assert.That(game.transform.Cast<Transform>().Count(child =>
                         child.name == "Salvage Cache" && child.gameObject.activeSelf), Is.EqualTo(1),
                     "One optional cache should remain available after the extraction requirement is met.");

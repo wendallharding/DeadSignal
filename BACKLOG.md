@@ -14,6 +14,14 @@
 
 ## P1 — Prove the loop
 
+### Run 58 mission command-strip ideas
+
+- [x] Three-step phase numbering — player value: the whole run structure is visible at a glance; acceptance: the HUD advances deterministically through Restore, Recover, and Extract phases.
+- [x] Explicit next action — player value: every phase names the immediate verb and destination; acceptance: tower, amber-cache, and cyan-dock actions update with run state.
+- [x] Tower transaction preview — player value: the opening Signal bargain is understandable before committing; acceptance: phase one shows the exact 10 cost and 62 refill.
+- [x] Live salvage remainder — player value: route planning requires no subtraction; acceptance: phase two reports the exact number of caches still needed with singular/plural wording.
+- [x] Sapper interrupt advisory — player value: an imminent network drain can supersede routine routing without hiding the mission; acceptance: latched countdown guidance appears during salvage and extraction phases.
+
 ### Run 57 actionable mission-debrief ideas
 
 - [x] Overall debrief grade — player value: each run ends with a clear mastery target; acceptance: deterministic S–D grade reflects outcome, reserve, drains, and exposure.

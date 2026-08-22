@@ -72,6 +72,7 @@ This autonomous run is accepted when a fresh Play session provides all of the fo
 - Signal depletion causes death; victory/death clearly present a restart action.
 - Victory and death report time, danger exposure, combat usage, damage, and remaining Signal.
 - A readable HUD communicates Signal, salvage, objective, zone state, controls, and contextual prompts.
+- A three-phase mission command strip names the next action, previews the tower Signal transaction, counts remaining salvage, and surfaces urgent Sapper drains without obscuring the extraction goal.
 - Keyboard/mouse and gamepad can each complete the full run without switching devices.
 - Escape or gamepad Menu pauses the active run without advancing Signal drain, threats, projectiles, or run time.
 - Successful bolt hits, Warden impacts, and Sapper drains provide distinct world-space bursts, brief hit-stop, and restrained camera impulse.
@@ -120,6 +121,10 @@ The adaptive control legend now leads with a five-glyph visual language for move
 The shared Signal reserve now reads as operational telemetry rather than a generic progress bar: original conduit art moves from cyan Stable through amber Strained to red Critical, names the state in plain language, and uses restrained critical motion only when the player allows it. This was selected over a new objective because Signal is the game's differentiating resource and must communicate urgency instantly in the newly authored Canvas without requiring players to infer meaning from a number alone.
 
 ## Experience target
+
+### Run 58 product decision — mission command strip
+
+The live objective area now behaves like compact operational guidance rather than a generic quest label. It exposes the complete three-step run structure, names the next physical action, previews the opening tower's exact Signal exchange, removes mental subtraction from salvage routing, and interrupts routine advice with the live Sapper drain countdown. This was selected over another room or combat rule because first-minute understanding remains the prerequisite for evaluating the established economy and authored routes. The evaluator is deterministic and presentation-only; it changes no costs, timing, enemy behavior, objectives, scene layout, or input.
 
 ### Run 57 product decision — actionable mission debrief
 

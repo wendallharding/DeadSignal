@@ -19,6 +19,7 @@ namespace DeadSignal
         bool HasSignalReserveArt { get; }
         bool HasRunDebriefArt { get; }
         SignalReserveState CurrentSignalReserveState { get; }
+        int CurrentMissionPhase { get; }
 
         void Configure(RunModel model, RunMetrics metrics, DeadSignalWorld world, DeadSignalThreatController threats);
         void ShowFeedback(string message);
@@ -97,6 +98,7 @@ namespace DeadSignal
         public bool HasSignalReserveArt => m_signalFill != null && m_signalFill.sprite != null;
         public bool HasRunDebriefArt => m_runDebriefTexture != null && _hasTexture(m_runDebriefInsignia);
         public SignalReserveState CurrentSignalReserveState { get; private set; }
+        public int CurrentMissionPhase { get; private set; }
 
         [Inject]
         private void _construct(ICombatFeedback combatFeedback, IComfortSettings comfortSettings, IDeadSignalInput input)
@@ -191,7 +193,10 @@ namespace DeadSignal
             var powered = m_world.IsPowered(m_world.Player.position, m_model.TowerOnline);
             m_zoneText.text = powered ? "● POWERED TERRITORY" : "▲ DEAD ZONE — ACTIVE DRAIN";
             m_zoneText.color = powered ? new Color(0.05f, 0.95f, 1f) : new Color(1f, 0.22f, 0.18f);
-            m_objectiveText.text = _currentObjective();
+            var guidance = MissionGuidance.Evaluate(m_model, m_threats.IsSapperAlive, m_threats.IsSapperLatched,
+                m_threats.SapperPulseCooldown);
+            CurrentMissionPhase = guidance.Phase;
+            m_objectiveText.text = $"PHASE {guidance.Phase}/3  //  {guidance.Title}\n{guidance.Action}\n{guidance.Advisory}";
             m_threatText.text = _sapperStatus();
             m_controlLegendText.text = _activeControlLegend();
             var prompt = _contextPrompt();
@@ -244,14 +249,6 @@ namespace DeadSignal
             }
 
             m_resumeText.text = $"PRESS {_binding("ESC", "GAMEPAD MENU")} TO RESUME";
-        }
-
-        private string _currentObjective()
-        {
-            if (!m_model.TowerOnline) return "OBJECTIVE  Bring the tower online";
-            return !m_model.CanExtract
-                ? $"OBJECTIVE  Recover salvage ({m_model.Salvage}/{RunModel.SalvageRequired})"
-                : "OBJECTIVE  Return to cyan extraction pad";
         }
 
         private string _runReport()
