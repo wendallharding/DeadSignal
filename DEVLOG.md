@@ -4056,3 +4056,37 @@ Mixed Interceptor and Suppressor encounters will create a tactical pincer instea
 - Automated runtime evidence proves a surviving Interceptor retargets to the tuned 3.9-metre edge during the locked Suppressor warning, follows the drone's chosen direction, leaves the perpendicular edge more than five metres away, and still permits the established field escape, Suppressor purge, combat-assisted uplink, victory, and restart flow.
 - No human playtest was performed. Whether players read the pincer before the Interceptor reaches the edge, whether the 0.65-metre margin produces meaningful near-misses, and whether mixed pressure makes the one-second ring warning too demanding remain subjective risks.
 - Manual playtest next: leave the first Interceptor alive, start extraction, then test an obvious radial escape and a late perpendicular feint. Record warning recognition, Interceptor target edge, dash-line recognition, chosen exit, hits, field entries, bolts, Signal at uplink start/end, and whether the alternate route feels discovered rather than arbitrary.
+
+## 2026-08-22 — Autonomous Run 73 — Extraction link modes
+
+### Milestone, player benefit, and acceptance
+
+The extraction dock now turns the shared reserve into one final explicit wager: Use starts the free six-second stable link, while Fire spends 12 Signal for a 4.75-second overdrive. The faster route reduces mixed-role exposure without erasing the promoted Suppressor's 2.5-second safe-entry warning, one-second ring warning, or final movement window. Acceptance required exactly one mode per run, a positive reserve after payment, unchanged movement and combat, choice-input consumption, the same bounded extraction response in both modes, and no changes to enemy stats, rewards, entrances, map content, or the four-response cap.
+
+### Files and systems changed
+
+- `ExtractionUplink.cs` now owns stable/overdrive mode selection, clamped designer durations, the overdrive cost, one-choice lifetime, and the positive-reserve affordability rule while preserving elapsed and purge-driven completion.
+- `ThreatBalanceTuning.cs` and `ThreatBalanceTuning.asset` add the designer-facing 4.75-second overdrive duration and 12-Signal cost beside the unchanged six-second stable duration and 0.75-second purge credit.
+- `DeadSignalGame.cs` intercepts contextual Fire/Use at the eligible dock, prevents the selection input from firing or interacting twice, pays only an affordable overdrive cost, and starts the same extraction-pressure director path for either mode.
+- `DeadSignalHud.cs` presents both exact costs/durations at the dock and keeps the selected link mode plus countdown visible during pursuit.
+- `ExtractionUplinkTests.cs`, `ThreatBalanceTuningTests.cs`, and `BootstrapSmokeTests.cs` cover mode exclusivity, invalid values, affordability, duration separation, preserved warning time, exact payment, input consumption, stable fallback, and the promoted Suppressor response.
+- `GAME_VISION.md`, `BACKLOG.md`, and this devlog record the product decision. No scene, prefab, model, texture, material, audio, enemy statistic, Signal bounty, field behavior, entrance, response count, package, project setting, serialized map data, or generated asset changed.
+
+### Exact validation evidence
+
+1. Unity `6000.3.11f1` import/compile: exit `0`; Tundra build succeeded and Unity exited batch mode cleanly; `Logs/run73-compile.log`.
+2. Focused EditMode before the final affordability regression: exit `0`; `6/6` passed in `0.037479s`; `Logs/run73-editmode-focused-results.xml` and `Logs/run73-editmode-focused.log`.
+3. Focused overdrive PlayMode: exit `0`; `1/1` passed in `0.8919127s`; exact 12-Signal payment, 4.75-second mode, no fired bolt, and promoted Suppressor were observed; `Logs/run73-playmode-focused-results.xml` and `Logs/run73-playmode-focused.log`.
+4. Full EditMode: exit `0`; `81/81` passed, `0` failed, `0` skipped in `0.1507869s`; `Logs/run73-editmode-final-results.xml` and `Logs/run73-editmode-final.log`.
+5. Full PlayMode: exit `0`; `9/9` passed, `0` failed, `0` skipped in `25.4757986s`; the complete runtime still selects the free stable link and finishes the existing Suppressor/purge-accelerated pursuit; `Logs/run73-playmode-final-results.xml` and `Logs/run73-playmode-final.log`.
+6. Post-change focused EditMode: exit `0`; `7/7` passed in `0.0417313s`; `Logs/run73-editmode-postchange-results.xml` and `Logs/run73-editmode-postchange.log`.
+7. Isolated Windows x64 development build from commit `dd66af1`: exit `0`; Unity reported `241,176,193` bytes in `71.36s`; `Logs/run73-build.log`.
+8. Isolated packaged null-device smoke: exit `0` with one `[DEAD SIGNAL STANDALONE SMOKE] PASS`; `Logs/run73-standalone.log`.
+9. Final critical scans found no compiler errors or warnings, null or missing references, unhandled exceptions, failed assertions, build failure, or smoke failure. `git diff --check` passed. The isolated build worktree was removed after its logs were retained.
+
+### Bugs fixed, limitations, playtest evidence, and next step
+
+- An initial cost check would have allowed a drone with exactly 12 Signal to pay the 12-Signal overdrive cost and lose before extraction began. The deterministic affordability rule now requires a positive reserve after payment; an unaffordable Fire choice spends nothing and leaves Use/Stable available.
+- Automated runtime evidence covers both input routes: the complete run selects Stable at six seconds, while the focused high-reserve route selects Overdrive, spends exactly 12 Signal, starts near 4.75 seconds, consumes no ammunition, and promotes the same Suppressor. Tuning evidence keeps the fast duration more than one second beyond entry plus ring warnings.
+- No human playtest was performed. Whether 1.25 seconds is worth 12 Signal, whether Fire-versus-Use reads quickly during a pressured return, whether overdrive dominates high-reserve builds, and whether low-reserve rejection is noticeable remain subjective risks.
+- Manual playtest next: return once above 40 Signal and choose Stable, then repeat the same route and choose Overdrive. Record decision time, Signal before/after, opening ring recognition, field exposure, live roles, hits, purges, finish time, and final reserve. On a third return reach the dock at 12 Signal or lower, press Fire once to verify the no-spend rejection, then Use to confirm Stable remains immediately available.
