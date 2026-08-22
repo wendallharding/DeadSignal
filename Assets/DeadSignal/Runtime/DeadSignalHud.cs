@@ -12,6 +12,7 @@ namespace DeadSignal
         bool HasInputLinkIcon { get; }
         bool HasAudioLinkIcon { get; }
         bool HasBindingMatrixIcon { get; }
+        bool HasBindingConflictIcon { get; }
 
         void Configure(RunModel model, RunMetrics metrics, DeadSignalWorld world, DeadSignalThreatController threats);
         void ShowFeedback(string message);
@@ -43,6 +44,7 @@ namespace DeadSignal
         private Texture2D m_inputLinkIcon;
         private Texture2D m_audioLinkIcon;
         private Texture2D m_bindingMatrixIcon;
+        private Texture2D m_bindingConflictIcon;
         private float m_feedbackTimer;
         private string m_feedback = string.Empty;
 
@@ -53,6 +55,7 @@ namespace DeadSignal
         public bool HasInputLinkIcon => m_inputLinkIcon != null;
         public bool HasAudioLinkIcon => m_audioLinkIcon != null;
         public bool HasBindingMatrixIcon => m_bindingMatrixIcon != null;
+        public bool HasBindingConflictIcon => m_bindingConflictIcon != null;
 
         [Inject]
         private void _construct(
@@ -82,6 +85,7 @@ namespace DeadSignal
             m_inputLinkIcon = Resources.Load<Texture2D>("UI/InputLinkIcon");
             m_audioLinkIcon = Resources.Load<Texture2D>("UI/AudioLinkIcon");
             m_bindingMatrixIcon = Resources.Load<Texture2D>("UI/BindingMatrixIcon");
+            m_bindingConflictIcon = Resources.Load<Texture2D>("UI/BindingConflictIcon");
         }
 
         void IDeadSignalHud.ShowFeedback(string message)
@@ -291,14 +295,19 @@ namespace DeadSignal
             GUI.color = new Color(0.025f, 0.07f, 0.085f, 0.98f);
             GUI.Box(new Rect(left, thirdRow, panelWidth * 2f + panelGap, panelHeight), GUIContent.none);
             GUI.color = Color.white;
-            if (m_bindingMatrixIcon != null)
+            var routingIcon = string.IsNullOrEmpty(m_input.RebindStatusMessage) ? m_bindingMatrixIcon : m_bindingConflictIcon;
+            if (routingIcon != null)
             {
-                GUI.DrawTexture(new Rect(left + 10f, thirdRow + 9f, 54f, 54f), m_bindingMatrixIcon, ScaleMode.ScaleToFit, true);
+                GUI.DrawTexture(new Rect(left + 10f, thirdRow + 9f, 54f, 54f), routingIcon, ScaleMode.ScaleToFit, true);
             }
 
             GUI.Label(new Rect(left + 74f, thirdRow + 8f, 178f, 24f), "CONTROL ROUTING", m_labelStyle);
-            m_smallStyle.normal.textColor = m_input.IsRebinding ? new Color(1f, 0.68f, 0.12f) : new Color(0.08f, 0.96f, 1f);
+            var hasConflict = !string.IsNullOrEmpty(m_input.RebindStatusMessage);
+            m_smallStyle.normal.textColor = hasConflict
+                ? new Color(1f, 0.28f, 0.12f)
+                : m_input.IsRebinding ? new Color(1f, 0.68f, 0.12f) : new Color(0.08f, 0.96f, 1f);
             GUI.Label(new Rect(left + 74f, thirdRow + 36f, 190f, 25f),
+                hasConflict ? m_input.RebindStatusMessage :
                 m_input.IsRebinding ? "PRESS A KEY  |  ESC CANCELS" : "PERSISTED KEYBOARD BINDINGS", m_smallStyle);
             GUI.enabled = !m_input.IsRebinding;
             if (GUI.Button(new Rect(left + 268f, thirdRow + 17f, 156f, 38f), $"FIRE  {m_input.FireKeyboardBinding}"))

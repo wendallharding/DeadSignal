@@ -3107,3 +3107,57 @@ The user's Unity Editor remained open and untouched. Validation used isolated `C
 ### Best next step
 
 Interactively remap both actions, click Reset, confirm Space/E appear instantly and still apply after relaunch, then extend the action-backed pattern to movement with duplicate-binding warnings.
+
+## 2026-08-21 - Autonomous Run 51
+
+### Today's single idea
+
+**Conflict-safe primary remapping.** Fire and Use can no longer be routed to the same keyboard key; a duplicate attempt preserves the valid binding and shows a dedicated conflict state while capture remains active.
+
+Player benefit: players cannot accidentally collapse two essential actions onto one key and strand themselves with an ambiguous control layout.
+
+Acceptance criteria:
+
+- reject a Fire/Use key already assigned to the other primary action;
+- preserve the current runtime binding and PlayerPrefs value after rejection, keep capture active, and allow Escape or another key to recover;
+- show concise amber-red feedback and original commercially safe conflict art in the pause panel;
+- require the art in runtime and packaged-player readiness checks; and
+- preserve movement, mouse/controller paths, gameplay rules, tuning, scenes, prefabs, packages, and project settings while passing Unity validation.
+
+### Files and systems changed
+
+- `Assets/DeadSignal/Resources/UI/BindingConflictIcon.png` and Unity-generated `.meta`: added an original graphite, ceramic, cyan, and amber-red routing-conflict icon generated with OpenAI's built-in image-generation mode. SHA-256: `6833DBDD0AF1BC99D65E4AE83FE06DF91DE5B3AE10BD01BB749E5E87AE2E0AE9`.
+- Final image-generation prompt: a centered square hard-surface sci-fi UI panel where two cyan circuit traces converge on a blocked amber-red junction, readable at 48 pixels, with no text, logos, brands, characters, or watermark.
+- `Assets/DeadSignal/Runtime/DeadSignalInput.cs`: owns duplicate detection before override persistence, conflict status, continued capture, and clean status reset on success, cancellation, reset, or a new capture.
+- `Assets/DeadSignal/Runtime/DeadSignalHud.cs`: loads and displays the conflict icon and concise amber-red status within the existing Control Routing panel.
+- `Assets/DeadSignal/Runtime/DeadSignalGame.cs`: exposes narrow readiness and status hooks for integration validation.
+- `Assets/DeadSignal/Runtime/StandaloneBuildSmokeProbe.cs`: requires the new conflict icon in the packaged player.
+- `Assets/DeadSignal/Tests/DeadSignalInputTests.cs`: proves duplicate rejection, binding preservation, persistence safety, continued capture, and exact player feedback.
+- `Assets/DeadSignal/Tests/PlayMode/BootstrapSmokeTests.cs`: verifies the conflict art loads through the full runtime composition.
+- `GAME_VISION.md`, `BACKLOG.md`, and `DEVLOG.md`: record the player value, selection rationale, acceptance criteria, implementation, evidence, risks, and next step.
+
+The existing `DeadSignalInput` production refactor remains focused: the touched class now owns the binding invariant alongside capture and persistence. No designer-facing gameplay tuning exists in this class, so no ScriptableObject migration was appropriate. The owner's pre-existing uncommitted `AGENTS.md` and `OWNER_NOTES.md` changes were preserved and excluded.
+
+### Tests run and exact outcomes
+
+The user's main Unity Editor remained open and untouched. Validation used the warm isolated `C:\Projects\Wendall\CodexPrototype_Run50Validation` copy with pinned Unity `6000.3.11f1`; a fresh Run 51 copy was abandoned after its first full Library rebuild stopped making progress at the initial AssetDatabase refresh, and only that isolated process was terminated.
+
+1. OpenAI built-in image generation produced the original `1254x1254` binding-conflict icon. It was visually inspected for a readable two-route collision, restrained cyan/amber-red hierarchy, strong small-size silhouette, and absence of text/logos.
+2. Unity import/compile wrote `Logs/run51-import.log`, imported the new texture and `.meta`, compiled all runtime and test assemblies without compiler errors, and exited `0`.
+3. EditMode wrote `Logs/run51-editmode-results.xml` and `.log`: `28/28` passed, `0` failed, `0` skipped, `0` inconclusive in `0.1280608` seconds, exit `0`.
+4. PlayMode wrote `Logs/run51-playmode-results.xml` and `.log`: `3/3` passed, `0` failed, `0` skipped, `0` inconclusive in `6.6176786` seconds, exit `0`.
+5. Windows development build wrote `Logs/run51-build.log`: `Build Finished, Result: Success`, one build PASS marker, `219,663,873` reported bytes in `14.71` seconds, exit `0`.
+6. Packaged `-batchmode -nographics -deadSignalBuildSmoke` wrote `Logs/run51-standalone.log`, loaded the new Resource, emitted one standalone PASS marker, and exited `0`.
+
+### Bugs found and fixed
+
+- Fire and Use previously accepted the same keyboard path without warning. Duplicate capture now leaves both the runtime and persisted valid routes unchanged.
+
+### Known limitations
+
+- Native click/key/cancel behavior and pause-panel fit still require an interactive human pass; batch tests validate the underlying state transition and runtime asset composition.
+- This scope covers Fire/Use only. Movement, mouse buttons, controller remapping, controller-navigable settings, and platform-specific glyph families remain future work.
+
+### Best next step
+
+Pause, click Fire, press the current Use key, confirm the conflict state appears and Fire remains unchanged, then choose a different key and confirm capture completes.

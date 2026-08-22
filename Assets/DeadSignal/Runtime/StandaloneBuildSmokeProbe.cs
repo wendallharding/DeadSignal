@@ -130,7 +130,9 @@ namespace DeadSignal
                                 game.HasLowSignalWarningTexture &&
                                 game.HasTowerActivationSweepTexture &&
                                 game.HasBindingMatrixIcon &&
-                                Resources.Load<Texture2D>("UI/BindingMatrixIcon") != null;
+                                Resources.Load<Texture2D>("UI/BindingMatrixIcon") != null &&
+                                game.HasBindingConflictIcon &&
+                                Resources.Load<Texture2D>("UI/BindingConflictIcon") != null;
             if (!runtimeReady)
             {
                 Debug.LogError("[DEAD SIGNAL STANDALONE SMOKE] FAIL | Runtime composition is incomplete.");

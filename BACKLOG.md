@@ -20,6 +20,7 @@
 - [ ] Add remappable Input Actions and platform-specific button glyph sets
 - [x] Add persisted pause-menu remapping for primary keyboard Fire and Use actions
 - [x] Add one-click reset-to-default recovery for primary keyboard bindings
+- [x] Reject duplicate primary keyboard bindings with persistent-safe conflict feedback
 - [ ] Replace bootstrap arena with modular authored room prefabs
 - [x] Add a tunable player-follow tactical camera that preserves arena-edge framing and combat impulse
 - [x] Connect a scene-authored optional east salvage vault and allow extraction after any three of four caches

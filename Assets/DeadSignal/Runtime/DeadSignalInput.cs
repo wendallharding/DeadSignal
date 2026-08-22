@@ -14,6 +14,7 @@ namespace DeadSignal
     {
         InputPromptDevice ActivePromptDevice { get; }
         bool IsRebinding { get; }
+        string RebindStatusMessage { get; }
         string FireKeyboardBinding { get; }
         string InteractKeyboardBinding { get; }
 
@@ -51,6 +52,7 @@ namespace DeadSignal
 
         public InputPromptDevice ActivePromptDevice { get; private set; } = InputPromptDevice.KeyboardMouse;
         public bool IsRebinding => m_rebindingAction != null;
+        public string RebindStatusMessage { get; private set; } = string.Empty;
         public string FireKeyboardBinding => _keyboardBindingName(m_fireAction, 1);
         public string InteractKeyboardBinding => _keyboardBindingName(m_interactAction, 0);
 
@@ -185,6 +187,7 @@ namespace DeadSignal
             PlayerPrefs.DeleteKey(FIRE_BINDING_KEY);
             PlayerPrefs.DeleteKey(INTERACT_BINDING_KEY);
             PlayerPrefs.Save();
+            RebindStatusMessage = string.Empty;
             _useKeyboardMouse();
         }
 
@@ -197,6 +200,7 @@ namespace DeadSignal
 
             m_rebindingAction.Enable();
             m_rebindingAction = null;
+            RebindStatusMessage = string.Empty;
         }
 
         public void Dispose()
@@ -272,6 +276,7 @@ namespace DeadSignal
             m_rebindingAction = action;
             m_rebindingIndex = bindingIndex;
             m_rebindingPreferenceKey = preferenceKey;
+            RebindStatusMessage = string.Empty;
         }
 
         private void _captureKeyboardRebind()
@@ -297,15 +302,32 @@ namespace DeadSignal
                     }
 
                     var path = $"<Keyboard>/{control.name}";
-                    m_rebindingAction.ApplyBindingOverride(m_rebindingIndex, path);
-                    PlayerPrefs.SetString(m_rebindingPreferenceKey, path);
-                    PlayerPrefs.Save();
-                    m_rebindingAction.Enable();
-                    m_rebindingAction = null;
-                    _useKeyboardMouse();
-                    return;
+                    if (_tryApplyKeyboardRebind(path))
+                    {
+                        return;
+                    }
                 }
             }
+        }
+
+        private bool _tryApplyKeyboardRebind(string path)
+        {
+            var otherAction = m_rebindingAction == m_fireAction ? m_interactAction : m_fireAction;
+            var otherBindingIndex = otherAction == m_fireAction ? 1 : 0;
+            if (string.Equals(path, otherAction.bindings[otherBindingIndex].effectivePath, System.StringComparison.OrdinalIgnoreCase))
+            {
+                RebindStatusMessage = $"{_keyboardBindingName(otherAction, otherBindingIndex)} IS ALREADY ASSIGNED";
+                return false;
+            }
+
+            m_rebindingAction.ApplyBindingOverride(m_rebindingIndex, path);
+            PlayerPrefs.SetString(m_rebindingPreferenceKey, path);
+            PlayerPrefs.Save();
+            m_rebindingAction.Enable();
+            m_rebindingAction = null;
+            RebindStatusMessage = string.Empty;
+            _useKeyboardMouse();
+            return true;
         }
 
         private static void _loadOverride(InputAction action, int bindingIndex, string preferenceKey)
