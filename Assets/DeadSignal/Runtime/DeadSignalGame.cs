@@ -268,6 +268,8 @@ namespace DeadSignal
         private void Update()
         {
             _handlePauseInput();
+            var dt = Mathf.Min(Time.deltaTime, 0.05f);
+            m_hud.Tick(dt);
 
             if (m_combatFeedback.IsFrozen)
             {
@@ -279,8 +281,6 @@ namespace DeadSignal
                 return;
             }
 
-            var dt = Mathf.Min(Time.deltaTime, 0.05f);
-            m_hud.Tick(dt);
             m_threats.TickCooldown(dt);
 
             if (m_model.Outcome != RunOutcome.Running)

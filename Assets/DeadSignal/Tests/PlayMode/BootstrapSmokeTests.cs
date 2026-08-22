@@ -818,6 +818,12 @@ namespace DeadSignal.Tests
                 Assert.That(game.ActiveInputPromptDevice, Is.EqualTo(InputPromptDevice.Gamepad),
                     "A meaningful controller action should immediately switch every adaptive prompt to gamepad guidance.");
                 Assert.That(Time.timeScale, Is.Zero);
+                var pauseOverlay = hudCanvas.transform.Find("Pause Overlay").gameObject;
+                var runHud = hudCanvas.transform.Find("Run HUD").gameObject;
+                Assert.That(pauseOverlay.activeSelf, Is.True,
+                    "Pausing must refresh the Canvas before the frozen-frame early return.");
+                Assert.That(runHud.activeSelf, Is.False,
+                    "The live run HUD should yield to the pause overlay while gameplay is frozen.");
                 yield return new WaitForSecondsRealtime(0.1f);
                 Assert.That(game.CurrentSignal, Is.EqualTo(signalBeforePause), "Signal must not drain while paused.");
 
@@ -933,6 +939,8 @@ namespace DeadSignal.Tests
                 yield return null;
                 Assert.That(game.IsPaused, Is.False, "Gamepad Menu should resume a paused game.");
                 Assert.That(Time.timeScale, Is.EqualTo(1f));
+                Assert.That(pauseOverlay.activeSelf, Is.False);
+                Assert.That(runHud.activeSelf, Is.True);
                 Assert.That(signalDust.isPlaying, Is.True, "Ambient Signal dust should resume with the run.");
 
                 player.position = new Vector3(7.5f, 0f, -4f);

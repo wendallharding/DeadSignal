@@ -3477,3 +3477,13 @@ This pass was selected over another objective or room because Signal is the comm
 - Headless validation cannot judge conduit detail at the bar's final pixel height, amber/red contrast in the complete scene, or whether the critical pulse feels restrained at 16:9 and ultrawide.
 - The generated conduit has detailed end caps that may compress at small HUD sizes; the fill mask can crop them as Signal falls. A manual visual pass should determine whether a simpler center-only variant is preferable.
 - Best next step: play one run at 16:9 and ultrawide with Reduced Flashes both off and on, deliberately cross 60% and 25% Signal, and assess label fit, tint separation, pulse comfort, and fill cropping before changing thresholds.
+
+## 2026-08-21 — Canvas pause-overlay follow-up
+
+- Reproduced the reported behavior from code flow: Escape/Menu set the authoritative paused state and `Time.timeScale = 0`, but `DeadSignalGame.Update` returned for the frozen frame before `DeadSignalHud.Tick` could activate the authored Canvas pause overlay.
+- Moved HUD refresh ahead of the frozen-state guard. The Canvas now updates on the transition frame and every paused frame with `dt = 0`, so gameplay remains frozen while pause options, adaptive prompts, and rebind status stay current.
+- Added PlayMode assertions that the pause overlay becomes active and the run HUD inactive after pause, then reverse after resume.
+- The owner's live Unity Editor was left open and untouched. Validation ran in isolated `C:\Projects\Wendall\CodexPrototype_PauseValidation` with Unity `6000.3.11f1`.
+- Focused complete-runtime PlayMode result: exit `0`, `1/1` passed, `0` failed, `0` skipped in `4.7856772s`; result `pause-overlay-results.xml`, log `pause-overlay.log` in the isolated validation project.
+- Changed only `DeadSignalGame.cs`, `BootstrapSmokeTests.cs`, and this development-log entry. No prefab, scene, UI layout, gameplay rule, tuning, input binding, package, project-setting, or serialized-data changes were required.
+- Manual check: let the open Editor import the scripts, press Escape during a run, verify the overlay appears immediately, toggle one option, and press Escape again to resume.
