@@ -89,6 +89,8 @@ namespace DeadSignal.Editor
 
             material.SetColor("_BaseColor", Color.white);
             material.SetTexture("_BaseMap", AssetDatabase.LoadAssetAtPath<Texture2D>(TEXTURE_PATH));
+            material.SetTextureScale("_BaseMap", new Vector2(-1f, -1f));
+            material.SetTextureOffset("_BaseMap", Vector2.one);
             EditorUtility.SetDirty(material);
         }
 

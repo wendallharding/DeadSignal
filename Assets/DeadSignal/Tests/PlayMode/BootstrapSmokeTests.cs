@@ -86,6 +86,9 @@ namespace DeadSignal.Tests
             Assert.That(signalSpineTexture, Is.Not.Null);
             Assert.That(signalSpineMaterial, Is.Not.Null);
             Assert.That(signalSpineMaterial.mainTexture, Is.EqualTo(signalSpineTexture));
+            Assert.That(signalSpineMaterial.mainTextureScale, Is.EqualTo(new Vector2(-1f, -1f)),
+                "The generated inlay artwork requires a 180-degree UV rotation to face the tower.");
+            Assert.That(signalSpineMaterial.mainTextureOffset, Is.EqualTo(Vector2.one));
             var towerPosition = new Vector3(-0.6f, 0f, 0.4f);
             var routeDistances = signalSpine.transform.Cast<Transform>()
                 .Select(inlay => Vector3.Distance(inlay.position, towerPosition)).ToArray();
