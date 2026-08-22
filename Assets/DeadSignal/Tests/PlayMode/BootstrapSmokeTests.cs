@@ -89,6 +89,19 @@ namespace DeadSignal.Tests
             Assert.That(signalSpineMaterial.mainTextureScale, Is.EqualTo(new Vector2(-1f, -1f)),
                 "The generated inlay artwork requires a 180-degree UV rotation to face the tower.");
             Assert.That(signalSpineMaterial.mainTextureOffset, Is.EqualTo(Vector2.one));
+            var signalBoundaryThreshold = GameObject.Find("Signal Boundary Threshold");
+            var signalBoundaryTexture = Resources.Load<Texture2D>("Environment/SignalBoundaryThreshold");
+            var signalBoundaryMaterial = Resources.Load<Material>("Materials/SignalBoundaryThreshold");
+            Assert.That(signalBoundaryThreshold, Is.Not.Null,
+                "The extraction-field boundary should be authored directly in SampleScene.");
+            Assert.That(signalBoundaryThreshold.GetComponentsInChildren<Renderer>().Length, Is.EqualTo(1));
+            Assert.That(signalBoundaryThreshold.GetComponentsInChildren<Collider>().Length, Is.Zero,
+                "The boundary threshold is presentation-only and must not block the opening route.");
+            Assert.That(signalBoundaryTexture, Is.Not.Null);
+            Assert.That(signalBoundaryMaterial, Is.Not.Null);
+            Assert.That(signalBoundaryMaterial.mainTexture, Is.EqualTo(signalBoundaryTexture));
+            Assert.That(Vector3.Distance(signalBoundaryThreshold.transform.position, new Vector3(-6.25f, 0.038f, -3.54f)),
+                Is.LessThan(0.01f), "The threshold should align with the extraction field's opening-route edge.");
             var towerPosition = new Vector3(-0.6f, 0f, 0.4f);
             var routeDistances = signalSpine.transform.Cast<Transform>()
                 .Select(inlay => Vector3.Distance(inlay.position, towerPosition)).ToArray();

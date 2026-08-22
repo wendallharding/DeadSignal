@@ -214,3 +214,15 @@ When Codex finishes a task:
 - Clearly call out package, project-setting, scene, prefab, serialized-data, or generated-file changes.
 - Clearly call out conventions intentionally not followed and why.
 - Mention any new Unity asset whose `.meta` still requires generation or validation.
+
+## Level-authoring requirements
+
+Prefer authoring the map through Unity scenes, prefabs, and serialized configuration rather than constructing level geometry and content through runtime code.
+
+- Build reusable modular environment prefabs for floors, walls, doors, hazards, landmarks, encounter spaces, and decorative elements.
+- Place environment geometry, objectives, enemies, pickups, lighting, and navigation cues directly in the scene wherever practical.
+- Use code for reusable behavior and runtime state, not for defining the map layout.
+- Gradually migrate existing runtime-generated map content into scene-authored objects without breaking the current playable loop.
+- Avoid a risky all-at-once rewrite. Each run should leave the game playable and should convert or improve one coherent section of the map.
+- Keep tuning data in ScriptableObjects or serialized prefab/scene fields when it may need adjustment during playtesting.
+- Prefer authored meshes and materials over primitive placeholder geometry for important landmarks and frequently seen structures.

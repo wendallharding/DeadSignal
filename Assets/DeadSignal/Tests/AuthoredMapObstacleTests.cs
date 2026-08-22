@@ -52,5 +52,53 @@ namespace DeadSignal.Tests
                 Object.DestroyImmediate(root);
             }
         }
+
+        [Test]
+        public void TryResolveSlide_ProjectsBlockedMovementAlongRotatedEdge()
+        {
+            var root = new GameObject("Rotated slide test");
+            try
+            {
+                var obstacle = root.AddComponent<AuthoredMapObstacle>();
+                obstacle.Configure(new Vector2(2f, 0.5f));
+                root.transform.rotation = Quaternion.Euler(0f, 45f, 0f);
+
+                const float radius = 0.25f;
+                var current = root.transform.TransformPoint(new Vector3(0f, 0f, -0.85f));
+                var desired = current + root.transform.forward * 0.5f + root.transform.right * 0.7f;
+
+                Assert.That(obstacle.TryResolveSlide(current, desired, radius, out var resolved), Is.True);
+                Assert.That(obstacle.OverlapsCircle(resolved, radius), Is.False);
+                Assert.That(Vector3.Distance(resolved, current), Is.GreaterThan(0.6f),
+                    "Blocked diagonal movement should retain its component along the rotated obstacle edge.");
+                Assert.That(Vector3.Dot(resolved - current, root.transform.right), Is.GreaterThan(0.6f));
+            }
+            finally
+            {
+                Object.DestroyImmediate(root);
+            }
+        }
+
+        [Test]
+        public void OverlapsCircle_DoesNotSquareOffRotatedObstacleCorners()
+        {
+            var root = new GameObject("Rotated rounded corner test");
+            try
+            {
+                var obstacle = root.AddComponent<AuthoredMapObstacle>();
+                obstacle.Configure(new Vector2(2f, 0.5f));
+                root.transform.rotation = Quaternion.Euler(0f, 30f, 0f);
+
+                const float radius = 0.25f;
+                var openCorner = root.transform.TransformPoint(new Vector3(2.2f, 0f, 0.7f));
+
+                Assert.That(obstacle.OverlapsCircle(openCorner, radius), Is.False,
+                    "Circle collision should keep the rounded clearance around an oriented box corner.");
+            }
+            finally
+            {
+                Object.DestroyImmediate(root);
+            }
+        }
     }
 }

@@ -45,6 +45,7 @@ namespace DeadSignal.Editor
             DeadSignalCameraSetup.EnsureAssets();
             DeadSignalEastVaultSetup.EnsureAssets();
             DeadSignalSignalSpineSetup.EnsureAssets();
+            DeadSignalBoundaryThresholdSetup.EnsureAssets();
             _validateBuildInputs();
             _configureWindowsPlayer();
 
@@ -217,6 +218,11 @@ namespace DeadSignal.Editor
             if (!DeadSignalSignalSpineSetup.HasAssets)
             {
                 throw new BuildFailedException("The authored opening Signal-spine assets are missing.");
+            }
+
+            if (!DeadSignalBoundaryThresholdSetup.HasAssets)
+            {
+                throw new BuildFailedException("The authored Signal boundary-threshold assets are missing.");
             }
 
             if (AssetDatabase.LoadAssetAtPath<Texture2D>(APPLICATION_ICON_PATH) == null)

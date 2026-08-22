@@ -3161,3 +3161,75 @@ The user's main Unity Editor remained open and untouched. Validation used the wa
 ### Best next step
 
 Pause, click Fire, press the current Use key, confirm the conflict state appears and Fire remains unchanged, then choose a different key and confirm capture completes.
+
+## 2026-08-21 - Rotated obstacle movement sliding
+
+### Outcome
+
+- Replaced the world-axis-only collision fallback with an oriented sweep-and-slide response for movement blockers.
+- Blocked movement now advances to the contacted edge and preserves the remaining component parallel to that edge, including for rotated authored obstacles.
+- Refined the response to use an exact swept circle against oriented faces and rounded corners instead of a box expanded into square corners.
+- Resolves up to three contacts per movement update so motion can continue around a corner or onto an adjacent blocker during the same frame.
+- Added `AuthoredMapObstacleTests.TryResolveSlide_ProjectsBlockedMovementAlongRotatedEdge` as a focused 45-degree regression case.
+- Added `AuthoredMapObstacleTests.OverlapsCircle_DoesNotSquareOffRotatedObstacleCorners` to protect rounded corner clearance.
+
+### Validation
+
+- `dotnet build DeadSignal.Runtime.csproj --no-restore -v:minimal`: succeeded with 0 warnings and 0 errors. This is a supplementary compile check, not authoritative Unity validation.
+- `dotnet build DeadSignal.Tests.EditMode.csproj --no-restore -v:minimal`: succeeded with 0 warnings and 0 errors; tests were compiled but not executed.
+- `git diff --check`: passed.
+- Unity Test Runner and interactive movement validation were not run because the user's project was already open in Unity. The focused EditMode test and in-game feel still require execution in that live Editor.
+
+### Best next step
+
+Run the EditMode suite, then hold diagonal movement into several 30-60 degree authored obstacle edges and verify smooth sliding at both ends and through nearby corners.
+
+## 2026-08-21 - Autonomous Run 52 - Authored Signal boundary threshold
+
+### Today's single idea
+
+Add one reusable, scene-authored floor threshold at the opening-route edge of extraction's powered field. Original cyan maintenance circuitry faces the safe side and amber hazard plating faces the dead zone, making the first Signal-drain crossing readable from the station itself.
+
+### Player benefit and acceptance criteria
+
+Players learn the game's central safe-territory-versus-dead-zone rule before the HUD reports drain, reducing first-minute ambiguity without adding text or a new mechanic.
+
+- The threshold is a reusable prefab placed directly in `SampleScene` at the 3.6-unit extraction-field boundary along the route to the tower.
+- Cyan and amber halves clearly distinguish safe and draining sides from the top-down camera.
+- The asset has one renderer, no collider, and does not alter Signal, movement, encounter, or balance rules.
+- Build validation requires the prefab, texture, and material, while PlayMode verifies scene placement, Resources loading, and the collision-free invariant.
+
+### Files and systems changed
+
+- Generated original 1254x1254 graphite/cyan/amber floor art with the built-in image tool and added `SignalBoundaryThreshold.png`; SHA-256 is `5B47A754D0C073D2F1867A358AC1AFE64D68402FB4CA400B839B09011F54407E`.
+- Added `DeadSignalBoundaryThresholdSetup`, an idempotent Editor composition gate that imports the texture, creates a persistent URP Unlit material, creates the no-collision quad prefab, and places it at `(-6.25, 0.038, -3.54)`.
+- Added the persistent threshold prefab/material and placed the prefab instance directly in `SampleScene`.
+- Extended Windows build input checks, packaged smoke Resources checks, and `BootstrapSmokeTests` coverage.
+- Updated `GAME_VISION.md` and `BACKLOG.md` with the player value, acceptance criteria, and rationale. No packages, project settings, tuning data, runtime gameplay rules, assemblies, or generated source changed for this idea.
+- Preserved the pre-existing rotated-obstacle slide changes, repository instruction edits, and cleared owner notes. A concurrent Signal-spine UV-rotation edit appeared during the run; its generated material was refreshed to match and the corrected existing assertion was revalidated.
+
+### Tests and exact outcomes
+
+The user's main Unity Editor remained open and untouched. Authoritative validation used the warmed isolated project `C:\Projects\Wendall\CodexPrototype_Run50Validation` with Unity `6000.3.11f1`.
+
+1. Threshold setup/import wrote `Logs/run52-setup.log`: exit `0`; Unity imported the texture, generated all new `.meta` files, created the material/prefab, placed the scene instance, saved assets, and quit successfully.
+2. EditMode wrote `Logs/run52-editmode-results.xml` and `Logs/run52-editmode.log`: `30/30` passed, `0` failed, `0` skipped in `0.1499574` seconds; exit `0`.
+3. Initial PlayMode wrote `Logs/run52-playmode-results.xml`: `2/3` passed and `1` failed because the concurrent Signal-spine UV source edit had not regenerated its material. This was an existing-asset consistency failure, not a threshold failure.
+4. Signal-spine setup regeneration wrote `Logs/run52-spine-setup.log`: exit `0`. Final PlayMode wrote `Logs/run52-playmode-final-results.xml` and `Logs/run52-playmode-final.log`: `3/3` passed, `0` failed, `0` skipped in `6.458332` seconds; exit `0`.
+5. Windows development build wrote `Logs/run52-build.log`: succeeded in `17.01` seconds at `221,068,189` total bytes; exit `0`.
+6. Packaged `-batchmode -nographics -deadSignalBuildSmoke` wrote `Logs/run52-standalone.log`: loaded the complete runtime and new threshold Resources, emitted one PASS marker, and exited `0`.
+7. Strict compiler/runtime failure-pattern scans and `git diff --check` were clean after correction.
+
+### Bugs found and fixed
+
+- Diagnosed the concurrent Signal-spine source/material mismatch and regenerated its persistent material so the intended 180-degree UV rotation now satisfies the existing tower-facing regression.
+- A fresh isolated Unity copy stalled without progress at its first AssetDatabase refresh. Only that validation-owned process was stopped; validation moved to the known-good warmed copy without touching the user's Editor.
+
+### Known limitations
+
+- Headless tests prove placement, resource packaging, and collision-free composition but cannot judge threshold brightness, orientation, z-fighting, or small-screen readability.
+- The threshold is aligned to the present authored opening route and fixed extraction radius. A future modular-room conversion should derive or serialize equivalent placement rather than duplicate this coordinate across layouts.
+
+### Best next step
+
+Cross the threshold slowly with the HUD ignored, confirm cyan remains behind the drone and amber leads into the dead zone, then verify the first Signal-drain tick feels synchronized with the visual seam at 16:9 and ultrawide.

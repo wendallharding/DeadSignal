@@ -26,6 +26,7 @@
 - [x] Connect a scene-authored optional east salvage vault and allow extraction after any three of four caches
 - [x] Make authored cover and closed gates intercept Signal bolts with readable impact feedback
 - [x] Add a scene-authored Signal spine that guides the opening route from extraction to the tower
+- [x] Mark the extraction field's opening-route edge with a scene-authored Signal boundary threshold
 - [x] Establish the first reusable authored room component with a textured maintenance-deck prefab
 - [x] Author the first textured room-shell prefab with perimeter bulkheads and machine sockets
 - [x] Place a reusable authored tower-approach junction in the scene with obstacle-driven movement lanes

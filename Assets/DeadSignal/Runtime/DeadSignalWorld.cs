@@ -93,26 +93,41 @@ namespace DeadSignal
 
         public Vector3 ResolveMovement(Vector3 current, Vector3 desired, float radius, bool shortcutOpen)
         {
-            if (!_isBlocked(desired, radius, shortcutOpen))
+            var position = current;
+            var target = desired;
+            for (var iteration = 0; iteration < 3; iteration++)
             {
-                return desired;
+                var nearestFraction = float.PositiveInfinity;
+                var nearestNormal = Vector2.zero;
+                foreach (var blocker in m_movementBlockers)
+                {
+                    if ((blocker.IsShortcutGate && shortcutOpen) ||
+                        !blocker.TryGetSweepHit(position, target, radius, out var hitFraction, out var hitNormal) ||
+                        hitFraction >= nearestFraction)
+                    {
+                        continue;
+                    }
+
+                    nearestFraction = hitFraction;
+                    nearestNormal = hitNormal;
+                }
+
+                if (float.IsPositiveInfinity(nearestFraction))
+                {
+                    return target;
+                }
+
+                var resolved = OrientedObstacleCollision.ResolveSlide(position, target, nearestFraction, nearestNormal);
+                position = Vector3.Lerp(position, target, nearestFraction) +
+                           new Vector3(nearestNormal.x, 0f, nearestNormal.y) * 0.001f;
+                target = resolved;
+                if ((target - position).sqrMagnitude <= Mathf.Epsilon)
+                {
+                    return position;
+                }
             }
 
-            var xOnly = new Vector3(desired.x, current.y, current.z);
-            var zOnly = new Vector3(current.x, current.y, desired.z);
-            var canMoveX = !_isBlocked(xOnly, radius, shortcutOpen);
-            var canMoveZ = !_isBlocked(zOnly, radius, shortcutOpen);
-            if (canMoveX && canMoveZ)
-            {
-                return Mathf.Abs(desired.x - current.x) >= Mathf.Abs(desired.z - current.z) ? xOnly : zOnly;
-            }
-
-            if (canMoveX)
-            {
-                return xOnly;
-            }
-
-            return canMoveZ ? zOnly : current;
+            return position;
         }
 
         public bool TryGetProjectileObstacleHit(
@@ -925,9 +940,32 @@ namespace DeadSignal
 
             public bool Overlaps(Vector3 position, float radius)
             {
-                var delta = new Vector2(position.x - Center.x, position.z - Center.y);
-                return Mathf.Abs(Vector2.Dot(delta, RightAxis)) < HalfSize.x + radius &&
-                       Mathf.Abs(Vector2.Dot(delta, ForwardAxis)) < HalfSize.y + radius;
+                return OrientedObstacleCollision.Overlaps(
+                    position,
+                    radius,
+                    Center,
+                    HalfSize,
+                    RightAxis,
+                    ForwardAxis);
+            }
+
+            public bool TryGetSweepHit(
+                Vector3 current,
+                Vector3 desired,
+                float radius,
+                out float hitFraction,
+                out Vector2 hitNormal)
+            {
+                return OrientedObstacleCollision.TryGetSweepHit(
+                    current,
+                    desired,
+                    radius,
+                    Center,
+                    HalfSize,
+                    RightAxis,
+                    ForwardAxis,
+                    out hitFraction,
+                    out hitNormal);
             }
 
             public bool TryGetSegmentHitFraction(Vector3 start, Vector3 end, float radius, out float hitFraction)
