@@ -663,6 +663,12 @@ namespace DeadSignal.Tests
                 "Two scene-authored flank gates should give the director a safe route choice.");
             Assert.That(interceptor.gameObject.activeSelf, Is.False);
             Assert.That(game.transform.Find("Interceptor Charge Telegraph"), Is.Not.Null);
+            var suppressor = game.transform.Find("Security Suppressor");
+            Assert.That(suppressor, Is.Not.Null, "The extraction Suppressor should be composed before its bounded reserve deploys.");
+            Assert.That(game.HasSecuritySuppressorAssets, Is.True);
+            Assert.That(game.SecuritySuppressorPartCount, Is.EqualTo(4));
+            Assert.That(suppressor.gameObject.activeSelf, Is.False);
+            Assert.That(game.transform.Find("Suppressor Field Warning").gameObject.activeSelf, Is.False);
             var telegraphRoot = game.transform.Find("Sapper Drain Telegraph");
             Assert.That(telegraphRoot, Is.Not.Null, "The Sapper telegraph should be constructed with the runtime arena.");
             var telegraph = telegraphRoot.GetComponent<SignalSapperTelegraph>();

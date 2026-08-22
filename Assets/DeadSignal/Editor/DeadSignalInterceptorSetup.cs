@@ -10,6 +10,7 @@ namespace DeadSignal.Editor
     public static class DeadSignalInterceptorSetup
     {
         private const string ACTOR_PREFAB_PATH = "Assets/DeadSignal/Resources/Actors/SecurityInterceptorAssembly.prefab";
+        private const string SUPPRESSOR_PREFAB_PATH = "Assets/DeadSignal/Resources/Actors/SecuritySuppressorAssembly.prefab";
         private const string ENTRANCE_PREFAB_PATH = "Assets/DeadSignal/Resources/Environment/InterceptorEntryGate.prefab";
         private const string SCENE_PATH = "Assets/Scenes/SampleScene.unity";
         private const string ARMOR_MATERIAL_PATH = "Assets/DeadSignal/Resources/Materials/SecurityWardenArmor.mat";
@@ -26,6 +27,7 @@ namespace DeadSignal.Editor
                 var actor = AssetDatabase.LoadAssetAtPath<GameObject>(ACTOR_PREFAB_PATH);
                 var entrance = AssetDatabase.LoadAssetAtPath<GameObject>(ENTRANCE_PREFAB_PATH);
                 return _hasActorParts(actor) &&
+                       _hasSuppressorParts(AssetDatabase.LoadAssetAtPath<GameObject>(SUPPRESSOR_PREFAB_PATH)) &&
                        entrance != null &&
                        entrance.GetComponent<AuthoredInterceptorEntrance>() != null;
             }
@@ -34,6 +36,7 @@ namespace DeadSignal.Editor
         public static void EnsureAssets()
         {
             _ensureActorPrefab();
+            _ensureSuppressorPrefab();
             _ensureEntrancePrefab();
             _ensureScenePlacements();
             AssetDatabase.SaveAssets();
@@ -78,6 +81,27 @@ namespace DeadSignal.Editor
                 _createPart(root.transform, "Gate Warning Bar", PrimitiveType.Cube,
                     new Vector3(0f, 0.08f, 0f), new Vector3(1.45f, 0.04f, 0.22f), RED_MATERIAL_PATH);
                 PrefabUtility.SaveAsPrefabAsset(root, ENTRANCE_PREFAB_PATH);
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(root);
+            }
+        }
+
+        private static void _ensureSuppressorPrefab()
+        {
+            var root = new GameObject("SecuritySuppressorAssembly");
+            try
+            {
+                _createPart(root.transform, "Suppressor Chassis", PrimitiveType.Cylinder,
+                    new Vector3(0f, 0.34f, 0f), new Vector3(0.9f, 0.22f, 0.9f), ARMOR_MATERIAL_PATH);
+                _createPart(root.transform, "Suppressor Emitter Left", PrimitiveType.Cube,
+                    new Vector3(-0.58f, 0.38f, 0f), new Vector3(0.18f, 0.18f, 0.92f), RED_MATERIAL_PATH);
+                _createPart(root.transform, "Suppressor Emitter Right", PrimitiveType.Cube,
+                    new Vector3(0.58f, 0.38f, 0f), new Vector3(0.18f, 0.18f, 0.92f), RED_MATERIAL_PATH);
+                _createPart(root.transform, "Suppressor Core", PrimitiveType.Sphere,
+                    new Vector3(0f, 0.58f, 0f), new Vector3(0.3f, 0.22f, 0.3f), AMBER_MATERIAL_PATH);
+                PrefabUtility.SaveAsPrefabAsset(root, SUPPRESSOR_PREFAB_PATH);
             }
             finally
             {
@@ -148,6 +172,15 @@ namespace DeadSignal.Editor
                    actor.transform.Find("Interceptor Blade Left") != null &&
                    actor.transform.Find("Interceptor Blade Right") != null &&
                    actor.transform.Find("Interceptor Core") != null;
+        }
+
+        private static bool _hasSuppressorParts(GameObject actor)
+        {
+            return actor != null &&
+                   actor.transform.Find("Suppressor Chassis") != null &&
+                   actor.transform.Find("Suppressor Emitter Left") != null &&
+                   actor.transform.Find("Suppressor Emitter Right") != null &&
+                   actor.transform.Find("Suppressor Core") != null;
         }
     }
 }

@@ -43,6 +43,9 @@ namespace DeadSignal
         public float WardenHealth => m_threats?.WardenHealth ?? 0f;
         public float InterceptorHealth => m_threats?.InterceptorHealth ?? 0f;
         public bool IsInterceptorCharging => m_threats?.IsInterceptorCharging ?? false;
+        public float SuppressorHealth => m_threats?.SuppressorHealth ?? 0f;
+        public bool IsSuppressorFieldActive => m_threats?.IsSuppressorFieldActive ?? false;
+        public bool IsPlayerSuppressed => m_threats?.IsPlayerSuppressed ?? false;
         public int SecurityEscalationTier => m_threats?.EscalationTier ?? 0;
         public int SecurityReinforcementsRemaining => m_threats?.ReinforcementsRemaining ?? 0;
         public bool IsExtractionUplinkActive => m_extractionUplink?.IsActive ?? false;
@@ -97,6 +100,8 @@ namespace DeadSignal
         public int SignalSapperPartCount => m_world?.SignalSapperPartCount ?? 0;
         public bool HasSecurityInterceptorAssets => m_world?.HasSecurityInterceptorAssets ?? false;
         public int SecurityInterceptorPartCount => m_world?.SecurityInterceptorPartCount ?? 0;
+        public bool HasSecuritySuppressorAssets => m_world?.HasSecuritySuppressorAssets ?? false;
+        public int SecuritySuppressorPartCount => m_world?.SecuritySuppressorPartCount ?? 0;
         public int AuthoredInterceptorEntranceCount => m_world?.AuthoredInterceptorEntranceCount ?? 0;
         public int AuthoredMapObstacleCount => m_world?.AuthoredMapObstacleCount ?? 0;
         public int AuthoredSalvageSocketCount => m_world?.AuthoredSalvageSocketCount ?? 0;
@@ -398,8 +403,10 @@ namespace DeadSignal
             var moveInput = m_input.ReadMovement();
             var previousVelocity = m_playerMovement.Velocity;
             var hasThrusterOverclock = m_overclockChoice.Selected == SignalOverclock.OverdriveThrusters;
-            var speedMultiplier = hasThrusterOverclock ? m_overclockTuning.ThrusterSpeedMultiplier : 1f;
-            var accelerationMultiplier = hasThrusterOverclock ? m_overclockTuning.ThrusterAccelerationMultiplier : 1f;
+            var suppressionMultiplier = m_threats.PlayerMovementMultiplier;
+            var speedMultiplier = (hasThrusterOverclock ? m_overclockTuning.ThrusterSpeedMultiplier : 1f) * suppressionMultiplier;
+            var accelerationMultiplier =
+                (hasThrusterOverclock ? m_overclockTuning.ThrusterAccelerationMultiplier : 1f) * suppressionMultiplier;
             var velocity = m_playerMovement.Tick(
                 moveInput, dt, m_playerMovementTuning, speedMultiplier, accelerationMultiplier);
             var previousPosition = m_world.Player.position;

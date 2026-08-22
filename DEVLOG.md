@@ -3795,3 +3795,33 @@ The first salvage cache now creates an immediate run-long build decision under l
 - Immediate post-purge cache teleports initially occurred during hit-stop and therefore could not collect; the test now waits on the authoritative hit-stop state instead of hiding the lifecycle rule behind a fixed delay.
 - Automated tests do not judge whether the decision prompt fits at 1280x720/ultrawide, whether a 0.18-second link reads during a dense pursuit, or whether 4.5 metres and 1.25× speed are balanced. No interactive human playtest was performed.
 - Best next step: run paired Chain Arc and Overdrive routes, record selection time, mixed-role chain opportunities, security hits, Signal spent/reclaimed, dead-zone exposure, cache order, pursuit movement, and extraction reserve; tune the two branches before adding the Suppressor archetype.
+## 2026-08-22 — Autonomous Run 65 — Extraction Suppressor
+
+### Milestone, player benefit, and acceptance
+
+The final bounded extraction response now introduces a Suppressor that denies comfortable retreat space instead of repeating the Interceptor. Acceptance required the fourth reserve to be unique, reuse the farther authored flank gate and existing entry safety, approach the extraction lane, display a one-second warning, activate a finite 2.5-second and 3.25-metre field, retain player control, apply escapable movement/Signal pressure, accept direct and Chain Arc damage, pay a bounded purge reward, report live state in the HUD, and ship as an authored prefab.
+
+### Files and systems changed
+
+- Extended `SecurityEscalationDirector.cs` and its tests with a unique fourth `Suppressor` response while preserving the three salvage tiers, one extraction-only addition, sequential reserve ownership, role uniqueness, entry delay, and safe-distance gate.
+- Extended `ThreatBalanceTuning.cs` and `ThreatBalanceTuning.asset` with three health, 2.4 movement speed, one-second warning, 2.5-second field, 1.5-second cooldown, 3.25-metre radius, 55% movement multiplier, one-second 4-Signal pulse, and 15-Signal bounty.
+- Updated `DeadSignalThreatController.cs`, `DeadSignalWorld.cs`, `DeadSignalGame.cs`, and `RunModel.cs` with safe deployment, collision-bounded positioning, warning/active field phases, escapable slowdown and clamped lethal drain, projectile/Chain Arc hits, purge recovery, and runtime state.
+- Updated `DeadSignalInterceptorSetup.cs` to generate and validate `SecuritySuppressorAssembly.prefab`; Unity generated and tracked its `.meta`. The existing authored north/south flank gates are reused and no scene placement changed.
+- Updated `DeadSignalHud.cs`, `StandaloneBuildSmokeProbe.cs`, `BootstrapSmokeTests.cs`, and focused tuning/director tests with live Suppressor state, prefab/resource gates, initial composition, and final-response assertions.
+- Updated `GAME_VISION.md`, `BACKLOG.md`, and this devlog. No package, project-setting, input, save-data, audio, map layout, existing enemy stats, extraction duration, or scene change is owned by this milestone. Sixty Unity serializer/build side effects were restored after validation.
+
+### Exact validation evidence
+
+1. Unity `6000.3.11f1` import/compile and `DeadSignalInterceptorSetup.EnsureAssets`: exit `0`; new prefab and metadata imported successfully; `Logs/run65-compile.log` and `Logs/run65-setup.log`.
+2. Final EditMode: exit `0`; `65/65` passed, `0` failed, `0` skipped in `0.1181375s`; the added model regression proves a partial reserve clamps to zero and ends the run; `Logs/run65-editmode-final-results.xml` and `Logs/run65-editmode-final.log`.
+3. Final PlayMode: exit `0`; `6/6` passed, `0` failed, `0` skipped in `16.2443947s`; complete runtime composition includes the authored four-part dormant Suppressor and inactive warning field while the established run/extraction/restart flow remains intact; `Logs/run65-playmode-final-results.xml` and `Logs/run65-playmode-final.log`.
+4. Final Windows x64 development build: exit `0`; Unity reported `241,157,569` bytes in `10.50s`; `Build/Windows/DeadSignal.exe`; `Logs/run65-build-final.log`.
+5. Final packaged null-device smoke: exit `0` with one `[DEAD SIGNAL STANDALONE SMOKE] PASS`; the probe required the authored Suppressor prefab and complete runtime composition; `Logs/run65-standalone-final.log`.
+6. Final critical scans found only Unity licensing-service handshake noise; no compiler errors, null/missing references, unhandled exceptions, failed assertions, build failure, or smoke failure. `git diff --check` passed after serializer-side-effect cleanup.
+
+### Bugs prevented, limitations, and next step
+
+- The Suppressor is queued only once as the extraction response and cannot bypass earlier unresolved reserves, spawn within six metres, or stack a second field source.
+- The warning and active ring are separate colors, the field has a fixed lifetime, and the player retains input, so entering the ring always has movement, route, or combat counterplay.
+- Automated coverage proves director ordering, tuning bounds, authored composition, build inclusion, and regression safety, but it does not yet drive a full purge sequence far enough to observe the fourth unit's warning/field lifecycle in PlayMode. No human playtest was performed.
+- Best next step: play one combat-heavy return that clears earlier reserves and one avoidance return, recording whether the Suppressor enters during the six-second uplink, warning recognition, field entries/exits, Signal lost, movement escape time, purge choice, and whether Overdrive trivializes the field or Chain Arc dominates its mixed encounter.

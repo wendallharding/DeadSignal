@@ -7,7 +7,8 @@ namespace DeadSignal
         None,
         Interceptor,
         Warden,
-        Sapper
+        Sapper,
+        Suppressor
     }
 
     /// <summary>
@@ -44,9 +45,11 @@ namespace DeadSignal
             bool interceptorAlive,
             bool wardenAlive,
             bool sapperAlive,
+            bool suppressorAlive,
             float interceptorEntryDistance,
             float wardenEntryDistance,
-            float sapperEntryDistance)
+            float sapperEntryDistance,
+            float suppressorEntryDistance)
         {
             if (!towerOnline)
             {
@@ -67,13 +70,15 @@ namespace DeadSignal
             {
                 SecurityReinforcement.Interceptor => interceptorAlive,
                 SecurityReinforcement.Warden => wardenAlive,
-                _ => sapperAlive
+                SecurityReinforcement.Sapper => sapperAlive,
+                _ => suppressorAlive
             };
             var entryDistance = reinforcement switch
             {
                 SecurityReinforcement.Interceptor => interceptorEntryDistance,
                 SecurityReinforcement.Warden => wardenEntryDistance,
-                _ => sapperEntryDistance
+                SecurityReinforcement.Sapper => sapperEntryDistance,
+                _ => suppressorEntryDistance
             };
             if (roleAlive || entryDistance < m_safeEntryDistance)
             {
@@ -104,7 +109,7 @@ namespace DeadSignal
                 0 => SecurityReinforcement.Interceptor,
                 1 => SecurityReinforcement.Warden,
                 2 => SecurityReinforcement.Sapper,
-                _ => SecurityReinforcement.Interceptor
+                _ => SecurityReinforcement.Suppressor
             };
         }
     }

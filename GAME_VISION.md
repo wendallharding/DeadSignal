@@ -68,6 +68,7 @@ This autonomous run is accepted when a fresh Play session provides all of the fo
 - The Sapper's successful drain uses an authored inward-pulling floor glyph whose expansion remains optional under Reduced Flashes while timing stays readable through the countdown reticle.
 - The Sapper's target tether carries repeated authored energy packets toward the tower during approach and latch, making drain direction readable without changing threat timing.
 - The first salvage escalation deploys a red-and-amber Interceptor from the safer of two scene-authored flank gates; it moves toward the extraction route, shows a locked charge line, and commits to an avoidable dash that combines with Warden pursuit and Sapper tower pressure.
+- The final bounded extraction response is a magenta Suppressor that enters through the safer authored flank gate, warns before projecting a finite slowing Signal-drain field, and forces the player to abandon controlled space or spend Signal to purge it.
 - Three warm salvage pickups can be collected outside the safe starting area.
 - The first salvage cache offers one run-long combat overclock: Chain Arc rewards grouping tactical roles, while Overdrive Thrusters rewards evasion and route greed.
 - Returning to the extraction pad with all salvage starts a six-second mobile uplink; surviving the final bounded security pursuit completes the run.
@@ -158,3 +159,7 @@ Extraction now begins a six-second mobile uplink instead of granting instant vic
 ### Run 64 product decision — first-cache Signal overclock
 
 The first secured cache now offers one run-long choice while threats and movement remain live. Chain Arc jumps each successful bolt to one nearby secondary role, rewarding deliberate mixed-enemy alignment; Overdrive Thrusters raises speed and acceleration, rewarding dodges, retreat routing, and dead-zone greed. Fire and Use select the two branches through existing keyboard/controller routes, and the choice input cannot also fire or operate machinery. This was selected over random drops or a passive stat reward because the current short run needs an early, legible build fork that changes fighting versus fleeing without diluting the shared Signal economy.
+
+### Run 65 product decision — extraction Suppressor
+
+The fourth bounded security response is now a Suppressor rather than another Interceptor. It reuses the safer authored flank gate, advances toward the lane between the drone and extraction, warns with an amber 3.25-metre ring for one second, then projects a magenta field for 2.5 seconds. A caught drone retains control but moves at 55% speed and loses 4 Signal per second until it exits; three hits purge the unit and reclaim up to 15 Signal. This was selected over raw pursuit scaling because extraction needed a fourth tactical role that denies comfortable space while preserving readable counterplay through movement, route abandonment, or combat.

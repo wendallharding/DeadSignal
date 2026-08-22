@@ -29,6 +29,8 @@ namespace DeadSignal
         public Vector3 SapperCoreBaseScale { get; private set; }
         public Transform Interceptor { get; private set; }
         public Transform InterceptorCore { get; private set; }
+        public Transform Suppressor { get; private set; }
+        public Transform SuppressorCore { get; private set; }
         public Transform TowerCore { get; private set; }
         public SignalSapperTelegraph SapperTelegraph { get; private set; }
         public IReadOnlyList<GameObject> SalvagePickups => m_salvagePickups;
@@ -59,6 +61,8 @@ namespace DeadSignal
         public int SignalSapperPartCount { get; private set; }
         public bool HasSecurityInterceptorAssets { get; private set; }
         public int SecurityInterceptorPartCount { get; private set; }
+        public bool HasSecuritySuppressorAssets { get; private set; }
+        public int SecuritySuppressorPartCount { get; private set; }
         public int AuthoredInterceptorEntranceCount { get; private set; }
         public int AuthoredMapObstacleCount { get; private set; }
         public int AuthoredSalvageSocketCount { get; private set; }
@@ -226,6 +230,12 @@ namespace DeadSignal
             SetInterceptorTelegraph(false, Interceptor.position);
         }
 
+        public void PurgeSuppressor()
+        {
+            Suppressor.gameObject.SetActive(false);
+            SetSuppressorField(false, false, 1f);
+        }
+
         public float GetSafestInterceptorEntryDistance(Vector3 playerPosition)
         {
             var first = m_interceptorEntrances[0];
@@ -242,6 +252,25 @@ namespace DeadSignal
                 m_interceptorEntrances[1]);
             Interceptor.position = m_interceptorEntrances[index];
             Interceptor.gameObject.SetActive(true);
+        }
+
+        public void DeploySuppressorReinforcement()
+        {
+            var index = InterceptorTactics.SelectSafestEntrance(
+                Player.position,
+                m_interceptorEntrances[0],
+                m_interceptorEntrances[1]);
+            Suppressor.position = m_interceptorEntrances[index];
+            Suppressor.gameObject.SetActive(true);
+            SetSuppressorField(false, false, 1f);
+        }
+
+        public void SetSuppressorField(bool visible, bool active, float radius)
+        {
+            m_suppressorField.SetActive(visible);
+            m_suppressorField.transform.position = Suppressor.position + Vector3.up * 0.035f;
+            m_suppressorField.transform.localScale = new Vector3(radius * 2f, 0.025f, radius * 2f);
+            m_suppressorField.GetComponent<Renderer>().sharedMaterial = active ? m_palette.Magenta : m_palette.Amber;
         }
 
         public void SetInterceptorTelegraph(bool visible, Vector3 target)
@@ -727,6 +756,7 @@ namespace DeadSignal
 
             _registerInterceptorEntrances();
             _buildInterceptor();
+            _buildSuppressor();
 
             _buildWarden();
 
@@ -823,6 +853,46 @@ namespace DeadSignal
             m_interceptorTelegraph.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
             m_interceptorTelegraph.receiveShadows = false;
             telegraphRoot.SetActive(false);
+        }
+
+        private void _buildSuppressor()
+        {
+            var prefab = Resources.Load<GameObject>(SECURITY_SUPPRESSOR_PREFAB_RESOURCE);
+            var hasValidPrefab = prefab != null &&
+                                 prefab.transform.Find("Suppressor Chassis") != null &&
+                                 prefab.transform.Find("Suppressor Emitter Left") != null &&
+                                 prefab.transform.Find("Suppressor Emitter Right") != null &&
+                                 prefab.transform.Find("Suppressor Core") != null;
+            var root = hasValidPrefab ? Object.Instantiate(prefab, m_root) : new GameObject("Security Suppressor");
+            root.name = "Security Suppressor";
+            if (!hasValidPrefab)
+            {
+                root.transform.SetParent(m_root);
+                _createPrimitive("Suppressor Chassis", PrimitiveType.Cylinder, new Vector3(0f, 0.34f, 0f),
+                    new Vector3(0.9f, 0.22f, 0.9f), m_palette.WardenHousing, root.transform);
+                _createPrimitive("Suppressor Emitter Left", PrimitiveType.Cube, new Vector3(-0.58f, 0.38f, 0f),
+                    new Vector3(0.18f, 0.18f, 0.92f), m_palette.Magenta, root.transform);
+                _createPrimitive("Suppressor Emitter Right", PrimitiveType.Cube, new Vector3(0.58f, 0.38f, 0f),
+                    new Vector3(0.18f, 0.18f, 0.92f), m_palette.Magenta, root.transform);
+                _createPrimitive("Suppressor Core", PrimitiveType.Sphere, new Vector3(0f, 0.58f, 0f),
+                    new Vector3(0.3f, 0.22f, 0.3f), m_palette.Magenta, root.transform);
+            }
+
+            Suppressor = root.transform;
+            Suppressor.Find("Suppressor Chassis").GetComponent<Renderer>().sharedMaterial = m_palette.WardenHousing;
+            Suppressor.Find("Suppressor Emitter Left").GetComponent<Renderer>().sharedMaterial = m_palette.Magenta;
+            Suppressor.Find("Suppressor Emitter Right").GetComponent<Renderer>().sharedMaterial = m_palette.Magenta;
+            SuppressorCore = Suppressor.Find("Suppressor Core");
+            SuppressorCore.GetComponent<Renderer>().sharedMaterial = m_palette.Amber;
+            HasSecuritySuppressorAssets = hasValidPrefab;
+            SecuritySuppressorPartCount = 4;
+            Suppressor.position = m_interceptorEntrances[0];
+            Suppressor.gameObject.SetActive(false);
+
+            m_suppressorField = _createPrimitive("Suppressor Field Warning", PrimitiveType.Cylinder, Vector3.zero,
+                Vector3.one, m_palette.Amber, m_root);
+            Object.Destroy(m_suppressorField.GetComponent<Collider>());
+            m_suppressorField.SetActive(false);
         }
 
         private void _buildSapper()
@@ -1061,6 +1131,7 @@ namespace DeadSignal
         private const string SECURITY_WARDEN_PREFAB_RESOURCE = "Actors/SecurityWardenAssembly";
         private const string SIGNAL_SAPPER_PREFAB_RESOURCE = "Actors/SignalSapperAssembly";
         private const string SECURITY_INTERCEPTOR_PREFAB_RESOURCE = "Actors/SecurityInterceptorAssembly";
+        private const string SECURITY_SUPPRESSOR_PREFAB_RESOURCE = "Actors/SecuritySuppressorAssembly";
         private const string SIGNAL_BOLT_PREFAB_RESOURCE = "Projectiles/SignalBoltAssembly";
         private const string PLAYER_CAMERA_TUNING_RESOURCE = "Tuning/PlayerCameraTuning";
         private const float DECK_MODULE_WIDTH = 3.9f;
@@ -1078,6 +1149,7 @@ namespace DeadSignal
         private readonly List<GameObject> m_salvagePickups = new();
         private readonly List<Vector3> m_machineSockets = new();
         private readonly List<Vector3> m_interceptorEntrances = new();
+        private GameObject m_suppressorField;
 
         private GameObject m_towerTerritory;
         private GameObject m_towerSignalLines;

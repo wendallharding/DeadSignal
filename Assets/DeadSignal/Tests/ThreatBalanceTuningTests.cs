@@ -23,6 +23,13 @@ namespace DeadSignal.Tests
                 Assert.That(tuning.InterceptorDashSpeed, Is.GreaterThan(tuning.InterceptorApproachSpeed));
                 Assert.That(tuning.InterceptorSignalReward,
                     Is.LessThanOrEqualTo(tuning.InterceptorHealth * RunModel.ShotCost));
+                Assert.That(tuning.SuppressorHealth, Is.EqualTo(3));
+                Assert.That(tuning.SuppressorWarningDuration, Is.GreaterThanOrEqualTo(0.75f));
+                Assert.That(tuning.SuppressorFieldDuration, Is.GreaterThan(tuning.SuppressorWarningDuration));
+                Assert.That(tuning.SuppressorFieldRadius, Is.InRange(2.5f, 4f));
+                Assert.That(tuning.SuppressorMovementMultiplier, Is.InRange(0.4f, 0.75f));
+                Assert.That(tuning.SuppressorSignalReward,
+                    Is.LessThanOrEqualTo(tuning.SuppressorHealth * RunModel.ShotCost));
             }
             finally
             {

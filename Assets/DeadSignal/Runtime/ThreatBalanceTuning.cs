@@ -32,6 +32,19 @@ namespace DeadSignal
         [SerializeField] private float m_interceptorHitCooldown = 1.2f;
         [SerializeField] private float m_interceptorSignalReward = 14f;
 
+        [Header("Security Suppressor")]
+        [SerializeField] private int m_suppressorHealth = 3;
+        [SerializeField] private float m_suppressorApproachSpeed = 2.4f;
+        [SerializeField] private float m_suppressorAnchorDistance = 0.9f;
+        [SerializeField] private float m_suppressorWarningDuration = 1f;
+        [SerializeField] private float m_suppressorFieldDuration = 2.5f;
+        [SerializeField] private float m_suppressorFieldCooldown = 1.5f;
+        [SerializeField] private float m_suppressorFieldRadius = 3.25f;
+        [SerializeField] private float m_suppressorMovementMultiplier = 0.55f;
+        [SerializeField] private float m_suppressorPulseInterval = 1f;
+        [SerializeField] private float m_suppressorSignalDrain = 4f;
+        [SerializeField] private float m_suppressorSignalReward = 15f;
+
         [Header("Security Escalation")]
         [SerializeField] private float m_reinforcementEntryDelay = 2.5f;
         [SerializeField] private float m_reinforcementSafeDistance = 6f;
@@ -58,6 +71,17 @@ namespace DeadSignal
         public float InterceptorHitDistance => m_interceptorHitDistance;
         public float InterceptorHitCooldown => m_interceptorHitCooldown;
         public float InterceptorSignalReward => m_interceptorSignalReward;
+        public int SuppressorHealth => m_suppressorHealth;
+        public float SuppressorApproachSpeed => m_suppressorApproachSpeed;
+        public float SuppressorAnchorDistance => m_suppressorAnchorDistance;
+        public float SuppressorWarningDuration => m_suppressorWarningDuration;
+        public float SuppressorFieldDuration => m_suppressorFieldDuration;
+        public float SuppressorFieldCooldown => m_suppressorFieldCooldown;
+        public float SuppressorFieldRadius => m_suppressorFieldRadius;
+        public float SuppressorMovementMultiplier => m_suppressorMovementMultiplier;
+        public float SuppressorPulseInterval => m_suppressorPulseInterval;
+        public float SuppressorSignalDrain => m_suppressorSignalDrain;
+        public float SuppressorSignalReward => m_suppressorSignalReward;
         public float ReinforcementEntryDelay => m_reinforcementEntryDelay;
         public float ReinforcementSafeDistance => m_reinforcementSafeDistance;
         public float ExtractionUplinkDuration => m_extractionUplinkDuration;
@@ -85,6 +109,17 @@ namespace DeadSignal
             m_interceptorHitDistance = Mathf.Max(0.1f, m_interceptorHitDistance);
             m_interceptorHitCooldown = Mathf.Max(0.1f, m_interceptorHitCooldown);
             m_interceptorSignalReward = Mathf.Max(0f, m_interceptorSignalReward);
+            m_suppressorHealth = Mathf.Max(1, m_suppressorHealth);
+            m_suppressorApproachSpeed = Mathf.Max(0.1f, m_suppressorApproachSpeed);
+            m_suppressorAnchorDistance = Mathf.Max(0.1f, m_suppressorAnchorDistance);
+            m_suppressorWarningDuration = Mathf.Max(0.1f, m_suppressorWarningDuration);
+            m_suppressorFieldDuration = Mathf.Max(0.1f, m_suppressorFieldDuration);
+            m_suppressorFieldCooldown = Mathf.Max(0.1f, m_suppressorFieldCooldown);
+            m_suppressorFieldRadius = Mathf.Max(0.5f, m_suppressorFieldRadius);
+            m_suppressorMovementMultiplier = Mathf.Clamp(m_suppressorMovementMultiplier, 0.1f, 1f);
+            m_suppressorPulseInterval = Mathf.Max(0.1f, m_suppressorPulseInterval);
+            m_suppressorSignalDrain = Mathf.Max(0f, m_suppressorSignalDrain);
+            m_suppressorSignalReward = Mathf.Max(0f, m_suppressorSignalReward);
             m_reinforcementEntryDelay = Mathf.Max(0f, m_reinforcementEntryDelay);
             m_reinforcementSafeDistance = Mathf.Max(0f, m_reinforcementSafeDistance);
             m_extractionUplinkDuration = Mathf.Max(0.1f, m_extractionUplinkDuration);

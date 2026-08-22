@@ -12,10 +12,12 @@ namespace DeadSignal
         private const float WARDEN_COLLISION_RADIUS = 0.54f;
         private const float SAPPER_COLLISION_RADIUS = 0.42f;
         private const float INTERCEPTOR_COLLISION_RADIUS = 0.46f;
+        private const float SUPPRESSOR_COLLISION_RADIUS = 0.48f;
 
         private static readonly float s_wardenProjectileHitRadius = Mathf.Sqrt(0.9f);
         private static readonly float s_sapperProjectileHitRadius = Mathf.Sqrt(0.75f);
         private static readonly float s_interceptorProjectileHitRadius = Mathf.Sqrt(0.78f);
+        private static readonly float s_suppressorProjectileHitRadius = Mathf.Sqrt(0.82f);
 
         private readonly RunModel m_model;
         private readonly RunMetrics m_metrics;
@@ -33,6 +35,7 @@ namespace DeadSignal
         private float m_wardenHealth;
         private float m_sapperHealth;
         private float m_interceptorHealth;
+        private float m_suppressorHealth;
         private float m_wardenAttackCooldown;
         private float m_sapperPulseCooldown;
         private float m_shotCooldown;
@@ -43,6 +46,10 @@ namespace DeadSignal
         private Vector3 m_interceptorDashDirection;
         private Vector3 m_interceptorDashTarget;
         private bool m_extractionPressure;
+        private float m_suppressorWarningCountdown;
+        private float m_suppressorFieldCountdown;
+        private float m_suppressorFieldCooldown;
+        private float m_suppressorPulseCountdown;
 
         public DeadSignalThreatController(
             RunModel model,
@@ -75,6 +82,7 @@ namespace DeadSignal
         public bool IsSapperAlive => m_sapperHealth > 0f;
         public bool IsWardenAlive => m_wardenHealth > 0f;
         public bool IsInterceptorAlive => m_interceptorHealth > 0f;
+        public bool IsSuppressorAlive => m_suppressorHealth > 0f;
         public float WardenHealth => m_wardenHealth;
         public float WardenMaximumHealth => m_tuning.WardenHealth;
         public float SapperMaximumHealth => m_tuning.SapperHealth;
@@ -85,7 +93,15 @@ namespace DeadSignal
         public float InterceptorHealth => m_interceptorHealth;
         public float InterceptorMaximumHealth => m_tuning.InterceptorHealth;
         public float InterceptorSignalReward => m_tuning.InterceptorSignalReward;
+        public float SuppressorHealth => m_suppressorHealth;
+        public float SuppressorMaximumHealth => m_tuning.SuppressorHealth;
+        public float SuppressorSignalReward => m_tuning.SuppressorSignalReward;
         public bool IsInterceptorCharging => m_interceptorChargeCountdown > 0f;
+        public bool IsSuppressorFieldActive => m_suppressorFieldCountdown > 0f;
+        public bool IsPlayerSuppressed => IsSuppressorFieldActive &&
+                                          DeadSignalWorld.FlatDistance(m_world.Player.position, m_world.Suppressor.position) <=
+                                          m_tuning.SuppressorFieldRadius;
+        public float PlayerMovementMultiplier => IsPlayerSuppressed ? m_tuning.SuppressorMovementMultiplier : 1f;
         public bool LastShotBlockedByEnvironment { get; private set; }
         public float SapperPulseCooldown => m_sapperPulseCooldown;
         public bool CanFire => m_shotCooldown <= 0f;
@@ -108,6 +124,7 @@ namespace DeadSignal
         {
             _tickDirector(dt);
             _tickInterceptor(dt);
+            _tickSuppressor(dt);
             _tickWarden(dt);
             _tickSapper(dt);
             _tickProjectiles(dt);
@@ -144,9 +161,11 @@ namespace DeadSignal
                 IsInterceptorAlive,
                 IsWardenAlive,
                 IsSapperAlive,
+                IsSuppressorAlive,
                 m_world.GetSafestInterceptorEntryDistance(m_world.Player.position),
                 DeadSignalWorld.FlatDistance(m_world.Player.position, m_world.Warden.position),
-                DeadSignalWorld.FlatDistance(m_world.Player.position, m_world.Sapper.position));
+                DeadSignalWorld.FlatDistance(m_world.Player.position, m_world.Sapper.position),
+                m_world.GetSafestInterceptorEntryDistance(m_world.Player.position));
             if (reinforcement == SecurityReinforcement.Interceptor)
             {
                 m_interceptorHealth = m_tuning.InterceptorHealth;
@@ -170,6 +189,89 @@ namespace DeadSignal
                 m_sapperPulseCooldown = 0f;
                 m_world.DeploySapperReinforcement(m_tuning.SapperPulseInterval);
                 m_showFeedback("SIPHON CRADLE OPEN — SAPPER REINFORCEMENT");
+            }
+            else if (reinforcement == SecurityReinforcement.Suppressor)
+            {
+                m_suppressorHealth = m_tuning.SuppressorHealth;
+                m_suppressorWarningCountdown = 0f;
+                m_suppressorFieldCountdown = 0f;
+                m_suppressorFieldCooldown = 0f;
+                m_suppressorPulseCountdown = 0f;
+                m_world.DeploySuppressorReinforcement();
+                m_showFeedback("FLANK GATES OPEN — SUPPRESSOR INBOUND");
+            }
+        }
+
+        private void _tickSuppressor(float dt)
+        {
+            if (!m_model.TowerOnline || m_suppressorHealth <= 0f)
+            {
+                return;
+            }
+
+            m_world.SuppressorCore.Rotate(Vector3.up, 220f * dt, Space.Self);
+            if (m_suppressorFieldCountdown > 0f)
+            {
+                m_suppressorFieldCountdown = Mathf.Max(0f, m_suppressorFieldCountdown - dt);
+                m_suppressorPulseCountdown = Mathf.Max(0f, m_suppressorPulseCountdown - dt);
+                m_world.SetSuppressorField(true, true, m_tuning.SuppressorFieldRadius);
+                if (IsPlayerSuppressed && m_suppressorPulseCountdown <= 0f)
+                {
+                    m_suppressorPulseCountdown = m_tuning.SuppressorPulseInterval;
+                    m_model.TakeSuppressionPulse(m_tuning.SuppressorSignalDrain);
+                    m_showFeedback($"SUPPRESSION FIELD  −{m_tuning.SuppressorSignalDrain:0} SIGNAL — BREAK OUT");
+                }
+
+                if (m_suppressorFieldCountdown <= 0f)
+                {
+                    m_suppressorFieldCooldown = m_tuning.SuppressorFieldCooldown;
+                    m_world.SetSuppressorField(false, false, m_tuning.SuppressorFieldRadius);
+                }
+
+                return;
+            }
+
+            if (m_suppressorWarningCountdown > 0f)
+            {
+                m_suppressorWarningCountdown = Mathf.Max(0f, m_suppressorWarningCountdown - dt);
+                m_world.SetSuppressorField(true, false, m_tuning.SuppressorFieldRadius);
+                if (m_suppressorWarningCountdown <= 0f)
+                {
+                    m_suppressorFieldCountdown = m_tuning.SuppressorFieldDuration;
+                    m_suppressorPulseCountdown = 0f;
+                }
+
+                return;
+            }
+
+            m_suppressorFieldCooldown = Mathf.Max(0f, m_suppressorFieldCooldown - dt);
+            var anchor = InterceptorTactics.CalculateCutoffPoint(
+                m_world.Player.position,
+                m_world.ExtractionPosition,
+                0.5f);
+            var delta = anchor - m_world.Suppressor.position;
+            delta.y = 0f;
+            if (delta.sqrMagnitude > 0.01f)
+            {
+                m_world.Suppressor.rotation = Quaternion.LookRotation(delta.normalized, Vector3.up);
+            }
+
+            if (delta.magnitude > m_tuning.SuppressorAnchorDistance)
+            {
+                var desired = m_world.Suppressor.position + delta.normalized * (m_tuning.SuppressorApproachSpeed * dt);
+                m_world.Suppressor.position = m_world.ResolveMovement(
+                    m_world.Suppressor.position,
+                    desired,
+                    SUPPRESSOR_COLLISION_RADIUS,
+                    m_model.ShortcutOpen);
+                return;
+            }
+
+            if (m_suppressorFieldCooldown <= 0f)
+            {
+                m_suppressorWarningCountdown = m_tuning.SuppressorWarningDuration;
+                m_world.SetSuppressorField(true, false, m_tuning.SuppressorFieldRadius);
+                m_showFeedback("SUPPRESSION FIELD PRIMING — LEAVE THE RING");
             }
         }
 
@@ -374,6 +476,13 @@ namespace DeadSignal
                     m_interceptorHealth,
                     s_interceptorProjectileHitRadius,
                     out var interceptorHitFraction);
+                var hitSuppressor = _tryGetThreatHitFraction(
+                    start,
+                    end,
+                    m_world.Suppressor,
+                    m_suppressorHealth,
+                    s_suppressorProjectileHitRadius,
+                    out var suppressorHitFraction);
                 var hitObstacle = m_world.TryGetProjectileObstacleHit(
                     start,
                     end,
@@ -384,7 +493,9 @@ namespace DeadSignal
                     Mathf.Min(
                         hitWarden ? wardenHitFraction : float.PositiveInfinity,
                         hitSapper ? sapperHitFraction : float.PositiveInfinity),
-                    hitInterceptor ? interceptorHitFraction : float.PositiveInfinity);
+                    Mathf.Min(
+                        hitInterceptor ? interceptorHitFraction : float.PositiveInfinity,
+                        hitSuppressor ? suppressorHitFraction : float.PositiveInfinity));
                 if (hitObstacle && obstacleHitFraction < nearestThreatFraction)
                 {
                     LastShotBlockedByEnvironment = true;
@@ -396,26 +507,33 @@ namespace DeadSignal
                 }
 
                 shot.Visual.transform.position = end;
-                if (hitWarden && wardenHitFraction <= sapperHitFraction && wardenHitFraction <= interceptorHitFraction)
+                if (hitWarden && wardenHitFraction <= sapperHitFraction && wardenHitFraction <= interceptorHitFraction &&
+                    wardenHitFraction <= suppressorHitFraction)
                 {
                     var hitPosition = m_world.Warden.position + Vector3.up * 0.55f;
                     _hitWarden();
                     _tryChainArc(ThreatTarget.Warden, hitPosition);
                 }
-                else if (hitSapper && sapperHitFraction <= interceptorHitFraction)
+                else if (hitSapper && sapperHitFraction <= interceptorHitFraction && sapperHitFraction <= suppressorHitFraction)
                 {
                     var hitPosition = m_world.Sapper.position + Vector3.up * 0.5f;
                     _hitSapper();
                     _tryChainArc(ThreatTarget.Sapper, hitPosition);
                 }
-                else if (hitInterceptor)
+                else if (hitInterceptor && interceptorHitFraction <= suppressorHitFraction)
                 {
                     var hitPosition = m_world.Interceptor.position + Vector3.up * 0.5f;
                     _hitInterceptor();
                     _tryChainArc(ThreatTarget.Interceptor, hitPosition);
                 }
+                else if (hitSuppressor)
+                {
+                    var hitPosition = m_world.Suppressor.position + Vector3.up * 0.5f;
+                    _hitSuppressor();
+                    _tryChainArc(ThreatTarget.Suppressor, hitPosition);
+                }
 
-                if (hitWarden || hitSapper || hitInterceptor || shot.Life <= 0f)
+                if (hitWarden || hitSapper || hitInterceptor || hitSuppressor || shot.Life <= 0f)
                 {
                     UnityEngine.Object.Destroy(shot.Visual);
                     m_projectiles.RemoveAt(index);
@@ -436,6 +554,8 @@ namespace DeadSignal
             _considerChainTarget(ThreatTarget.Sapper, source, m_world.Sapper, m_sapperHealth, start, ref target, ref nearestDistance);
             _considerChainTarget(
                 ThreatTarget.Interceptor, source, m_world.Interceptor, m_interceptorHealth, start, ref target, ref nearestDistance);
+            _considerChainTarget(
+                ThreatTarget.Suppressor, source, m_world.Suppressor, m_suppressorHealth, start, ref target, ref nearestDistance);
             if (target == ThreatTarget.None)
             {
                 return;
@@ -453,6 +573,9 @@ namespace DeadSignal
                     break;
                 case ThreatTarget.Interceptor:
                     _hitInterceptor();
+                    break;
+                case ThreatTarget.Suppressor:
+                    _hitSuppressor();
                     break;
             }
         }
@@ -488,6 +611,7 @@ namespace DeadSignal
                 ThreatTarget.Warden => m_world.Warden.position,
                 ThreatTarget.Sapper => m_world.Sapper.position,
                 ThreatTarget.Interceptor => m_world.Interceptor.position,
+                ThreatTarget.Suppressor => m_world.Suppressor.position,
                 _ => Vector3.zero
             };
         }
@@ -575,6 +699,24 @@ namespace DeadSignal
             m_showFeedback("INTERCEPTOR ARMOR HIT");
         }
 
+        private void _hitSuppressor()
+        {
+            m_suppressorHealth -= 1f;
+            m_combatFeedback.PlaySignalImpact(m_world.Suppressor.position + Vector3.up * 0.5f, m_suppressorHealth <= 0f);
+            m_audio.Play(DeadSignalAudioCue.SignalImpact);
+            if (m_suppressorHealth <= 0f)
+            {
+                var restored = m_model.RestoreSignal(m_tuning.SuppressorSignalReward);
+                m_metrics.RecordThreatPurge(restored);
+                m_world.PurgeSuppressor();
+                m_combatFeedback.PlaySignalRecovery(m_world.Suppressor.position + Vector3.up * 0.5f);
+                m_showFeedback($"SUPPRESSOR PURGED  +{restored:0} SIGNAL");
+                return;
+            }
+
+            m_showFeedback("SUPPRESSOR ARMOR HIT");
+        }
+
         private sealed class Projectile
         {
             public Projectile(GameObject visual, Vector3 direction, float lifetime)
@@ -594,7 +736,8 @@ namespace DeadSignal
             None,
             Warden,
             Sapper,
-            Interceptor
+            Interceptor,
+            Suppressor
         }
     }
 }

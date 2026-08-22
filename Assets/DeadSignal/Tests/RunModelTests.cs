@@ -160,6 +160,18 @@ namespace DeadSignal.Tests
         }
 
         [Test]
+        public void SuppressionPulse_ClampsPartialReserveAndCanDestroyDrone()
+        {
+            var run = new RunModel();
+            Assert.That(run.TrySpend(run.Signal - 2f), Is.True);
+
+            run.TakeSuppressionPulse(4f);
+
+            Assert.That(run.Signal, Is.Zero);
+            Assert.That(run.Outcome, Is.EqualTo(RunOutcome.Destroyed));
+        }
+
+        [Test]
         public void RunMetrics_TrackOnlyPositiveTimeAndDeadZoneExposure()
         {
             var metrics = new RunMetrics();

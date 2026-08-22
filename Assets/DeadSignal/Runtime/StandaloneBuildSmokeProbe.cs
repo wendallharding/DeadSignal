@@ -84,6 +84,9 @@ namespace DeadSignal
                                 game.SecurityInterceptorPartCount == 4 &&
                                 game.AuthoredInterceptorEntranceCount == 2 &&
                                 Resources.Load<GameObject>("Actors/SecurityInterceptorAssembly") != null &&
+                                game.HasSecuritySuppressorAssets &&
+                                game.SecuritySuppressorPartCount == 4 &&
+                                Resources.Load<GameObject>("Actors/SecuritySuppressorAssembly") != null &&
                                 Resources.Load<GameObject>("Environment/InterceptorEntryGate") != null &&
                                 game.AuthoredMapObstacleCount == EXPECTED_AUTHORED_OBSTACLE_COUNT &&
                                 Resources.Load<GameObject>("Environment/CoolantManifoldAssembly") != null &&

@@ -167,6 +167,17 @@ namespace DeadSignal
             _evaluateSignal();
         }
 
+        public void TakeSuppressionPulse(float amount)
+        {
+            if (Outcome != RunOutcome.Running || amount <= 0f)
+            {
+                return;
+            }
+
+            Signal = Math.Max(0f, Signal - amount);
+            _evaluateSignal();
+        }
+
         public void CollectSalvage()
         {
             if (Outcome == RunOutcome.Running && Salvage < SalvageRequired)

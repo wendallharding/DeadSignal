@@ -285,7 +285,8 @@ namespace DeadSignal
         {
             if (!m_model.TowerOnline)
             {
-                return $"SECURITY DORMANT  //  BOUNTIES W+{m_threats.WardenSignalReward:0} I+{m_threats.InterceptorSignalReward:0} S+{m_threats.SapperSignalReward:0}";
+                return $"SECURITY DORMANT  //  BOUNTIES W+{m_threats.WardenSignalReward:0} I+{m_threats.InterceptorSignalReward:0} " +
+                       $"S+{m_threats.SapperSignalReward:0} X+{m_threats.SuppressorSignalReward:0}";
             }
 
             var warden = m_threats.IsWardenAlive
@@ -301,12 +302,17 @@ namespace DeadSignal
                 : m_threats.IsInterceptorCharging
                     ? $"INTERCEPTOR {m_threats.InterceptorHealth:0}/{m_threats.InterceptorMaximumHealth:0} LOCKING (+{m_threats.InterceptorSignalReward:0})"
                     : $"INTERCEPTOR {m_threats.InterceptorHealth:0}/{m_threats.InterceptorMaximumHealth:0} FLANKING (+{m_threats.InterceptorSignalReward:0})";
+            var suppressor = !m_threats.IsSuppressorAlive
+                ? "SUPPRESSOR CLEAR"
+                : m_threats.IsSuppressorFieldActive
+                    ? $"SUPPRESSOR {m_threats.SuppressorHealth:0}/{m_threats.SuppressorMaximumHealth:0} FIELD ACTIVE (+{m_threats.SuppressorSignalReward:0})"
+                    : $"SUPPRESSOR {m_threats.SuppressorHealth:0}/{m_threats.SuppressorMaximumHealth:0} POSITIONING (+{m_threats.SuppressorSignalReward:0})";
             var entry = m_threats.PendingReinforcement == SecurityReinforcement.None
                 ? string.Empty
                 : $"  {m_threats.PendingReinforcement.ToString().ToUpperInvariant()} ENTRY {m_threats.ReinforcementEntryCountdown:0.0}s";
             var alert = m_extractionUplink.IsActive ? "PURSUIT" : $"ALERT {m_threats.EscalationTier}/{RunModel.SalvageRequired}";
             return $"{alert}  RESERVE {m_threats.ReinforcementsRemaining}{entry}  //  " +
-                   $"{warden}  //  {interceptor}  //  {sapper}";
+                   $"{warden}  //  {interceptor}  //  {sapper}  //  {suppressor}";
         }
 
         private string _contextPrompt()

@@ -14,6 +14,15 @@
 
 ## P1 — Prove the loop
 
+### Run 65 extraction-Suppressor ideas
+
+- [x] Reserve the fourth bounded security response for a Suppressor instead of repeating the Interceptor during extraction
+- [x] Reuse the farther of two scene-authored flank gates and the existing six-metre exclusion plus 2.5-second entry warning
+- [x] Telegraph a 3.25-metre denial ring for one second before activating a finite 2.5-second field
+- [x] Slow a drone caught inside to 55% and drain 4 Signal per second while leaving an immediate escape route
+- [x] Give the three-health Suppressor projectile, Chain Arc, HUD, purge-recovery, authored-prefab, build, and runtime coverage
+- [ ] Playtest whether the Suppressor enters often enough during the six-second uplink and whether the field is threatening without deciding the run
+
 ### Run 64 first-cache overclock ideas
 
 - [x] Offer exactly one temporary build choice after the first salvage cache while movement and enemy pressure continue
