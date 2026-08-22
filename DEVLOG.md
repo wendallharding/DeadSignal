@@ -4090,3 +4090,36 @@ The extraction dock now turns the shared reserve into one final explicit wager: 
 - Automated runtime evidence covers both input routes: the complete run selects Stable at six seconds, while the focused high-reserve route selects Overdrive, spends exactly 12 Signal, starts near 4.75 seconds, consumes no ammunition, and promotes the same Suppressor. Tuning evidence keeps the fast duration more than one second beyond entry plus ring warnings.
 - No human playtest was performed. Whether 1.25 seconds is worth 12 Signal, whether Fire-versus-Use reads quickly during a pressured return, whether overdrive dominates high-reserve builds, and whether low-reserve rejection is noticeable remain subjective risks.
 - Manual playtest next: return once above 40 Signal and choose Stable, then repeat the same route and choose Overdrive. Record decision time, Signal before/after, opening ring recognition, field exposure, live roles, hits, purges, finish time, and final reserve. On a third return reach the dock at 12 Signal or lower, press Fire once to verify the no-spend rejection, then Use to confirm Stable remains immediately available.
+
+## 2026-08-22 — Autonomous Run 74 — Extraction combat profiles
+
+### Milestone, player benefit, and acceptance
+
+The dock's two link modes now commit the player to distinct climax plans instead of rewarding combat identically. Stable grants 0.9 seconds of link progress per purge, making its longer free timer the fight route; Overdrive grants 0.25 seconds, keeping its paid shorter timer the flight route. Acceptance required both exact credits to be visible before commitment, designer-tunable and selected from the active mode, inactive and completed links to reject credit, remaining-time caps, unchanged bounty/shield rewards and bounded pursuit behavior, and runtime evidence for both input routes plus a Stable Suppressor purge.
+
+### Files and systems changed
+
+- `ExtractionUplink.cs` now owns validated Stable and Overdrive purge profiles and applies the active mode's credit through the existing single completion path.
+- `ThreatBalanceTuning.cs` and `ThreatBalanceTuning.asset` replace the shared 0.75-second value with serialized 0.9-second Stable and 0.25-second Overdrive values; `FormerlySerializedAs` preserves migrations from the prior field.
+- `DeadSignalGame.cs` composes both values, exposes the live profile for runtime acceptance evidence, and keeps threat-purge completion guarded in one place.
+- `DeadSignalHud.cs` shows each link's exact duration, Signal price, and purge credit at the dock before selection.
+- `ExtractionUplinkTests.cs`, `ThreatBalanceTuningTests.cs`, and `BootstrapSmokeTests.cs` cover validation, active-only reward, capping, profile separation, both runtime input routes, the Stable purge, and normal victory.
+- `GAME_VISION.md`, `BACKLOG.md`, and this devlog record the product decision. No enemy health, speed, damage, bounty, warning, field behavior, entrance, response count, overclock, scene, prefab, model, texture, material, audio, input, package, project setting, or map layout changed.
+
+### Exact validation evidence
+
+1. The first focused Unity launch found a test-only compile error because the complete-runtime fixture referenced tuning without loading it; production behavior was not changed to hide the failure. After loading the fixture, the next focused run executed `8` tests but failed `2` exact float comparisons by approximately `0.0000001`; tolerance-based assertions corrected the tests without changing gameplay.
+2. Corrected focused EditMode: exit `0`; `8/8` passed in `0.1023147s`; `Logs/run74-editmode-focused3-results.xml` and `Logs/run74-editmode-focused3.log`.
+3. Focused extraction PlayMode: exit `0`; `2/2` passed in `13.005441s`; both Stable and Overdrive runtime input routes selected their exact configured combat profile, and the complete flow purged the Suppressor and reached victory; `Logs/run74-playmode-focused-results.xml` and `Logs/run74-playmode-focused.log`.
+4. Full EditMode: exit `0`; `82/82` passed, `0` failed, `0` skipped in `0.2133676s`; `Logs/run74-editmode-final-results.xml` and `Logs/run74-editmode-final.log`.
+5. Full PlayMode: exit `0`; `9/9` passed, `0` failed, `0` skipped in `25.2836799s`; `Logs/run74-playmode-final-results.xml` and `Logs/run74-playmode-final.log`.
+6. Isolated Windows x64 development build from commit `46d3225`: exit `0`; Unity reported `241,177,420` bytes in `71.74s`; `Logs/run74-build.log`.
+7. Isolated packaged null-device smoke: exit `0` with one `[DEAD SIGNAL STANDALONE SMOKE] PASS`; `Logs/run74-standalone-final.log`.
+8. Final critical scans found no compiler errors or warnings, null or missing references, unhandled exceptions, failed assertions, build failure, or smoke failure. `git diff --check` passed. The isolated build worktree was removed after its logs were retained, and the pre-existing `Assets/Settings/Mobile_RPAsset.asset` change remains untouched and excluded.
+
+### Bugs fixed, limitations, playtest evidence, and next step
+
+- The previous shared 0.75-second purge credit made Overdrive strictly faster whenever 12 Signal was affordable while still granting the same combat payoff as Stable. The split profiles make Stable better for a planned fight and Overdrive better for a planned escape without adding threats or inflating stats.
+- Deterministic evidence proves a Stable purge advances exactly 0.9 seconds, an Overdrive purge advances exactly 0.25 seconds, pre-link and post-completion purges grant nothing, and a final credit caps at the true remainder. Runtime evidence proves both active profiles are selected through their actual dock inputs; the Stable complete run still escapes the locked ring, fires three bolts, purges the Suppressor, remains in the holdout, and wins.
+- No human playtest was performed. The 3.6:1 credit ratio, whether the choice copy is readable during pursuit, whether Stable combat actually competes with a 1.25-second shorter Overdrive, and whether either mode dominates specific overclock combinations remain subjective risks.
+- Manual playtest next: return above 40 Signal with the same route and build twice. First choose Stable, deliberately purge the Suppressor, and record decision time, shots, hits, field entries, purge time, finish time, and final Signal. Then choose Overdrive, evade without firing, and record the same values. Repeat once with the opposite tactics; the intended result is that Stable rewards the fight while Overdrive rewards flight, with neither choice automatic. If that distinction holds, the next gameplay milestone should deepen temporary combat builds before expanding to a second tower region.
