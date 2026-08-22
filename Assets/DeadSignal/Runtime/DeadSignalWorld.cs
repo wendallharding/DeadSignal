@@ -20,6 +20,8 @@ namespace DeadSignal
         public Camera Camera { get; private set; }
         public Transform Player { get; private set; }
         public Transform PlayerNose { get; private set; }
+        public Transform PlayerPresentation { get; private set; }
+        public PlayerDroneSignalWake PlayerSignalWake { get; private set; }
         public Transform Warden { get; private set; }
         public WardenThreatTelegraph WardenTelegraph { get; private set; }
         public Transform Sapper { get; private set; }
@@ -174,6 +176,27 @@ namespace DeadSignal
             m_palette.ApplyHighContrast(enabled);
             Camera.backgroundColor = enabled ? Color.black : new Color(0.002f, 0.004f, 0.008f);
             RenderSettings.ambientLight = enabled ? new Color(0.055f, 0.065f, 0.08f) : new Color(0.025f, 0.035f, 0.05f);
+        }
+
+        public void TickPlayerPresentation(float dt, Vector3 acceleration, PlayerDroneMovementTuning tuning)
+        {
+            var localAcceleration = Player.InverseTransformDirection(acceleration);
+            var bankScale = tuning.MaximumBankDegrees / tuning.Acceleration;
+            var targetRotation = Quaternion.Euler(
+                Mathf.Clamp(localAcceleration.z * bankScale, -tuning.MaximumBankDegrees, tuning.MaximumBankDegrees),
+                0f,
+                Mathf.Clamp(-localAcceleration.x * bankScale, -tuning.MaximumBankDegrees, tuning.MaximumBankDegrees));
+            var blend = 1f - Mathf.Exp(-tuning.BankSharpness * dt);
+            PlayerPresentation.localRotation = Quaternion.Slerp(PlayerPresentation.localRotation, targetRotation, blend);
+            PlayerPresentation.localPosition = Vector3.up *
+                                               (Mathf.Sin(Time.time * tuning.HoverFrequency * Mathf.PI * 2f) *
+                                                tuning.HoverAmplitude);
+        }
+
+        public void ConfigurePlayerSignalWake(PlayerDroneMovementTuning tuning)
+        {
+            PlayerSignalWake = Player.gameObject.AddComponent<PlayerDroneSignalWake>();
+            PlayerSignalWake.Configure(tuning);
         }
 
         public void OpenShortcut()
@@ -774,6 +797,7 @@ namespace DeadSignal
                 Player.Find("Drone Core").GetComponent<Renderer>().sharedMaterial = m_palette.Dark;
                 PlayerNose = Player.Find("Drone Tool");
                 PlayerNose.GetComponent<Renderer>().sharedMaterial = m_palette.Cyan;
+                _createPlayerPresentationPivot();
                 PlayerDronePartCount = 4;
                 HasPlayerDroneAssets = m_palette.HasPlayerDroneTexture;
                 return;
@@ -791,7 +815,25 @@ namespace DeadSignal
                 new Vector3(0.36f, 0.09f, 0.36f), m_palette.Dark, Player);
             PlayerNose = _createPrimitive("Drone Tool", PrimitiveType.Cube, new Vector3(0f, 0.3f, 0.68f),
                 new Vector3(0.24f, 0.2f, 0.7f), m_palette.Cyan, Player).transform;
+            _createPlayerPresentationPivot();
             PlayerDronePartCount = 4;
+        }
+
+        private void _createPlayerPresentationPivot()
+        {
+            var visualChildren = new List<Transform>();
+            foreach (Transform child in Player)
+            {
+                visualChildren.Add(child);
+            }
+
+            var presentation = new GameObject("Drone Presentation");
+            PlayerPresentation = presentation.transform;
+            PlayerPresentation.SetParent(Player, false);
+            foreach (var child in visualChildren)
+            {
+                child.SetParent(PlayerPresentation, false);
+            }
         }
 
         private void _createSalvage(Vector3 position)

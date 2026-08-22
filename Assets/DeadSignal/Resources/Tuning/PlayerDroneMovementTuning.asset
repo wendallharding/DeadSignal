@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2b3e9774501f439f824311b2b3e0d309, type: 3}
+  m_Name: PlayerDroneMovementTuning
+  m_EditorClassIdentifier: DeadSignal.Runtime::DeadSignal.PlayerDroneMovementTuning
+  m_maximumSpeed: 6.4
+  m_acceleration: 32
+  m_braking: 21.333334
+  m_reversalAccelerationMultiplier: 0.7
+  m_maximumBankDegrees: 10
+  m_bankSharpness: 10
+  m_hoverAmplitude: 0.025
+  m_hoverFrequency: 1.4
+  m_wakeMinimumSpeed: 0.8
+  m_wakeDuration: 0.22
+  m_wakeEmitterSpacing: 0.22
+  m_wakeMinimumWidth: 0.06
+  m_wakeMaximumWidth: 0.18

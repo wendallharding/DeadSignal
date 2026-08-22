@@ -3234,3 +3234,79 @@ The user's main Unity Editor remained open and untouched. Authoritative validati
 ### Best next step
 
 Cross the threshold slowly with the HUD ignored, confirm cyan remains behind the drone and amber leads into the dead zone, then verify the first Signal-drain tick feels synchronized with the visual seam at 16:9 and ultrawide.
+
+## 2026-08-21 - Responsive maintenance-drone flight
+
+### Outcome
+
+- Replaced direct input-to-position movement with retained planar velocity: full speed is reached in `0.20s`, releasing input brakes over `0.30s`, and reversals use `70%` thrust.
+- Feeds collision-resolved displacement back into velocity so the drone preserves valid wall-slide motion without accumulating hidden velocity into blockers or arena edges.
+- Added a runtime `Drone Presentation` pivot beneath the level aim/collision root. Acceleration produces up to `10` degrees of visual pitch/roll, while a subtle visual-only hover leaves collision, camera follow, and projectile aim stable.
+- Added `PlayerDroneMovementTuning` under `Resources/Tuning` for designer iteration without code changes.
+- Added deterministic acceleration, braking, collision-feedback, and tuning tests plus a focused PlayMode test proving acceleration, release coasting, banking, and a level movement root.
+
+### Validation
+
+- Pinned Unity `6000.3.11f1` in the warmed isolated `C:\Projects\Wendall\CodexPrototype_Run50Validation` copy compiled and imported the new scripts, tuning asset, and `.meta` files without compiler warnings or errors.
+- EditMode: `33/33` passed, `0` failed, `0` skipped, `0` inconclusive in `0.1114666s`; results and log are `Logs/drone-movement-editmode-results.xml` and `.log` in the isolated copy.
+- Focused PlayMode: `1/1` passed in `0.5516538s`; results and log are `Logs/drone-movement-focused-playmode-results.xml` and `.log` in the isolated copy.
+- Full PlayMode: `2/3` passed. The unrelated bootstrap smoke test stops at the existing tower-facing yaw assertion after the user-owned `Assets/DeadSignal/Resources/Environment/OpeningSignalSpine.prefab` rotation change; that prefab was preserved and not modified by this task.
+- `git diff --check` passed.
+
+### Known limitations and next step
+
+- Automated tests validate the response curve and presentation separation but cannot judge final handling feel. Play with keyboard and gamepad around tight rotated obstacles, then adjust the movement tuning asset if braking or bank feels too strong.
+
+## 2026-08-21 - Autonomous Run 53 - Speed-reactive twin Signal wake
+
+### Today's single idea
+
+Add a short twin cyan Signal wake that follows the maintenance drone's resolved flight speed.
+
+Player benefit: acceleration, coasting, braking, and collision-resolved motion now have immediate world-space feedback, making the new retained-velocity handling easier to read without changing movement or Signal economy.
+
+Acceptance criteria:
+
+- use original commercially safe transparent wake art and two presentation-only trails;
+- begin emitting only above a tunable speed threshold, widen with actual speed, and disappear at rest;
+- clear immediately on pause without changing collision, aim, movement tuning, Signal cost, or gameplay state;
+- require the texture and runtime component in PlayMode and packaged-player readiness checks; and
+- pass the complete Unity EditMode and PlayMode suites plus Windows build and standalone smoke validation.
+
+### Files and systems changed
+
+- `Assets/DeadSignal/Resources/VFX/PlayerDroneSignalWake.png` and Unity-generated `.meta`: original 1024x1536 alpha-transparent cyan-white circuit wake produced with OpenAI's built-in image generation. SHA-256: `E5BA0295C4E43C9538933B89ADA25931DB8F8238A48322785A7A82D1BF5364E7`.
+- Final prompt: a centered top-down cyan-white maintenance-circuit exhaust sprite with a narrow emitter, soft forked fade, real transparency, strong 64-pixel readability, and no text, logo, character, environment, or watermark.
+- `PlayerDroneSignalWake.cs` and `.meta`: dedicated presentation owner for two additive URP trails, speed response, pause clearing, and owned runtime-material disposal.
+- `PlayerDroneMovementTuning.cs` and `PlayerDroneMovementTuning.asset`: added validated designer-facing wake threshold, duration, emitter spacing, and width values to the existing focused movement asset.
+- `DeadSignalGame.cs` and `DeadSignalWorld.cs`: compose and drive the wake from collision-resolved velocity; also guard zero-delta frames so retained-velocity integration cannot create NaN transforms.
+- `StandaloneBuildSmokeProbe.cs`, `BootstrapSmokeTests.cs`, and `PlayerFollowCameraPlayModeTests.cs`: require packaged art/composition, preserve the four authored mesh contract, verify twin trails, speed emission, and pause suppression, and make the open-gate traversal check elapsed-time-based under acceleration.
+- `GAME_VISION.md` and `BACKLOG.md`: record the player value, acceptance criterion, rationale, and completed milestone.
+- Regenerated `WardenStagingBay.prefab` through its existing Editor authoring tool after validation found the uncommitted prefab had drifted into the dormant Warden spawn. Existing Unity-serializer normalization in the East Vault and boundary-threshold materials was preserved; no package, project-setting, scene, save-data, or gameplay-balance change was made.
+- The existing responsive-flight implementation (`PlayerDroneMovement.cs`, its tests, tuning asset, and related integration) was preserved and validated rather than rewritten.
+
+### Tests run and exact outcomes
+
+The user's open Unity Editor remained untouched. Authoritative validation used `C:\Projects\Wendall\CodexPrototype_Run50Validation` with pinned Unity `6000.3.11f1`.
+
+1. Final EditMode: `Logs/run53-editmode-final-results.xml` and `.log`; `33/33` passed, `0` failed, `0` skipped in `0.13541` seconds; exit `0`.
+2. Final PlayMode: `Logs/run53-playmode-final5-results.xml` and `.log`; `4/4` passed, `0` failed, `0` skipped in `6.7310301` seconds; exit `0`.
+3. Windows development build: `Logs/run53-build-final2.log`; `Build Finished, Result: Success`, one build PASS marker, `223,876,105` bytes in `11.07` seconds; exit `0`.
+4. Packaged `-batchmode -nographics -deadSignalBuildSmoke`: `Logs/run53-standalone-final.log`; emitted one standalone PASS marker and exited cleanly.
+5. Generated art was inspected for real alpha transparency, cyan/white palette, isolated silhouette, and absence of text/logos. `git diff --check` only reports pre-existing Unity-serializer spaces after empty YAML fields in material assets.
+
+### Bugs found and fixed
+
+- Zero-duration PlayMode frames divided resolved displacement by zero, producing NaN player positions and invalid presentation quaternions. Movement integration now ignores non-positive `dt`.
+- Fixed the bootstrap mesh assertion so two TrailRenderers do not masquerade as authored drone mesh parts.
+- Replaced a fixed-frame shortcut traversal assertion with a deterministic elapsed-time deadline appropriate for accelerated movement.
+- Regenerated the Signal spine and Warden bay in isolated validation after full regression exposed stale authored-prefab rotations/placement; copied back only the Warden bay correction because the Signal spine regenerated to its committed source-of-truth state.
+
+### Known limitations
+
+- Headless tests prove texture import, twin-trail composition, speed/pause state, and packaging but cannot judge additive brightness, trail orientation, or silhouette overlap against the banked drone.
+- The wake uses one generated vertical texture stretched across each trail; final UV direction and brightness should be judged in a rendered Game view at 16:9 and ultrawide.
+
+### Best next step
+
+Accelerate, coast, brake, reverse, and scrape along rotated cover with keyboard and controller; confirm the twin wake remains behind the drone, clears on pause, and reads without overpowering the cyan route art.

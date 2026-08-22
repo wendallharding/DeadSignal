@@ -119,7 +119,16 @@ namespace DeadSignal.Tests
             Assert.That(game.HasPlayerDroneAssets, Is.True,
                 "The player prefab and original maintenance-drone texture should load from Resources.");
             Assert.That(game.PlayerDronePartCount, Is.EqualTo(4));
-            Assert.That(maintenanceDrone.GetComponentsInChildren<Renderer>().Length, Is.EqualTo(4));
+            Assert.That(maintenanceDrone.GetComponentsInChildren<MeshRenderer>().Length, Is.EqualTo(4),
+                "The two presentation-only wake trails should not change the authored drone mesh contract.");
+            var dronePresentation = maintenanceDrone.Find("Drone Presentation");
+            Assert.That(dronePresentation, Is.Not.Null,
+                "The level collision and aim root should remain separate from the banked drone presentation.");
+            var signalWake = maintenanceDrone.GetComponent<PlayerDroneSignalWake>();
+            Assert.That(signalWake, Is.Not.Null);
+            Assert.That(signalWake.HasTexture, Is.True);
+            Assert.That(signalWake.TrailCount, Is.EqualTo(2));
+            Assert.That(Resources.Load<Texture2D>("VFX/PlayerDroneSignalWake"), Is.Not.Null);
             Assert.That(Resources.Load<GameObject>("Actors/MaintenanceDroneModel"), Is.Not.Null,
                 "The authored Blender model should load from Resources.");
             var authoredDronePrefab = Resources.Load<GameObject>("Actors/MaintenanceDroneAssembly");
@@ -137,7 +146,7 @@ namespace DeadSignal.Tests
                 Is.EqualTo(Resources.Load<Material>("Materials/MaintenanceDroneTool")));
             Assert.That(maintenanceDrone.GetComponentsInChildren<Collider>().Length, Is.Zero,
                 "The authored player drone should remain presentation-only so deterministic movement stays authoritative.");
-            Assert.That(maintenanceDrone.Find("Drone Chassis").GetComponent<Renderer>().sharedMaterial.mainTexture,
+            Assert.That(dronePresentation.Find("Drone Chassis").GetComponent<Renderer>().sharedMaterial.mainTexture,
                 Is.Not.Null, "The authored drone chassis should render the original ceramic Signal texture.");
             var playerMeshes = maintenanceDrone.GetComponentsInChildren<MeshFilter>().Select(filter => filter.sharedMesh).ToArray();
             Assert.That(playerMeshes.Length, Is.EqualTo(4));
@@ -145,7 +154,7 @@ namespace DeadSignal.Tests
                 "Every player part should use purpose-built geometry rather than a placeholder primitive.");
             Assert.That(playerMeshes.All(mesh => mesh.HasVertexAttribute(UnityEngine.Rendering.VertexAttribute.TexCoord0)), Is.True,
                 "Every player mesh should retain complete authored UV coordinates.");
-            Assert.That(maintenanceDrone.Find("Drone Tool").localPosition, Is.EqualTo(new Vector3(0f, 0.3f, 0.68f)),
+            Assert.That(dronePresentation.Find("Drone Tool").localPosition, Is.EqualTo(new Vector3(0f, 0.3f, 0.68f)),
                 "The authored tool must preserve the projectile origin and aiming silhouette.");
             Assert.That(game.HasSignalBoltAssets, Is.True,
                 "The authored Signal bolt prefab should be ready before the player fires.");
@@ -696,6 +705,8 @@ namespace DeadSignal.Tests
             Assert.That(Camera.main != null || Object.FindFirstObjectByType<Camera>() != null, Is.True);
             Assert.That(game.HasPlayerCameraTuning, Is.True,
                 "The authored tactical-camera tuning should load from Resources.");
+            Assert.That(game.HasPlayerMovementTuning, Is.True,
+                "The authored drone flight-response tuning should load from Resources.");
             Assert.That(game.IsPlayerCameraFollowing, Is.True,
                 "The player camera should be configured on its independent follow rig.");
             Assert.That(Object.FindFirstObjectByType<AudioListener>(), Is.Not.Null,
@@ -822,7 +833,7 @@ namespace DeadSignal.Tests
                 var initialSalvageColor = salvageCase.GetComponent<Renderer>().sharedMaterial.color;
                 var machineHousing = stationMachines.GetChild(0).Find("Machine Housing").GetComponent<Renderer>();
                 var initialMachineHousingColor = machineHousing.sharedMaterial.color;
-                var playerHousing = player.Find("Drone Chassis").GetComponent<Renderer>();
+                var playerHousing = player.Find("Drone Presentation/Drone Chassis").GetComponent<Renderer>();
                 var initialPlayerHousingColor = playerHousing.sharedMaterial.color;
                 var wardenHousing = securityWarden.Find("Warden Chassis").GetComponent<Renderer>();
                 var initialWardenHousingColor = wardenHousing.sharedMaterial.color;
@@ -1084,7 +1095,8 @@ namespace DeadSignal.Tests
 
                 player.position = new Vector3(3f, 0f, 0.4f);
                 InputSystem.QueueStateEvent(gamepad, new GamepadState { leftStick = Vector2.right });
-                for (int frame = 0; frame < 30; frame++)
+                var movementDeadline = Time.time + 0.6f;
+                while (Time.time < movementDeadline && player.position.x <= 4.35f)
                 {
                     yield return null;
                 }

@@ -23,6 +23,7 @@
 - [x] Reject duplicate primary keyboard bindings with persistent-safe conflict feedback
 - [ ] Replace bootstrap arena with modular authored room prefabs
 - [x] Add a tunable player-follow tactical camera that preserves arena-edge framing and combat impulse
+- [x] Add a speed-reactive twin Signal wake to communicate drone acceleration and coasting
 - [x] Connect a scene-authored optional east salvage vault and allow extraction after any three of four caches
 - [x] Make authored cover and closed gates intercept Signal bolts with readable impact feedback
 - [x] Add a scene-authored Signal spine that guides the opening route from extraction to the tower

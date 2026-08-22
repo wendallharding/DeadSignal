@@ -11,7 +11,6 @@ namespace DeadSignal
     /// </summary>
     public sealed class DeadSignalGame : MonoBehaviour
     {
-        private const float PLAYER_SPEED = 6.4f;
         private const float PLAYER_COLLISION_RADIUS = 0.48f;
 
         private RunModel m_model;
@@ -27,6 +26,8 @@ namespace DeadSignal
         private IObjectiveBeacon m_objectiveBeacon;
         private ISignalDust m_signalDust;
         private SalvagePresentationTuning m_salvageTuning;
+        private PlayerDroneMovementTuning m_playerMovementTuning;
+        private PlayerDroneMovement m_playerMovement;
         private ILowSignalWarning m_lowSignalWarning;
         private ITowerActivationSweep m_towerActivationSweep;
         private Container m_container;
@@ -102,6 +103,8 @@ namespace DeadSignal
         public bool IsReducedFlashesEnabled => m_comfortSettings?.ReducedFlashesEnabled ?? false;
         public bool IsHighContrastEnabled => m_comfortSettings?.HighContrastEnabled ?? false;
         public bool HasSalvagePresentationTuning => m_salvageTuning != null;
+        public bool HasPlayerMovementTuning => m_playerMovementTuning != null;
+        public bool HasPlayerSignalWake => m_world?.PlayerSignalWake?.HasTexture ?? false;
         public bool HasSignalBoltBulkheadImpact => m_combatFeedback?.HasEnvironmentImpactTexture ?? false;
         public int ActiveSignalBoltCount => transform.Cast<Transform>().Count(child => child.name == "Signal Bolt");
 
@@ -213,7 +216,18 @@ namespace DeadSignal
                 return;
             }
 
+            m_playerMovementTuning = Resources.Load<PlayerDroneMovementTuning>("Tuning/PlayerDroneMovementTuning");
+            if (m_playerMovementTuning == null)
+            {
+                Debug.LogError("Player drone movement tuning is missing from Resources/Tuning.", this);
+                enabled = false;
+                return;
+            }
+
+            m_playerMovement = new PlayerDroneMovement();
+
             m_world = new DeadSignalWorld(transform, m_comfortSettings);
+            m_world.ConfigurePlayerSignalWake(m_playerMovementTuning);
             m_combatFeedback.Configure(m_world.Camera);
             var signalBoltTuning = Resources.Load<SignalBoltPresentationTuning>("Tuning/SignalBoltPresentationTuning");
             if (signalBoltTuning == null)
@@ -317,21 +331,28 @@ namespace DeadSignal
 
         private Vector3 _updatePlayer(float dt)
         {
-            var moveInput = m_input.ReadMovement();
-            var movement = new Vector3(moveInput.x, 0f, moveInput.y);
-            if (movement.sqrMagnitude > 1f)
+            if (dt <= 0f)
             {
-                movement.Normalize();
+                return Vector3.zero;
             }
 
-            var desired = m_world.Player.position + movement * (PLAYER_SPEED * dt);
+            var moveInput = m_input.ReadMovement();
+            var previousVelocity = m_playerMovement.Velocity;
+            var velocity = m_playerMovement.Tick(moveInput, dt, m_playerMovementTuning);
+            var previousPosition = m_world.Player.position;
+            var desired = previousPosition + velocity * dt;
             desired = m_world.ClampToArena(desired, 0.6f);
             m_world.Player.position = m_world.ResolveMovement(
-                m_world.Player.position,
+                previousPosition,
                 desired,
                 PLAYER_COLLISION_RADIUS,
                 m_model.ShortcutOpen);
-            return movement;
+            var resolvedVelocity = (m_world.Player.position - previousPosition) / dt;
+            m_playerMovement.ApplyResolvedVelocity(resolvedVelocity);
+            var acceleration = (m_playerMovement.Velocity - previousVelocity) / dt;
+            m_world.TickPlayerPresentation(dt, acceleration, m_playerMovementTuning);
+            m_world.PlayerSignalWake.Tick(m_playerMovement.Velocity.magnitude);
+            return resolvedVelocity;
         }
 
         private void _handlePauseInput()
@@ -432,6 +453,7 @@ namespace DeadSignal
             m_combatFeedback.SetPaused(paused);
             m_audio.SetPaused(paused);
             m_signalDust.SetPaused(paused);
+            m_world.PlayerSignalWake.SetPaused(paused);
         }
     }
 }

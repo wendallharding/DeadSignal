@@ -57,6 +57,8 @@ namespace DeadSignal
                                 game.AuthoredSalvageSocketCount == 1 &&
                                 game.HasSalvagePresentationTuning &&
                                 game.HasPlayerDroneAssets &&
+                                game.HasPlayerMovementTuning &&
+                                game.HasPlayerSignalWake &&
                                 game.HasPlayerCameraTuning &&
                                 game.IsPlayerCameraFollowing &&
                                 Resources.Load<GameObject>("Actors/MaintenanceDroneModel") != null &&
@@ -65,6 +67,8 @@ namespace DeadSignal
                                 Resources.Load<Material>("Materials/MaintenanceDroneSignal") != null &&
                                 Resources.Load<Material>("Materials/MaintenanceDroneCore") != null &&
                                 Resources.Load<Material>("Materials/MaintenanceDroneTool") != null &&
+                                Resources.Load<PlayerDroneMovementTuning>("Tuning/PlayerDroneMovementTuning") != null &&
+                                Resources.Load<Texture2D>("VFX/PlayerDroneSignalWake") != null &&
                                 Resources.Load<PlayerCameraTuning>("Tuning/PlayerCameraTuning") != null &&
                                 Resources.Load<SalvagePresentationTuning>("Tuning/SalvagePresentationTuning") != null &&
                                 Resources.Load<GameObject>("Actors/SecurityWardenAssembly") != null &&
