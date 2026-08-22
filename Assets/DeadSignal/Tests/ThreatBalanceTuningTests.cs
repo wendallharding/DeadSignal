@@ -19,6 +19,12 @@ namespace DeadSignal.Tests
                 Assert.That(tuning.ReinforcementEntryDelay, Is.GreaterThanOrEqualTo(2f));
                 Assert.That(tuning.ReinforcementSafeDistance, Is.GreaterThan(4f));
                 Assert.That(tuning.ExtractionUplinkDuration, Is.InRange(6f, 12f));
+                Assert.That(tuning.ExtractionOverdriveDuration, Is.LessThan(tuning.ExtractionUplinkDuration));
+                Assert.That(tuning.ExtractionOverdriveDuration,
+                    Is.GreaterThan(tuning.ReinforcementEntryDelay + tuning.SuppressorWarningDuration + 1f),
+                    "The faster link must preserve a meaningful response window after the readable opening sweep.");
+                Assert.That(tuning.ExtractionOverdriveSignalCost,
+                    Is.InRange(RunModel.ShotCost * 2f, RunModel.SecurityHitCost));
                 Assert.That(tuning.ExtractionPurgeAcceleration, Is.InRange(0.5f, 1f));
                 Assert.That(tuning.ExtractionPurgeAcceleration, Is.LessThan(tuning.SuppressorWarningDuration),
                     "One purge should reward combat without bypassing the readable suppression response.");

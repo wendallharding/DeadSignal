@@ -73,7 +73,7 @@ This autonomous run is accepted when a fresh Play session provides all of the fo
 - The final bounded extraction response is a magenta Suppressor that is promoted ahead of unresolved salvage reserves, enters through the safer authored flank gate, then locks its first telegraphed slowing Signal-drain field to the drone's position so the six-second uplink always demands one avoidable movement decision.
 - Three warm salvage pickups can be collected outside the safe starting area.
 - The first salvage cache offers one run-long combat overclock: Chain Arc rewards grouping tactical roles, while Overdrive Thrusters rewards evasion and route greed.
-- Returning to the extraction pad with all salvage starts a six-second mobile uplink; surviving completes the run, while each threat purged during the link advances it by 0.75 seconds.
+- Returning with all salvage offers a free six-second stable uplink or a 12-Signal 4.75-second overdrive; both keep movement and combat live, trigger the same bounded response, and reward each threat purged with 0.75 seconds of link progress.
 - A central powered gate offers a readable choice: spend Signal for a direct salvage route or detour through the dead zone.
 - Signal depletion causes death; victory/death clearly present a restart action.
 - Victory and death report time, danger exposure, combat usage, damage, and remaining Signal.
@@ -187,3 +187,7 @@ Starting the uplink now promotes the existing Suppressor response ahead of any u
 ### Run 71 product decision — combat-assisted extraction
 
 Each security purge during the active extraction uplink now advances the link by 0.75 seconds. The unchanged six-second survival route keeps fleeing valid, while spending Signal to fight can shorten exposure and combine the existing bounty, Feedback Shield recharge, and tactical-role counterplay into one climactic decision. Credits cannot be banked before extraction and are capped by the remaining link time. This was selected over a longer holdout or added wave because the existing climax needed a positive reason to turn and fight, not more unavoidable threat count.
+
+### Run 73 product decision — extraction link modes
+
+The dock now offers a free six-second stable uplink or a 12-Signal 4.75-second overdrive through the existing Use and Fire routes. The fast link preserves more than one second after the promoted response's safe-entry and ring warnings, so spending reserve reduces exposure without deleting the final maneuver; the choice input cannot also fire, and an unaffordable overdrive leaves the stable route available. This was selected over another enemy, longer holdout, or larger arena because extraction needed a final expression of the shared Signal economy: conserve reserve and survive longer, or burn power now to shorten mixed-role pressure.

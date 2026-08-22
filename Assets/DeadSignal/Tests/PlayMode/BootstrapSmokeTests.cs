@@ -184,6 +184,70 @@ namespace DeadSignal.Tests
         }
 
         [UnityTest]
+        public IEnumerator ExtractionDock_FireSelectsPaidOverdriveWithoutFiringSignalBolt()
+        {
+            yield return SceneManager.LoadSceneAsync("SampleScene");
+            yield return null;
+
+            var gamepad = InputSystem.AddDevice<Gamepad>();
+            try
+            {
+                var game = Object.FindFirstObjectByType<DeadSignalGame>();
+                var tuning = Resources.Load<ThreatBalanceTuning>("Tuning/ThreatBalanceTuning");
+                var player = game.transform.Find("Maintenance Drone");
+                player.position = new Vector3(-0.6f, 0f, 0.4f);
+                InputSystem.QueueStateEvent(gamepad, new GamepadState().WithButton(GamepadButton.West));
+                yield return null;
+                InputSystem.QueueStateEvent(gamepad, new GamepadState());
+                yield return null;
+
+                game.transform.Find("Security Warden").position = new Vector3(18f, 0f, 9f);
+                game.transform.Find("Signal Sapper").position = new Vector3(-18f, 0f, 9f);
+                var caches = game.transform.Cast<Transform>()
+                    .Where(child => child.name == "Salvage Cache" && child.gameObject.activeSelf)
+                    .Take(RunModel.SalvageRequired)
+                    .ToArray();
+                for (var index = 0; index < caches.Length; index++)
+                {
+                    player.position = caches[index].position;
+                    yield return null;
+                    if (index >= RunModel.SalvageRequired - 1)
+                    {
+                        continue;
+                    }
+
+                    InputSystem.QueueStateEvent(gamepad, new GamepadState().WithButton(GamepadButton.West));
+                    yield return null;
+                    InputSystem.QueueStateEvent(gamepad, new GamepadState());
+                    yield return null;
+                }
+
+                player.position = new Vector3(-9.2f, 0f, -5.6f);
+                var signalBeforeChoice = game.CurrentSignal;
+                var shotsBeforeChoice = game.ShotsFired;
+                InputSystem.QueueStateEvent(gamepad, new GamepadState().WithButton(GamepadButton.RightShoulder));
+                yield return null;
+                InputSystem.QueueStateEvent(gamepad, new GamepadState());
+                yield return null;
+
+                Assert.That(game.IsExtractionUplinkActive, Is.True);
+                Assert.That(game.CurrentExtractionUplinkMode, Is.EqualTo(ExtractionUplinkMode.Overdrive));
+                Assert.That(game.ExtractionUplinkSecondsRemaining,
+                    Is.InRange(tuning.ExtractionOverdriveDuration - 0.2f, tuning.ExtractionOverdriveDuration));
+                Assert.That(game.CurrentSignal,
+                    Is.EqualTo(signalBeforeChoice - tuning.ExtractionOverdriveSignalCost).Within(0.05f));
+                Assert.That(game.ShotsFired, Is.EqualTo(shotsBeforeChoice),
+                    "The contextual Fire input should commit the fast link rather than launch a Signal bolt.");
+                Assert.That(game.PendingSecurityReinforcement, Is.EqualTo(SecurityReinforcement.Suppressor),
+                    "The paid duration choice must preserve the same bounded extraction response.");
+            }
+            finally
+            {
+                InputSystem.RemoveDevice(gamepad);
+            }
+        }
+
+        [UnityTest]
         public IEnumerator SignalBolt_AuthoredCoverBlocksClosedGateButOpenDoorwayStaysClear()
         {
             yield return SceneManager.LoadSceneAsync("SampleScene");
@@ -1418,6 +1482,7 @@ namespace DeadSignal.Tests
 
                 Assert.That(game.IsExtractionUplinkActive, Is.True,
                     "Extraction input should start a pursuit uplink instead of granting instant victory.");
+                Assert.That(game.CurrentExtractionUplinkMode, Is.EqualTo(ExtractionUplinkMode.Stable));
                 Assert.That(game.ExtractionUplinkSecondsRemaining, Is.InRange(5.8f, 6f));
                 Assert.That(game.SecurityReinforcementsRemaining, Is.EqualTo(3),
                     "The extraction pursuit should bank exactly one response beyond the two remaining salvage reserves.");

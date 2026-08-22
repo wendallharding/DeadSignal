@@ -59,6 +59,7 @@ namespace DeadSignal
         public float ReinforcementEntryCountdown => m_threats?.ReinforcementEntryCountdown ?? 0f;
         public bool IsExtractionUplinkActive => m_extractionUplink?.IsActive ?? false;
         public float ExtractionUplinkSecondsRemaining => m_extractionUplink?.SecondsRemaining ?? 0f;
+        public ExtractionUplinkMode CurrentExtractionUplinkMode => m_extractionUplink?.Mode ?? ExtractionUplinkMode.None;
         public bool LastSignalBoltBlockedByEnvironment => m_threats?.LastShotBlockedByEnvironment ?? false;
         public bool IsPaused => m_combatFeedback?.IsPaused ?? false;
         public bool HasPauseInsignia => m_hud?.HasPauseInsignia ?? false;
@@ -297,7 +298,10 @@ namespace DeadSignal
                 return;
             }
 
-            m_extractionUplink = new ExtractionUplink(threatTuning.ExtractionUplinkDuration);
+            m_extractionUplink = new ExtractionUplink(
+                threatTuning.ExtractionUplinkDuration,
+                threatTuning.ExtractionOverdriveDuration,
+                threatTuning.ExtractionOverdriveSignalCost);
             m_extractionPurgeAcceleration = threatTuning.ExtractionPurgeAcceleration;
 
             m_threats = new DeadSignalThreatController(
@@ -375,6 +379,10 @@ namespace DeadSignal
             if (m_overclockChoice.IsPending)
             {
                 _handleOverclockChoice();
+            }
+            else if (_isExtractionUplinkChoiceAvailable())
+            {
+                _handleExtractionUplinkChoice();
             }
             else
             {
@@ -523,11 +531,51 @@ namespace DeadSignal
             {
                 _showFeedback($"EXTRACTION LOCKED — {RunModel.SalvageRequired - m_model.Salvage} SALVAGE MISSING");
             }
-            else if (m_extractionUplink.Begin())
+        }
+
+        private bool _isExtractionUplinkChoiceAvailable()
+        {
+            return m_model.CanExtract &&
+                   !m_extractionUplink.IsActive &&
+                   !m_extractionUplink.IsComplete &&
+                   DeadSignalWorld.FlatDistance(m_world.Player.position, m_world.ExtractionPosition) < 1.65f;
+        }
+
+        private void _handleExtractionUplinkChoice()
+        {
+            if (m_fireBuffered || m_input.PressedFire())
             {
-                m_threats.BeginExtractionPressure();
-                _showFeedback("UPLINK STARTED — SECURITY PURSUIT INBOUND");
+                m_fireBuffered = false;
+                if (!m_extractionUplink.CanAffordOverdrive(m_model.Signal))
+                {
+                    _showFeedback($"KEEP 1 SIGNAL AFTER {m_extractionUplink.OverdriveSignalCost:0} OVERDRIVE COST");
+                    return;
+                }
+
+                if (m_model.TrySpend(m_extractionUplink.OverdriveSignalCost))
+                {
+                    _beginExtractionUplink(ExtractionUplinkMode.Overdrive,
+                        $"UPLINK OVERDRIVEN  −{m_extractionUplink.OverdriveSignalCost:0} SIGNAL — PURSUIT INBOUND");
+                }
+
+                return;
             }
+
+            if (m_input.PressedInteract())
+            {
+                _beginExtractionUplink(ExtractionUplinkMode.Stable, "STABLE UPLINK STARTED — SECURITY PURSUIT INBOUND");
+            }
+        }
+
+        private void _beginExtractionUplink(ExtractionUplinkMode mode, string feedback)
+        {
+            if (!m_extractionUplink.Begin(mode))
+            {
+                return;
+            }
+
+            m_threats.BeginExtractionPressure();
+            _showFeedback(feedback);
         }
 
         private void _handleOverclockChoice()

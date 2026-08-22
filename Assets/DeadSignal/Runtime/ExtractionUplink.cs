@@ -2,31 +2,52 @@ using System;
 
 namespace DeadSignal
 {
+    public enum ExtractionUplinkMode
+    {
+        None,
+        Stable,
+        Overdrive
+    }
+
     /// <summary>
     /// Deterministic countdown for the final extraction pursuit. Runtime input and presentation remain external.
     /// </summary>
     public sealed class ExtractionUplink
     {
-        private readonly float m_duration;
+        private readonly float m_stableDuration;
+        private readonly float m_overdriveDuration;
+        private readonly float m_overdriveSignalCost;
 
-        public ExtractionUplink(float duration)
+        public ExtractionUplink(float stableDuration, float overdriveDuration, float overdriveSignalCost)
         {
-            m_duration = Math.Max(0.1f, duration);
+            m_stableDuration = Math.Max(0.1f, stableDuration);
+            m_overdriveDuration = Math.Max(0.1f, Math.Min(overdriveDuration, m_stableDuration));
+            m_overdriveSignalCost = Math.Max(0f, overdriveSignalCost);
         }
 
         public bool IsActive { get; private set; }
         public bool IsComplete { get; private set; }
         public float SecondsRemaining { get; private set; }
+        public ExtractionUplinkMode Mode { get; private set; }
+        public float StableDuration => m_stableDuration;
+        public float OverdriveDuration => m_overdriveDuration;
+        public float OverdriveSignalCost => m_overdriveSignalCost;
 
-        public bool Begin()
+        public bool CanAffordOverdrive(float availableSignal)
         {
-            if (IsActive || IsComplete)
+            return availableSignal > m_overdriveSignalCost;
+        }
+
+        public bool Begin(ExtractionUplinkMode mode)
+        {
+            if (IsActive || IsComplete || mode == ExtractionUplinkMode.None)
             {
                 return false;
             }
 
+            Mode = mode;
             IsActive = true;
-            SecondsRemaining = m_duration;
+            SecondsRemaining = mode == ExtractionUplinkMode.Overdrive ? m_overdriveDuration : m_stableDuration;
             return true;
         }
 

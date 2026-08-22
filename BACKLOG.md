@@ -14,6 +14,16 @@
 
 ## P1 — Prove the loop
 
+### Run 73 extraction-link-mode ideas
+
+- [x] Offer a free six-second stable link and a designer-tuned 12-Signal 4.75-second overdrive at the extraction dock
+- [x] Use existing Use and Fire routes while consuming the choice input so overdrive cannot also launch a Signal bolt
+- [x] Preserve one positive Signal when the fast link is unaffordable and keep the stable route immediately available
+- [x] Trigger the same promoted Suppressor, bounded response budget, movement, combat, bounty, shield, and purge-time rewards in either mode
+- [x] Keep the faster duration longer than the safe-entry plus ring warning sequence so it cannot erase the final maneuver
+- [x] Prove stable and overdrive selection, affordability, duration, Signal cost, input consumption, and response preservation in Unity tests
+- [ ] Playtest both link modes across high- and low-reserve returns for choice clarity, Signal value, field exposure, and dominance
+
 ### Run 72 coordinated-suppression-intercept ideas
 
 - [x] During a live Suppressor warning, route a surviving Interceptor toward the player's most obvious ring exit

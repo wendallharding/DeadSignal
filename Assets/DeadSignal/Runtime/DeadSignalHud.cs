@@ -220,8 +220,13 @@ namespace DeadSignal
                 : m_overclockChoice.IsAuxiliaryPending
                 ? $"AUXILIARY OVERCLOCK AVAILABLE\nFIRE [{m_input.FireKeyboardBinding}]  CAPACITOR — LOW-SIGNAL REFILL\n" +
                   $"USE [{m_input.InteractKeyboardBinding}]  SHIELD — NEGATE ONE THREAT"
+                : _isExtractionUplinkChoiceAvailable()
+                ? $"CHOOSE EXTRACTION LINK\nFIRE [{m_input.FireKeyboardBinding}]  OVERDRIVE — " +
+                  $"{m_extractionUplink.OverdriveDuration:0.##}s / −{m_extractionUplink.OverdriveSignalCost:0} SIGNAL\n" +
+                  $"USE [{m_input.InteractKeyboardBinding}]  STABLE — {m_extractionUplink.StableDuration:0.##}s / FREE"
                 : m_extractionUplink.IsActive
-                ? $"PHASE 3/3  //  EXTRACTION UPLINK\nSURVIVE PURSUIT  {m_extractionUplink.SecondsRemaining:0.0}s\n" +
+                ? $"PHASE 3/3  //  {m_extractionUplink.Mode.ToString().ToUpperInvariant()} UPLINK\n" +
+                  $"SURVIVE PURSUIT  {m_extractionUplink.SecondsRemaining:0.0}s\n" +
                   "MANEUVER AND FIRE — DOCK LINK IS LOCKED"
                 : $"PHASE {guidance.Phase}/3  //  {guidance.Title}\n{guidance.Action}\n{guidance.Advisory}";
             m_threatText.text = _threatStatus();
@@ -332,7 +337,10 @@ namespace DeadSignal
                        $"{_binding("USE: OVERDRIVE", "X: OVERDRIVE")}";
             if (m_overclockChoice.IsAuxiliaryPending)
                 return $"CHOOSE NOW  —  {_binding("FIRE: CAPACITOR", "RB: CAPACITOR")}  |  " +
-                       $"{_binding("USE: SHIELD", "X: SHIELD")}";
+                        $"{_binding("USE: SHIELD", "X: SHIELD")}";
+            if (_isExtractionUplinkChoiceAvailable())
+                return $"CHOOSE LINK  —  {_binding("FIRE: OVERDRIVE", "RB: OVERDRIVE")}  |  " +
+                       $"{_binding("USE: STABLE", "X: STABLE")}";
             if (!m_model.ShortcutOpen && DeadSignalWorld.FlatDistance(m_world.Player.position, m_world.ShortcutPosition) < 1.9f)
                 return m_model.TowerOnline ? $"[{_binding("E", "GAMEPAD X")}]  BURN {RunModel.ShortcutCost:0} SIGNAL FOR SHORTCUT"
                     : "SHORTCUT OFFLINE - ACTIVATE TOWER FIRST";
@@ -340,7 +348,7 @@ namespace DeadSignal
                 return $"[{_binding("E", "GAMEPAD X")}]  ACTIVATE SIGNAL TOWER  —  COST 10";
             if (DeadSignalWorld.FlatDistance(m_world.Player.position, m_world.ExtractionPosition) < 1.65f)
                 return m_extractionUplink.IsActive ? $"UPLINK LOCKED  —  {m_extractionUplink.SecondsRemaining:0.0}s"
-                    : m_model.CanExtract ? $"[{_binding("E", "GAMEPAD X")}]  START EXTRACTION UPLINK"
+                    : m_model.CanExtract ? "CHOOSE STABLE OR OVERDRIVE UPLINK"
                     : $"EXTRACTION LOCKED  —  {RunModel.SalvageRequired - m_model.Salvage} SALVAGE MISSING";
             return string.Empty;
         }
@@ -350,6 +358,14 @@ namespace DeadSignal
             return m_input.ActivePromptDevice == InputPromptDevice.Gamepad ? "GAMEPAD  LS / RS  |  RT-RB / X  |  MENU-A"
                 : $"KEYBOARD  {m_input.MoveUpKeyboardBinding}{m_input.MoveLeftKeyboardBinding}{m_input.MoveDownKeyboardBinding}" +
                   $"{m_input.MoveRightKeyboardBinding} / MOUSE  |  LMB-{m_input.FireKeyboardBinding} / {m_input.InteractKeyboardBinding}  |  ESC-R";
+        }
+
+        private bool _isExtractionUplinkChoiceAvailable()
+        {
+            return m_model.CanExtract &&
+                   !m_extractionUplink.IsActive &&
+                   !m_extractionUplink.IsComplete &&
+                   DeadSignalWorld.FlatDistance(m_world.Player.position, m_world.ExtractionPosition) < 1.65f;
         }
 
         private string _binding(string keyboardMouse, string gamepad) =>
