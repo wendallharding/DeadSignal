@@ -150,6 +150,8 @@ namespace DeadSignal
                                 Resources.Load<Texture2D>("UI/SystemControlGlyph") != null &&
                                 game.HasSignalReserveArt &&
                                 Resources.Load<Sprite>("UI/SignalReserveConduit") != null &&
+                                game.HasRunDebriefArt &&
+                                Resources.Load<Texture2D>("UI/RunDebriefInsignia") != null &&
                                 Resources.Load<SignalHudTuning>("Tuning/SignalHudTuning") != null;
             if (!runtimeReady)
             {

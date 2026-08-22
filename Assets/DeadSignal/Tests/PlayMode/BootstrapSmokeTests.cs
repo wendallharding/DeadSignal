@@ -27,6 +27,8 @@ namespace DeadSignal.Tests
             Assert.That(hudCanvas.transform.Find("Run HUD/Signal Status/Signal Bar/Fill").GetComponent<Image>(), Is.Not.Null);
             Assert.That(hud.HasSignalReserveArt, Is.True,
                 "The Canvas Signal bar should use the original authored conduit art.");
+            Assert.That(hud.HasRunDebriefArt, Is.True,
+                "The authored outcome HUD should load its original debrief insignia.");
             Assert.That(hud.CurrentSignalReserveState, Is.EqualTo(SignalReserveState.Stable),
                 "A fresh full reserve should identify itself as stable.");
             Assert.That(Resources.Load<SignalHudTuning>("Tuning/SignalHudTuning"), Is.Not.Null);
@@ -144,6 +146,7 @@ namespace DeadSignal.Tests
                 Is.EqualTo(CanvasScaler.ScaleMode.ScaleWithScreenSize));
             Assert.That(hudCanvas.transform.Find("Run HUD/Signal Status/Signal Bar/Fill").GetComponent<Image>(), Is.Not.Null);
             Assert.That(game.HasSignalReserveArt, Is.True);
+            Assert.That(game.HasRunDebriefArt, Is.True);
             Assert.That(game.CurrentSignalReserveState, Is.EqualTo(SignalReserveState.Stable));
             Assert.That(hudCanvas.transform.Find("Pause Overlay/Control Routing/Reset").GetComponent<Button>(), Is.Not.Null);
             var maintenanceDrone = game.transform.Find("Maintenance Drone");

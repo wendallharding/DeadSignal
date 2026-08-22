@@ -17,6 +17,7 @@ namespace DeadSignal
         bool HasMovementRoutingIcon { get; }
         bool HasControlGlyphSet { get; }
         bool HasSignalReserveArt { get; }
+        bool HasRunDebriefArt { get; }
         SignalReserveState CurrentSignalReserveState { get; }
 
         void Configure(RunModel model, RunMetrics metrics, DeadSignalWorld world, DeadSignalThreatController threats);
@@ -67,6 +68,7 @@ namespace DeadSignal
         [SerializeField] private RawImage m_bindingConflictIcon;
         [SerializeField] private RawImage m_movementRoutingIcon;
         [SerializeField] private RawImage[] m_controlGlyphs;
+        [SerializeField] private RawImage m_runDebriefInsignia;
 
         private RunModel m_model;
         private RunMetrics m_metrics;
@@ -76,6 +78,7 @@ namespace DeadSignal
         private IComfortSettings m_comfortSettings;
         private IDeadSignalInput m_input;
         private SignalHudTuning m_signalHudTuning;
+        private Texture2D m_runDebriefTexture;
         private float m_feedbackTimer;
         private float m_signalPulseTime;
         private string m_feedback = string.Empty;
@@ -92,6 +95,7 @@ namespace DeadSignal
         public bool HasControlGlyphSet => m_controlGlyphs != null && m_controlGlyphs.Length == 5 &&
                                           System.Array.TrueForAll(m_controlGlyphs, _hasTexture);
         public bool HasSignalReserveArt => m_signalFill != null && m_signalFill.sprite != null;
+        public bool HasRunDebriefArt => m_runDebriefTexture != null && _hasTexture(m_runDebriefInsignia);
         public SignalReserveState CurrentSignalReserveState { get; private set; }
 
         [Inject]
@@ -110,13 +114,15 @@ namespace DeadSignal
             m_threats = threats;
             m_signalHudTuning = Resources.Load<SignalHudTuning>("Tuning/SignalHudTuning");
             var signalSprite = Resources.Load<Sprite>("UI/SignalReserveConduit");
-            if (m_signalHudTuning == null || signalSprite == null)
+            m_runDebriefTexture = Resources.Load<Texture2D>("UI/RunDebriefInsignia");
+            if (m_signalHudTuning == null || signalSprite == null || m_runDebriefTexture == null)
             {
                 Debug.LogError("The authored Signal HUD tuning or reserve conduit art is missing.");
                 return;
             }
 
             m_signalFill.sprite = signalSprite;
+            m_runDebriefInsignia.texture = m_runDebriefTexture;
             _wireButtons();
             _refresh();
         }
@@ -205,10 +211,12 @@ namespace DeadSignal
             }
 
             var victory = m_model.Outcome == RunOutcome.Victory;
+            var debrief = RunDebrief.Evaluate(m_model, m_metrics);
             m_outcomeTitle.text = victory ? "SIGNAL RECOVERED" : "DRONE OFFLINE";
             m_outcomeTitle.color = victory ? new Color(0.08f, 0.96f, 1f) : new Color(1f, 0.08f, 0.06f);
             m_outcomeDetail.text = victory ? "Salvage extracted. The station lives a little longer." : "Signal depleted in the dark.";
-            m_runReportText.text = _runReport();
+            m_runReportText.text = $"DEBRIEF GRADE  {debrief.Grade}\n{debrief.Signal}   |   {debrief.Combat}\n" +
+                                   $"{debrief.Exposure}   |   {debrief.Route}\n{_runReport()}";
             m_restartText.text = $"PRESS {_binding("R / ENTER", "GAMEPAD A")} TO RESTART";
         }
 

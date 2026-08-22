@@ -3487,3 +3487,48 @@ This pass was selected over another objective or room because Signal is the comm
 - Focused complete-runtime PlayMode result: exit `0`, `1/1` passed, `0` failed, `0` skipped in `4.7856772s`; result `pause-overlay-results.xml`, log `pause-overlay.log` in the isolated validation project.
 - Changed only `DeadSignalGame.cs`, `BootstrapSmokeTests.cs`, and this development-log entry. No prefab, scene, UI layout, gameplay rule, tuning, input binding, package, project-setting, or serialized-data changes were required.
 - Manual check: let the open Editor import the scripts, press Escape during a run, verify the overlay appears immediately, toggle one option, and press Escape again to resume.
+## 2026-08-21 — Autonomous Run 57 — Actionable mission debrief
+
+### Today's single idea
+
+Turn the outcome screen's raw telemetry into an actionable five-part mission debrief that gives every completed or failed run a clear mastery target.
+
+### Player benefit and acceptance criteria
+
+- Overall grade: deterministic S–D grade reflects outcome, reserve, security drains, and dead-zone exposure.
+- Signal efficiency: final reserve reports `SECURE`, `TIGHT`, or `CRITICAL`.
+- Combat discipline: Warden hits and Sapper pulses combine into an accurate security-drain count.
+- Dead-zone exposure: dead-zone time as a share of run time reports `CONTROLLED`, `ELEVATED`, or `SEVERE`.
+- Route choice: the report distinguishes the paid shortcut from the conservation route.
+
+This cohesive replay-motivation pass was selected over another room or enemy because the existing end screen exposed data without interpreting it. The established Signal-economy extraction concept and all balance values remain unchanged.
+
+### Files and systems changed
+
+- Added `RunDebrief.cs`, a deterministic engine-independent evaluator, and `RunDebriefTests.cs` with clean-victory and pressured-shortcut coverage. This is the run's focused production refactor: outcome interpretation is extracted from the Canvas presenter rather than expanding `DeadSignalHud`; it has no designer-facing tuning because its thresholds are initial product invariants under direct test.
+- Updated `DeadSignalHud.cs` and the authored `DeadSignalHud.prefab` reference to show grade and four coaching lines before the existing raw report, and to load the debrief insignia through the outcome panel's existing dedicated icon slot.
+- Added `RunDebriefInsignia.png` and Unity-generated `.meta`. The original 1254x1254 transparent ceramic/graphite/cyan/amber telemetry seal was generated with OpenAI's built-in image tool; SHA-256 `91A76DB76FBC59B17846E134F1C05ABCA7E5D046BD9E6D755B5CE669FECF783A`.
+- Updated `DeadSignalHudSetup.cs`, `DeadSignalGame.cs`, `StandaloneBuildSmokeProbe.cs`, and `BootstrapSmokeTests.cs` so import, runtime composition, tests, build validation, and packaged smoke require the asset.
+- Updated `GAME_VISION.md` and `BACKLOG.md` with rationale, player value, and all five acceptance contracts.
+- Restored all unrelated Unity build-time prefab, material, render-pipeline, texture-metadata, and project-setting rewrites before commit. The only prefab change is the new serialized reference to its already-authored outcome icon; no scene, package, project-setting, gameplay rule, tuning asset, save data, input, or audio changed.
+
+Final image prompt: original compact sci-fi mission-debrief telemetry seal with five radial ticks, waveform core, upward chevron, ceramic/graphite hard-surface construction, cyan emission and restrained amber accents, genuine transparency, 64-pixel readability, and no text, logo, brand, character, or watermark. Built-in image generation was used.
+
+### Tests run and exact outcomes
+
+1. Unity `6000.3.11f1` import/compile and `DeadSignalHudSetup.EnsureAssets`: exit `0`; new scripts compiled, texture and all three `.meta` files imported; log `Logs/run57-import.log`.
+2. EditMode: exit `0`; `43/43` passed, `0` failed, `0` skipped in `0.1251036s`; `Logs/run57-editmode-results.xml` and `.log`.
+3. Final PlayMode after binding the dedicated outcome icon: exit `0`; `5/5` passed, `0` failed, `0` skipped in `7.0944332s`; `Logs/run57-playmode-final-results.xml` and `.log`.
+4. Final Windows x64 development build: exit `0`; `238,994,669` bytes in `11.12s`; `Build/Windows/DeadSignal.exe`; log `Logs/run57-build-final.log`.
+5. Final packaged standalone smoke: exit `0` with one `[DEAD SIGNAL STANDALONE SMOKE] PASS`; log `Logs/run57-standalone-final.log`.
+6. Critical scans found no compiler errors, null-reference exceptions, failed assertions, unhandled exceptions, or smoke failure. `git diff --check` is clean aside from Unity 6000.3 serializer-owned empty fields in the three new `.meta` files.
+
+### Bugs found and fixed
+
+- Prevented a missing debrief texture from silently degrading the outcome view by gating Editor setup, runtime readiness, PlayMode composition, build input, and packaged smoke.
+- Removed unrelated Unity serialization rewrites produced during the build so this feature does not overwrite authored assets or project settings.
+
+### Known limitations and best next step
+
+- Headless validation cannot judge four-line debrief fit or 64-pixel insignia clarity at 16:9 and ultrawide. The grade thresholds are intentionally initial heuristics and need recorded play-session evidence before tuning.
+- Best next step: complete one victory and one depletion, compare the five readings to the run experience, and inspect outcome layout at 1280x720 and ultrawide before changing thresholds.

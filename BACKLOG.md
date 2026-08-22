@@ -14,6 +14,14 @@
 
 ## P1 — Prove the loop
 
+### Run 57 actionable mission-debrief ideas
+
+- [x] Overall debrief grade — player value: each run ends with a clear mastery target; acceptance: deterministic S–D grade reflects outcome, reserve, drains, and exposure.
+- [x] Signal efficiency reading — player value: the core resource decision receives direct coaching; acceptance: final reserve reports secure, tight, or critical.
+- [x] Combat discipline reading — player value: avoidable Warden hits and Sapper pulses become a visible improvement goal; acceptance: the combined drain count is reported accurately.
+- [x] Dead-zone exposure reading — player value: route safety becomes understandable without studying raw seconds; acceptance: exposure ratio reports controlled, elevated, or severe.
+- [x] Route-choice reading — player value: the shortcut tradeoff is acknowledged in the result; acceptance: the debrief distinguishes shortcut and conservation routes.
+
 - [x] Split runtime orchestration into focused input, world, combat, salvage, and HUD classes
 - [x] Add controller support for the complete run loop
 - [x] Add adaptive keyboard/mouse and gamepad guidance with generated input-link art

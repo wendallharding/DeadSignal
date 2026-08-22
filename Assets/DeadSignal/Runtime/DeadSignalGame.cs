@@ -45,6 +45,7 @@ namespace DeadSignal
         public bool HasMovementRoutingIcon => m_hud?.HasMovementRoutingIcon ?? false;
         public bool HasControlGlyphSet => m_hud?.HasControlGlyphSet ?? false;
         public bool HasSignalReserveArt => m_hud?.HasSignalReserveArt ?? false;
+        public bool HasRunDebriefArt => m_hud?.HasRunDebriefArt ?? false;
         public SignalReserveState CurrentSignalReserveState =>
             m_hud?.CurrentSignalReserveState ?? SignalReserveState.Critical;
         public bool HasCameraComfortIcon => m_hud?.HasCameraComfortIcon ?? false;

@@ -8,9 +8,11 @@ namespace DeadSignal.Editor
     {
         private const string TEXTURE_PATH = "Assets/DeadSignal/Resources/UI/SignalReserveConduit.png";
         private const string TUNING_PATH = "Assets/DeadSignal/Resources/Tuning/SignalHudTuning.asset";
+        private const string DEBRIEF_TEXTURE_PATH = "Assets/DeadSignal/Resources/UI/RunDebriefInsignia.png";
 
         public static bool HasAssets =>
             AssetDatabase.LoadAssetAtPath<Sprite>(TEXTURE_PATH) != null &&
+            AssetDatabase.LoadAssetAtPath<Texture2D>(DEBRIEF_TEXTURE_PATH) != null &&
             AssetDatabase.LoadAssetAtPath<SignalHudTuning>(TUNING_PATH) != null;
 
         public static void EnsureAssets()
@@ -29,6 +31,19 @@ namespace DeadSignal.Editor
             importer.wrapMode = TextureWrapMode.Clamp;
             importer.textureCompression = TextureImporterCompression.CompressedHQ;
             importer.SaveAndReimport();
+
+            var debriefImporter = AssetImporter.GetAtPath(DEBRIEF_TEXTURE_PATH) as TextureImporter;
+            if (debriefImporter == null)
+            {
+                throw new InvalidOperationException($"Could not find the run debrief texture at {DEBRIEF_TEXTURE_PATH}.");
+            }
+
+            debriefImporter.alphaIsTransparency = true;
+            debriefImporter.mipmapEnabled = false;
+            debriefImporter.maxTextureSize = 1024;
+            debriefImporter.wrapMode = TextureWrapMode.Clamp;
+            debriefImporter.textureCompression = TextureImporterCompression.CompressedHQ;
+            debriefImporter.SaveAndReimport();
 
             if (AssetDatabase.LoadAssetAtPath<SignalHudTuning>(TUNING_PATH) == null)
             {

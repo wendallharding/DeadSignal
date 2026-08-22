@@ -5394,6 +5394,7 @@ MonoBehaviour:
   - {fileID: 1802666446842659473}
   - {fileID: 1308164941931149854}
   - {fileID: 3043682393759872152}
+  m_runDebriefInsignia: {fileID: 3949234262860267093}
 --- !u!114 &5009733601468530050
 MonoBehaviour:
   m_ObjectHideFlags: 0

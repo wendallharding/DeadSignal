@@ -121,4 +121,8 @@ The shared Signal reserve now reads as operational telemetry rather than a gener
 
 ## Experience target
 
+### Run 57 product decision — actionable mission debrief
+
+The outcome screen now converts telemetry into five concise readings: overall grade, Signal reserve quality, combat discipline, dead-zone exposure, and shortcut-versus-conservation route. This preserves the established extraction loop while making improvement goals immediately understandable and giving repeated runs a light mastery target. The grade is intentionally local and deterministic; it adds no grind, account system, or balance change.
+
 The first minute should teach the entire promise without a tutorial panel: leave the small powered dock, feel the dead-zone drain, ignite the tower, see the station turn cyan and the security unit wake, spend Signal to survive, sweep the outskirts for gold salvage, and retreat to extraction under pressure.
