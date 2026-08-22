@@ -159,6 +159,7 @@ namespace DeadSignal
                                 Resources.Load<Texture2D>("UI/RunDebriefInsignia") != null &&
                                 Resources.Load<SignalHudTuning>("Tuning/SignalHudTuning") != null &&
                                 Resources.Load<ThreatBalanceTuning>("Tuning/ThreatBalanceTuning") != null &&
+                                Resources.Load<SignalOverclockTuning>("Tuning/SignalOverclockTuning") != null &&
                                 game.HasSignalRecoveryBurst &&
                                 Resources.Load<Texture2D>("VFX/SignalRecoveryBurst") != null &&
                                 game.HasSalvageChainBurst &&

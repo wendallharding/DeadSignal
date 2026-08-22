@@ -14,6 +14,15 @@
 
 ## P1 — Prove the loop
 
+### Run 64 first-cache overclock ideas
+
+- [x] Offer exactly one temporary build choice after the first salvage cache while movement and enemy pressure continue
+- [x] Let Fire select Chain Arc, consuming the choice input instead of accidentally firing a Signal bolt
+- [x] Let Chain Arc damage one nearest secondary threat within a designer-tuned 4.5-metre radius and draw a brief comfort-safe link
+- [x] Let Use select Overdrive Thrusters for designer-tuned 1.25× top speed and 1.2× acceleration
+- [x] Keep the selected overclock visible in the salvage strip through extraction and expose both choices in keyboard/controller guidance
+- [ ] Playtest whether choosing under live pressure is readable and whether Chain Arc or Overdrive dominates clean and depleted routes
+
 ### Run 63 extraction-pursuit ideas
 
 - [x] Replace instant victory with a designer-tuned six-second extraction uplink

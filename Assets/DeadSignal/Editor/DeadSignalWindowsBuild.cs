@@ -111,7 +111,7 @@ namespace DeadSignal.Editor
 
             if (!DeadSignalThreatSetup.HasAssets)
             {
-                throw new BuildFailedException("Threat balance tuning or Signal recovery art is missing.");
+                throw new BuildFailedException("Threat, overclock, or Signal recovery content is missing.");
             }
 
             if (!DeadSignalInterceptorSetup.HasAssets)

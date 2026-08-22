@@ -33,9 +33,43 @@ namespace DeadSignal.Tests
                 "A fresh full reserve should identify itself as stable.");
             Assert.That(Resources.Load<SignalHudTuning>("Tuning/SignalHudTuning"), Is.Not.Null);
             Assert.That(Resources.Load<ThreatBalanceTuning>("Tuning/ThreatBalanceTuning"), Is.Not.Null);
+            Assert.That(Resources.Load<SignalOverclockTuning>("Tuning/SignalOverclockTuning"), Is.Not.Null);
             Assert.That(Resources.Load<Texture2D>("VFX/SignalRecoveryBurst"), Is.Not.Null);
             Assert.That(hudCanvas.transform.Find("Pause Overlay/Control Routing/Reset").GetComponent<Button>(), Is.Not.Null);
             Assert.That(hudCanvas.transform.Find("UI Event System").GetComponent<UnityEngine.EventSystems.EventSystem>(), Is.Not.Null);
+        }
+
+        [UnityTest]
+        public IEnumerator FirstSalvage_UseSelectsOverdriveAndAppliesRuntimeSpeedTuning()
+        {
+            yield return SceneManager.LoadSceneAsync("SampleScene");
+            yield return null;
+
+            var gamepad = InputSystem.AddDevice<Gamepad>();
+            try
+            {
+                var game = Object.FindFirstObjectByType<DeadSignalGame>();
+                var baselineSpeed = game.CurrentPlayerMaximumSpeed;
+                var player = game.transform.Find("Maintenance Drone");
+                var cache = game.transform.Cast<Transform>()
+                    .First(child => child.name == "Salvage Cache" && child.gameObject.activeSelf);
+                player.position = cache.position;
+                yield return null;
+
+                Assert.That(game.IsOverclockChoicePending, Is.True);
+                InputSystem.QueueStateEvent(gamepad, new GamepadState().WithButton(GamepadButton.West));
+                yield return null;
+                InputSystem.QueueStateEvent(gamepad, new GamepadState());
+                yield return null;
+
+                Assert.That(game.SelectedOverclock, Is.EqualTo(SignalOverclock.OverdriveThrusters));
+                Assert.That(game.CurrentPlayerMaximumSpeed, Is.EqualTo(baselineSpeed * 1.25f).Within(0.001f));
+                Assert.That(game.IsOverclockChoicePending, Is.False);
+            }
+            finally
+            {
+                InputSystem.RemoveDevice(gamepad);
+            }
         }
 
         [UnityTest]
@@ -734,6 +768,8 @@ namespace DeadSignal.Tests
                 Is.EqualTo((RunModel.SalvageRequired + 1) * 2));
             Assert.That(game.HasSalvagePresentationTuning, Is.True);
             Assert.That(Resources.Load<SalvagePresentationTuning>("Tuning/SalvagePresentationTuning"), Is.Not.Null);
+            Assert.That(Resources.Load<SignalOverclockTuning>("Tuning/SignalOverclockTuning"), Is.Not.Null,
+                "The temporary build choices should use designer-facing tuning.");
             Assert.That(Resources.Load<Texture2D>("VFX/SalvageChainBurst"), Is.Not.Null,
                 "The original salvage-chain feedback art should load from Resources.");
             Assert.That(game.HasSalvageChainBurst, Is.True);
@@ -1116,7 +1152,26 @@ namespace DeadSignal.Tests
                 Assert.That(game.transform.Find("Shortcut Gate Assembly/Signal Shortcut Gate").gameObject.activeSelf, Is.False,
                     "The powered shortcut should retract before validating the unobstructed combat lane.");
 
+                var firstOverclockCache = game.transform.Cast<Transform>()
+                    .First(child => child.name == "Salvage Cache" && child.gameObject.activeSelf);
+                player.position = firstOverclockCache.position;
+                yield return null;
+                Assert.That(game.IsOverclockChoicePending, Is.True,
+                    "The first meaningful salvage event should offer one temporary build choice.");
+                var shotsBeforeChoice = game.ShotsFired;
+                InputSystem.QueueStateEvent(gamepad,
+                    new GamepadState().WithButton(GamepadButton.RightShoulder));
+                yield return null;
+                InputSystem.QueueStateEvent(gamepad, new GamepadState());
+                yield return null;
+                Assert.That(game.SelectedOverclock, Is.EqualTo(SignalOverclock.ChainArc));
+                Assert.That(game.IsOverclockChoicePending, Is.False);
+                Assert.That(game.ShotsFired, Is.EqualTo(shotsBeforeChoice),
+                    "Choosing Chain Arc with Fire must consume the choice input instead of creating a bolt.");
+
+                player.position = new Vector3(3f, 0f, 0.4f);
                 sapper.position = new Vector3(5f, 0f, 0.4f);
+                securityWarden.position = new Vector3(5.2f, 0f, 2.4f);
                 InputSystem.QueueStateEvent(gamepad,
                     new GamepadState { rightStick = Vector2.right }.WithButton(GamepadButton.RightShoulder));
                 yield return null;
@@ -1135,11 +1190,19 @@ namespace DeadSignal.Tests
                     "The open shortcut doorway should leave the combat line unobstructed.");
                 Assert.That(game.SapperHealth, Is.EqualTo(1f),
                     "The first unobstructed Signal bolt should damage the Sapper exactly once.");
+                Assert.That(game.WardenHealth, Is.EqualTo(2f),
+                    "Chain Arc should damage one nearby secondary tactical role exactly once.");
+                Assert.That(game.ChainArcsPlayed, Is.EqualTo(1),
+                    "The secondary hit should draw one short, readable cyan link.");
                 InputSystem.QueueStateEvent(gamepad,
                     new GamepadState { rightStick = Vector2.right }.WithButton(GamepadButton.RightShoulder));
                 yield return null;
                 InputSystem.QueueStateEvent(gamepad, new GamepadState { rightStick = Vector2.right });
-                yield return new WaitForSeconds(0.22f);
+                var sapperPurgeDeadline = Time.realtimeSinceStartup + 0.5f;
+                while (sapper.gameObject.activeSelf && Time.realtimeSinceStartup < sapperPurgeDeadline)
+                {
+                    yield return null;
+                }
 
                 Assert.That(sapper.gameObject.activeSelf, Is.False,
                     "Two Signal bolts should purge the two-health Sapper.");
@@ -1152,6 +1215,10 @@ namespace DeadSignal.Tests
                 Assert.That(telegraphRoot.gameObject.activeSelf, Is.False,
                     "Purging the Sapper should immediately hide every telegraph element.");
                 Assert.That(telegraph.IsVisible, Is.False);
+                while (combatFeedback.IsHitStopped)
+                {
+                    yield return null;
+                }
 
                 var cachesToSecure = game.transform.Cast<Transform>()
                     .Where(child => child.name == "Salvage Cache" && child.gameObject.activeSelf)

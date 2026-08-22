@@ -6,7 +6,12 @@ namespace DeadSignal
     {
         public Vector3 Velocity { get; private set; }
 
-        public Vector3 Tick(Vector2 input, float dt, PlayerDroneMovementTuning tuning)
+        public Vector3 Tick(
+            Vector2 input,
+            float dt,
+            PlayerDroneMovementTuning tuning,
+            float speedMultiplier = 1f,
+            float accelerationMultiplier = 1f)
         {
             if (dt <= 0f)
             {
@@ -14,8 +19,10 @@ namespace DeadSignal
             }
 
             input = Vector2.ClampMagnitude(input, 1f);
-            var targetVelocity = new Vector3(input.x, 0f, input.y) * tuning.MaximumSpeed;
-            var acceleration = _selectAcceleration(targetVelocity, tuning);
+            speedMultiplier = Mathf.Max(1f, speedMultiplier);
+            accelerationMultiplier = Mathf.Max(1f, accelerationMultiplier);
+            var targetVelocity = new Vector3(input.x, 0f, input.y) * (tuning.MaximumSpeed * speedMultiplier);
+            var acceleration = _selectAcceleration(targetVelocity, tuning) * accelerationMultiplier;
             Velocity = Vector3.MoveTowards(Velocity, targetVelocity, acceleration * dt);
             return Velocity;
         }

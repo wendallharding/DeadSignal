@@ -15,6 +15,7 @@ namespace DeadSignal
         private readonly SalvagePresentationTuning m_tuning;
         private readonly RunMetrics m_metrics;
         private readonly ICombatFeedback m_feedback;
+        private readonly SignalOverclockChoice m_overclockChoice;
         private readonly SalvageChain m_chain = new();
 
         public int ChainCount => m_chain.Count;
@@ -27,6 +28,7 @@ namespace DeadSignal
             IDeadSignalAudio audio,
             ICombatFeedback feedback,
             SalvagePresentationTuning tuning,
+            SignalOverclockChoice overclockChoice,
             Action<string> showFeedback)
         {
             m_model = model;
@@ -35,6 +37,7 @@ namespace DeadSignal
             m_audio = audio;
             m_feedback = feedback;
             m_tuning = tuning;
+            m_overclockChoice = overclockChoice;
             m_showFeedback = showFeedback;
         }
 
@@ -68,6 +71,7 @@ namespace DeadSignal
 
                 pickup.SetActive(false);
                 m_model.CollectSalvage();
+                m_overclockChoice.NotifySalvageCollected(m_model.Salvage);
                 var reward = m_chain.RecordCollection(
                     m_tuning.ChainWindow, m_tuning.SecondCacheSignalReward, m_tuning.ThirdCacheSignalReward);
                 var recovered = m_model.RestoreSignal(reward);
@@ -75,7 +79,9 @@ namespace DeadSignal
                 m_audio.Play(DeadSignalAudioCue.Salvage);
                 m_feedback.PlaySalvageChain(pickup.transform.position, m_chain.Count);
                 var rewardText = recovered > 0f ? $"  +{recovered:0} SIGNAL" : string.Empty;
-                m_showFeedback($"SALVAGE CHAIN x{m_chain.Count}{rewardText}  {m_model.Salvage}/{RunModel.SalvageRequired}");
+                m_showFeedback(m_overclockChoice.IsPending
+                    ? "SALVAGE CORE UNLOCKED — CHOOSE AN OVERCLOCK"
+                    : $"SALVAGE CHAIN x{m_chain.Count}{rewardText}  {m_model.Salvage}/{RunModel.SalvageRequired}");
             }
         }
     }

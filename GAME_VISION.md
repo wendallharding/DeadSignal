@@ -69,6 +69,7 @@ This autonomous run is accepted when a fresh Play session provides all of the fo
 - The Sapper's target tether carries repeated authored energy packets toward the tower during approach and latch, making drain direction readable without changing threat timing.
 - The first salvage escalation deploys a red-and-amber Interceptor from the safer of two scene-authored flank gates; it moves toward the extraction route, shows a locked charge line, and commits to an avoidable dash that combines with Warden pursuit and Sapper tower pressure.
 - Three warm salvage pickups can be collected outside the safe starting area.
+- The first salvage cache offers one run-long combat overclock: Chain Arc rewards grouping tactical roles, while Overdrive Thrusters rewards evasion and route greed.
 - Returning to the extraction pad with all salvage starts a six-second mobile uplink; surviving the final bounded security pursuit completes the run.
 - A central powered gate offers a readable choice: spend Signal for a direct salvage route or detour through the dead zone.
 - Signal depletion causes death; victory/death clearly present a restart action.
@@ -153,3 +154,7 @@ The first salvage escalation now introduces an Interceptor before the existing W
 ### Run 63 product decision — extraction pursuit uplink
 
 Extraction now begins a six-second mobile uplink instead of granting instant victory. The player keeps full movement and combat control while one additional bounded security response enters the existing queue, retaining role uniqueness, authored entrances, safe-entry distance, and warning time. This was selected over a stationary capture circle because the climax should reward fighting, fleeing, and route use rather than trap the drone at one point, and over raw stat escalation because one readable tactical response creates pressure without invalidating learned counterplay.
+
+### Run 64 product decision — first-cache Signal overclock
+
+The first secured cache now offers one run-long choice while threats and movement remain live. Chain Arc jumps each successful bolt to one nearby secondary role, rewarding deliberate mixed-enemy alignment; Overdrive Thrusters raises speed and acceleration, rewarding dodges, retreat routing, and dead-zone greed. Fire and Use select the two branches through existing keyboard/controller routes, and the choice input cannot also fire or operate machinery. This was selected over random drops or a passive stat reward because the current short run needs an early, legible build fork that changes fighting versus fleeing without diluting the shared Signal economy.

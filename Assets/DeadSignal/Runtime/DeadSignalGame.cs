@@ -28,6 +28,8 @@ namespace DeadSignal
         private SalvagePresentationTuning m_salvageTuning;
         private PlayerDroneMovementTuning m_playerMovementTuning;
         private PlayerDroneMovement m_playerMovement;
+        private SignalOverclockChoice m_overclockChoice;
+        private SignalOverclockTuning m_overclockTuning;
         private ExtractionUplink m_extractionUplink;
         private ILowSignalWarning m_lowSignalWarning;
         private ITowerActivationSweep m_towerActivationSweep;
@@ -38,6 +40,7 @@ namespace DeadSignal
         public float CurrentSignal => m_model?.Signal ?? 0f;
         public bool IsSapperLatched => m_threats?.IsSapperLatched ?? false;
         public float SapperHealth => m_threats?.SapperHealth ?? 0f;
+        public float WardenHealth => m_threats?.WardenHealth ?? 0f;
         public float InterceptorHealth => m_threats?.InterceptorHealth ?? 0f;
         public bool IsInterceptorCharging => m_threats?.IsInterceptorCharging ?? false;
         public int SecurityEscalationTier => m_threats?.EscalationTier ?? 0;
@@ -131,8 +134,16 @@ namespace DeadSignal
         public bool HasSalvageChainBurst => m_combatFeedback?.HasSalvageChainTexture ?? false;
         public int CurrentSalvageChain => m_salvage?.ChainCount ?? 0;
         public float SalvageChainSecondsRemaining => m_salvage?.ChainSecondsRemaining ?? 0f;
+        public bool IsOverclockChoicePending => m_overclockChoice?.IsPending ?? false;
+        public SignalOverclock SelectedOverclock => m_overclockChoice?.Selected ?? SignalOverclock.None;
+        public int ChainArcsPlayed => (m_combatFeedback as CombatFeedbackController)?.ChainArcsPlayed ?? 0;
+        public float CurrentPlayerMaximumSpeed => m_playerMovementTuning == null
+            ? 0f
+            : m_playerMovementTuning.MaximumSpeed *
+              (SelectedOverclock == SignalOverclock.OverdriveThrusters ? m_overclockTuning.ThrusterSpeedMultiplier : 1f);
         public int ThreatsPurged => m_metrics?.ThreatsPurged ?? 0;
         public float SignalRecovered => m_metrics?.SignalRecovered ?? 0f;
+        public int ShotsFired => m_metrics?.ShotsFired ?? 0;
         public int ActiveSignalBoltCount => transform.Cast<Transform>().Count(child => child.name == "Signal Bolt");
 
         public void BeginFireKeyboardRebind()
@@ -252,15 +263,17 @@ namespace DeadSignal
             }
 
             m_playerMovement = new PlayerDroneMovement();
+            m_overclockChoice = new SignalOverclockChoice();
 
             m_world = new DeadSignalWorld(transform, m_comfortSettings);
             m_world.ConfigurePlayerSignalWake(m_playerMovementTuning);
             m_combatFeedback.Configure(m_world.Camera);
             var signalBoltTuning = Resources.Load<SignalBoltPresentationTuning>("Tuning/SignalBoltPresentationTuning");
             var threatTuning = Resources.Load<ThreatBalanceTuning>("Tuning/ThreatBalanceTuning");
-            if (signalBoltTuning == null || threatTuning == null)
+            m_overclockTuning = Resources.Load<SignalOverclockTuning>("Tuning/SignalOverclockTuning");
+            if (signalBoltTuning == null || threatTuning == null || m_overclockTuning == null)
             {
-                Debug.LogError("Signal bolt or threat balance tuning is missing from Resources/Tuning.", this);
+                Debug.LogError("Signal bolt, threat balance, or overclock tuning is missing from Resources/Tuning.", this);
                 enabled = false;
                 return;
             }
@@ -275,10 +288,12 @@ namespace DeadSignal
                 m_audio,
                 signalBoltTuning,
                 threatTuning,
+                m_overclockChoice,
+                m_overclockTuning,
                 _showFeedback);
             m_salvage = new DeadSignalSalvageController(
-                m_model, m_metrics, m_world, m_audio, m_combatFeedback, m_salvageTuning, _showFeedback);
-            m_hud.Configure(m_model, m_metrics, m_world, m_threats, m_salvage, m_extractionUplink);
+                m_model, m_metrics, m_world, m_audio, m_combatFeedback, m_salvageTuning, m_overclockChoice, _showFeedback);
+            m_hud.Configure(m_model, m_metrics, m_world, m_threats, m_salvage, m_extractionUplink, m_overclockChoice);
             m_objectiveBeacon.Configure(m_model, m_world);
             m_lastPoweredState = m_world.IsPowered(m_world.Player.position, m_model.TowerOnline);
             m_signalDust.Configure();
@@ -335,15 +350,22 @@ namespace DeadSignal
                 m_lastPoweredState = powered;
             }
 
-            if ((m_fireBuffered || m_input.PressedFire()) && m_threats.CanFire)
+            if (m_overclockChoice.IsPending)
             {
-                m_fireBuffered = false;
-                m_threats.TryFire(aimDirection);
+                _handleOverclockChoice();
             }
-
-            if (m_input.PressedInteract())
+            else
             {
-                _handleInteraction();
+                if ((m_fireBuffered || m_input.PressedFire()) && m_threats.CanFire)
+                {
+                    m_fireBuffered = false;
+                    m_threats.TryFire(aimDirection);
+                }
+
+                if (m_input.PressedInteract())
+                {
+                    _handleInteraction();
+                }
             }
 
             m_world.TickTower(dt, m_model.TowerOnline);
@@ -375,7 +397,11 @@ namespace DeadSignal
 
             var moveInput = m_input.ReadMovement();
             var previousVelocity = m_playerMovement.Velocity;
-            var velocity = m_playerMovement.Tick(moveInput, dt, m_playerMovementTuning);
+            var hasThrusterOverclock = m_overclockChoice.Selected == SignalOverclock.OverdriveThrusters;
+            var speedMultiplier = hasThrusterOverclock ? m_overclockTuning.ThrusterSpeedMultiplier : 1f;
+            var accelerationMultiplier = hasThrusterOverclock ? m_overclockTuning.ThrusterAccelerationMultiplier : 1f;
+            var velocity = m_playerMovement.Tick(
+                moveInput, dt, m_playerMovementTuning, speedMultiplier, accelerationMultiplier);
             var previousPosition = m_world.Player.position;
             var desired = previousPosition + velocity * dt;
             desired = m_world.ClampToArena(desired, 0.6f);
@@ -477,6 +503,25 @@ namespace DeadSignal
             {
                 m_threats.BeginExtractionPressure();
                 _showFeedback("UPLINK STARTED — SECURITY PURSUIT INBOUND");
+            }
+        }
+
+        private void _handleOverclockChoice()
+        {
+            if (m_fireBuffered || m_input.PressedFire())
+            {
+                m_fireBuffered = false;
+                if (m_overclockChoice.TrySelect(SignalOverclock.ChainArc))
+                {
+                    _showFeedback("CHAIN ARC ONLINE — BOLTS JUMP TO A NEARBY THREAT");
+                }
+
+                return;
+            }
+
+            if (m_input.PressedInteract() && m_overclockChoice.TrySelect(SignalOverclock.OverdriveThrusters))
+            {
+                _showFeedback("OVERDRIVE THRUSTERS ONLINE — SPEED AND RESPONSE BOOSTED");
             }
         }
 

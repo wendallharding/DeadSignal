@@ -24,6 +24,8 @@ namespace DeadSignal
         private readonly IDeadSignalAudio m_audio;
         private readonly SignalBoltPresentationTuning m_projectileTuning;
         private readonly ThreatBalanceTuning m_tuning;
+        private readonly SignalOverclockChoice m_overclockChoice;
+        private readonly SignalOverclockTuning m_overclockTuning;
         private readonly Action<string> m_showFeedback;
         private readonly SecurityEscalationDirector m_director;
         private readonly List<Projectile> m_projectiles = new();
@@ -50,6 +52,8 @@ namespace DeadSignal
             IDeadSignalAudio audio,
             SignalBoltPresentationTuning projectileTuning,
             ThreatBalanceTuning tuning,
+            SignalOverclockChoice overclockChoice,
+            SignalOverclockTuning overclockTuning,
             Action<string> showFeedback)
         {
             m_model = model;
@@ -59,6 +63,8 @@ namespace DeadSignal
             m_audio = audio;
             m_projectileTuning = projectileTuning;
             m_tuning = tuning;
+            m_overclockChoice = overclockChoice;
+            m_overclockTuning = overclockTuning;
             m_director = new SecurityEscalationDirector(tuning.ReinforcementEntryDelay, tuning.ReinforcementSafeDistance);
             m_showFeedback = showFeedback;
             m_wardenHealth = tuning.WardenHealth;
@@ -392,15 +398,21 @@ namespace DeadSignal
                 shot.Visual.transform.position = end;
                 if (hitWarden && wardenHitFraction <= sapperHitFraction && wardenHitFraction <= interceptorHitFraction)
                 {
+                    var hitPosition = m_world.Warden.position + Vector3.up * 0.55f;
                     _hitWarden();
+                    _tryChainArc(ThreatTarget.Warden, hitPosition);
                 }
                 else if (hitSapper && sapperHitFraction <= interceptorHitFraction)
                 {
+                    var hitPosition = m_world.Sapper.position + Vector3.up * 0.5f;
                     _hitSapper();
+                    _tryChainArc(ThreatTarget.Sapper, hitPosition);
                 }
                 else if (hitInterceptor)
                 {
+                    var hitPosition = m_world.Interceptor.position + Vector3.up * 0.5f;
                     _hitInterceptor();
+                    _tryChainArc(ThreatTarget.Interceptor, hitPosition);
                 }
 
                 if (hitWarden || hitSapper || hitInterceptor || shot.Life <= 0f)
@@ -409,6 +421,75 @@ namespace DeadSignal
                     m_projectiles.RemoveAt(index);
                 }
             }
+        }
+
+        private void _tryChainArc(ThreatTarget source, Vector3 start)
+        {
+            if (m_overclockChoice.Selected != SignalOverclock.ChainArc)
+            {
+                return;
+            }
+
+            var target = ThreatTarget.None;
+            var nearestDistance = m_overclockTuning.ChainArcRadius;
+            _considerChainTarget(ThreatTarget.Warden, source, m_world.Warden, m_wardenHealth, start, ref target, ref nearestDistance);
+            _considerChainTarget(ThreatTarget.Sapper, source, m_world.Sapper, m_sapperHealth, start, ref target, ref nearestDistance);
+            _considerChainTarget(
+                ThreatTarget.Interceptor, source, m_world.Interceptor, m_interceptorHealth, start, ref target, ref nearestDistance);
+            if (target == ThreatTarget.None)
+            {
+                return;
+            }
+
+            var targetPosition = _getThreatPosition(target) + Vector3.up * 0.5f;
+            m_combatFeedback.PlayChainArc(start, targetPosition);
+            switch (target)
+            {
+                case ThreatTarget.Warden:
+                    _hitWarden();
+                    break;
+                case ThreatTarget.Sapper:
+                    _hitSapper();
+                    break;
+                case ThreatTarget.Interceptor:
+                    _hitInterceptor();
+                    break;
+            }
+        }
+
+        private static void _considerChainTarget(
+            ThreatTarget candidate,
+            ThreatTarget source,
+            Transform transform,
+            float health,
+            Vector3 start,
+            ref ThreatTarget target,
+            ref float nearestDistance)
+        {
+            if (candidate == source || health <= 0f || !transform.gameObject.activeSelf)
+            {
+                return;
+            }
+
+            var distance = DeadSignalWorld.FlatDistance(start, transform.position);
+            if (distance > nearestDistance)
+            {
+                return;
+            }
+
+            nearestDistance = distance;
+            target = candidate;
+        }
+
+        private Vector3 _getThreatPosition(ThreatTarget target)
+        {
+            return target switch
+            {
+                ThreatTarget.Warden => m_world.Warden.position,
+                ThreatTarget.Sapper => m_world.Sapper.position,
+                ThreatTarget.Interceptor => m_world.Interceptor.position,
+                _ => Vector3.zero
+            };
         }
 
         private static bool _tryGetThreatHitFraction(
@@ -506,6 +587,14 @@ namespace DeadSignal
             public GameObject Visual { get; }
             public Vector3 Direction { get; }
             public float Life { get; set; }
+        }
+
+        private enum ThreatTarget
+        {
+            None,
+            Warden,
+            Sapper,
+            Interceptor
         }
     }
 }

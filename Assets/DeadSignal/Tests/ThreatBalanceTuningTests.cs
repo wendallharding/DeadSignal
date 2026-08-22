@@ -29,5 +29,21 @@ namespace DeadSignal.Tests
                 Object.DestroyImmediate(tuning);
             }
         }
+
+        [Test]
+        public void OverclockDefaults_CreateDistinctCombatAndMobilityBuilds()
+        {
+            var tuning = ScriptableObject.CreateInstance<SignalOverclockTuning>();
+            try
+            {
+                Assert.That(tuning.ChainArcRadius, Is.InRange(3f, 6f));
+                Assert.That(tuning.ThrusterSpeedMultiplier, Is.GreaterThan(1f));
+                Assert.That(tuning.ThrusterAccelerationMultiplier, Is.GreaterThan(1f));
+            }
+            finally
+            {
+                Object.DestroyImmediate(tuning);
+            }
+        }
     }
 }

@@ -20,6 +20,7 @@ namespace DeadSignal
         void PlayEnvironmentImpact(Vector3 position);
         void PlaySignalRecovery(Vector3 position);
         void PlaySalvageChain(Vector3 position, int chainCount);
+        void PlayChainArc(Vector3 start, Vector3 end);
         void SetPaused(bool paused);
     }
 
@@ -46,6 +47,7 @@ namespace DeadSignal
         private static readonly Color s_sapperTint = new(1f, 0.14f, 0.72f);
 
         private readonly List<ImpactVisual> m_impacts = new();
+        private readonly List<ChainArcVisual> m_chainArcs = new();
 
         private IComfortSettings m_comfortSettings;
         private Camera m_targetCamera;
@@ -58,6 +60,7 @@ namespace DeadSignal
         private Texture2D m_salvageChainTexture;
         private Sprite m_salvageChainSprite;
         private Material m_environmentImpactMaterial;
+        private Material m_chainArcMaterial;
         private Vector3 m_cameraRestPosition;
         private float m_hitStopEndsAt;
         private float m_shakeRemaining;
@@ -75,6 +78,7 @@ namespace DeadSignal
         public bool CameraImpulseEnabled => m_comfortSettings?.CameraImpulseEnabled ?? true;
         public bool ReducedFlashesEnabled => m_comfortSettings?.ReducedFlashesEnabled ?? false;
         public int ActiveImpactCount => m_impacts.Count;
+        public int ChainArcsPlayed { get; private set; }
 
         private sealed class ImpactVisual
         {
@@ -83,6 +87,13 @@ namespace DeadSignal
             public Color Tint;
             public float Age;
             public float TargetScale;
+        }
+
+        private sealed class ChainArcVisual
+        {
+            public GameObject Root;
+            public LineRenderer Renderer;
+            public float Age;
         }
 
         [Inject]
@@ -122,6 +133,8 @@ namespace DeadSignal
                 Debug.LogWarning("Signal bolt bulkhead-impact art is missing from Resources.", this);
                 return;
             }
+
+            m_chainArcMaterial = Resources.Load<Material>("Materials/SignalBoltEnergy");
 
             pixelsPerUnit = m_environmentImpactTexture.width / 2.4f;
             m_environmentImpactSprite = Sprite.Create(
@@ -192,6 +205,34 @@ namespace DeadSignal
                 m_salvageChainSprite, null, "Salvage Chain Burst");
         }
 
+        public void PlayChainArc(Vector3 start, Vector3 end)
+        {
+            if (m_isPaused || m_chainArcMaterial == null)
+            {
+                return;
+            }
+
+            var root = new GameObject("Chain Arc Link");
+            root.transform.SetParent(transform, true);
+            var line = root.AddComponent<LineRenderer>();
+            line.sharedMaterial = m_chainArcMaterial;
+            line.useWorldSpace = true;
+            line.positionCount = 4;
+            line.startWidth = 0.075f;
+            line.endWidth = 0.025f;
+            line.numCornerVertices = 2;
+            line.numCapVertices = 2;
+            var direction = end - start;
+            var side = Vector3.Cross(direction.normalized, Vector3.up) * Mathf.Min(0.45f, direction.magnitude * 0.12f);
+            line.SetPositions(new[] { start, Vector3.Lerp(start, end, 0.34f) + side,
+                Vector3.Lerp(start, end, 0.68f) - side, end });
+            line.startColor = _chainArcColor(1f);
+            line.endColor = _chainArcColor(0.35f);
+            line.sortingOrder = 31;
+            m_chainArcs.Add(new ChainArcVisual { Root = root, Renderer = line });
+            ChainArcsPlayed++;
+        }
+
         public void SetPaused(bool paused)
         {
             m_isPaused = paused;
@@ -216,6 +257,7 @@ namespace DeadSignal
 
             float dt = Time.deltaTime;
             _updateImpacts(dt);
+            _updateChainArcs(dt);
             _updateCameraShake(dt);
         }
 
@@ -247,6 +289,14 @@ namespace DeadSignal
             if (m_salvageChainSprite != null)
             {
                 Destroy(m_salvageChainSprite);
+            }
+
+            foreach (var chainArc in m_chainArcs)
+            {
+                if (chainArc.Root != null)
+                {
+                    Destroy(chainArc.Root);
+                }
             }
         }
 
@@ -374,6 +424,25 @@ namespace DeadSignal
             }
         }
 
+        private void _updateChainArcs(float dt)
+        {
+            for (var index = m_chainArcs.Count - 1; index >= 0; index--)
+            {
+                var chainArc = m_chainArcs[index];
+                chainArc.Age += dt;
+                var progress = Mathf.Clamp01(chainArc.Age / 0.18f);
+                chainArc.Renderer.startColor = _chainArcColor(1f - progress);
+                chainArc.Renderer.endColor = _chainArcColor((1f - progress) * 0.35f);
+                if (progress < 1f)
+                {
+                    continue;
+                }
+
+                Destroy(chainArc.Root);
+                m_chainArcs.RemoveAt(index);
+            }
+        }
+
         private void _handleCameraImpulseChanged(bool enabled)
         {
             if (!enabled)
@@ -401,6 +470,12 @@ namespace DeadSignal
         {
             float maximumAlpha = ReducedFlashesEnabled ? REDUCED_FLASH_ALPHA : 1f;
             return new Color(tint.r, tint.g, tint.b, maximumAlpha * (1f - progress));
+        }
+
+        private Color _chainArcColor(float alpha)
+        {
+            var maximumAlpha = ReducedFlashesEnabled ? REDUCED_FLASH_ALPHA : 1f;
+            return new Color(0.18f, 0.95f, 1f, alpha * maximumAlpha);
         }
     }
 }

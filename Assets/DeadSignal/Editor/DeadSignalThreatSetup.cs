@@ -7,10 +7,12 @@ namespace DeadSignal.Editor
     public static class DeadSignalThreatSetup
     {
         private const string TUNING_PATH = "Assets/DeadSignal/Resources/Tuning/ThreatBalanceTuning.asset";
+        private const string OVERCLOCK_TUNING_PATH = "Assets/DeadSignal/Resources/Tuning/SignalOverclockTuning.asset";
         private const string RECOVERY_TEXTURE_PATH = "Assets/DeadSignal/Resources/VFX/SignalRecoveryBurst.png";
 
         public static bool HasAssets =>
             AssetDatabase.LoadAssetAtPath<ThreatBalanceTuning>(TUNING_PATH) != null &&
+            AssetDatabase.LoadAssetAtPath<SignalOverclockTuning>(OVERCLOCK_TUNING_PATH) != null &&
             AssetDatabase.LoadAssetAtPath<Texture2D>(RECOVERY_TEXTURE_PATH) != null;
 
         public static void EnsureAssets()
@@ -32,6 +34,12 @@ namespace DeadSignal.Editor
             {
                 var tuning = ScriptableObject.CreateInstance<ThreatBalanceTuning>();
                 AssetDatabase.CreateAsset(tuning, TUNING_PATH);
+            }
+
+            if (AssetDatabase.LoadAssetAtPath<SignalOverclockTuning>(OVERCLOCK_TUNING_PATH) == null)
+            {
+                var overclockTuning = ScriptableObject.CreateInstance<SignalOverclockTuning>();
+                AssetDatabase.CreateAsset(overclockTuning, OVERCLOCK_TUNING_PATH);
             }
 
             AssetDatabase.SaveAssets();

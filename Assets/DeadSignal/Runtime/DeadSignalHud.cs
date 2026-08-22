@@ -22,7 +22,7 @@ namespace DeadSignal
         int CurrentMissionPhase { get; }
 
         void Configure(RunModel model, RunMetrics metrics, DeadSignalWorld world, DeadSignalThreatController threats,
-            DeadSignalSalvageController salvage, ExtractionUplink extractionUplink);
+            DeadSignalSalvageController salvage, ExtractionUplink extractionUplink, SignalOverclockChoice overclockChoice);
         void ShowFeedback(string message);
         void Tick(float dt);
     }
@@ -78,6 +78,7 @@ namespace DeadSignal
         private DeadSignalThreatController m_threats;
         private DeadSignalSalvageController m_salvage;
         private ExtractionUplink m_extractionUplink;
+        private SignalOverclockChoice m_overclockChoice;
         private ICombatFeedback m_combatFeedback;
         private IComfortSettings m_comfortSettings;
         private IDeadSignalInput m_input;
@@ -112,7 +113,7 @@ namespace DeadSignal
         }
 
         void IDeadSignalHud.Configure(RunModel model, RunMetrics metrics, DeadSignalWorld world, DeadSignalThreatController threats,
-            DeadSignalSalvageController salvage, ExtractionUplink extractionUplink)
+            DeadSignalSalvageController salvage, ExtractionUplink extractionUplink, SignalOverclockChoice overclockChoice)
         {
             m_model = model;
             m_metrics = metrics;
@@ -120,6 +121,7 @@ namespace DeadSignal
             m_threats = threats;
             m_salvage = salvage;
             m_extractionUplink = extractionUplink;
+            m_overclockChoice = overclockChoice;
             m_signalHudTuning = Resources.Load<SignalHudTuning>("Tuning/SignalHudTuning");
             var signalSprite = Resources.Load<Sprite>("UI/SignalReserveConduit");
             m_runDebriefTexture = Resources.Load<Texture2D>("UI/RunDebriefInsignia");
@@ -198,14 +200,20 @@ namespace DeadSignal
             var chainText = m_salvage.ChainCount > 0 && m_model.Salvage < RunModel.SalvageRequired
                 ? $"  //  CHAIN x{m_salvage.ChainCount}  {m_salvage.ChainSecondsRemaining:0.0}s"
                 : string.Empty;
-            m_salvageText.text = $"SALVAGE  {m_model.Salvage}/{RunModel.SalvageRequired}{chainText}";
+            var overclockText = m_overclockChoice.Selected == SignalOverclock.None
+                ? string.Empty
+                : $"  //  {_overclockName(m_overclockChoice.Selected)}";
+            m_salvageText.text = $"SALVAGE  {m_model.Salvage}/{RunModel.SalvageRequired}{chainText}{overclockText}";
             var powered = m_world.IsPowered(m_world.Player.position, m_model.TowerOnline);
             m_zoneText.text = powered ? "● POWERED TERRITORY" : "▲ DEAD ZONE — ACTIVE DRAIN";
             m_zoneText.color = powered ? new Color(0.05f, 0.95f, 1f) : new Color(1f, 0.22f, 0.18f);
             var guidance = MissionGuidance.Evaluate(m_model, m_threats.IsSapperAlive, m_threats.IsSapperLatched,
                 m_threats.SapperPulseCooldown);
             CurrentMissionPhase = guidance.Phase;
-            m_objectiveText.text = m_extractionUplink.IsActive
+            m_objectiveText.text = m_overclockChoice.IsPending
+                ? $"SIGNAL OVERCLOCK AVAILABLE\nFIRE [{m_input.FireKeyboardBinding}]  CHAIN ARC — BOLTS JUMP\n" +
+                  $"USE [{m_input.InteractKeyboardBinding}]  OVERDRIVE — MOVE FASTER"
+                : m_extractionUplink.IsActive
                 ? $"PHASE 3/3  //  EXTRACTION UPLINK\nSURVIVE PURSUIT  {m_extractionUplink.SecondsRemaining:0.0}s\n" +
                   "MANEUVER AND FIRE — DOCK LINK IS LOCKED"
                 : $"PHASE {guidance.Phase}/3  //  {guidance.Title}\n{guidance.Action}\n{guidance.Advisory}";
@@ -303,6 +311,9 @@ namespace DeadSignal
 
         private string _contextPrompt()
         {
+            if (m_overclockChoice.IsPending)
+                return $"CHOOSE NOW  —  {_binding("FIRE: CHAIN ARC", "RB: CHAIN ARC")}  |  " +
+                       $"{_binding("USE: OVERDRIVE", "X: OVERDRIVE")}";
             if (!m_model.ShortcutOpen && DeadSignalWorld.FlatDistance(m_world.Player.position, m_world.ShortcutPosition) < 1.9f)
                 return m_model.TowerOnline ? $"[{_binding("E", "GAMEPAD X")}]  BURN {RunModel.ShortcutCost:0} SIGNAL FOR SHORTCUT"
                     : "SHORTCUT OFFLINE - ACTIVATE TOWER FIRST";
@@ -326,5 +337,12 @@ namespace DeadSignal
             m_input.ActivePromptDevice == InputPromptDevice.Gamepad ? gamepad : keyboardMouse;
 
         private static bool _hasTexture(RawImage image) => image != null && image.texture != null;
+
+        private static string _overclockName(SignalOverclock overclock) => overclock switch
+        {
+            SignalOverclock.ChainArc => "OVERCLOCK: CHAIN ARC",
+            SignalOverclock.OverdriveThrusters => "OVERCLOCK: OVERDRIVE",
+            _ => string.Empty
+        };
     }
 }

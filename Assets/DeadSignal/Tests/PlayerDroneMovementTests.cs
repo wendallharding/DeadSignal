@@ -54,5 +54,26 @@ namespace DeadSignal.Tests
 
             Assert.That(movement.Velocity, Is.EqualTo(new Vector3(3f, 0f, 0f)));
         }
+
+        [Test]
+        public void Tick_OverdriveMultipliersIncreaseSpeedAndResponse()
+        {
+            var tuning = Resources.Load<PlayerDroneMovementTuning>("Tuning/PlayerDroneMovementTuning");
+            var baseline = new PlayerDroneMovement();
+            var overdrive = new PlayerDroneMovement();
+
+            var baselineVelocity = baseline.Tick(Vector2.up, 0.05f, tuning);
+            var overdriveVelocity = overdrive.Tick(Vector2.up, 0.05f, tuning, 1.25f, 1.2f);
+
+            Assert.That(overdriveVelocity.z, Is.GreaterThan(baselineVelocity.z));
+            for (var index = 0; index < 10; index++)
+            {
+                baseline.Tick(Vector2.up, 0.05f, tuning);
+                overdrive.Tick(Vector2.up, 0.05f, tuning, 1.25f, 1.2f);
+            }
+
+            Assert.That(baseline.Velocity.z, Is.EqualTo(tuning.MaximumSpeed).Within(0.001f));
+            Assert.That(overdrive.Velocity.z, Is.EqualTo(tuning.MaximumSpeed * 1.25f).Within(0.001f));
+        }
     }
 }

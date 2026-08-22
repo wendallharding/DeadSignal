@@ -3759,3 +3759,39 @@ The extraction dock now starts a six-second mobile uplink instead of ending the 
 - Extraction pursuit does not spawn beside the player or bypass the existing budget. If its requested role is alive, that live threat supplies pressure and the response waits; if the role is clear, the normal safe warning begins.
 - Automated evidence deliberately moved live Warden and Interceptor actors far away during the six-second completion proof so the test measures lifecycle rather than subjective balance. No human playtest was performed, so final damage load, countdown fit at 1280x720/ultrawide, and whether the extra response commonly enters before victory remain unjudged.
 - Best next step: play one clean and one depleted three-cache return, recording Signal at uplink start/end, live roles, pursuit entry timing, hits, purges, movement route, and whether the player abandons the dock area. Tune duration before adding temporary overclock choices.
+
+## 2026-08-22 — Autonomous Run 64 — First-cache Signal overclock
+
+### Milestone, player benefit, and acceptance
+
+The first salvage cache now creates an immediate run-long build decision under live pressure instead of only advancing cargo. Acceptance required exactly one choice per run, retained movement and threat simulation, choice-input consumption, keyboard/controller guidance, persistent build status, a combat branch that rewards mixed-role positioning, a mobility branch that changes fleeing and route greed, designer-facing tuning, and runtime coverage of both branches.
+
+### Files and systems changed
+
+- Added `SignalOverclockChoice.cs`, `SignalOverclockTuning.cs`, `SignalOverclockChoiceTests.cs`, `SignalOverclockTuning.asset`, and Unity-generated metadata. The deterministic choice owns one first-cache offer and one permanent selection; the tuning asset owns the 4.5-metre chain radius, 1.25× speed, and 1.2× acceleration values.
+- Updated `DeadSignalSalvageController.cs` to award the choice on cache one and replace routine collection feedback with the overclock callout.
+- Updated `DeadSignalGame.cs` to consume Fire for Chain Arc or Use for Overdrive before normal combat/interaction routing, retain full movement and simulation, apply movement multipliers, and expose narrow validation state.
+- Updated `DeadSignalThreatController.cs` so one successful primary hit can damage the nearest different live role in range exactly once. Chain damage cannot recurse.
+- Updated `CombatFeedbackController.cs` with a short cyan segmented link using the existing Signal-bolt material; it fades in 0.18 seconds, caps alpha under Reduced Flashes, cleans up with its owner, and adds no per-frame hierarchy search or material creation.
+- Updated `PlayerDroneMovement.cs` with clamped optional speed/acceleration multipliers while preserving all baseline callers and collision-resolved velocity.
+- Updated `DeadSignalHud.cs` with a live two-branch decision prompt, adaptive keyboard/controller labels, and persistent selected-build status.
+- Updated `DeadSignalThreatSetup.cs`, `DeadSignalWindowsBuild.cs`, and `StandaloneBuildSmokeProbe.cs` so import, build inputs, and packaged runtime require the new tuning Resource.
+- Expanded `PlayerDroneMovementTests.cs`, `ThreatBalanceTuningTests.cs`, and `BootstrapSmokeTests.cs` with one-choice invariants, both tuned branches, input consumption, actual Sapper-to-Warden chain damage, readable link creation, and runtime Overdrive composition.
+- Updated `GAME_VISION.md` and `BACKLOG.md`. No scene, prefab, texture, package, project setting, save data, base cost/reward, enemy durability, objective, extraction duration, or audio content changed. Unity build serializer/setup rewrites to 60 unrelated files were restored.
+
+### Exact validation evidence
+
+1. Unity `6000.3.11f1` import and compilation completed with return code `0`; three new scripts and their metadata imported; `Logs/run64-compile.log`.
+2. Final EditMode after serializer-side-effect cleanup: exit `0`; `64/64` passed, `0` failed in `0.1171473s`; `Logs/run64-editmode-final-results.xml` and `Logs/run64-editmode-final.log`. Tests prove one permanent selection, invalid-selection safety, baseline movement preservation, increased Overdrive response/cap, and valid designer defaults.
+3. Focused complete-runtime PlayMode after correcting test timing/placement: exit `0`; `1/1` passed in `13.0065013s`; `Logs/run64-playmode-focused-6-results.xml` and `Logs/run64-playmode-focused-6.log`.
+4. Final PlayMode: exit `0`; `6/6` passed, `0` failed in `16.3044359s`; `Logs/run64-playmode-final-results.xml` and `Logs/run64-playmode-final.log`. Runtime evidence proves cache-one choice, Fire consumption, primary Sapper damage, one Warden chain hit, one link, separate Use selection, and the 1.25× Overdrive speed cap through extraction/restart coverage.
+5. Windows x64 development build: exit `0`; Unity reported `241,144,701` bytes in `16.58s`; `Build/Windows/DeadSignal.exe`; `Logs/run64-build.log`.
+6. Packaged Direct3D 11 smoke: exit `0`; Direct3D 11.0 level 11.1 initialized and exactly one `[DEAD SIGNAL STANDALONE SMOKE] PASS` was emitted; `Logs/run64-standalone.log`.
+
+### Bugs found, limitations, and next step
+
+- The first runtime assertion incorrectly expected Signal to remain numerically identical during two live-pressure choice frames; the model correctly drained 0.047 Signal. Coverage now checks the authoritative shot count, directly proving Fire is consumed without disabling ongoing pressure.
+- The initial synthetic chain test placement crossed unrelated arena geometry and produced a valid shot with no target collision. The final test uses the already-proven open shortcut lane, keeps the secondary Warden off the primary bolt path, and verifies real chain damage and presentation.
+- Immediate post-purge cache teleports initially occurred during hit-stop and therefore could not collect; the test now waits on the authoritative hit-stop state instead of hiding the lifecycle rule behind a fixed delay.
+- Automated tests do not judge whether the decision prompt fits at 1280x720/ultrawide, whether a 0.18-second link reads during a dense pursuit, or whether 4.5 metres and 1.25× speed are balanced. No interactive human playtest was performed.
+- Best next step: run paired Chain Arc and Overdrive routes, record selection time, mixed-role chain opportunities, security hits, Signal spent/reclaimed, dead-zone exposure, cache order, pursuit movement, and extraction reserve; tune the two branches before adding the Suppressor archetype.
