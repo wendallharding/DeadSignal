@@ -20,6 +20,8 @@ namespace DeadSignal
         public int ShotsFired { get; private set; }
         public int SecurityHits { get; private set; }
         public int SapperPulses { get; private set; }
+        public int ThreatsPurged { get; private set; }
+        public float SignalRecovered { get; private set; }
 
         public void Advance(float seconds, bool isPowered)
         {
@@ -48,6 +50,12 @@ namespace DeadSignal
         public void RecordSapperPulse()
         {
             SapperPulses++;
+        }
+
+        public void RecordThreatPurge(float signalRecovered)
+        {
+            ThreatsPurged++;
+            SignalRecovered += Math.Max(0f, signalRecovered);
         }
     }
 
@@ -157,6 +165,18 @@ namespace DeadSignal
             {
                 Salvage++;
             }
+        }
+
+        public float RestoreSignal(float amount)
+        {
+            if (Outcome != RunOutcome.Running || amount <= 0f)
+            {
+                return 0f;
+            }
+
+            var previousSignal = Signal;
+            Signal = Math.Min(MaximumSignal, Signal + amount);
+            return Signal - previousSignal;
         }
 
         public bool TryExtract()

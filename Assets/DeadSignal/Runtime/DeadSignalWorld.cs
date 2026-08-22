@@ -212,7 +212,7 @@ namespace DeadSignal
         public void PurgeSapper()
         {
             Sapper.gameObject.SetActive(false);
-            SapperTelegraph.SetThreatState(false, false, 0f, DeadSignalThreatController.SAPPER_PULSE_INTERVAL);
+            SapperTelegraph.SetThreatState(false, false, 0f, 1f);
         }
 
         public GameObject CreateSignalBolt(Vector3 direction)

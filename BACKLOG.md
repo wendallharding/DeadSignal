@@ -14,6 +14,14 @@
 
 ## P1 — Prove the loop
 
+### Run 59 security-purge recovery ideas
+
+- [x] Warden recovery bounty — player value: fighting the pursuer can offset most of its ammunition cost; acceptance: purging it restores up to 12 Signal exactly once.
+- [x] Sapper recovery bounty — player value: intercepting the network threat is a net-positive emergency play; acceptance: purging it restores up to 16 Signal exactly once.
+- [x] Cap-safe Signal restoration — player value: rewards never overflow or destabilize the shared resource; acceptance: deterministic restoration clamps at 100 and reports the amount actually received.
+- [x] Purge telemetry — player value: the debrief acknowledges successful threat control; acceptance: run metrics and the raw report track purge count and actual Signal reclaimed.
+- [x] Readable bounty presentation — player value: enemy health, reward stakes, and payout are visible without guesswork; acceptance: the threat strip shows both health pools and rewards, while an original cyan recovery burst confirms collection in world space.
+
 ### Run 58 mission command-strip ideas
 
 - [x] Three-step phase numbering — player value: the whole run structure is visible at a glance; acceptance: the HUD advances deterministically through Restore, Recover, and Extract phases.

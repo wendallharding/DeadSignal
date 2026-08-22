@@ -5,6 +5,17 @@ namespace DeadSignal.Tests
     public sealed class RunModelTests
     {
         [Test]
+        public void RestoreSignal_ClampsAtMaximumAndReportsActualRecovery()
+        {
+            var model = new RunModel();
+            Assert.That(model.TrySpend(5f), Is.True);
+
+            Assert.That(model.RestoreSignal(50f), Is.EqualTo(33f).Within(0.001f));
+            Assert.That(model.Signal, Is.EqualTo(RunModel.MaximumSignal));
+            Assert.That(model.RestoreSignal(10f), Is.Zero);
+        }
+
+        [Test]
         public void NewRun_HasPlayableStartingState()
         {
             var run = new RunModel();

@@ -3573,3 +3573,49 @@ This command-strip pass was selected over another room, enemy, or balance change
 - Headless tests validate content and transitions but cannot judge whether the new three-line objective copy fits comfortably at 1280x720 or ultrawide, especially alongside the existing right-side HUD.
 - The guidance is intentionally English-only pending the broader localization-ready text pass.
 - Best next step: start a run at 1280x720, read the tower transaction before activation, let the Sapper latch during salvage, then secure the third cache and confirm the three-line strip remains legible through every transition.
+
+## 2026-08-22 — Autonomous Run 59 — Security-purge recovery
+
+### Today's five tightly scoped ideas
+
+1. **Warden recovery bounty.** Player benefit: engaging the pursuer can offset most of its ammunition cost. Acceptance: the first purge restores up to 12 Signal and cannot pay twice.
+2. **Sapper recovery bounty.** Player benefit: fast interception becomes a net-positive emergency tactic. Acceptance: the first purge restores up to 16 Signal and cannot pay twice.
+3. **Cap-safe restoration.** Player benefit: recovery is trustworthy near full reserve. Acceptance: the deterministic model clamps at 100 and reports only the Signal actually received.
+4. **Purge telemetry.** Player benefit: threat control becomes visible coaching data. Acceptance: run metrics and the raw report show purge count and actual reclaimed Signal.
+5. **Readable bounty presentation.** Player benefit: players can judge enemy durability and reward before committing. Acceptance: the live threat strip shows both health pools and bounty values, and a new cyan world-space recovery burst confirms payout.
+
+This combat-economy pass was selected over another room or HUD-only feature because security previously imposed Signal costs without creating an economic reason to fight. The 12-Signal Warden reward deliberately leaves avoidance competitive after three minimum-cost shots; the 16-Signal Sapper reward creates a six-Signal clean-intercept gain after two shots.
+
+### Files and systems changed
+
+- Added `ThreatBalanceTuning.cs` and `ThreatBalanceTuning.asset`, moving the touched threat controller's health, movement speeds, attack/latch distances, cooldowns, pulse timing, and new recovery rewards out of hardcoded runtime state. `OnValidate` supplies safe ranges. This is the run's focused production refactor.
+- Updated `DeadSignalThreatController.cs`, `RunModel.cs`, and `DeadSignalGame.cs` with one-time purge payouts, capped restoration, metrics, tuning composition, and runtime validation properties.
+- Updated `DeadSignalHud.cs` so the threat strip reports live Warden/Sapper health and bounty states, while the run report records purge count and actual Signal reclaimed.
+- Added `SignalRecoveryBurst.png` and Unity-generated metadata. OpenAI's built-in image tool generated the original transparent cyan/white inward energy burst with restrained amber fragments; SHA-256 `2BC655F8346D338638178AB73E90BDACF921912B2F21FEA3EB7912F40218B9A5`.
+- Updated `CombatFeedbackController.cs` to render and clean up the authored recovery burst without hit-stop or camera impulse, preserving player control and Reduced Flashes behavior.
+- Added `DeadSignalThreatSetup.cs`, updated Windows build and packaged-smoke gates, and expanded EditMode/PlayMode coverage in `RunModelTests.cs`, `ThreatBalanceTuningTests.cs`, and `BootstrapSmokeTests.cs`.
+- Updated `GAME_VISION.md` and `BACKLOG.md` with the five player-value and acceptance contracts. No scene, prefab, package, project setting, input binding, save data, audio, map layout, objective, or existing Signal cost changed. Unity build-time serializer rewrites were restored.
+
+Final image prompt: original compact top-down Signal recovery VFX sprite, reclaimed electrical energy folding inward around a bright core, graphic circuit fragments, cyan-white emission with restrained amber reward sparks, transparent background, readable at 96 pixels, and no text, logo, brand, character, frame, or watermark. Built-in image generation was used.
+
+### Tests run and exact outcomes
+
+1. Unity `6000.3.11f1` import/compile and `DeadSignalThreatSetup.EnsureAssets`: exit `0`; new scripts compiled and Unity imported the texture, tuning asset, and all metadata; `Logs/run59-import.log`.
+2. Initial EditMode: exit `2`; `48/49` passed. The new test incorrectly required the Warden bounty to exceed all three shot costs; the design intentionally offsets most rather than all of that cost. The contract was corrected to encode the asymmetric incentive.
+3. Final EditMode: exit `0`; `49/49` passed, `0` failed, `0` skipped in `0.113091s`; `Logs/run59-editmode-final-results.xml` and `.log`.
+4. PlayMode: exit `0`; `5/5` passed, `0` failed, `0` skipped in `7.6704045s`; complete runtime validation confirmed the Sapper's 16-Signal payout, one purge metric, recovery art, and prior loop; `Logs/run59-playmode-results.xml` and `.log`.
+5. Windows x64 development build: exit `0`; Unity reported `240,052,129` bytes in `18.62s`; `Build/Windows/DeadSignal.exe`; `Logs/run59-build-final.log`.
+6. Packaged Direct3D 11 smoke: exit `0` with one `[DEAD SIGNAL STANDALONE SMOKE] PASS`; `Logs/run59-standalone.log`.
+7. Final critical scans found no compiler errors, null/missing-reference exceptions, unhandled exceptions, failed assertions, or smoke failure. `git diff --check` passed.
+
+### Bugs found and fixed
+
+- Added a single deterministic `RestoreSignal` authority so rewards cannot overflow Maximum Signal and metrics record the actual capped payout rather than the advertised maximum.
+- Replaced duplicated threat rule literals with one validated designer-facing asset, preventing telegraph timing and gameplay pulse timing from drifting.
+- The first build command referenced a nonexistent method name and exited `1` before changing the build; rerunning the existing `BuildDevelopmentPlayer` entry point succeeded.
+- Restored unrelated Unity build-time prefab, material, texture-metadata, render-pipeline, and project-setting rewrites before commit.
+
+### Known limitations and best next step
+
+- Headless validation cannot judge recovery-burst size/brightness or whether the expanded threat strip fits comfortably at 1280x720 and ultrawide. The payout values are first-pass product tuning and still need recorded play-session evidence.
+- Best next step: activate the tower below 70 Signal, purge the Sapper and Warden separately, confirm the +16/+12 burst and HUD status are legible, then assess whether the Warden's net three-Signal cost and Sapper's net six-Signal gain create the intended fight-versus-flight decisions.

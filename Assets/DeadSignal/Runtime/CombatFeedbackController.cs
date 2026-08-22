@@ -10,12 +10,14 @@ namespace DeadSignal
         bool IsPaused { get; }
         bool HasImpactTexture { get; }
         bool HasEnvironmentImpactTexture { get; }
+        bool HasSignalRecoveryTexture { get; }
 
         void Configure(Camera targetCamera);
         void PlaySignalImpact(Vector3 position, bool decisive);
         void PlaySecurityImpact(Vector3 position);
         void PlaySapperImpact(Vector3 position);
         void PlayEnvironmentImpact(Vector3 position);
+        void PlaySignalRecovery(Vector3 position);
         void SetPaused(bool paused);
     }
 
@@ -29,6 +31,7 @@ namespace DeadSignal
         private const string IMPACT_TEXTURE_PATH = "VFX/MaintenanceSignalImpact";
         private const string ENVIRONMENT_IMPACT_TEXTURE_PATH = "Projectiles/SignalBoltBulkheadImpact";
         private const string ENVIRONMENT_IMPACT_MATERIAL_PATH = "Materials/SignalBoltBulkheadImpact";
+        private const string SIGNAL_RECOVERY_TEXTURE_PATH = "VFX/SignalRecoveryBurst";
         private const float LIGHT_HIT_STOP = 0.035f;
         private const float HEAVY_HIT_STOP = 0.06f;
         private const float IMPACT_DURATION = 0.22f;
@@ -47,6 +50,8 @@ namespace DeadSignal
         private Sprite m_impactSprite;
         private Texture2D m_environmentImpactTexture;
         private Sprite m_environmentImpactSprite;
+        private Texture2D m_signalRecoveryTexture;
+        private Sprite m_signalRecoverySprite;
         private Material m_environmentImpactMaterial;
         private Vector3 m_cameraRestPosition;
         private float m_hitStopEndsAt;
@@ -60,6 +65,7 @@ namespace DeadSignal
         public bool IsHitStopped => m_hitStopEndsAt > 0f;
         public bool HasImpactTexture => m_impactTexture != null;
         public bool HasEnvironmentImpactTexture => m_environmentImpactTexture != null && m_environmentImpactMaterial != null;
+        public bool HasSignalRecoveryTexture => m_signalRecoveryTexture != null;
         public bool CameraImpulseEnabled => m_comfortSettings?.CameraImpulseEnabled ?? true;
         public bool ReducedFlashesEnabled => m_comfortSettings?.ReducedFlashesEnabled ?? false;
         public int ActiveImpactCount => m_impacts.Count;
@@ -118,6 +124,19 @@ namespace DeadSignal
                 new Vector2(0.5f, 0.5f),
                 pixelsPerUnit);
             m_environmentImpactSprite.name = "Signal Bolt Bulkhead Impact Sprite";
+
+            m_signalRecoveryTexture = Resources.Load<Texture2D>(SIGNAL_RECOVERY_TEXTURE_PATH);
+            if (m_signalRecoveryTexture == null)
+            {
+                Debug.LogWarning($"Signal recovery art was not found at Resources/{SIGNAL_RECOVERY_TEXTURE_PATH}.", this);
+                return;
+            }
+
+            pixelsPerUnit = m_signalRecoveryTexture.width / 3.4f;
+            m_signalRecoverySprite = Sprite.Create(m_signalRecoveryTexture,
+                new Rect(0f, 0f, m_signalRecoveryTexture.width, m_signalRecoveryTexture.height),
+                new Vector2(0.5f, 0.5f), pixelsPerUnit);
+            m_signalRecoverySprite.name = "Signal Recovery Burst Sprite";
         }
 
         public void PlaySignalImpact(Vector3 position, bool decisive)
@@ -140,6 +159,11 @@ namespace DeadSignal
         {
             _playImpact(position, Color.white, 0.72f, 0f, 0f, m_environmentImpactSprite, m_environmentImpactMaterial,
                 "Bulkhead Signal Impact");
+        }
+
+        public void PlaySignalRecovery(Vector3 position)
+        {
+            _playImpact(position, Color.white, 1.45f, 0f, 0f, m_signalRecoverySprite, null, "Signal Recovery Burst");
         }
 
         public void SetPaused(bool paused)
@@ -187,6 +211,11 @@ namespace DeadSignal
             if (m_environmentImpactSprite != null)
             {
                 Destroy(m_environmentImpactSprite);
+            }
+
+            if (m_signalRecoverySprite != null)
+            {
+                Destroy(m_signalRecoverySprite);
             }
         }
 

@@ -32,6 +32,8 @@ namespace DeadSignal.Tests
             Assert.That(hud.CurrentSignalReserveState, Is.EqualTo(SignalReserveState.Stable),
                 "A fresh full reserve should identify itself as stable.");
             Assert.That(Resources.Load<SignalHudTuning>("Tuning/SignalHudTuning"), Is.Not.Null);
+            Assert.That(Resources.Load<ThreatBalanceTuning>("Tuning/ThreatBalanceTuning"), Is.Not.Null);
+            Assert.That(Resources.Load<Texture2D>("VFX/SignalRecoveryBurst"), Is.Not.Null);
             Assert.That(hudCanvas.transform.Find("Pause Overlay/Control Routing/Reset").GetComponent<Button>(), Is.Not.Null);
             Assert.That(hudCanvas.transform.Find("UI Event System").GetComponent<UnityEngine.EventSystems.EventSystem>(), Is.Not.Null);
         }
@@ -1129,6 +1131,12 @@ namespace DeadSignal.Tests
 
                 Assert.That(sapper.gameObject.activeSelf, Is.False,
                     "Two Signal bolts should purge the two-health Sapper.");
+                Assert.That(game.ThreatsPurged, Is.EqualTo(1));
+                Assert.That(game.SignalRecovered, Is.EqualTo(16f).Within(0.01f),
+                    "Purging the Sapper should reclaim the configured Signal bounty.");
+                Assert.That(game.HasSignalRecoveryBurst, Is.True);
+                Assert.That(combatFeedback.transform.Find("Signal Recovery Burst"), Is.Not.Null,
+                    "A purge bounty should be confirmed by the authored recovery burst.");
                 Assert.That(telegraphRoot.gameObject.activeSelf, Is.False,
                     "Purging the Sapper should immediately hide every telegraph element.");
                 Assert.That(telegraph.IsVisible, Is.False);

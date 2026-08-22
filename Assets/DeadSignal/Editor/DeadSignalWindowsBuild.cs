@@ -47,6 +47,7 @@ namespace DeadSignal.Editor
             DeadSignalSignalSpineSetup.EnsureAssets();
             DeadSignalBoundaryThresholdSetup.EnsureAssets();
             DeadSignalHudSetup.EnsureAssets();
+            DeadSignalThreatSetup.EnsureAssets();
             _validateBuildInputs();
             _configureWindowsPlayer();
 
@@ -104,6 +105,11 @@ namespace DeadSignal.Editor
             if (!DeadSignalHudSetup.HasAssets)
             {
                 throw new BuildFailedException("The authored Signal HUD assets are missing.");
+            }
+
+            if (!DeadSignalThreatSetup.HasAssets)
+            {
+                throw new BuildFailedException("Threat balance tuning or Signal recovery art is missing.");
             }
 
             if (!DeadSignalProjectSetup.HasMaintenanceDeckAssets)

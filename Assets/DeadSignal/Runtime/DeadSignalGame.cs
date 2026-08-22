@@ -117,6 +117,9 @@ namespace DeadSignal
         public bool HasPlayerMovementTuning => m_playerMovementTuning != null;
         public bool HasPlayerSignalWake => m_world?.PlayerSignalWake?.HasTexture ?? false;
         public bool HasSignalBoltBulkheadImpact => m_combatFeedback?.HasEnvironmentImpactTexture ?? false;
+        public bool HasSignalRecoveryBurst => m_combatFeedback?.HasSignalRecoveryTexture ?? false;
+        public int ThreatsPurged => m_metrics?.ThreatsPurged ?? 0;
+        public float SignalRecovered => m_metrics?.SignalRecovered ?? 0f;
         public int ActiveSignalBoltCount => transform.Cast<Transform>().Count(child => child.name == "Signal Bolt");
 
         public void BeginFireKeyboardRebind()
@@ -241,9 +244,10 @@ namespace DeadSignal
             m_world.ConfigurePlayerSignalWake(m_playerMovementTuning);
             m_combatFeedback.Configure(m_world.Camera);
             var signalBoltTuning = Resources.Load<SignalBoltPresentationTuning>("Tuning/SignalBoltPresentationTuning");
-            if (signalBoltTuning == null)
+            var threatTuning = Resources.Load<ThreatBalanceTuning>("Tuning/ThreatBalanceTuning");
+            if (signalBoltTuning == null || threatTuning == null)
             {
-                Debug.LogError("Signal bolt presentation tuning is missing from Resources/Tuning.", this);
+                Debug.LogError("Signal bolt or threat balance tuning is missing from Resources/Tuning.", this);
                 enabled = false;
                 return;
             }
@@ -255,6 +259,7 @@ namespace DeadSignal
                 m_combatFeedback,
                 m_audio,
                 signalBoltTuning,
+                threatTuning,
                 _showFeedback);
             m_salvage = new DeadSignalSalvageController(m_model, m_world, m_audio, m_salvageTuning, _showFeedback);
             m_hud.Configure(m_model, m_metrics, m_world, m_threats);
@@ -405,7 +410,7 @@ namespace DeadSignal
             {
                 if (m_model.TryActivateTower())
                 {
-                    m_world.ActivateTower(DeadSignalThreatController.SAPPER_PULSE_INTERVAL);
+                    m_world.ActivateTower(m_threats.SapperPulseInterval);
                     m_towerActivationSweep.Play();
                     m_audio.Play(DeadSignalAudioCue.TowerOnline);
                     _showFeedback("TOWER ONLINE - TWO THREATS AWAKENED");

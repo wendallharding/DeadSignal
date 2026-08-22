@@ -61,6 +61,7 @@ This autonomous run is accepted when a fresh Play session provides all of the fo
 - The tower-draining Signal Sapper uses four purpose-built, UV-mapped low-poly meshes with original black-violet/magenta siphon art while drain rules remain unchanged.
 - Dead zones are visually distinct, show a warning, and drain Signal quickly.
 - Tower activation wakes two readable threats: a red Warden pursues the drone while a magenta Signal Sapper telegraphs its tower target and timed drain pulses; both can be destroyed.
+- Purging the Warden reclaims up to 12 Signal and purging the Sapper reclaims up to 16, with live health/bounty telemetry, cap-safe deterministic restoration, and an authored cyan recovery burst.
 - The Warden reveals an authored red strike-range glyph only at close proximity, escalating pursuit into a readable contact threat while Reduced Flashes preserves a static warning.
 - The dormant Warden waits inside a scene-placed red security bay whose open mouth foreshadows its activation and whose shields create immediate post-activation kiting cover without trapping the threat.
 - The dormant Sapper waits inside a scene-placed magenta service cradle whose southeast opening foreshadows its tower-bound emergence and whose pylons become post-activation combat cover without trapping it.
@@ -121,6 +122,10 @@ The adaptive control legend now leads with a five-glyph visual language for move
 The shared Signal reserve now reads as operational telemetry rather than a generic progress bar: original conduit art moves from cyan Stable through amber Strained to red Critical, names the state in plain language, and uses restrained critical motion only when the player allows it. This was selected over a new objective because Signal is the game's differentiating resource and must communicate urgency instantly in the newly authored Canvas without requiring players to infer meaning from a number alone.
 
 ## Experience target
+
+### Run 59 product decision — security-purge recovery
+
+Destroyed threats now return part of the shared resource they forced the player to risk: the Warden offsets most of its minimum ammunition cost, while the time-critical Sapper is deliberately net-positive if intercepted cleanly. This was selected over another room or HUD-only pass because combat previously consumed Signal without creating an economic reason to engage. The asymmetric 12/16 rewards preserve avoidance as a valid Warden choice while making a fast Sapper purge an active recovery tactic. Enemy health, bounty values, actual reclaimed Signal, and purge counts are visible and deterministic; all prior enemy behavior is preserved in a new designer-facing tuning asset.
 
 ### Run 58 product decision — mission command strip
 

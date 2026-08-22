@@ -9,12 +9,8 @@ namespace DeadSignal
     /// </summary>
     internal sealed class DeadSignalThreatController
     {
-        public const float SAPPER_PULSE_INTERVAL = 1.35f;
-
         private const float WARDEN_COLLISION_RADIUS = 0.54f;
         private const float SAPPER_COLLISION_RADIUS = 0.42f;
-        private const float SAPPER_LATCH_DISTANCE = 1.25f;
-        private const float SAPPER_FIRST_PULSE_DELAY = 1.6f;
 
         private static readonly float s_wardenProjectileHitRadius = Mathf.Sqrt(0.9f);
         private static readonly float s_sapperProjectileHitRadius = Mathf.Sqrt(0.75f);
@@ -25,11 +21,12 @@ namespace DeadSignal
         private readonly ICombatFeedback m_combatFeedback;
         private readonly IDeadSignalAudio m_audio;
         private readonly SignalBoltPresentationTuning m_projectileTuning;
+        private readonly ThreatBalanceTuning m_tuning;
         private readonly Action<string> m_showFeedback;
         private readonly List<Projectile> m_projectiles = new();
 
-        private float m_wardenHealth = 3f;
-        private float m_sapperHealth = 2f;
+        private float m_wardenHealth;
+        private float m_sapperHealth;
         private float m_wardenAttackCooldown;
         private float m_sapperPulseCooldown;
         private float m_shotCooldown;
@@ -42,6 +39,7 @@ namespace DeadSignal
             ICombatFeedback combatFeedback,
             IDeadSignalAudio audio,
             SignalBoltPresentationTuning projectileTuning,
+            ThreatBalanceTuning tuning,
             Action<string> showFeedback)
         {
             m_model = model;
@@ -50,11 +48,21 @@ namespace DeadSignal
             m_combatFeedback = combatFeedback;
             m_audio = audio;
             m_projectileTuning = projectileTuning;
+            m_tuning = tuning;
             m_showFeedback = showFeedback;
+            m_wardenHealth = tuning.WardenHealth;
+            m_sapperHealth = tuning.SapperHealth;
         }
 
         public bool IsSapperLatched => m_sapperLatched;
         public bool IsSapperAlive => m_sapperHealth > 0f;
+        public bool IsWardenAlive => m_wardenHealth > 0f;
+        public float WardenHealth => m_wardenHealth;
+        public float WardenMaximumHealth => m_tuning.WardenHealth;
+        public float SapperMaximumHealth => m_tuning.SapperHealth;
+        public float WardenSignalReward => m_tuning.WardenSignalReward;
+        public float SapperSignalReward => m_tuning.SapperSignalReward;
+        public float SapperPulseInterval => m_tuning.SapperPulseInterval;
         public float SapperHealth => m_sapperHealth;
         public bool LastShotBlockedByEnvironment { get; private set; }
         public float SapperPulseCooldown => m_sapperPulseCooldown;
@@ -109,9 +117,9 @@ namespace DeadSignal
                 m_world.Warden.rotation = Quaternion.LookRotation(delta.normalized, Vector3.up);
             }
 
-            if (distance > 1.05f)
+            if (distance > m_tuning.WardenAttackDistance)
             {
-                var desired = m_world.Warden.position + delta.normalized * (2.15f * dt);
+                var desired = m_world.Warden.position + delta.normalized * (m_tuning.WardenSpeed * dt);
                 m_world.Warden.position = m_world.ResolveMovement(
                     m_world.Warden.position,
                     desired,
@@ -120,7 +128,7 @@ namespace DeadSignal
             }
             else if (m_wardenAttackCooldown <= 0f)
             {
-                m_wardenAttackCooldown = 0.9f;
+                m_wardenAttackCooldown = m_tuning.WardenAttackCooldown;
                 m_model.TakeSecurityHit();
                 m_metrics.RecordSecurityHit();
                 m_combatFeedback.PlaySecurityImpact(m_world.Player.position + Vector3.up * 0.58f);
@@ -136,7 +144,7 @@ namespace DeadSignal
                 return;
             }
 
-            m_world.SapperTelegraph.SetThreatState(true, m_sapperLatched, m_sapperPulseCooldown, SAPPER_PULSE_INTERVAL);
+            m_world.SapperTelegraph.SetThreatState(true, m_sapperLatched, m_sapperPulseCooldown, m_tuning.SapperPulseInterval);
             m_world.SapperCore.Rotate(Vector3.up, (m_sapperLatched ? 260f : 120f) * dt, Space.Self);
             if (!m_sapperLatched)
             {
@@ -148,9 +156,9 @@ namespace DeadSignal
                     m_world.Sapper.rotation = Quaternion.LookRotation(delta.normalized, Vector3.up);
                 }
 
-                if (distance > SAPPER_LATCH_DISTANCE)
+                if (distance > m_tuning.SapperLatchDistance)
                 {
-                    var desired = m_world.Sapper.position + delta.normalized * (1.8f * dt);
+                    var desired = m_world.Sapper.position + delta.normalized * (m_tuning.SapperSpeed * dt);
                     m_world.Sapper.position = m_world.ResolveMovement(
                         m_world.Sapper.position,
                         desired,
@@ -160,13 +168,13 @@ namespace DeadSignal
                 }
 
                 m_sapperLatched = true;
-                m_sapperPulseCooldown = SAPPER_FIRST_PULSE_DELAY;
-                m_world.SapperTelegraph.SetThreatState(true, true, m_sapperPulseCooldown, SAPPER_PULSE_INTERVAL);
+                m_sapperPulseCooldown = m_tuning.SapperFirstPulseDelay;
+                m_world.SapperTelegraph.SetThreatState(true, true, m_sapperPulseCooldown, m_tuning.SapperPulseInterval);
                 m_showFeedback("SAPPER LATCHED - PURGE IT");
             }
 
             m_sapperPulseCooldown = Mathf.Max(0f, m_sapperPulseCooldown - dt);
-            m_world.SapperTelegraph.SetThreatState(true, true, m_sapperPulseCooldown, SAPPER_PULSE_INTERVAL);
+            m_world.SapperTelegraph.SetThreatState(true, true, m_sapperPulseCooldown, m_tuning.SapperPulseInterval);
             var pulse = 1f + Mathf.Sin(Time.time * 10f) * 0.18f;
             m_world.SapperCore.localScale = Vector3.Scale(
                 m_world.SapperCoreBaseScale,
@@ -176,12 +184,12 @@ namespace DeadSignal
                 return;
             }
 
-            m_sapperPulseCooldown = SAPPER_PULSE_INTERVAL;
+            m_sapperPulseCooldown = m_tuning.SapperPulseInterval;
             m_model.TakeSapperPulse();
             m_metrics.RecordSapperPulse();
             m_combatFeedback.PlaySapperImpact(m_world.TowerPosition + Vector3.up * 0.65f);
             m_audio.Play(DeadSignalAudioCue.SapperPulse);
-            m_world.SapperTelegraph.SetThreatState(true, true, m_sapperPulseCooldown, SAPPER_PULSE_INTERVAL);
+            m_world.SapperTelegraph.SetThreatState(true, true, m_sapperPulseCooldown, m_tuning.SapperPulseInterval);
             m_world.SapperTelegraph.NotifyPulse();
             m_showFeedback($"SAPPER DRAIN  -{RunModel.SapperPulseCost:0} SIGNAL");
         }
@@ -277,8 +285,11 @@ namespace DeadSignal
             m_audio.Play(DeadSignalAudioCue.SignalImpact);
             if (m_wardenHealth <= 0f)
             {
+                var restored = m_model.RestoreSignal(m_tuning.WardenSignalReward);
+                m_metrics.RecordThreatPurge(restored);
                 m_world.PurgeWarden();
-                m_showFeedback("SECURITY NODE PURGED");
+                m_combatFeedback.PlaySignalRecovery(m_world.Warden.position + Vector3.up * 0.55f);
+                m_showFeedback($"WARDEN PURGED  +{restored:0} SIGNAL");
                 return;
             }
 
@@ -292,8 +303,11 @@ namespace DeadSignal
             m_audio.Play(DeadSignalAudioCue.SignalImpact);
             if (m_sapperHealth <= 0f)
             {
+                var restored = m_model.RestoreSignal(m_tuning.SapperSignalReward);
+                m_metrics.RecordThreatPurge(restored);
                 m_world.PurgeSapper();
-                m_showFeedback("SIGNAL SAPPER PURGED");
+                m_combatFeedback.PlaySignalRecovery(m_world.Sapper.position + Vector3.up * 0.55f);
+                m_showFeedback($"SAPPER PURGED  +{restored:0} SIGNAL");
                 return;
             }
 

@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fa0147929a3e8aa4fb6691af9e798804, type: 3}
+  m_Name: ThreatBalanceTuning
+  m_EditorClassIdentifier: DeadSignal.Runtime::DeadSignal.ThreatBalanceTuning
+  m_wardenHealth: 3
+  m_wardenSpeed: 2.15
+  m_wardenAttackDistance: 1.05
+  m_wardenAttackCooldown: 0.9
+  m_wardenSignalReward: 12
+  m_sapperHealth: 2
+  m_sapperSpeed: 1.8
+  m_sapperLatchDistance: 1.25
+  m_sapperFirstPulseDelay: 1.6
+  m_sapperPulseInterval: 1.35
+  m_sapperSignalReward: 16

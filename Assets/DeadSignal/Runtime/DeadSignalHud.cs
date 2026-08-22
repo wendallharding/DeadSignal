@@ -197,7 +197,7 @@ namespace DeadSignal
                 m_threats.SapperPulseCooldown);
             CurrentMissionPhase = guidance.Phase;
             m_objectiveText.text = $"PHASE {guidance.Phase}/3  //  {guidance.Title}\n{guidance.Action}\n{guidance.Advisory}";
-            m_threatText.text = _sapperStatus();
+            m_threatText.text = _threatStatus();
             m_controlLegendText.text = _activeControlLegend();
             var prompt = _contextPrompt();
             m_contextPrompt.SetActive(!string.IsNullOrEmpty(prompt));
@@ -256,16 +256,26 @@ namespace DeadSignal
             var totalSeconds = Mathf.FloorToInt(m_metrics.ElapsedSeconds);
             return $"RUN REPORT   {totalSeconds / 60:00}:{totalSeconds % 60:00}   |   DEAD ZONE {m_metrics.DeadZoneSeconds:0.0}s   |   " +
                    $"SHOTS {m_metrics.ShotsFired}   |   HITS {m_metrics.SecurityHits}   |   DRAINS {m_metrics.SapperPulses}   |   " +
+                   $"PURGES {m_metrics.ThreatsPurged}   |   RECLAIMED {m_metrics.SignalRecovered:0}   |   " +
                    $"SIGNAL {Mathf.CeilToInt(m_model.Signal)}";
         }
 
-        private string _sapperStatus()
+        private string _threatStatus()
         {
-            if (!m_model.TowerOnline) return "THREAT  SIGNAL SAPPER DORMANT";
-            if (!m_threats.IsSapperAlive) return "THREAT  SIGNAL SAPPER PURGED";
-            return m_threats.IsSapperLatched
-                ? $"THREAT  SAPPER DRAIN IN {m_threats.SapperPulseCooldown:0.0}s (-{RunModel.SapperPulseCost:0})"
-                : "THREAT  SIGNAL SAPPER APPROACHING TOWER";
+            if (!m_model.TowerOnline)
+            {
+                return $"SECURITY DORMANT  //  BOUNTIES +{m_threats.WardenSignalReward:0} / +{m_threats.SapperSignalReward:0}";
+            }
+
+            var warden = m_threats.IsWardenAlive
+                ? $"WARDEN {m_threats.WardenHealth:0}/{m_threats.WardenMaximumHealth:0} (+{m_threats.WardenSignalReward:0})"
+                : "WARDEN PURGED";
+            var sapper = !m_threats.IsSapperAlive
+                ? "SAPPER PURGED"
+                : m_threats.IsSapperLatched
+                    ? $"SAPPER {m_threats.SapperHealth:0}/{m_threats.SapperMaximumHealth:0} DRAIN {m_threats.SapperPulseCooldown:0.0}s (+{m_threats.SapperSignalReward:0})"
+                    : $"SAPPER {m_threats.SapperHealth:0}/{m_threats.SapperMaximumHealth:0} APPROACHING (+{m_threats.SapperSignalReward:0})";
+            return $"{warden}  //  {sapper}";
         }
 
         private string _contextPrompt()
