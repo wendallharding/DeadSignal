@@ -4123,3 +4123,37 @@ The dock's two link modes now commit the player to distinct climax plans instead
 - Deterministic evidence proves a Stable purge advances exactly 0.9 seconds, an Overdrive purge advances exactly 0.25 seconds, pre-link and post-completion purges grant nothing, and a final credit caps at the true remainder. Runtime evidence proves both active profiles are selected through their actual dock inputs; the Stable complete run still escapes the locked ring, fires three bolts, purges the Suppressor, remains in the holdout, and wins.
 - No human playtest was performed. The 3.6:1 credit ratio, whether the choice copy is readable during pursuit, whether Stable combat actually competes with a 1.25-second shorter Overdrive, and whether either mode dominates specific overclock combinations remain subjective risks.
 - Manual playtest next: return above 40 Signal with the same route and build twice. First choose Stable, deliberately purge the Suppressor, and record decision time, shots, hits, field entries, purge time, finish time, and final Signal. Then choose Overdrive, evade without firing, and record the same values. Repeat once with the opposite tactics; the intended result is that Stable rewards the fight while Overdrive rewards flight, with neither choice automatic. If that distinction holds, the next gameplay milestone should deepen temporary combat builds before expanding to a second tower region.
+
+## 2026-08-22 — Autonomous Run 75 — Overclock pair synergies
+
+### Milestone, player benefit, and acceptance
+
+The four existing overclock combinations now create four trigger-driven tactics rather than two unrelated selections. Chain Arc pairs prime one double jump from the auxiliary's established risk event; Overdrive pairs convert that event into a short escape surge. Acceptance required distinct named pairs, no new choice prompt or random drop, no change to Signal costs/recovery, enemy stats, response budget, warnings, entrances, or extraction profiles, designer-facing surge tuning, live ready/timed copy, deterministic coverage for all four combinations, and complete-runtime evidence for both a fight and flight pair.
+
+### Files and systems changed
+
+- `SignalOverclockChoice.cs` identifies all four pair synergies and owns their one-shot arc charge or finite surge lifetime. Emergency Capacitor still triggers once at 25 Signal or lower; Feedback Shield still absorbs one discrete hit and still recharges only on purge.
+- `SignalOverclockTuning.cs` and `SignalOverclockTuning.asset` add only the pair's designer-facing two-second surge duration and 1.2× multiplier. Existing Chain Arc radius, base Overdrive multipliers, Capacitor threshold, and 22-Signal restore remain unchanged.
+- `DeadSignalThreatController.cs` lets a primed Chain Arc continue through one additional different live role inside the unchanged 4.5-metre radius. A charge waits for a valid three-role alignment instead of being lost on an ordinary single jump.
+- `DeadSignalGame.cs` advances pair lifetime, applies the temporary multiplier on top of base Overdrive, and exposes narrow runtime acceptance state. `DeadSignalHud.cs` names the pair and reports arc readiness or the live surge countdown.
+- `SignalOverclockChoiceTests.cs`, `ThreatBalanceTuningTests.cs`, and `BootstrapSmokeTests.cs` cover all four trigger rules, single-use state, tuned expiry, live movement value, a shielded Suppressor pulse, and the following two-secondary Reactive Arc.
+- `GAME_VISION.md`, `BACKLOG.md`, and this devlog record the product decision. No scene, prefab, texture, material, audio, input, package, project setting, map content, enemy statistic, Signal value, entrance, warning, or response count changed.
+
+### Exact validation evidence
+
+1. Focused EditMode: exit `0`; `11/11` passed in `0.0437941s`; `Logs/run75-editmode-focused-results.xml` and `Logs/run75-editmode-focused.log`.
+2. The first PlayMode filter used an incorrect `.PlayMode` namespace and executed `0` tests; it is excluded from evidence. The corrected pre-final filter passed `2/2` before the explicit double-jump assertion was added.
+3. Corrected final focused PlayMode: exit `0`; `2/2` passed in `11.8549077s`; `Logs/run75-playmode-focused3-results.xml` and `Logs/run75-playmode-focused3.log`.
+4. Full EditMode: exit `0`; `86/86` passed, `0` failed, `0` skipped in `0.202567s`; `Logs/run75-editmode-final-results.xml` and `Logs/run75-editmode-final.log`.
+5. Full PlayMode: exit `0`; `9/9` passed, `0` failed, `0` skipped in `24.4391697s`; `Logs/run75-playmode-final-results.xml` and `Logs/run75-playmode-final.log`.
+6. Windows x64 development build: Unity reported PASS at `241,176,929` bytes in `15.75s`; `Build/Windows/DeadSignal.exe` and `Logs/run75-build.log`.
+7. Packaged null-device smoke: process exit `0` with one `[DEAD SIGNAL STANDALONE SMOKE] PASS`; `Logs/run75-standalone.log`. Unity emitted its known shutdown-only `Curl error 42: Callback aborted` after the explicit PASS and before clean process exit; no gameplay exception accompanied it.
+8. Unity's build setup rewrote 60 unrelated tracked assets/settings; all were restored from the clean baseline. The pre-existing `Assets/Settings/Mobile_RPAsset.asset` user change was restored byte-for-byte to SHA-256 `2D5182D2B8884AC88BC6ED033A0A722C23CFB15A7BC8B7DAA38DB37227BAFD09` and remains excluded.
+9. Post-cleanup full EditMode against the exact retained gameplay files: exit `0`; `86/86` passed in `0.1295015s`; `Logs/run75-editmode-postcleanup-results.xml` and `Logs/run75-editmode-postcleanup.log`.
+
+### Bugs fixed, limitations, playtest evidence, and next step
+
+- A first implementation consumed the overload as soon as the ordinary secondary arc fired, even if no third distinct role was available. The final rule retains the charge until a true two-secondary route exists, so the advertised double jump cannot silently collapse into a normal Chain Arc.
+- Deterministic evidence proves both Capacitor and Shield triggers prime exactly one arc overload with Chain Arc, and both start the exact tuned surge with Overdrive. Runtime evidence proves Shield Surge reaches 1.5× baseline maximum speed for two seconds and a live suppression pulse primes Reactive Arc; the next real bolt draws and applies two different secondary jumps before clearing the charge.
+- No human playtest was performed. The HUD line length, recognition of the trigger-to-pair relationship, whether 1.5× peak speed is controllable near cover, and whether Reactive Arc over-rewards dense extraction groups remain subjective risks.
+- Manual playtest next: play all four builds. For each, record auxiliary trigger time, whether the pair payoff was noticed, Signal before/after, threats aligned or escaped, hits, shots, purges, extraction mode, finish time, and final Signal. For Chain pairs, deliberately trigger with only two roles and verify the ready state persists until three roles align; for Overdrive pairs, test the two-second surge across open floor and near cover. If no pair dominates, the next milestone should use play evidence to tune security pacing before adding a second tower region.

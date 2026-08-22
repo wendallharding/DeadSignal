@@ -14,6 +14,16 @@
 
 ## P1 — Prove the loop
 
+### Run 75 overclock-pair-synergy ideas
+
+- [x] Give Chain Arc plus Emergency Capacitor one primed double jump when the low-reserve refill fires
+- [x] Give Chain Arc plus Feedback Shield the same one-shot double jump after a shielded impact or pulse
+- [x] Give Overdrive plus either auxiliary a designer-tuned two-second, 1.2× escape surge when that auxiliary triggers
+- [x] Keep all four triggers tied to the established Signal threshold, shield hit, and purge-recharge rules without adding drops or choices
+- [x] Show each pair and its ready or timed state in the live salvage strip
+- [x] Prove all four pair rules deterministically and prove a fight pair plus flight pair through their real runtime triggers
+- [ ] Playtest all four builds for trigger recognition, double-jump setup, escape value, Signal reserve, and dominant pairings
+
 ### Run 74 extraction-combat-profile ideas
 
 - [x] Give Stable a designer-tuned 0.9-second link advance per purge so its longer exposure supports a deliberate fight route

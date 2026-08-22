@@ -72,7 +72,7 @@ This autonomous run is accepted when a fresh Play session provides all of the fo
 - The next two bounded security responses adapt to the player's combat choices: the first purged Warden or Sapper returns first, the other role follows, and clearing both before the response creates a per-run order variation without duplicate roles or added threat count.
 - The final bounded extraction response is a magenta Suppressor that is promoted ahead of unresolved salvage reserves, enters through the safer authored flank gate, then locks its first telegraphed slowing Signal-drain field to the drone's position so the six-second uplink always demands one avoidable movement decision.
 - Three warm salvage pickups can be collected outside the safe starting area.
-- The first salvage cache offers one run-long combat overclock: Chain Arc rewards grouping tactical roles, while Overdrive Thrusters rewards evasion and route greed.
+- The first two salvage caches create four paired run builds: Chain Arc converts either auxiliary trigger into one primed double jump, while Overdrive converts it into a short escape surge; Capacitor triggers at low reserve and Feedback Shield triggers on a blocked threat hit.
 - Returning with all salvage offers a free six-second stable uplink or a 12-Signal 4.75-second overdrive; both keep movement and combat live and trigger the same bounded response. Stable rewards each purge with 0.9 seconds of progress, while Overdrive grants 0.25 seconds, creating explicit combat and evasion extraction plans.
 - A central powered gate offers a readable choice: spend Signal for a direct salvage route or detour through the dead zone.
 - Signal depletion causes death; victory/death clearly present a restart action.
@@ -195,3 +195,7 @@ The dock now offers a free six-second stable uplink or a 12-Signal 4.75-second o
 ### Run 74 product decision — extraction combat profiles
 
 The two link modes now commit the player to distinct responses under the same bounded pursuit. Stable advances by 0.9 seconds per purge, making its longer free link the deliberate combat route; Overdrive advances by only 0.25 seconds per purge, preserving its paid 4.75-second duration as the evasion route. Both exact credits are visible before commitment. This was selected over another threat or stat increase because the prior choice changed exposure and reserve but rewarded fighting identically, leaving high-reserve runs with an obvious faster answer instead of a tactical plan.
+
+### Run 75 product decision — overclock pair synergies
+
+The four existing primary/auxiliary combinations now behave as paired builds instead of unrelated bonuses. Chain Arc plus Capacitor primes one double jump when the emergency refill fires, while Chain Arc plus Feedback Shield primes it after a blocked hit. Overdrive converts those same triggers into a designer-tuned two-second 1.2× surge on top of its established thrusters. This was selected over a third choice layer, random drop, or larger region because the current run already offers four combinations but they did not create surprising interaction; tying each payoff to the established low-reserve or threat-contact risk keeps the Signal economy and bounded encounter pressure authoritative.

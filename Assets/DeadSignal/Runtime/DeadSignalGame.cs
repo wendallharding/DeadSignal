@@ -156,11 +156,17 @@ namespace DeadSignal
             m_overclockChoice?.SelectedAuxiliary ?? SignalAuxiliaryOverclock.None;
         public bool IsEmergencyCapacitorAvailable => m_overclockChoice?.IsEmergencyCapacitorAvailable ?? false;
         public bool IsFeedbackShieldCharged => m_overclockChoice?.IsFeedbackShieldCharged ?? false;
+        public bool IsChainArcOverloadReady => m_overclockChoice?.IsChainArcOverloadReady ?? false;
+        public bool IsOverdriveSynergySurgeActive => m_overclockChoice?.IsOverdriveSurgeActive ?? false;
+        public SignalOverclockSynergy CurrentOverclockSynergy => m_overclockChoice?.Synergy ?? SignalOverclockSynergy.None;
         public int ChainArcsPlayed => (m_combatFeedback as CombatFeedbackController)?.ChainArcsPlayed ?? 0;
         public float CurrentPlayerMaximumSpeed => m_playerMovementTuning == null
             ? 0f
             : m_playerMovementTuning.MaximumSpeed *
-              (SelectedOverclock == SignalOverclock.OverdriveThrusters ? m_overclockTuning.ThrusterSpeedMultiplier : 1f);
+              (SelectedOverclock == SignalOverclock.OverdriveThrusters
+                  ? m_overclockTuning.ThrusterSpeedMultiplier *
+                    (m_overclockChoice.IsOverdriveSurgeActive ? m_overclockTuning.OverdriveSynergySpeedMultiplier : 1f)
+                  : 1f);
         public int ThreatsPurged => m_metrics?.ThreatsPurged ?? 0;
         public float SignalRecovered => m_metrics?.SignalRecovered ?? 0f;
         public int ShotsFired => m_metrics?.ShotsFired ?? 0;
@@ -346,6 +352,7 @@ namespace DeadSignal
             }
 
             m_threats.TickCooldown(dt);
+            m_overclockChoice.Tick(dt);
 
             if (m_model.Outcome != RunOutcome.Running)
             {
@@ -430,7 +437,11 @@ namespace DeadSignal
             var previousVelocity = m_playerMovement.Velocity;
             var hasThrusterOverclock = m_overclockChoice.Selected == SignalOverclock.OverdriveThrusters;
             var suppressionMultiplier = m_threats.PlayerMovementMultiplier;
-            var speedMultiplier = (hasThrusterOverclock ? m_overclockTuning.ThrusterSpeedMultiplier : 1f) * suppressionMultiplier;
+            var synergyMultiplier = m_overclockChoice.IsOverdriveSurgeActive
+                ? m_overclockTuning.OverdriveSynergySpeedMultiplier
+                : 1f;
+            var speedMultiplier = (hasThrusterOverclock ? m_overclockTuning.ThrusterSpeedMultiplier * synergyMultiplier : 1f) *
+                                  suppressionMultiplier;
             var accelerationMultiplier =
                 (hasThrusterOverclock ? m_overclockTuning.ThrusterAccelerationMultiplier : 1f) * suppressionMultiplier;
             var velocity = m_playerMovement.Tick(
@@ -651,7 +662,14 @@ namespace DeadSignal
             var restored = m_overclockChoice.TryTriggerEmergencyCapacitor(m_model, m_overclockTuning);
             if (restored > 0f)
             {
-                _showFeedback($"EMERGENCY CAPACITOR FIRED  +{restored:0} SIGNAL");
+                var synergyText = m_overclockChoice.Synergy switch
+                {
+                    SignalOverclockSynergy.ArcOverload => "  //  ARC OVERLOAD PRIMED",
+                    SignalOverclockSynergy.CapacitorSurge =>
+                        $"  //  THRUSTER SURGE {m_overclockTuning.OverdriveSynergySurgeDuration:0.#} SEC",
+                    _ => string.Empty
+                };
+                _showFeedback($"EMERGENCY CAPACITOR FIRED  +{restored:0} SIGNAL{synergyText}");
             }
         }
 

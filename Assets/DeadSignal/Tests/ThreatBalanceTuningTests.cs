@@ -66,6 +66,8 @@ namespace DeadSignal.Tests
                 Assert.That(tuning.ThrusterAccelerationMultiplier, Is.GreaterThan(1f));
                 Assert.That(tuning.EmergencyCapacitorThreshold, Is.InRange(20f, 30f));
                 Assert.That(tuning.EmergencyCapacitorRestore, Is.GreaterThan(RunModel.SecurityHitCost));
+                Assert.That(tuning.OverdriveSynergySurgeDuration, Is.InRange(1f, 3f));
+                Assert.That(tuning.OverdriveSynergySpeedMultiplier, Is.InRange(1.1f, 1.3f));
             }
             finally
             {

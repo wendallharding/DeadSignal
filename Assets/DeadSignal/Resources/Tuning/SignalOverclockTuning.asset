@@ -17,3 +17,5 @@ MonoBehaviour:
   m_thrusterAccelerationMultiplier: 1.2
   m_emergencyCapacitorThreshold: 25
   m_emergencyCapacitorRestore: 22
+  m_overdriveSynergySurgeDuration: 2
+  m_overdriveSynergySpeedMultiplier: 1.2

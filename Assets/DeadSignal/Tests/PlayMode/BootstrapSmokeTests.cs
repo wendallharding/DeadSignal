@@ -135,6 +135,10 @@ namespace DeadSignal.Tests
                     "The first live Warden impact should spend the charged Feedback Shield.");
                 Assert.That(game.CurrentSignal, Is.EqualTo(signalBeforeShieldedHit).Within(0.01f),
                     "A shielded enemy impact should not consume Signal in powered territory.");
+                Assert.That(game.CurrentOverclockSynergy, Is.EqualTo(SignalOverclockSynergy.ShieldSurge));
+                Assert.That(game.IsOverdriveSynergySurgeActive, Is.True,
+                    "The Overdrive and Feedback Shield pair should convert a blocked hit into a short escape surge.");
+                Assert.That(game.CurrentPlayerMaximumSpeed, Is.EqualTo(baselineSpeed * 1.25f * 1.2f).Within(0.001f));
             }
             finally
             {
@@ -1544,6 +1548,15 @@ namespace DeadSignal.Tests
                     "The locked amber warning should become an active field before the uplink completes.");
                 Assert.That(game.IsPlayerSuppressed, Is.True,
                     "A drone that ignores the one-second warning should be caught by the active opening sweep.");
+                var reactiveArcDeadline = Time.time + 0.25f;
+                while (!game.IsChainArcOverloadReady && Time.time < reactiveArcDeadline)
+                {
+                    yield return null;
+                }
+
+                Assert.That(game.CurrentOverclockSynergy, Is.EqualTo(SignalOverclockSynergy.ReactiveArc));
+                Assert.That(game.IsChainArcOverloadReady, Is.True,
+                    "The Chain Arc and Feedback Shield pair should prime a double jump after absorbing the live suppression pulse.");
                 player.position += Vector3.right * 4f;
                 yield return null;
                 Assert.That(game.IsPlayerSuppressed, Is.False,
@@ -1553,7 +1566,21 @@ namespace DeadSignal.Tests
                 var countdownBeforePurge = game.ExtractionUplinkSecondsRemaining;
                 var purgeStartedAt = Time.time;
                 suppressor.position = player.position + Vector3.right * 2f;
-                for (var shotIndex = 0; shotIndex < 3; shotIndex++)
+                securityWarden.position = suppressor.position + Vector3.forward * 1.2f;
+                interceptor.position = suppressor.position - Vector3.forward * 1.2f;
+                var chainArcsBeforeOverload = game.ChainArcsPlayed;
+                InputSystem.QueueStateEvent(gamepad,
+                    new GamepadState { rightStick = Vector2.right }.WithButton(GamepadButton.RightShoulder));
+                yield return null;
+                InputSystem.QueueStateEvent(gamepad, new GamepadState { rightStick = Vector2.right });
+                yield return new WaitForSeconds(0.18f);
+                Assert.That(game.ChainArcsPlayed, Is.EqualTo(chainArcsBeforeOverload + 2),
+                    "The primed Reactive Arc should jump through two different secondary threats on the next successful bolt.");
+                Assert.That(game.IsChainArcOverloadReady, Is.False,
+                    "The double-jump charge should be consumed by exactly one successful Chain Arc.");
+                securityWarden.position = new Vector3(18f, 0f, 9f);
+                interceptor.position = new Vector3(18f, 0f, -9f);
+                for (var shotIndex = 0; shotIndex < 2; shotIndex++)
                 {
                     InputSystem.QueueStateEvent(gamepad,
                         new GamepadState { rightStick = Vector2.right }.WithButton(GamepadButton.RightShoulder));

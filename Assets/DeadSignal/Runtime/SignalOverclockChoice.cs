@@ -14,6 +14,15 @@ namespace DeadSignal
         FeedbackShield
     }
 
+    public enum SignalOverclockSynergy
+    {
+        None,
+        ArcOverload,
+        ReactiveArc,
+        CapacitorSurge,
+        ShieldSurge
+    }
+
     /// <summary>
     /// Owns the two temporary build choices awarded during a run. Input and presentation remain external.
     /// </summary>
@@ -26,6 +35,23 @@ namespace DeadSignal
         public SignalAuxiliaryOverclock SelectedAuxiliary { get; private set; }
         public bool IsEmergencyCapacitorAvailable { get; private set; }
         public bool IsFeedbackShieldCharged { get; private set; }
+        public bool IsChainArcOverloadReady { get; private set; }
+        public bool IsOverdriveSurgeActive => m_overdriveSurgeRemaining > 0f;
+        public float OverdriveSurgeSecondsRemaining => m_overdriveSurgeRemaining;
+        public SignalOverclockSynergy Synergy => (Selected, SelectedAuxiliary) switch
+        {
+            (SignalOverclock.ChainArc, SignalAuxiliaryOverclock.EmergencyCapacitor) => SignalOverclockSynergy.ArcOverload,
+            (SignalOverclock.ChainArc, SignalAuxiliaryOverclock.FeedbackShield) => SignalOverclockSynergy.ReactiveArc,
+            (SignalOverclock.OverdriveThrusters, SignalAuxiliaryOverclock.EmergencyCapacitor) =>
+                SignalOverclockSynergy.CapacitorSurge,
+            (SignalOverclock.OverdriveThrusters, SignalAuxiliaryOverclock.FeedbackShield) => SignalOverclockSynergy.ShieldSurge,
+            _ => SignalOverclockSynergy.None
+        };
+
+        public void Tick(float dt)
+        {
+            m_overdriveSurgeRemaining = System.Math.Max(0f, m_overdriveSurgeRemaining - System.Math.Max(0f, dt));
+        }
 
         public void NotifySalvageCollected(int salvage)
         {
@@ -78,12 +104,20 @@ namespace DeadSignal
             if (restored > 0f)
             {
                 IsEmergencyCapacitorAvailable = false;
+                if (Selected == SignalOverclock.ChainArc)
+                {
+                    IsChainArcOverloadReady = true;
+                }
+                else if (Selected == SignalOverclock.OverdriveThrusters)
+                {
+                    m_overdriveSurgeRemaining = tuning.OverdriveSynergySurgeDuration;
+                }
             }
 
             return restored;
         }
 
-        public bool TryAbsorbThreatDamage()
+        public bool TryAbsorbThreatDamage(SignalOverclockTuning tuning)
         {
             if (SelectedAuxiliary != SignalAuxiliaryOverclock.FeedbackShield || !IsFeedbackShieldCharged)
             {
@@ -91,6 +125,26 @@ namespace DeadSignal
             }
 
             IsFeedbackShieldCharged = false;
+            if (Selected == SignalOverclock.ChainArc)
+            {
+                IsChainArcOverloadReady = true;
+            }
+            else if (Selected == SignalOverclock.OverdriveThrusters)
+            {
+                m_overdriveSurgeRemaining = tuning.OverdriveSynergySurgeDuration;
+            }
+
+            return true;
+        }
+
+        public bool TryConsumeChainArcOverload()
+        {
+            if (!IsChainArcOverloadReady)
+            {
+                return false;
+            }
+
+            IsChainArcOverloadReady = false;
             return true;
         }
 
@@ -114,5 +168,6 @@ namespace DeadSignal
 
         private ChoiceStage m_pendingStage;
         private int m_salvageCollected;
+        private float m_overdriveSurgeRemaining;
     }
 }

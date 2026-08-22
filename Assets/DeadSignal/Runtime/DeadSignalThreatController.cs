@@ -610,12 +610,28 @@ namespace DeadSignal
 
             var target = ThreatTarget.None;
             var nearestDistance = m_overclockTuning.ChainArcRadius;
-            _considerChainTarget(ThreatTarget.Warden, source, m_world.Warden, m_wardenHealth, start, ref target, ref nearestDistance);
-            _considerChainTarget(ThreatTarget.Sapper, source, m_world.Sapper, m_sapperHealth, start, ref target, ref nearestDistance);
             _considerChainTarget(
-                ThreatTarget.Interceptor, source, m_world.Interceptor, m_interceptorHealth, start, ref target, ref nearestDistance);
+                ThreatTarget.Warden, source, ThreatTarget.None, m_world.Warden, m_wardenHealth, start, ref target, ref nearestDistance);
             _considerChainTarget(
-                ThreatTarget.Suppressor, source, m_world.Suppressor, m_suppressorHealth, start, ref target, ref nearestDistance);
+                ThreatTarget.Sapper, source, ThreatTarget.None, m_world.Sapper, m_sapperHealth, start, ref target, ref nearestDistance);
+            _considerChainTarget(
+                ThreatTarget.Interceptor,
+                source,
+                ThreatTarget.None,
+                m_world.Interceptor,
+                m_interceptorHealth,
+                start,
+                ref target,
+                ref nearestDistance);
+            _considerChainTarget(
+                ThreatTarget.Suppressor,
+                source,
+                ThreatTarget.None,
+                m_world.Suppressor,
+                m_suppressorHealth,
+                start,
+                ref target,
+                ref nearestDistance);
             if (target == ThreatTarget.None)
             {
                 return;
@@ -623,6 +639,63 @@ namespace DeadSignal
 
             var targetPosition = _getThreatPosition(target) + Vector3.up * 0.5f;
             m_combatFeedback.PlayChainArc(start, targetPosition);
+            _hitThreat(target);
+            if (!m_overclockChoice.IsChainArcOverloadReady)
+            {
+                return;
+            }
+
+            var overloadTarget = ThreatTarget.None;
+            nearestDistance = m_overclockTuning.ChainArcRadius;
+            _considerChainTarget(
+                ThreatTarget.Warden,
+                source,
+                target,
+                m_world.Warden,
+                m_wardenHealth,
+                targetPosition,
+                ref overloadTarget,
+                ref nearestDistance);
+            _considerChainTarget(
+                ThreatTarget.Sapper,
+                source,
+                target,
+                m_world.Sapper,
+                m_sapperHealth,
+                targetPosition,
+                ref overloadTarget,
+                ref nearestDistance);
+            _considerChainTarget(
+                ThreatTarget.Interceptor,
+                source,
+                target,
+                m_world.Interceptor,
+                m_interceptorHealth,
+                targetPosition,
+                ref overloadTarget,
+                ref nearestDistance);
+            _considerChainTarget(
+                ThreatTarget.Suppressor,
+                source,
+                target,
+                m_world.Suppressor,
+                m_suppressorHealth,
+                targetPosition,
+                ref overloadTarget,
+                ref nearestDistance);
+            if (overloadTarget == ThreatTarget.None)
+            {
+                return;
+            }
+
+            m_overclockChoice.TryConsumeChainArcOverload();
+            var overloadTargetPosition = _getThreatPosition(overloadTarget) + Vector3.up * 0.5f;
+            m_combatFeedback.PlayChainArc(targetPosition, overloadTargetPosition);
+            _hitThreat(overloadTarget);
+        }
+
+        private void _hitThreat(ThreatTarget target)
+        {
             switch (target)
             {
                 case ThreatTarget.Warden:
@@ -642,14 +715,15 @@ namespace DeadSignal
 
         private static void _considerChainTarget(
             ThreatTarget candidate,
-            ThreatTarget source,
+            ThreatTarget firstExcluded,
+            ThreatTarget secondExcluded,
             Transform transform,
             float health,
             Vector3 start,
             ref ThreatTarget target,
             ref float nearestDistance)
         {
-            if (candidate == source || health <= 0f || !transform.gameObject.activeSelf)
+            if (candidate == firstExcluded || candidate == secondExcluded || health <= 0f || !transform.gameObject.activeSelf)
             {
                 return;
             }
@@ -779,14 +853,21 @@ namespace DeadSignal
 
         private bool _tryAbsorbThreatDamage(string threatName)
         {
-            if (!m_overclockChoice.TryAbsorbThreatDamage())
+            if (!m_overclockChoice.TryAbsorbThreatDamage(m_overclockTuning))
             {
                 return false;
             }
 
             m_combatFeedback.PlaySignalRecovery(m_world.Player.position + Vector3.up * 0.58f);
             m_audio.Play(DeadSignalAudioCue.SignalImpact);
-            m_showFeedback($"FEEDBACK SHIELD — {threatName} NEGATED  //  PURGE TO RECHARGE");
+            var synergyText = m_overclockChoice.Synergy switch
+            {
+                SignalOverclockSynergy.ReactiveArc => "  //  ARC OVERLOAD PRIMED",
+                SignalOverclockSynergy.ShieldSurge =>
+                    $"  //  THRUSTER SURGE {m_overclockTuning.OverdriveSynergySurgeDuration:0.#} SEC",
+                _ => string.Empty
+            };
+            m_showFeedback($"FEEDBACK SHIELD — {threatName} NEGATED{synergyText}  //  PURGE TO RECHARGE");
             return true;
         }
 

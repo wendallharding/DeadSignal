@@ -206,8 +206,11 @@ namespace DeadSignal
             var auxiliaryText = m_overclockChoice.SelectedAuxiliary == SignalAuxiliaryOverclock.None
                 ? string.Empty
                 : $"  //  {_auxiliaryOverclockName()}";
+            var synergyText = m_overclockChoice.Synergy == SignalOverclockSynergy.None
+                ? string.Empty
+                : $"  //  {_overclockSynergyName()}";
             m_salvageText.text =
-                $"SALVAGE  {m_model.Salvage}/{RunModel.SalvageRequired}{chainText}{overclockText}{auxiliaryText}";
+                $"SALVAGE  {m_model.Salvage}/{RunModel.SalvageRequired}{chainText}{overclockText}{auxiliaryText}{synergyText}";
             var powered = m_world.IsPowered(m_world.Player.position, m_model.TowerOnline);
             m_zoneText.text = powered ? "● POWERED TERRITORY" : "▲ DEAD ZONE — ACTIVE DRAIN";
             m_zoneText.color = powered ? new Color(0.05f, 0.95f, 1f) : new Color(1f, 0.22f, 0.18f);
@@ -388,6 +391,20 @@ namespace DeadSignal
                 m_overclockChoice.IsEmergencyCapacitorAvailable ? "CAPACITOR: ARMED" : "CAPACITOR: SPENT",
             SignalAuxiliaryOverclock.FeedbackShield =>
                 m_overclockChoice.IsFeedbackShieldCharged ? "SHIELD: CHARGED" : "SHIELD: EMPTY",
+            _ => string.Empty
+        };
+
+        private string _overclockSynergyName() => m_overclockChoice.Synergy switch
+        {
+            SignalOverclockSynergy.ArcOverload =>
+                m_overclockChoice.IsChainArcOverloadReady ? "PAIR: ARC OVERLOAD READY" : "PAIR: ARC OVERLOAD",
+            SignalOverclockSynergy.ReactiveArc =>
+                m_overclockChoice.IsChainArcOverloadReady ? "PAIR: REACTIVE ARC READY" : "PAIR: REACTIVE ARC",
+            SignalOverclockSynergy.CapacitorSurge or SignalOverclockSynergy.ShieldSurge
+                when m_overclockChoice.IsOverdriveSurgeActive =>
+                $"PAIR: THRUSTER SURGE {m_overclockChoice.OverdriveSurgeSecondsRemaining:0.0}s",
+            SignalOverclockSynergy.CapacitorSurge => "PAIR: CAPACITOR SURGE",
+            SignalOverclockSynergy.ShieldSurge => "PAIR: SHIELD SURGE",
             _ => string.Empty
         };
     }

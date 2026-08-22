@@ -16,11 +16,17 @@ namespace DeadSignal
         [SerializeField] private float m_emergencyCapacitorThreshold = 25f;
         [SerializeField] private float m_emergencyCapacitorRestore = 22f;
 
+        [Header("Pair Synergies")]
+        [SerializeField] private float m_overdriveSynergySurgeDuration = 2f;
+        [SerializeField] private float m_overdriveSynergySpeedMultiplier = 1.2f;
+
         public float ChainArcRadius => m_chainArcRadius;
         public float ThrusterSpeedMultiplier => m_thrusterSpeedMultiplier;
         public float ThrusterAccelerationMultiplier => m_thrusterAccelerationMultiplier;
         public float EmergencyCapacitorThreshold => m_emergencyCapacitorThreshold;
         public float EmergencyCapacitorRestore => m_emergencyCapacitorRestore;
+        public float OverdriveSynergySurgeDuration => m_overdriveSynergySurgeDuration;
+        public float OverdriveSynergySpeedMultiplier => m_overdriveSynergySpeedMultiplier;
 
         private void OnValidate()
         {
@@ -29,6 +35,8 @@ namespace DeadSignal
             m_thrusterAccelerationMultiplier = Mathf.Clamp(m_thrusterAccelerationMultiplier, 1f, 1.6f);
             m_emergencyCapacitorThreshold = Mathf.Clamp(m_emergencyCapacitorThreshold, 1f, RunModel.MaximumSignal - 1f);
             m_emergencyCapacitorRestore = Mathf.Clamp(m_emergencyCapacitorRestore, 1f, RunModel.MaximumSignal);
+            m_overdriveSynergySurgeDuration = Mathf.Clamp(m_overdriveSynergySurgeDuration, 0.5f, 5f);
+            m_overdriveSynergySpeedMultiplier = Mathf.Clamp(m_overdriveSynergySpeedMultiplier, 1.05f, 1.4f);
         }
     }
 }

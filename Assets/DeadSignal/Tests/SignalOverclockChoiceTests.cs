@@ -74,18 +74,104 @@ namespace DeadSignal.Tests
         public void FeedbackShield_AbsorbsOnceAndOnlyPurgeRechargesIt()
         {
             var choice = new SignalOverclockChoice();
-            choice.NotifySalvageCollected(1);
-            choice.TrySelect(SignalOverclock.OverdriveThrusters);
-            choice.NotifySalvageCollected(2);
-            choice.TrySelect(SignalAuxiliaryOverclock.FeedbackShield);
+            var tuning = ScriptableObject.CreateInstance<SignalOverclockTuning>();
+            try
+            {
+                choice.NotifySalvageCollected(1);
+                choice.TrySelect(SignalOverclock.OverdriveThrusters);
+                choice.NotifySalvageCollected(2);
+                choice.TrySelect(SignalAuxiliaryOverclock.FeedbackShield);
 
-            Assert.That(choice.TryAbsorbThreatDamage(), Is.True);
-            Assert.That(choice.IsFeedbackShieldCharged, Is.False);
-            Assert.That(choice.TryAbsorbThreatDamage(), Is.False);
-            Assert.That(choice.NotifyThreatPurged(), Is.True);
-            Assert.That(choice.IsFeedbackShieldCharged, Is.True);
-            Assert.That(choice.NotifyThreatPurged(), Is.False);
-            Assert.That(choice.TryAbsorbThreatDamage(), Is.True);
+                Assert.That(choice.TryAbsorbThreatDamage(tuning), Is.True);
+                Assert.That(choice.IsFeedbackShieldCharged, Is.False);
+                Assert.That(choice.TryAbsorbThreatDamage(tuning), Is.False);
+                Assert.That(choice.NotifyThreatPurged(), Is.True);
+                Assert.That(choice.IsFeedbackShieldCharged, Is.True);
+                Assert.That(choice.NotifyThreatPurged(), Is.False);
+                Assert.That(choice.TryAbsorbThreatDamage(tuning), Is.True);
+            }
+            finally
+            {
+                Object.DestroyImmediate(tuning);
+            }
+        }
+
+        [TestCase(SignalAuxiliaryOverclock.EmergencyCapacitor, SignalOverclockSynergy.ArcOverload)]
+        [TestCase(SignalAuxiliaryOverclock.FeedbackShield, SignalOverclockSynergy.ReactiveArc)]
+        public void ChainArcPair_PrimesOneDoubleJumpFromItsAuxiliaryTrigger(
+            SignalAuxiliaryOverclock auxiliary,
+            SignalOverclockSynergy expectedSynergy)
+        {
+            var choice = new SignalOverclockChoice();
+            var model = new RunModel();
+            var tuning = ScriptableObject.CreateInstance<SignalOverclockTuning>();
+            try
+            {
+                choice.NotifySalvageCollected(1);
+                choice.TrySelect(SignalOverclock.ChainArc);
+                choice.NotifySalvageCollected(2);
+                choice.TrySelect(auxiliary);
+
+                Assert.That(choice.Synergy, Is.EqualTo(expectedSynergy));
+                if (auxiliary == SignalAuxiliaryOverclock.EmergencyCapacitor)
+                {
+                    model.TrySpend(50f);
+                    model.TrySpend(25f);
+                    Assert.That(choice.TryTriggerEmergencyCapacitor(model, tuning), Is.GreaterThan(0f));
+                }
+                else
+                {
+                    Assert.That(choice.TryAbsorbThreatDamage(tuning), Is.True);
+                }
+
+                Assert.That(choice.IsChainArcOverloadReady, Is.True);
+                Assert.That(choice.TryConsumeChainArcOverload(), Is.True);
+                Assert.That(choice.TryConsumeChainArcOverload(), Is.False);
+            }
+            finally
+            {
+                Object.DestroyImmediate(tuning);
+            }
+        }
+
+        [TestCase(SignalAuxiliaryOverclock.EmergencyCapacitor, SignalOverclockSynergy.CapacitorSurge)]
+        [TestCase(SignalAuxiliaryOverclock.FeedbackShield, SignalOverclockSynergy.ShieldSurge)]
+        public void OverdrivePair_TriggersOneTunedEscapeSurge(
+            SignalAuxiliaryOverclock auxiliary,
+            SignalOverclockSynergy expectedSynergy)
+        {
+            var choice = new SignalOverclockChoice();
+            var model = new RunModel();
+            var tuning = ScriptableObject.CreateInstance<SignalOverclockTuning>();
+            try
+            {
+                choice.NotifySalvageCollected(1);
+                choice.TrySelect(SignalOverclock.OverdriveThrusters);
+                choice.NotifySalvageCollected(2);
+                choice.TrySelect(auxiliary);
+
+                if (auxiliary == SignalAuxiliaryOverclock.EmergencyCapacitor)
+                {
+                    model.TrySpend(50f);
+                    model.TrySpend(25f);
+                    choice.TryTriggerEmergencyCapacitor(model, tuning);
+                }
+                else
+                {
+                    choice.TryAbsorbThreatDamage(tuning);
+                }
+
+                Assert.That(choice.Synergy, Is.EqualTo(expectedSynergy));
+                Assert.That(choice.IsOverdriveSurgeActive, Is.True);
+                Assert.That(choice.OverdriveSurgeSecondsRemaining,
+                    Is.EqualTo(tuning.OverdriveSynergySurgeDuration).Within(0.001f));
+                choice.Tick(tuning.OverdriveSynergySurgeDuration);
+                Assert.That(choice.IsOverdriveSurgeActive, Is.False);
+            }
+            finally
+            {
+                Object.DestroyImmediate(tuning);
+            }
         }
 
         [Test]
