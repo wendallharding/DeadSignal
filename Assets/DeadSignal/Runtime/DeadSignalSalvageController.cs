@@ -17,12 +17,17 @@ namespace DeadSignal
         private readonly ICombatFeedback m_feedback;
         private readonly SignalOverclockChoice m_overclockChoice;
         private readonly SalvageChain m_chain = new();
+        private float m_recoveryFieldSecondsRemaining;
+        private Vector3 m_recoveryFieldPosition;
 
         public int ChainCount => m_chain.Count;
         public float ChainSecondsRemaining => m_chain.SecondsRemaining;
         public bool IsOptionalCacheAvailable => m_model.CanExtract && !m_model.OptionalSalvageSecured && _hasActiveCache();
         public float OptionalCacheSignalReward => m_tuning.OptionalCacheSignalReward;
         public float OptionalCacheDistance => _optionalCacheDistance();
+        public bool IsRecoveryFieldActive => m_recoveryFieldSecondsRemaining > 0f;
+        public Vector3 RecoveryFieldPosition => m_recoveryFieldPosition;
+        public float RecoveryFieldRadius => m_tuning.RecoveryFieldRadius;
 
         public DeadSignalSalvageController(
             RunModel model,
@@ -47,6 +52,7 @@ namespace DeadSignal
         public void Tick(float dt)
         {
             m_chain.Advance(dt);
+            m_recoveryFieldSecondsRemaining = Mathf.Max(0f, m_recoveryFieldSecondsRemaining - dt);
             foreach (var pickup in m_world.SalvagePickups)
             {
                 if (!pickup.activeSelf)
@@ -88,11 +94,13 @@ namespace DeadSignal
                 m_overclockChoice.NotifySalvageCollected(m_model.Salvage);
                 var reward = m_chain.RecordCollection(
                     m_tuning.ChainWindow, m_tuning.SecondCacheSignalReward, m_tuning.ThirdCacheSignalReward);
-                var recovered = m_model.RestoreSignal(reward);
+                var recovered = m_model.RestoreSignal(m_tuning.RequiredCacheSignalReward + reward);
+                m_recoveryFieldPosition = pickup.transform.position;
+                m_recoveryFieldSecondsRemaining = m_tuning.RecoveryFieldDuration;
                 m_metrics.RecordSalvageChain(m_chain.Count, recovered);
                 m_audio.Play(DeadSignalAudioCue.Salvage);
                 m_feedback.PlaySalvageChain(pickup.transform.position, m_chain.Count);
-                var rewardText = recovered > 0f ? $"  +{recovered:0} SIGNAL" : string.Empty;
+                var rewardText = recovered > 0f ? $"  +{recovered:0} SIGNAL  //  SAFE FIELD {m_tuning.RecoveryFieldDuration:0}s" : string.Empty;
                 m_showFeedback(m_overclockChoice.IsPrimaryPending
                     ? "SALVAGE CORE UNLOCKED — CHOOSE A PRIMARY OVERCLOCK"
                     : m_overclockChoice.IsAuxiliaryPending

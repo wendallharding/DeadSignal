@@ -1648,7 +1648,7 @@ namespace DeadSignal.Tests
                         (player.position - sapper.position).normalized),
                     Is.GreaterThan(0.99f), "The screen point should remain on the disclosed player-to-Sapper approach.");
 
-                var pulseTimeout = 2f;
+                var pulseTimeout = initialCountdown + 0.75f;
                 while (game.CurrentSignal > signalBeforePulse - RunModel.SapperPulseCost && pulseTimeout > 0f)
                 {
                     pulseTimeout -= Time.deltaTime;

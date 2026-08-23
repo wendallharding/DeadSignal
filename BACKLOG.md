@@ -34,6 +34,18 @@
 - [x] Add exact travel/fire/recovery accounting and one targeted next-run coaching line to the debrief
 - [ ] Run three matched full playthroughs and tune dash cost, recovery duration, and marker placement from completion data
 
+### Route readability and eastern-room camera follow-up
+
+- [x] Route objective and emergency lines through oriented-obstacle detour waypoints
+- [x] Disclose corridor turns, blocked movement, and refunded blocked dashes
+- [x] Add a tactical pause map, persistent player marker, and short-lived Signal event stack
+- [x] Let zero-Signal tower activation rescue the run and make emergency dashes free
+- [x] Grant every required cache recovery plus a temporary local safe field
+- [x] Delay early Sapper pressure and let successful hits interrupt its pulse countdown
+- [x] Reduce emergency visual competition and fit the expanded debrief copy
+- [x] Keep the drone visible at the far side of the authored eastern room
+- [ ] Complete three matched eastern-room routes and tune waypoint clearance, recovery reward, and camera offset from play data
+
 ### Run 81 Interceptor crash-recovery ideas
 
 - [x] End a committed Interceptor dash immediately when it hits authored cover or a closed route blocker

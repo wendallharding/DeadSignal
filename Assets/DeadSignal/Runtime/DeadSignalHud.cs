@@ -130,6 +130,12 @@ namespace DeadSignal
             m_signalHudTuning = Resources.Load<SignalHudTuning>("Tuning/SignalHudTuning");
             var signalSprite = Resources.Load<Sprite>("UI/SignalReserveConduit");
             m_runDebriefTexture = Resources.Load<Texture2D>("UI/RunDebriefInsignia");
+            if (m_runReportText != null)
+            {
+                m_runReportText.resizeTextForBestFit = true;
+                m_runReportText.resizeTextMinSize = 8;
+                m_runReportText.resizeTextMaxSize = 13;
+            }
             if (m_signalHudTuning == null || signalSprite == null || m_runDebriefTexture == null)
             {
                 Debug.LogError("The authored Signal HUD tuning or reserve conduit art is missing.");

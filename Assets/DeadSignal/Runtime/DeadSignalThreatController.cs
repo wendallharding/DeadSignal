@@ -13,6 +13,8 @@ namespace DeadSignal
         private const float SAPPER_COLLISION_RADIUS = 0.42f;
         private const float INTERCEPTOR_COLLISION_RADIUS = 0.46f;
         private const float SUPPRESSOR_COLLISION_RADIUS = 0.48f;
+        private const float EARLY_SAPPER_GRACE_SECONDS = 3.5f;
+        private const float SAPPER_HIT_INTERRUPT_SECONDS = 2.25f;
 
         private static readonly float s_wardenProjectileHitRadius = Mathf.Sqrt(0.9f);
         private static readonly float s_sapperProjectileHitRadius = Mathf.Sqrt(0.75f);
@@ -620,7 +622,8 @@ namespace DeadSignal
                 }
 
                 m_sapperLatched = true;
-                m_sapperPulseCooldown = m_tuning.SapperFirstPulseDelay;
+                m_sapperPulseCooldown = m_tuning.SapperFirstPulseDelay +
+                                        (m_model.Salvage < 2 ? EARLY_SAPPER_GRACE_SECONDS : 0f);
                 m_world.SapperTelegraph.SetThreatState(true, true, m_sapperPulseCooldown, m_tuning.SapperPulseInterval);
                 m_showFeedback("SAPPER LATCHED - PURGE IT");
             }
@@ -932,6 +935,11 @@ namespace DeadSignal
         private void _hitSapper()
         {
             m_sapperHealth -= 1f;
+            if (m_sapperHealth > 0f && m_sapperLatched)
+            {
+                m_sapperPulseCooldown = Mathf.Max(m_sapperPulseCooldown, SAPPER_HIT_INTERRUPT_SECONDS);
+                m_world.SapperTelegraph.SetThreatState(true, true, m_sapperPulseCooldown, m_tuning.SapperPulseInterval);
+            }
             m_combatFeedback.PlaySignalImpact(m_world.Sapper.position + Vector3.up * 0.58f, m_sapperHealth <= 0f);
             m_audio.Play(DeadSignalAudioCue.SignalImpact);
             if (m_sapperHealth <= 0f)
@@ -944,7 +952,9 @@ namespace DeadSignal
                 return;
             }
 
-            m_showFeedback("SAPPER SHELL HIT");
+            m_showFeedback(m_sapperLatched
+                ? $"SAPPER INTERRUPTED — DRAIN DELAYED {SAPPER_HIT_INTERRUPT_SECONDS:0.0}s"
+                : "SAPPER SHELL HIT");
         }
 
         private void _hitInterceptor()

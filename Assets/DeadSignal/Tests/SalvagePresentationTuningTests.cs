@@ -15,6 +15,9 @@ namespace DeadSignal.Tests
             Assert.That(tuning.HoverHeight, Is.GreaterThanOrEqualTo(tuning.HoverAmplitude));
             Assert.That(tuning.HoverFrequency, Is.GreaterThanOrEqualTo(0f));
             Assert.That(tuning.CollectionRadius, Is.InRange(0.5f, 1.25f));
+            Assert.That(tuning.RequiredCacheSignalReward, Is.GreaterThanOrEqualTo(10f));
+            Assert.That(tuning.RecoveryFieldDuration, Is.GreaterThanOrEqualTo(2f));
+            Assert.That(tuning.RecoveryFieldRadius, Is.GreaterThanOrEqualTo(2f));
             Assert.That(tuning.OptionalCacheSignalReward, Is.EqualTo(18f),
                 "The optional route should repay meaningful extraction ammunition without refilling the full reserve.");
         }

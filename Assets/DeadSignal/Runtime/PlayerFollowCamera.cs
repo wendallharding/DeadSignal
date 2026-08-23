@@ -58,6 +58,10 @@ namespace DeadSignal
                 m_groundFootprintMinimum,
                 m_groundFootprintMaximum,
                 m_tuning.ArenaEdgePadding);
+            desiredFocus = EnsureTargetVisibleFocus(
+                desiredFocus,
+                targetPosition,
+                m_tuning.MaximumTargetFocusOffset);
             m_currentFocus = Vector3.Lerp(
                 m_currentFocus,
                 desiredFocus,
@@ -95,6 +99,10 @@ namespace DeadSignal
                 m_groundFootprintMinimum,
                 m_groundFootprintMaximum,
                 m_tuning.ArenaEdgePadding);
+            m_currentFocus = EnsureTargetVisibleFocus(
+                m_currentFocus,
+                m_target.position,
+                m_tuning.MaximumTargetFocusOffset);
             transform.position = m_currentFocus;
         }
 
@@ -147,6 +155,14 @@ namespace DeadSignal
                 minimum = Vector2.zero;
                 maximum = Vector2.zero;
             }
+        }
+
+        public static Vector3 EnsureTargetVisibleFocus(Vector3 focus, Vector3 target, float maximumOffset)
+        {
+            maximumOffset = Mathf.Max(0f, maximumOffset);
+            focus.x = Mathf.Clamp(focus.x, target.x - maximumOffset, target.x + maximumOffset);
+            focus.z = Mathf.Clamp(focus.z, target.z - maximumOffset, target.z + maximumOffset);
+            return focus;
         }
 
         private static float _exponentialBlend(float sharpness, float dt)

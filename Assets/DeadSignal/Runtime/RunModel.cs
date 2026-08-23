@@ -142,7 +142,7 @@ namespace DeadSignal
 
         public bool TryActivateTower()
         {
-            if (TowerOnline || Outcome != RunOutcome.Running || Signal < TowerCost)
+            if (TowerOnline || Outcome != RunOutcome.Running || (Signal < TowerCost && !IsCriticalRecovery))
             {
                 return false;
             }
@@ -150,7 +150,8 @@ namespace DeadSignal
             TowerOnline = true;
             // Activation is one atomic transaction: the tower refill lands before a zero-Signal
             // death evaluation, so spending the drone's last 10 Signal on rescue is valid.
-            Signal = Math.Min(MaximumSignal, Signal - TowerCost + TowerRefill);
+            Signal = Math.Min(MaximumSignal, Math.Max(0f, Signal - TowerCost) + TowerRefill);
+            CriticalRecoveryRemaining = 0f;
             return true;
         }
 

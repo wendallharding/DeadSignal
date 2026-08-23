@@ -110,6 +110,17 @@ namespace DeadSignal.Tests
             var viewportPosition = camera.WorldToViewportPoint(player.position);
             Assert.That(viewportPosition.x, Is.InRange(0.1f, 0.9f));
             Assert.That(viewportPosition.y, Is.InRange(0.1f, 0.9f));
+
+            player.position = new Vector3(18.7f, 0f, 0f);
+            for (int frame = 0; frame < 30; frame++)
+            {
+                yield return null;
+            }
+
+            viewportPosition = camera.WorldToViewportPoint(player.position);
+            Assert.That(viewportPosition.x, Is.InRange(0.08f, 0.92f),
+                "The drone must remain visible on the far side of the authored eastern room.");
+            Assert.That(viewportPosition.y, Is.InRange(0.08f, 0.92f));
         }
     }
 }

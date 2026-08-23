@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.Collections.Generic;
 
 namespace DeadSignal
 {
@@ -17,6 +18,7 @@ namespace DeadSignal
         private GUIStyle m_smallStyle;
         private int m_lastSalvage;
         private float m_targetPulse;
+        private readonly Queue<SignalEvent> m_signalEvents = new();
 
         public float DrainMultiplier { get; set; } = 1f;
         public float DashCooldown { get; set; }
@@ -55,20 +57,46 @@ namespace DeadSignal
 
         private void OnGUI()
         {
-            if (m_model == null || m_model.Outcome != RunOutcome.Running || Time.timeScale <= 0f)
+            if (m_model == null || m_model.Outcome != RunOutcome.Running)
             {
                 return;
             }
 
             _ensureStyles();
+            if (Time.timeScale <= 0f)
+            {
+                _drawTacticalMap();
+                return;
+            }
+
             _drawSignalEconomy();
-            _drawAbilityStatus();
-            _drawObjectiveMarker();
-            _drawThreatRewardMarkers();
             if (m_model.IsCriticalRecovery)
             {
                 _drawCriticalRecovery();
+                _drawPlayerMarker();
+                return;
             }
+
+            _drawAbilityStatus();
+            _drawObjectiveMarker();
+            _drawThreatRewardMarkers();
+            _drawSignalEvents();
+            _drawPlayerMarker();
+        }
+
+        internal void NotifySignalEvent(string message)
+        {
+            if (string.IsNullOrWhiteSpace(message) ||
+                (!message.Contains("SIGNAL") && !message.Contains("SAPPER") && !message.Contains("DASH")))
+            {
+                return;
+            }
+
+            while (m_signalEvents.Count >= 3)
+            {
+                m_signalEvents.Dequeue();
+            }
+            m_signalEvents.Enqueue(new SignalEvent(message, Time.unscaledTime + 2.5f));
         }
 
         private void _drawSignalEconomy()
@@ -98,8 +126,10 @@ namespace DeadSignal
         private void _drawObjectiveMarker()
         {
             var target = _objectiveTarget();
+            var waypoint = m_world.GetObjectiveGuidanceWaypoint(m_model, 0.48f);
             var distance = DeadSignalWorld.FlatDistance(m_world.Player.position, target);
-            var point = m_camera.WorldToScreenPoint(target + Vector3.up * 1.6f);
+            var usesDetour = DeadSignalWorld.FlatDistance(waypoint, target) > 0.35f;
+            var point = m_camera.WorldToScreenPoint(waypoint + Vector3.up * 1.6f);
             var behind = point.z <= 0f;
             var x = behind ? Screen.width - point.x : point.x;
             var y = Screen.height - point.y;
@@ -107,13 +137,14 @@ namespace DeadSignal
             x = Mathf.Clamp(x, 120f, Screen.width - 360f);
             y = Mathf.Clamp(y, 175f, Screen.height - 132f);
             var pulse = m_targetPulse > 0f ? "  //  NEW ROUTE" : string.Empty;
-            GUI.Label(new Rect(x - 105f, y - 22f, 210f, 44f), $"▲  {_objectiveName()}  {distance:0}m{pulse}", m_primaryStyle);
+            var route = usesDetour ? "  //  TURN VIA CORRIDOR" : string.Empty;
+            GUI.Label(new Rect(x - 145f, y - 22f, 290f, 44f), $"▲  {_objectiveName()}  {distance:0}m{route}{pulse}", m_primaryStyle);
         }
 
         private void _drawThreatRewardMarkers()
         {
             _drawThreatReward(m_world.Warden, "+12 SIGNAL");
-            _drawThreatReward(m_world.Sapper, "+16 SIGNAL");
+            _drawThreatReward(m_world.Sapper, "INTERRUPT: SHOOT  +16");
             _drawThreatReward(m_world.Interceptor, "+14 SIGNAL");
             _drawThreatReward(m_world.Suppressor, "+15 SIGNAL");
         }
@@ -137,38 +168,82 @@ namespace DeadSignal
         {
             var scale = 1f + Mathf.Sin(Time.unscaledTime * 8f) * 0.05f;
             var width = 480f * scale;
+            var safety = m_world.GetNearestPoweredTarget(m_world.Player.position, m_model.TowerOnline);
+            var waypoint = m_world.GetNavigationWaypoint(m_world.Player.position, safety, 0.48f, m_model.ShortcutOpen);
+            var point = m_camera.WorldToScreenPoint(waypoint + Vector3.up * 1.2f);
             GUI.Label(new Rect((Screen.width - width) * 0.5f, Screen.height * 0.34f, width, 100f),
-                $"EMERGENCY LINK  {m_model.CriticalRecoveryRemaining:0.0}s\nREACH CYAN POWER OR PURGE A MARKED THREAT", m_primaryStyle);
+                $"EMERGENCY LINK  {m_model.CriticalRecoveryRemaining:0.0}s\nFREE DASH TO CYAN ROUTE — TOWER ACTIVATION CAN RESCUE", m_primaryStyle);
+            if (point.z > 0f)
+            {
+                GUI.Label(new Rect(Mathf.Clamp(point.x - 80f, 80f, Screen.width - 240f),
+                    Mathf.Clamp(Screen.height - point.y, 150f, Screen.height - 160f), 180f, 36f), "▲  SAFE TURN", m_primaryStyle);
+            }
         }
 
         private Vector3 _objectiveTarget()
         {
-            if (!m_model.TowerOnline)
+            return m_world.GetObjectiveTarget(m_model);
+        }
+
+        private void _drawPlayerMarker()
+        {
+            var point = m_camera.WorldToScreenPoint(m_world.Player.position + Vector3.up * 1.25f);
+            if (point.z > 0f)
             {
-                return m_world.TowerPosition;
+                GUI.Label(new Rect(point.x - 45f, Screen.height - point.y - 16f, 90f, 28f), "▼ YOU", m_primaryStyle);
             }
-            if (m_model.CanExtract)
+        }
+
+        private void _drawSignalEvents()
+        {
+            while (m_signalEvents.Count > 0 && m_signalEvents.Peek().ExpiresAt <= Time.unscaledTime)
             {
-                return m_world.ExtractionPosition;
+                m_signalEvents.Dequeue();
             }
 
-            var nearest = m_world.TowerPosition;
-            var nearestDistance = float.PositiveInfinity;
-            foreach (var salvage in m_world.SalvagePickups)
+            var index = 0;
+            foreach (var signalEvent in m_signalEvents)
             {
-                if (!salvage.activeSelf)
-                {
-                    continue;
-                }
+                GUI.Label(new Rect(18f, 154f + index * 22f, 440f, 24f), signalEvent.Message, m_smallStyle);
+                index++;
+            }
+        }
 
-                var distance = DeadSignalWorld.FlatDistance(m_world.Player.position, salvage.transform.position);
-                if (distance < nearestDistance)
+        private void _drawTacticalMap()
+        {
+            var card = new Rect(20f, 170f, 390f, 245f);
+            var map = new Rect(card.x + 12f, card.y + 44f, card.width - 24f, card.height - 56f);
+            var oldColor = GUI.color;
+            GUI.color = new Color(0.01f, 0.04f, 0.06f, 0.95f);
+            GUI.DrawTexture(card, Texture2D.whiteTexture);
+            GUI.color = oldColor;
+            GUI.Label(new Rect(card.x + 8f, card.y + 5f, card.width - 16f, 34f),
+                "TACTICAL MAP  //  CYAN SAFE  AMBER OBJECTIVE  RED THREAT", m_smallStyle);
+            _drawMapPoint(map, m_world.ExtractionPosition, new Color(0.2f, 0.95f, 1f), 18f, "EXTRACT");
+            _drawMapPoint(map, m_world.TowerPosition, new Color(0.2f, 0.95f, 1f), 18f, "TOWER");
+            foreach (var cache in m_world.SalvagePickups)
+            {
+                if (cache.activeSelf)
                 {
-                    nearest = salvage.transform.position;
-                    nearestDistance = distance;
+                    _drawMapPoint(map, cache.transform.position, new Color(1f, 0.66f, 0.12f), 12f, "CACHE");
                 }
             }
-            return nearest;
+            _drawMapPoint(map, m_world.Warden.position, Color.red, 10f, "W");
+            _drawMapPoint(map, m_world.Sapper.position, new Color(1f, 0.15f, 0.65f), 10f, "S");
+            _drawMapPoint(map, m_world.Player.position, Color.white, 14f, "YOU");
+            var waypoint = m_world.GetObjectiveGuidanceWaypoint(m_model, 0.48f);
+            _drawMapPoint(map, waypoint, new Color(1f, 0.66f, 0.12f), 8f, "NEXT TURN");
+        }
+
+        private void _drawMapPoint(Rect map, Vector3 position, Color color, float size, string label)
+        {
+            var x = map.x + (position.x / (DeadSignalWorld.ARENA_HALF_WIDTH * 2f) + 0.5f) * map.width;
+            var y = map.y + (0.5f - position.z / (DeadSignalWorld.ARENA_HALF_HEIGHT * 2f)) * map.height;
+            var oldColor = GUI.color;
+            GUI.color = color;
+            GUI.DrawTexture(new Rect(x - size * 0.5f, y - size * 0.5f, size, size), Texture2D.whiteTexture);
+            GUI.color = oldColor;
+            GUI.Label(new Rect(x + 6f, y - 11f, 80f, 22f), label, m_smallStyle);
         }
 
         private string _objectiveName()
@@ -178,6 +253,18 @@ namespace DeadSignal
                 return "TOWER";
             }
             return m_model.CanExtract ? "EXTRACTION" : "CACHE";
+        }
+
+        private readonly struct SignalEvent
+        {
+            public SignalEvent(string message, float expiresAt)
+            {
+                Message = message;
+                ExpiresAt = expiresAt;
+            }
+
+            public string Message { get; }
+            public float ExpiresAt { get; }
         }
 
         private void _ensureStyles()

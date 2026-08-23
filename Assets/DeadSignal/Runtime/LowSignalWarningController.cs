@@ -23,7 +23,7 @@ namespace DeadSignal
         private const string TEXTURE_PATH = "UI/LowSignalWarningVignette";
         private const float PULSE_SPEED = 2.4f;
         private const float MINIMUM_ALPHA = 0.09f;
-        private const float MAXIMUM_ALPHA = 0.27f;
+        private const float MAXIMUM_ALPHA = 0.18f;
         private const float REDUCED_FLASHES_ALPHA = 0.1f;
 
         private RunModel m_model;
@@ -73,6 +73,10 @@ namespace DeadSignal
             m_pulseTime += Mathf.Max(0f, dt);
             float pulsePhase = Mathf.Sin(m_pulseTime * PULSE_SPEED) * 0.5f + 0.5f;
             CurrentIntensity = CalculateIntensity(m_model.Signal, m_comfortSettings.ReducedFlashesEnabled, pulsePhase);
+            if (m_model.IsCriticalRecovery)
+            {
+                CurrentIntensity = Mathf.Min(CurrentIntensity, 0.1f);
+            }
             _refreshPresentation();
         }
 

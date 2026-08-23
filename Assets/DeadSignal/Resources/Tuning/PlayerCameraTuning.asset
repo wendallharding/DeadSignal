@@ -21,3 +21,4 @@ MonoBehaviour:
   m_lookAheadSharpness: 10
   m_aimLookAheadDistance: 0.45
   m_arenaEdgePadding: 0.35
+  m_maximumTargetFocusOffset: 3.2

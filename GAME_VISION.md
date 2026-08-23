@@ -33,6 +33,7 @@ This autonomous run is accepted when a fresh Play session provides all of the fo
 
 - WASD movement and mouse aim feel immediate; left click or Space fires.
 - Shift / gamepad south performs a short four-Signal dash with a visible cooldown, creating deliberate telegraph and route counterplay.
+- Objective and emergency guidance route through reachable authored-obstacle detours, while pause exposes a compact tactical map of safe nodes, caches, threats, and the next corridor turn.
 - Movement in dead zones, attacks, tower activation, and enemy impacts visibly consume Signal.
 - One nearby tower can be activated with E, replenishes Signal, and produces obvious cyan powered territory.
 - Tower activation launches a cyan circuit sweep from the tower to the powered boundary, visibly selling the network's expansion while respecting pause and Reduced Flashes.
@@ -98,6 +99,7 @@ This autonomous run is accepted when a fresh Play session provides all of the fo
 - A bounded field of original Signal-dust motes becomes denser and brighter in powered territory, freezes with pause, and stays sparse in the dead zone.
 - Below 30 Signal, an original amber-red screen-edge warning intensifies toward failure, stays clear of the playfield center, and respects pause, outcomes, and Reduced Flashes.
 - Reaching zero Signal opens a five-second emergency link instead of ending the run immediately; reaching cyan power or earning a recovery can rescue the drone, turning depletion into a final readable decision rather than a surprise failure.
+- Emergency dashes are free, blocked dashes refund their cost, and a zero-Signal tower activation can finance its own rescue so every emergency prompt names a viable action.
 - A branded 64-bit Windows development build launches the complete runtime outside the Editor and provides an automated packaged-player health check.
 - Core resource/objective transitions have deterministic EditMode tests, and the Unity project compiles in batch mode.
 

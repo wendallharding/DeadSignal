@@ -34,6 +34,18 @@ namespace DeadSignal.Tests
         }
 
         [Test]
+        public void EnsureTargetVisibleFocus_FollowsFarEasternTargetInsideMaximumOffset()
+        {
+            var focus = PlayerFollowCamera.EnsureTargetVisibleFocus(
+                new Vector3(9f, 0f, 0f),
+                new Vector3(18.7f, 0f, 0f),
+                3.2f);
+
+            Assert.That(focus.x, Is.EqualTo(15.5f).Within(0.001f));
+            Assert.That(Mathf.Abs(focus.x - 18.7f), Is.LessThanOrEqualTo(3.2f));
+        }
+
+        [Test]
         public void PlayerCameraTuning_HasSafeAuthoredDefaults()
         {
             var tuning = Resources.Load<PlayerCameraTuning>("Tuning/PlayerCameraTuning");
@@ -47,6 +59,7 @@ namespace DeadSignal.Tests
             Assert.That(tuning.LookAheadDistance, Is.InRange(0f, 2f));
             Assert.That(tuning.LookAheadSharpness, Is.GreaterThan(0f));
             Assert.That(tuning.ArenaEdgePadding, Is.GreaterThanOrEqualTo(0f));
+            Assert.That(tuning.MaximumTargetFocusOffset, Is.InRange(2f, 4f));
         }
     }
 }

@@ -13,6 +13,9 @@ namespace DeadSignal
 
         [Header("Collection")]
         [SerializeField] private float m_collectionRadius = 0.85f;
+        [SerializeField, Min(0f)] private float m_requiredCacheSignalReward = 12f;
+        [SerializeField, Min(0f)] private float m_recoveryFieldDuration = 3f;
+        [SerializeField, Min(0.1f)] private float m_recoveryFieldRadius = 2.4f;
 
         [Header("Salvage Chain")]
         [SerializeField, Min(1f)] private float m_chainWindow = 12f;
@@ -27,6 +30,9 @@ namespace DeadSignal
         public float HoverAmplitude => m_hoverAmplitude;
         public float HoverFrequency => m_hoverFrequency;
         public float CollectionRadius => m_collectionRadius;
+        public float RequiredCacheSignalReward => m_requiredCacheSignalReward;
+        public float RecoveryFieldDuration => m_recoveryFieldDuration;
+        public float RecoveryFieldRadius => m_recoveryFieldRadius;
         public float ChainWindow => m_chainWindow;
         public float SecondCacheSignalReward => m_secondCacheSignalReward;
         public float ThirdCacheSignalReward => m_thirdCacheSignalReward;
@@ -39,6 +45,9 @@ namespace DeadSignal
             m_hoverAmplitude = Mathf.Clamp(m_hoverAmplitude, 0f, m_hoverHeight);
             m_hoverFrequency = Mathf.Max(0f, m_hoverFrequency);
             m_collectionRadius = Mathf.Max(0.1f, m_collectionRadius);
+            m_requiredCacheSignalReward = Mathf.Max(0f, m_requiredCacheSignalReward);
+            m_recoveryFieldDuration = Mathf.Max(0f, m_recoveryFieldDuration);
+            m_recoveryFieldRadius = Mathf.Max(0.1f, m_recoveryFieldRadius);
             m_chainWindow = Mathf.Max(1f, m_chainWindow);
             m_secondCacheSignalReward = Mathf.Max(0f, m_secondCacheSignalReward);
             m_thirdCacheSignalReward = Mathf.Max(m_secondCacheSignalReward, m_thirdCacheSignalReward);

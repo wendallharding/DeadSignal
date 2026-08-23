@@ -46,6 +46,7 @@ namespace DeadSignal
         private float m_routeGuidanceStrength = 0.7f;
         private float m_difficultyDrainMultiplier = 1f;
         private float m_dashCooldown;
+        private float m_blockedFeedbackCooldown;
 
         public float CurrentSignal => m_model?.Signal ?? 0f;
         public bool IsSapperLatched => m_threats?.IsSapperLatched ?? false;
@@ -386,6 +387,7 @@ namespace DeadSignal
             m_threats.TickCooldown(dt);
             m_overclockChoice.Tick(dt);
             m_dashCooldown = Mathf.Max(0f, m_dashCooldown - dt);
+            m_blockedFeedbackCooldown = Mathf.Max(0f, m_blockedFeedbackCooldown - dt);
 
             if (m_model.Outcome != RunOutcome.Running)
             {
@@ -405,12 +407,11 @@ namespace DeadSignal
                 m_playerMovement.Velocity,
                 aimDirection,
                 m_playerMovementTuning);
-            m_world.TickEnvironmentPresentation(dt, m_model.TowerOnline, powered: m_world.IsPowered(
-                m_world.Player.position, m_model.TowerOnline));
+            var powered = _isPlayerPowered();
+            m_world.TickEnvironmentPresentation(dt, m_model.TowerOnline, powered);
             m_world.PlayerSignalWake.Tick(m_playerMovement.Velocity);
             m_world.TickGameplayAssists(dt, m_model, m_threats, aimDirection, m_routeGuidanceStrength);
 
-            var powered = m_world.IsPowered(m_world.Player.position, m_model.TowerOnline);
             var moving = movement.sqrMagnitude > 0.01f;
             m_audio.Tick(powered, m_model.TowerOnline, m_model.Signal / RunModel.MaximumSignal);
             m_model.Advance(dt * m_difficultyDrainMultiplier, moving, powered);
@@ -508,20 +509,30 @@ namespace DeadSignal
                 : 1f;
             var speedMultiplier = (hasThrusterOverclock ? m_overclockTuning.ThrusterSpeedMultiplier * synergyMultiplier : 1f) *
                                   suppressionMultiplier;
+            if (m_model.IsCriticalRecovery)
+            {
+                speedMultiplier *= 1.25f;
+            }
             var accelerationMultiplier =
                 (hasThrusterOverclock ? m_overclockTuning.ThrusterAccelerationMultiplier : 1f) * suppressionMultiplier;
             var velocity = m_playerMovement.Tick(
                 moveInput, dt, m_playerMovementTuning, speedMultiplier, accelerationMultiplier);
             var previousPosition = m_world.Player.position;
             var desired = previousPosition + velocity * dt;
+            var dashRequested = false;
+            var dashSpentSignal = false;
             if (m_input.PressedDash() && m_dashCooldown <= 0f && moveInput.sqrMagnitude > 0.1f)
             {
-                if (m_model.TrySpend(DASH_SIGNAL_COST))
+                if (m_model.IsCriticalRecovery || m_model.TrySpend(DASH_SIGNAL_COST))
                 {
+                    dashRequested = true;
+                    dashSpentSignal = !m_model.IsCriticalRecovery;
                     var dashDirection = new Vector3(moveInput.x, 0f, moveInput.y).normalized;
                     desired += dashDirection * DASH_DISTANCE;
                     m_dashCooldown = DASH_COOLDOWN;
-                    _showFeedback($"SIGNAL DASH  −{DASH_SIGNAL_COST:0}  //  EVADE AND REPOSITION");
+                    _showFeedback(m_model.IsCriticalRecovery
+                        ? "EMERGENCY DASH — NO SIGNAL COST"
+                        : $"SIGNAL DASH  −{DASH_SIGNAL_COST:0}  //  EVADE AND REPOSITION");
                 }
                 else
                 {
@@ -534,11 +545,33 @@ namespace DeadSignal
                 desired,
                 PLAYER_COLLISION_RADIUS,
                 m_model.ShortcutOpen);
+            var travelled = DeadSignalWorld.FlatDistance(previousPosition, m_world.Player.position);
+            if (dashRequested && travelled < DASH_DISTANCE * 0.5f)
+            {
+                if (dashSpentSignal)
+                {
+                    m_model.RestoreSignal(DASH_SIGNAL_COST);
+                }
+                m_dashCooldown = 0.4f;
+                _showFeedback("DASH BLOCKED — SIGNAL REFUNDED  //  FOLLOW AMBER TURN");
+            }
+            else if (m_world.LastMovementBlocked && moveInput.sqrMagnitude > 0.1f && m_blockedFeedbackCooldown <= 0f)
+            {
+                m_blockedFeedbackCooldown = 1.1f;
+                _showFeedback("ROUTE BLOCKED — FOLLOW AMBER TURN");
+            }
             var resolvedVelocity = (m_world.Player.position - previousPosition) / dt;
             m_playerMovement.ApplyResolvedVelocity(resolvedVelocity);
             var acceleration = (m_playerMovement.Velocity - previousVelocity) / dt;
             m_playerPresentationAcceleration = acceleration;
             return resolvedVelocity;
+        }
+
+        private bool _isPlayerPowered()
+        {
+            return m_world.IsPowered(m_world.Player.position, m_model.TowerOnline) ||
+                   (m_salvage.IsRecoveryFieldActive && DeadSignalWorld.FlatDistance(
+                       m_world.Player.position, m_salvage.RecoveryFieldPosition) <= m_salvage.RecoveryFieldRadius);
         }
 
         private Vector3 _applyAimAssist(Vector3 aimDirection)
@@ -832,6 +865,7 @@ namespace DeadSignal
         private void _showFeedback(string message)
         {
             m_hud.ShowFeedback(message);
+            m_missionClarityHud?.NotifySignalEvent(message);
         }
 
         private void _setPaused(bool paused)

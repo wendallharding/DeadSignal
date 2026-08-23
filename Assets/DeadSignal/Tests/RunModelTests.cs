@@ -208,6 +208,18 @@ namespace DeadSignal.Tests
         }
 
         [Test]
+        public void CriticalRecovery_TowerActivationFinancesRescueAtZeroSignal()
+        {
+            var run = new RunModel();
+            run.TrySpend(run.Signal);
+
+            Assert.That(run.IsCriticalRecovery, Is.True);
+            Assert.That(run.TryActivateTower(), Is.True);
+            Assert.That(run.Signal, Is.EqualTo(RunModel.TowerRefill));
+            Assert.That(run.IsCriticalRecovery, Is.False);
+        }
+
+        [Test]
         public void RunMetrics_TrackOnlyPositiveTimeAndDeadZoneExposure()
         {
             var metrics = new RunMetrics();

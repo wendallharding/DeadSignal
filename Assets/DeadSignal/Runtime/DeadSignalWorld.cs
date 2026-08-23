@@ -186,6 +186,30 @@ namespace DeadSignal
             return bestWaypoint;
         }
 
+        public Vector3 GetObjectiveTarget(RunModel model)
+        {
+            return _currentObjectiveTarget(model);
+        }
+
+        public Vector3 GetObjectiveGuidanceWaypoint(RunModel model, float radius)
+        {
+            return GetNavigationWaypoint(Player.position, _currentObjectiveTarget(model), radius, model.ShortcutOpen);
+        }
+
+        public Vector3 GetNearestPoweredTarget(Vector3 position, bool towerOnline)
+        {
+            if (!towerOnline)
+            {
+                return FlatDistance(position, TowerPosition) <= FlatDistance(position, ExtractionPosition)
+                    ? TowerPosition
+                    : ExtractionPosition;
+            }
+
+            return FlatDistance(position, TowerPosition) <= FlatDistance(position, ExtractionPosition)
+                ? TowerPosition
+                : ExtractionPosition;
+        }
+
         public bool TryGetProjectileObstacleHit(
             Vector3 start,
             Vector3 end,
@@ -463,7 +487,7 @@ namespace DeadSignal
             Vector3 aimDirection,
             float guidanceStrength)
         {
-            var target = _currentObjectiveTarget(model);
+            var target = GetObjectiveGuidanceWaypoint(model, 0.48f);
             _updateGuideLine(m_routeGuide, Player.position, target, m_palette.Amber, 0.045f + guidanceStrength * 0.055f);
             m_routeGuide.enabled = guidanceStrength > 0.01f;
 
@@ -489,13 +513,21 @@ namespace DeadSignal
                     var distance = FlatDistance(Player.position, cache.transform.position);
                     var proximity = 1f - Mathf.Clamp01((distance - 0.85f) / 3f);
                     locator.localScale = Vector3.one * Mathf.Lerp(1.35f, 1.65f, proximity);
+                    locator.Rotate(Vector3.up, dt * Mathf.Lerp(45f, 130f, proximity), Space.Self);
+                }
+
+                var beacon = cache.transform.Find("Salvage Beacon");
+                if (beacon != null)
+                {
+                    var pulse = 1f + Mathf.Sin(Time.time * 5f + cache.transform.position.x) * 0.18f;
+                    beacon.localScale = new Vector3(0.1f * pulse, 1.3f, 0.1f * pulse);
                 }
             }
 
             if (model.Signal / RunModel.MaximumSignal <= 0.25f)
             {
-                var poweredTarget = model.TowerOnline && FlatDistance(Player.position, TowerPosition) <
-                    FlatDistance(Player.position, ExtractionPosition) ? TowerPosition : ExtractionPosition;
+                var poweredTarget = GetNearestPoweredTarget(Player.position, model.TowerOnline);
+                poweredTarget = GetNavigationWaypoint(Player.position, poweredTarget, 0.48f, model.ShortcutOpen);
                 _updateGuideLine(m_emergencyGuide, Player.position, poweredTarget, m_palette.Cyan, 0.1f);
                 m_emergencyGuide.enabled = true;
             }
