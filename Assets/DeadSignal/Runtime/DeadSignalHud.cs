@@ -365,7 +365,9 @@ namespace DeadSignal
             }
 
             var warden = m_threats.IsWardenAlive
-                ? $"WARDEN {m_threats.WardenHealth:0}/{m_threats.WardenMaximumHealth:0} (+{m_threats.WardenSignalReward:0})"
+                ? m_threats.IsWardenScreeningSapper
+                    ? $"WARDEN {m_threats.WardenHealth:0}/{m_threats.WardenMaximumHealth:0} SCREENING SAPPER (+{m_threats.WardenSignalReward:0})"
+                    : $"WARDEN {m_threats.WardenHealth:0}/{m_threats.WardenMaximumHealth:0} PURSUING (+{m_threats.WardenSignalReward:0})"
                 : "WARDEN PURGED";
             var sapper = !m_threats.IsSapperAlive
                 ? "SAPPER PURGED"

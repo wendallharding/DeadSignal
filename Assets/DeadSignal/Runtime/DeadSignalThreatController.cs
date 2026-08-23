@@ -38,6 +38,8 @@ namespace DeadSignal
         private float m_interceptorHealth;
         private float m_suppressorHealth;
         private float m_wardenAttackCooldown;
+        private bool m_wardenScreeningSapper;
+        private Vector3 m_wardenTacticalTarget;
         private float m_sapperPulseCooldown;
         private float m_shotCooldown;
         private bool m_sapperLatched;
@@ -97,6 +99,8 @@ namespace DeadSignal
         public float WardenMaximumHealth => m_tuning.WardenHealth;
         public float SapperMaximumHealth => m_tuning.SapperHealth;
         public float WardenSignalReward => m_tuning.WardenSignalReward;
+        public bool IsWardenScreeningSapper => m_wardenScreeningSapper;
+        public Vector3 WardenTacticalTarget => m_wardenTacticalTarget;
         public float SapperSignalReward => m_tuning.SapperSignalReward;
         public float SapperPulseInterval => m_tuning.SapperPulseInterval;
         public float SapperHealth => m_sapperHealth;
@@ -435,11 +439,41 @@ namespace DeadSignal
         {
             if (!m_model.TowerOnline || m_wardenHealth <= 0f)
             {
+                m_wardenScreeningSapper = false;
                 return;
             }
 
             m_wardenAttackCooldown = Mathf.Max(0f, m_wardenAttackCooldown - dt);
-            var delta = m_world.Player.position - m_world.Warden.position;
+            var wasScreening = m_wardenScreeningSapper;
+            var playerToSapperDistance = DeadSignalWorld.FlatDistance(m_world.Player.position, m_world.Sapper.position);
+            m_wardenScreeningSapper = m_sapperLatched && m_sapperHealth > 0f &&
+                                      playerToSapperDistance > m_tuning.WardenSapperScreenBreakDistance;
+            m_wardenTacticalTarget = m_wardenScreeningSapper
+                ? WardenTactics.CalculateSapperScreenPoint(
+                    m_world.Player.position,
+                    m_world.Sapper.position,
+                    m_tuning.WardenSapperScreenDistance,
+                    m_tuning.WardenSapperScreenBreakDistance)
+                : m_world.Player.position;
+            if (!wasScreening && m_wardenScreeningSapper)
+            {
+                m_showFeedback("WARDEN SCREENING SAPPER — FLANK OR BREAK ARMOR");
+            }
+
+            var playerDelta = m_world.Player.position - m_world.Warden.position;
+            playerDelta.y = 0f;
+            if (playerDelta.magnitude <= m_tuning.WardenAttackDistance && m_wardenAttackCooldown <= 0f)
+            {
+                if (playerDelta.sqrMagnitude > 0.01f)
+                {
+                    m_world.Warden.rotation = Quaternion.LookRotation(playerDelta.normalized, Vector3.up);
+                }
+
+                _applyWardenHit();
+                return;
+            }
+
+            var delta = m_wardenTacticalTarget - m_world.Warden.position;
             delta.y = 0f;
             var distance = delta.magnitude;
             if (distance > 0.05f)
@@ -447,7 +481,8 @@ namespace DeadSignal
                 m_world.Warden.rotation = Quaternion.LookRotation(delta.normalized, Vector3.up);
             }
 
-            if (distance > m_tuning.WardenAttackDistance)
+            var arrivalDistance = m_wardenScreeningSapper ? 0.1f : m_tuning.WardenAttackDistance;
+            if (distance > arrivalDistance)
             {
                 var desired = m_world.Warden.position + delta.normalized * (m_tuning.WardenSpeed * dt);
                 m_world.Warden.position = m_world.ResolveMovement(
@@ -456,20 +491,21 @@ namespace DeadSignal
                     WARDEN_COLLISION_RADIUS,
                     m_model.ShortcutOpen);
             }
-            else if (m_wardenAttackCooldown <= 0f)
-            {
-                m_wardenAttackCooldown = m_tuning.WardenAttackCooldown;
-                if (_tryAbsorbThreatDamage("WARDEN IMPACT"))
-                {
-                    return;
-                }
+        }
 
-                m_model.TakeSecurityHit();
-                m_metrics.RecordSecurityHit();
-                m_combatFeedback.PlaySecurityImpact(m_world.Player.position + Vector3.up * 0.58f);
-                m_audio.Play(DeadSignalAudioCue.SecurityImpact);
-                m_showFeedback("SECURITY IMPACT  −18 SIGNAL");
+        private void _applyWardenHit()
+        {
+            m_wardenAttackCooldown = m_tuning.WardenAttackCooldown;
+            if (_tryAbsorbThreatDamage("WARDEN IMPACT"))
+            {
+                return;
             }
+
+            m_model.TakeSecurityHit();
+            m_metrics.RecordSecurityHit();
+            m_combatFeedback.PlaySecurityImpact(m_world.Player.position + Vector3.up * 0.58f);
+            m_audio.Play(DeadSignalAudioCue.SecurityImpact);
+            m_showFeedback("SECURITY IMPACT  −18 SIGNAL");
         }
 
         private void _tickSapper(float dt)

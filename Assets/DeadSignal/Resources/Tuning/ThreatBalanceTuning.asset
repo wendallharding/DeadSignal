@@ -17,6 +17,8 @@ MonoBehaviour:
   m_wardenAttackDistance: 1.05
   m_wardenAttackCooldown: 0.9
   m_wardenSignalReward: 12
+  m_wardenSapperScreenDistance: 2.8
+  m_wardenSapperScreenBreakDistance: 2
   m_sapperHealth: 2
   m_sapperSpeed: 1.8
   m_sapperLatchDistance: 1.25

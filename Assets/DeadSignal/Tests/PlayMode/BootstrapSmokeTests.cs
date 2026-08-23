@@ -1496,6 +1496,7 @@ namespace DeadSignal.Tests
                     "The beacon should select the closest remaining cache for every authored-safe route variant.");
 
                 var signalBeforePulse = game.CurrentSignal;
+                player.position = new Vector3(5.4f, 0f, 0.4f);
                 sapper.position = new Vector3(-0.6f, 0f, 0.4f);
                 yield return null;
 
@@ -1508,6 +1509,15 @@ namespace DeadSignal.Tests
                 yield return new WaitForSeconds(0.2f);
                 Assert.That(telegraph.DisplayedCountdown, Is.LessThan(initialCountdown),
                     "The displayed drain countdown should decrease with the gameplay pulse timer.");
+                Assert.That(game.IsWardenScreeningSapper, Is.True,
+                    "A surviving Warden should contest the direct approach once the Sapper latches.");
+                Assert.That(Vector2.Distance(
+                    new Vector2(game.WardenTacticalTarget.x, game.WardenTacticalTarget.z),
+                    new Vector2(sapper.position.x, sapper.position.z)), Is.EqualTo(2.8f).Within(0.05f));
+                Assert.That(Vector3.Dot(
+                        (game.WardenTacticalTarget - sapper.position).normalized,
+                        (player.position - sapper.position).normalized),
+                    Is.GreaterThan(0.99f), "The screen point should remain on the disclosed player-to-Sapper approach.");
 
                 var pulseTimeout = 2f;
                 while (game.CurrentSignal > signalBeforePulse - RunModel.SapperPulseCost && pulseTimeout > 0f)
@@ -1522,6 +1532,11 @@ namespace DeadSignal.Tests
                     "Reduced Flashes should suppress the expanding floor flash while preserving the countdown.");
 
                 yield return new WaitForSecondsRealtime(0.08f);
+                player.position = sapper.position + Vector3.right * 1.5f;
+                yield return null;
+                Assert.That(game.IsWardenScreeningSapper, Is.False,
+                    "Breaching the tuned guard distance should restore normal Warden pursuit and contact counterplay.");
+
                 player.position = new Vector3(2.5f, 0f, 0.4f);
                 InputSystem.QueueStateEvent(gamepad, new GamepadState().WithButton(GamepadButton.West));
                 yield return null;

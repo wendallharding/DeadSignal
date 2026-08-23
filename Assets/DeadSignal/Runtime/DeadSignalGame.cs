@@ -44,6 +44,8 @@ namespace DeadSignal
 
         public float CurrentSignal => m_model?.Signal ?? 0f;
         public bool IsSapperLatched => m_threats?.IsSapperLatched ?? false;
+        public bool IsWardenScreeningSapper => m_threats?.IsWardenScreeningSapper ?? false;
+        public Vector3 WardenTacticalTarget => m_threats?.WardenTacticalTarget ?? Vector3.zero;
         public float SapperHealth => m_threats?.SapperHealth ?? 0f;
         public float WardenHealth => m_threats?.WardenHealth ?? 0f;
         public float InterceptorHealth => m_threats?.InterceptorHealth ?? 0f;

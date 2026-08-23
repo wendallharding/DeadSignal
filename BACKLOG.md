@@ -14,6 +14,15 @@
 
 ## P1 — Prove the loop
 
+### Run 79 Warden-Sapper screen ideas
+
+- [x] While a Sapper is latched, route a surviving Warden to a designer-tuned point on the player's direct approach
+- [x] Keep the screen offset bounded at 2.8 metres and restore normal pursuit inside a two-metre guard break
+- [x] Surface the combined role through one transition callout and live threat status without changing enemy stats or count
+- [x] Preserve perpendicular flanks, cover collision, projectile rules, Signal bounties, and adaptive reinforcements
+- [x] Prove direct-line interception, open flank geometry, guard-break transition, and live runtime behavior in Unity tests
+- [ ] Playtest direct, perpendicular, and Warden-first responses for route change, hits, pulses, shots, and Signal reserve
+
 ### Run 78 optional-cache-greed ideas
 
 - [x] Keep the fourth authored cache active after the three-cache extraction requirement is met

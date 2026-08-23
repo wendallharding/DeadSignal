@@ -4354,3 +4354,39 @@ Persistent accessibility/replay support now includes route-strength and drain-di
 - EditMode: `93/93` passed in `0.1599453s` (`TestResults-Usability-EditMode-Final.xml`).
 - Initial PlayMode correctly exposed stale Warden/Sapper renderer counts; corrected run passed `11/11`. The first cache-variation run then exposed one hard-coded original coordinate; after converting it to a nearest-active-cache invariant, final variant run passed `11/11` in `31.2701535s` (`TestResults-Usability-PlayMode-VariantFinal.xml`).
 - Final Windows x64 build and packaged playtest evidence are recorded in `Logs/Usability-WindowsBuild-Final.log`; the opening check confirmed the curved guide, projected aim line, extraction lane, territory shader, HUD, and floor readability coexist at 1280×720.
+
+## 2026-08-23 — Autonomous Run 79: Warden-Sapper screening pair
+
+### Milestone and player benefit
+
+Made the opening Warden and Sapper operate as a mixed tactical pair instead of two parallel timers. Once the Sapper latches, a surviving Warden now leaves ordinary pursuit and screens a designer-tuned point 2.8 metres along the player's direct approach. The player can break the armor, take a perpendicular flank, abandon the interrupt, or breach within two metres to force the Warden back into contact pursuit. Enemy health, speed, damage, count, entrances, response budget, Signal rewards, pulse timing, and map layout are unchanged.
+
+Acceptance criteria were recorded before implementation: screening must require both live roles plus an active latch; use bounded designer tuning; contest only the direct approach; immediately release inside the guard break or when the pair ends; disclose the role change; and pass deterministic plus complete-runtime coverage.
+
+### Changed files and systems
+
+- Added `Assets/DeadSignal/Runtime/WardenTactics.cs` and its Unity-generated `.meta` with deterministic screen-point geometry.
+- Updated `Assets/DeadSignal/Runtime/DeadSignalThreatController.cs` to own the pair transition, tactical target, normal contact counterplay, and one transition callout.
+- Updated `Assets/DeadSignal/Runtime/ThreatBalanceTuning.cs` and `Assets/DeadSignal/Resources/Tuning/ThreatBalanceTuning.asset` with validated 2.8-metre screen and two-metre guard-break values.
+- Updated `Assets/DeadSignal/Runtime/DeadSignalGame.cs` and `Assets/DeadSignal/Runtime/DeadSignalHud.cs` to expose and disclose the live screening state.
+- Added `Assets/DeadSignal/Tests/WardenTacticsTests.cs` and its Unity-generated `.meta`; extended `ThreatBalanceTuningTests.cs` and `BootstrapSmokeTests.cs` for tuning, geometry, latch, live target, and guard-break coverage.
+- Updated `GAME_VISION.md` with the mixed-role product decision and kept `BACKLOG.md` prioritized around the required three-route playtest.
+
+### Exact validation and bugs fixed
+
+- Unity `6000.3.11f1` corrected compile/import: exit `0` (`Logs/Run79-Compile-Corrected.log`).
+- Focused EditMode: `7/7` passed in `0.046028s` (`Logs/Run79-Focused-EditMode.xml`).
+- Corrected focused complete-runtime PlayMode: `1/1` passed (`Logs/Run79-Focused-PlayMode-Corrected.xml`).
+- Full EditMode: `96/96` passed in `0.1583098s` (`Logs/Run79-Full-EditMode.xml`).
+- Full PlayMode: `11/11` passed in `31.3250239s` (`Logs/Run79-Full-PlayMode.xml`).
+- Windows x64 development build: PASS, `241,224,345` bytes in `16.89s` (`Logs/Run79-WindowsBuild.log`).
+- Packaged null-device smoke: PASS with exit `0` (`Logs/Run79-StandaloneSmoke.log`).
+- `git diff --check` and final critical log scans were clean. Unity's initial licensing handshake warnings resolved to the installed valid license.
+- The first compile exposed a test-only internal-helper access error; the fixture now uses public planar vector math. The first focused PlayMode run proved screening but attempted its guard-break transition during existing Sapper hit-stop; the corrected fixture waits for real-time recovery. Both failed attempts are excluded from authoritative counts.
+- The build setup regenerated six component file IDs in `EastSalvageVault.prefab`; that unrelated serializer churn was restored exactly and is not part of this milestone.
+
+### Playtest evidence, limitations, and next step
+
+Automated runtime evidence shows the pair activates only after latch, places the contested point at `2.8m` on the player-to-Sapper line, retains a geometrically open perpendicular approach, and releases inside the `2m` guard break. Headless automation cannot establish whether players recognize the callout, actually change route, accept damage, abandon the interrupt, or find the screen too easy to orbit.
+
+Next highest-impact step: play three matched openings—direct approach, perpendicular flank, and Warden-first purge—and record first-threat time, screening recognition, route deviation, Warden hits, Sapper pulses, shots, Signal spent/reclaimed, abandoned salvage, and extraction reserve before changing tuning or expanding to a second tower.

@@ -13,6 +13,9 @@ namespace DeadSignal.Tests
             {
                 Assert.That(tuning.WardenSignalReward, Is.GreaterThan(0f));
                 Assert.That(tuning.WardenSignalReward, Is.LessThan(tuning.WardenHealth * RunModel.ShotCost));
+                Assert.That(tuning.WardenSapperScreenDistance, Is.InRange(2.5f, 3.5f));
+                Assert.That(tuning.WardenSapperScreenBreakDistance,
+                    Is.GreaterThan(tuning.WardenAttackDistance).And.LessThan(tuning.WardenSapperScreenDistance));
                 Assert.That(tuning.SapperSignalReward, Is.GreaterThan(tuning.SapperHealth * RunModel.ShotCost));
                 Assert.That(tuning.SapperPulseInterval, Is.GreaterThan(0f));
                 Assert.That(tuning.DeadZoneTraceDuration, Is.InRange(6f, 12f));
