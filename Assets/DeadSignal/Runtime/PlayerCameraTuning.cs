@@ -13,6 +13,7 @@ namespace DeadSignal
         [SerializeField] private float m_followSharpness = 8f;
         [SerializeField] private float m_lookAheadDistance = 0.9f;
         [SerializeField] private float m_lookAheadSharpness = 10f;
+        [SerializeField] private float m_aimLookAheadDistance = 0.45f;
         [SerializeField] private float m_arenaEdgePadding = 0.35f;
 
         public float FieldOfView => m_fieldOfView;
@@ -22,6 +23,7 @@ namespace DeadSignal
         public float FollowSharpness => m_followSharpness;
         public float LookAheadDistance => m_lookAheadDistance;
         public float LookAheadSharpness => m_lookAheadSharpness;
+        public float AimLookAheadDistance => m_aimLookAheadDistance;
         public float ArenaEdgePadding => m_arenaEdgePadding;
 
         private void OnValidate()
@@ -33,6 +35,7 @@ namespace DeadSignal
             m_followSharpness = Mathf.Max(0.1f, m_followSharpness);
             m_lookAheadDistance = Mathf.Max(0f, m_lookAheadDistance);
             m_lookAheadSharpness = Mathf.Max(0.1f, m_lookAheadSharpness);
+            m_aimLookAheadDistance = Mathf.Max(0f, m_aimLookAheadDistance);
             m_arenaEdgePadding = Mathf.Max(0f, m_arenaEdgePadding);
         }
     }

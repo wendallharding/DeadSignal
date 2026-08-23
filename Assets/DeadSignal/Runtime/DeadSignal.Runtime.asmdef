@@ -4,6 +4,8 @@
   "references": [
     "Unity.InputSystem",
     "Unity.ugui",
+    "Unity.RenderPipelines.Core.Runtime",
+    "Unity.RenderPipelines.Universal.Runtime",
     "Reflex"
   ],
   "autoReferenced": true

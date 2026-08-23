@@ -251,8 +251,8 @@ namespace DeadSignal
                 enabled ? new Color(0.2f, 1f, 1f) : new Color(0.02f, 0.92f, 1f),
                 enabled ? new Color(0.3f, 2.8f, 3.2f) : new Color(0f, 1.8f, 2.2f));
             _setMaterial(CyanDim,
-                enabled ? new Color(0.025f, 0.34f, 0.42f) : new Color(0.015f, 0.18f, 0.2f),
-                enabled ? new Color(0.02f, 0.34f, 0.42f) : new Color(0f, 0.11f, 0.13f));
+                enabled ? new Color(0.025f, 0.24f, 0.3f) : new Color(0.012f, 0.095f, 0.12f),
+                enabled ? new Color(0.02f, 0.24f, 0.3f) : new Color(0f, 0.045f, 0.065f));
             _setMaterial(Amber,
                 enabled ? new Color(1f, 0.82f, 0.05f) : new Color(1f, 0.48f, 0.06f),
                 enabled ? new Color(3f, 1.8f, 0.05f) : new Color(2.4f, 0.65f, 0.02f));
@@ -302,7 +302,7 @@ namespace DeadSignal
                 enabled ? new Color(0.54f, 0.48f, 0.62f) : new Color(0.21f, 0.17f, 0.25f),
                 enabled ? new Color(0.14f, 0.005f, 0.09f) : new Color(0.035f, 0.001f, 0.02f));
             _setMaterial(Dark,
-                enabled ? Color.black : new Color(0.012f, 0.018f, 0.026f),
+                enabled ? new Color(0.008f, 0.01f, 0.014f) : new Color(0.022f, 0.03f, 0.042f),
                 Color.black);
             _setMaterial(Steel,
                 enabled ? new Color(0.18f, 0.22f, 0.28f) : new Color(0.085f, 0.11f, 0.14f),

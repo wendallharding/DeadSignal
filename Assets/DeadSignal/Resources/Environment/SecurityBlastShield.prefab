@@ -50,11 +50,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -4648393540220388557, guid: 06115e18755b8d24e9d86b56a1996540, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
-      value:
+      value: 
       objectReference: {fileID: 2100000, guid: c91f2eddbae4d0342aadbfb29548c924, type: 2}
     - target: {fileID: -2491520361031574755, guid: 06115e18755b8d24e9d86b56a1996540, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
-      value:
+      value: 
       objectReference: {fileID: 2100000, guid: bec71cb5c115869468cf9ec04034a6a2, type: 2}
     - target: {fileID: 919132149155446097, guid: 06115e18755b8d24e9d86b56a1996540, type: 3}
       propertyPath: m_Name
@@ -62,7 +62,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7205925769662300344, guid: 06115e18755b8d24e9d86b56a1996540, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
-      value:
+      value: 
       objectReference: {fileID: 2100000, guid: 6f0aaa761fed18347907e7697d067e18, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -87,6 +87,6 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e5c2114ec9f7be54889bb05839f089fe, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: DeadSignal.Runtime::DeadSignal.AuthoredMapObstacle
   m_localHalfSize: {x: 1.6, y: 0.45}

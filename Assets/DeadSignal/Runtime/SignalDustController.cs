@@ -21,9 +21,9 @@ namespace DeadSignal
     public sealed class SignalDustController : MonoBehaviour, ISignalDust
     {
         private const string RUNTIME_PARTICLE_MATERIAL_RESOURCE = "Materials/RuntimeParticleTemplate";
-        private const int MAXIMUM_PARTICLES = 56;
-        private const float DEAD_EMISSION_RATE = 2.5f;
-        private const float POWERED_EMISSION_RATE = 9f;
+        private const int MAXIMUM_PARTICLES = 36;
+        private const float DEAD_EMISSION_RATE = 1.5f;
+        private const float POWERED_EMISSION_RATE = 5f;
 
         private static readonly Color s_deadColor = new(0.18f, 0.3f, 0.42f, 0.22f);
         private static readonly Color s_poweredColor = new(0.12f, 0.9f, 1f, 0.58f);
@@ -69,7 +69,7 @@ namespace DeadSignal
             main.maxParticles = MAXIMUM_PARTICLES;
             main.startLifetime = new ParticleSystem.MinMaxCurve(2.8f, 5.2f);
             main.startSpeed = new ParticleSystem.MinMaxCurve(0.08f, 0.24f);
-            main.startSize = new ParticleSystem.MinMaxCurve(0.12f, 0.28f);
+            main.startSize = new ParticleSystem.MinMaxCurve(0.08f, 0.2f);
             main.gravityModifier = -0.006f;
 
             var emission = m_particles.emission;
@@ -109,7 +109,7 @@ namespace DeadSignal
             float targetRate = isPowered ? POWERED_EMISSION_RATE : DEAD_EMISSION_RATE;
             if (towerOnline && isPowered)
             {
-                targetRate += 3f;
+                targetRate += 1.5f;
             }
 
             EmissionRate = targetRate;

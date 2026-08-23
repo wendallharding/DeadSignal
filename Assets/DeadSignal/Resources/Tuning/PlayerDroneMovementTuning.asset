@@ -25,6 +25,6 @@ MonoBehaviour:
   m_hoverFrequency: 1.4
   m_wakeMinimumSpeed: 0.8
   m_wakeDuration: 0.22
-  m_wakeEmitterSpacing: 0.22
-  m_wakeMinimumWidth: 0.06
-  m_wakeMaximumWidth: 0.18
+  m_wakeEmitterSpacing: 0.27
+  m_wakeMinimumWidth: 0.25
+  m_wakeMaximumWidth: 0.5

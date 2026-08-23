@@ -14,6 +14,7 @@ namespace DeadSignal
         private Vector3 m_currentFocus;
         private Vector3 m_currentLookAhead;
         private Vector3 m_lastTargetPosition;
+        private Vector3 m_aimDirection;
         private Vector2 m_groundFootprintMinimum;
         private Vector2 m_groundFootprintMaximum;
         private float m_lastAspect;
@@ -42,6 +43,10 @@ namespace DeadSignal
             var desiredLookAhead = targetDelta.sqrMagnitude > 0.000001f
                 ? targetDelta.normalized * m_tuning.LookAheadDistance
                 : Vector3.zero;
+            if (m_aimDirection.sqrMagnitude > 0.01f)
+            {
+                desiredLookAhead += m_aimDirection.normalized * m_tuning.AimLookAheadDistance;
+            }
             m_currentLookAhead = Vector3.Lerp(
                 m_currentLookAhead,
                 desiredLookAhead,
@@ -91,6 +96,12 @@ namespace DeadSignal
                 m_groundFootprintMaximum,
                 m_tuning.ArenaEdgePadding);
             transform.position = m_currentFocus;
+        }
+
+        public void SetAimDirection(Vector3 aimDirection)
+        {
+            aimDirection.y = 0f;
+            m_aimDirection = aimDirection;
         }
 
         public static Vector3 CalculateClampedFocus(

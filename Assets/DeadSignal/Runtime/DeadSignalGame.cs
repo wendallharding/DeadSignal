@@ -377,6 +377,8 @@ namespace DeadSignal
                 m_playerMovement.Velocity,
                 aimDirection,
                 m_playerMovementTuning);
+            m_world.TickEnvironmentPresentation(dt, m_model.TowerOnline, powered: m_world.IsPowered(
+                m_world.Player.position, m_model.TowerOnline));
             m_world.PlayerSignalWake.Tick(m_playerMovement.Velocity);
 
             var powered = m_world.IsPowered(m_world.Player.position, m_model.TowerOnline);
@@ -389,6 +391,7 @@ namespace DeadSignal
             if (powered != m_lastPoweredState)
             {
                 _showFeedback(powered ? "NETWORK LINK RESTORED" : "DEAD ZONE — SIGNAL BLEED");
+                m_world.PlayBoundaryTransition();
                 m_lastPoweredState = powered;
             }
 

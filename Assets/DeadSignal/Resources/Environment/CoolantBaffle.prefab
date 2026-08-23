@@ -50,11 +50,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -973292514521925930, guid: 009544cfcfaf4344a9198cd7c18dcbca, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
-      value:
+      value: 
       objectReference: {fileID: 2100000, guid: f3388c63bd3b7ef4d814a377735d2f45, type: 2}
     - target: {fileID: 354580297223767841, guid: 009544cfcfaf4344a9198cd7c18dcbca, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
-      value:
+      value: 
       objectReference: {fileID: 2100000, guid: 77a923001fb99ae43bcba1c99fb77768, type: 2}
     - target: {fileID: 919132149155446097, guid: 009544cfcfaf4344a9198cd7c18dcbca, type: 3}
       propertyPath: m_Name
@@ -62,11 +62,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6479565777030174717, guid: 009544cfcfaf4344a9198cd7c18dcbca, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
-      value:
+      value: 
       objectReference: {fileID: 2100000, guid: 277d142118d98314c8ab2d0f8758f875, type: 2}
     - target: {fileID: 7453418601605810377, guid: 009544cfcfaf4344a9198cd7c18dcbca, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
-      value:
+      value: 
       objectReference: {fileID: 2100000, guid: 4023e180c2ae7674894b9b253b63d12b, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -91,6 +91,6 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e5c2114ec9f7be54889bb05839f089fe, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: DeadSignal.Runtime::DeadSignal.AuthoredMapObstacle
   m_localHalfSize: {x: 2.12, y: 0.51}

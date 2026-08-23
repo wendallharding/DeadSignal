@@ -4307,3 +4307,34 @@ No scene, prefab, new art/audio, overclock, enemy stat, Signal cost, extraction 
 - Automated playtest evidence proves the greed prompt appears after the third cache, exposes the live remaining-cache distance and +18 reward, collects the sole active optional cache, increases Signal by the cap-safe amount, removes the prompt, keeps salvage at `3/3`, and leaves escalation at tier three. The full combat/extraction flow remains winnable.
 - No human playtest was performed, so 18 Signal may be too automatic or too weak relative to route length, live reinforcements, and an Overdrive payment. The existing salvage burst is reused at tier four and still needs subjective scale/readability review.
 - Manual playtest next: on matched seeds, extract immediately after cache three once, then raid the remaining cache before both Stable and Overdrive returns. Record optional distance, decision time, route abandoned, damage/pulses, Signal before/recovered/spent, live roles, uplink mode, purges, finish time, and final reserve. Reduce the reward if greed dominates despite taking damage; increase it only if players consistently understand the offer and still ignore it.
+
+## 2026-08-22 — Visual readability pass
+
+Implemented the seven presentation priorities identified during repeated Windows playtests without changing gameplay rules. Authored blockers now receive low-profile collision-readable trim, key routes have restrained zone markings, powered territories use bright segmented boundaries over a darker interior, dead-zone ambient light retains floor silhouettes, salvage caches have unique amber locator rings and vertical beacons, ambient Signal dust uses a reduced 36-particle clarity budget, and the run HUD uses larger critical text with one prioritized threat instead of the full security roster.
+
+### Files and validation
+
+- `DeadSignalWorld.cs` owns the new territory boundaries, blocker trim, route markings, salvage locators, soft key shadow, and lifted ambient floor.
+- `DeadSignalPalette.cs`, `SignalDustController.cs`, and `DeadSignalHud.cs` rebalance territory/dead-zone values, reduce ambient VFX density, and improve HUD hierarchy.
+- `BootstrapSmokeTests.cs` verifies the four-renderer salvage signature and reduced fixed dust budget.
+- Unity `6000.3.11f1` EditMode: `93/93` passed in `0.1972048s` (`TestResults-VisualPass-EditMode.xml`).
+- The first two PlayMode attempts correctly exposed stale presentation-count expectations and are excluded. Corrected full PlayMode: `11/11` passed in `31.2992838s` (`TestResults-VisualPass-PlayMode-Final.xml`).
+- Windows x64 development build passed at `241,199,261` bytes in `16.93s` (`Logs/VisualPass-WindowsBuild.log`).
+- Manual packaged-build validation covered the opening dock, tower activation, combat, and first salvage. Floor texture remains visible in dead zones; territory edges, caches, blockers, objective text, and the active threat read distinctly at 1280×720. The large powered interior remains stylistically strong and should be reassessed after further player feedback before replacing it with a custom transparent shader.
+
+## 2026-08-22 — Atmosphere and motion presentation pass
+
+Implemented the eleven requested follow-up improvements while preserving deterministic gameplay. A new URP transparent territory shader provides radial falloff, animated circuitry, edge energy, and transition pulses. Four localized landmark lights establish cyan tower/dock, amber salvage, and red security compositions. Soft key shadows, brighter silhouettes, floor-story accents, rotating landmark parts, pulsing cache beacons, directional impact sparks, broader enemy fins, aim-aware camera framing, restrained Bloom/color grading/vignette, and powered/dead-zone transition pulses add depth and motion without increasing threat density or changing collision.
+
+### Files and validation
+
+- Added `Resources/Shaders/PoweredTerritory.shader` and Unity-generated `.meta`.
+- `DeadSignalWorld.cs` composes the shader, post-processing profile, landmark lights, zone dressing, environment animation, threat silhouettes, and boundary transition pulse.
+- `CombatFeedbackController.cs` adds bounded, reduced-flash-aware directional impact sparks.
+- `PlayerFollowCamera.cs` and `PlayerCameraTuning.cs` add restrained aim look-ahead; `DeadSignalGame.cs` drives environment state and transitions.
+- `DeadSignal.Runtime.asmdef` now explicitly references URP Core/Runtime because runtime post-processing genuinely depends on them.
+- `BootstrapSmokeTests.cs` covers the shader, global grade, landmark lights, and expanded Warden/Sapper silhouette contracts.
+- The first compile attempt failed because the runtime assembly lacked explicit URP references; excluded. Corrected EditMode: `93/93` passed in `0.1713259s`.
+- The first PlayMode attempt exposed the immediate-play ParticleSystem configuration assertion and stale silhouette counts; excluded. Corrected PlayMode and final post-smoke rerun: `11/11` passed in `31.3431323s` (`TestResults-Presentation2-PlayMode-Final.xml`).
+- Windows x64 development build passed at `241,211,769` bytes in `17.22s` (`Logs/Presentation2-WindowsBuild.log`).
+- Manual packaged-build playtest covered opening, tower activation, boundary crossing, combat, and first salvage at 1280×720. Territory transparency preserves floor detail; circuitry, light pools, enemy silhouettes, grade, and boundary hierarchy remained readable in motion and under the pause overlay.

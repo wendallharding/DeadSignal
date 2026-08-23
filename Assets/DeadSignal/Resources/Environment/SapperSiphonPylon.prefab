@@ -10,7 +10,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: -8922825387101525953, guid: 03c791c7ab5231e4f8277b5fa39c942a, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
-      value:
+      value: 
       objectReference: {fileID: 2100000, guid: 659a5044974bdaf45889691a5ad2ffc7, type: 2}
     - target: {fileID: -8679921383154817045, guid: 03c791c7ab5231e4f8277b5fa39c942a, type: 3}
       propertyPath: m_LocalPosition.x
@@ -54,7 +54,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -723900982722229459, guid: 03c791c7ab5231e4f8277b5fa39c942a, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
-      value:
+      value: 
       objectReference: {fileID: 2100000, guid: d85eab2abe9601a4e96a656f2675f35b, type: 2}
     - target: {fileID: 919132149155446097, guid: 03c791c7ab5231e4f8277b5fa39c942a, type: 3}
       propertyPath: m_Name
@@ -62,7 +62,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4380973530709616464, guid: 03c791c7ab5231e4f8277b5fa39c942a, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
-      value:
+      value: 
       objectReference: {fileID: 2100000, guid: b00033bf13e73f94c9426786bcf9deca, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -87,6 +87,6 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e5c2114ec9f7be54889bb05839f089fe, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: DeadSignal.Runtime::DeadSignal.AuthoredMapObstacle
   m_localHalfSize: {x: 1.32, y: 0.45}

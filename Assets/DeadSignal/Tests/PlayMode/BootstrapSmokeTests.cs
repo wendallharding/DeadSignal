@@ -642,9 +642,10 @@ namespace DeadSignal.Tests
             Assert.That(authoredWardenPrefab.transform.Find("Warden Crown").GetComponent<Renderer>().sharedMaterial,
                 Is.EqualTo(Resources.Load<Material>("Materials/SecurityWardenCrown")));
             Assert.That(securityWarden, Is.Not.Null, "Dormant security should exist before tower activation.");
-            Assert.That(securityWarden.GetComponentsInChildren<Renderer>(true).Length, Is.EqualTo(3));
+            Assert.That(securityWarden.GetComponentsInChildren<Renderer>(true).Length, Is.EqualTo(5),
+                "The Warden should include two broad silhouette fins in addition to its authored body.");
             var wardenMeshes = securityWarden.GetComponentsInChildren<MeshFilter>(true).Select(filter => filter.sharedMesh).ToArray();
-            Assert.That(wardenMeshes.Length, Is.EqualTo(3));
+            Assert.That(wardenMeshes.Length, Is.EqualTo(5));
             Assert.That(wardenMeshes.All(mesh => mesh != null && mesh.vertexCount >= 24), Is.True,
                 "Every Warden part should use purpose-built geometry rather than a placeholder primitive.");
             Assert.That(wardenMeshes.All(mesh => mesh.HasVertexAttribute(UnityEngine.Rendering.VertexAttribute.TexCoord0)), Is.True,
@@ -989,9 +990,10 @@ namespace DeadSignal.Tests
             Assert.That(signalSapper, Is.Not.Null, "Dormant sapper should exist before tower activation.");
             Assert.That(game.HasSignalSapperAssets, Is.True);
             Assert.That(game.SignalSapperPartCount, Is.EqualTo(4));
-            Assert.That(signalSapper.GetComponentsInChildren<Renderer>(true).Length, Is.EqualTo(4));
+            Assert.That(signalSapper.GetComponentsInChildren<Renderer>(true).Length, Is.EqualTo(6),
+                "The Sapper should include swept silhouette fins in addition to its authored body.");
             var sapperMeshes = signalSapper.GetComponentsInChildren<MeshFilter>(true).Select(filter => filter.sharedMesh).ToArray();
-            Assert.That(sapperMeshes.Length, Is.EqualTo(4));
+            Assert.That(sapperMeshes.Length, Is.EqualTo(6));
             Assert.That(sapperMeshes.All(mesh => mesh != null && mesh.vertexCount >= 24), Is.True,
                 "Every Sapper part should use purpose-built geometry rather than a placeholder primitive.");
             Assert.That(sapperMeshes.All(mesh => mesh.HasVertexAttribute(UnityEngine.Rendering.VertexAttribute.TexCoord0)), Is.True,
@@ -1119,10 +1121,11 @@ namespace DeadSignal.Tests
             Assert.That(game.HasSalvageCacheAssets, Is.True,
                 "The salvage-cache prefab and original containment texture should load from Resources.");
             Assert.That(game.SalvageCacheInstanceCount, Is.EqualTo(RunModel.SalvageRequired + 1));
-            Assert.That(game.SalvageCachePartCount, Is.EqualTo((RunModel.SalvageRequired + 1) * 2));
+            Assert.That(game.SalvageCachePartCount, Is.EqualTo((RunModel.SalvageRequired + 1) * 4));
             Assert.That(salvageCaches.Length, Is.EqualTo(RunModel.SalvageRequired + 1));
             Assert.That(salvageCaches.Sum(cache => cache.GetComponentsInChildren<Renderer>().Length),
-                Is.EqualTo((RunModel.SalvageRequired + 1) * 2));
+                Is.EqualTo((RunModel.SalvageRequired + 1) * 4),
+                "Each cache should include its authored case and band plus a unique locator and beacon.");
             Assert.That(game.HasSalvagePresentationTuning, Is.True);
             Assert.That(Resources.Load<SalvagePresentationTuning>("Tuning/SalvagePresentationTuning"), Is.Not.Null);
             Assert.That(Resources.Load<SignalOverclockTuning>("Tuning/SignalOverclockTuning"), Is.Not.Null,
@@ -1147,6 +1150,15 @@ namespace DeadSignal.Tests
             Assert.That(Camera.main != null || Object.FindFirstObjectByType<Camera>() != null, Is.True);
             Assert.That(game.HasPlayerCameraTuning, Is.True,
                 "The authored tactical-camera tuning should load from Resources.");
+            Assert.That(Shader.Find("Dead Signal/Powered Territory"), Is.Not.Null,
+                "The powered territory should use its transparent radial presentation shader.");
+            Assert.That(game.transform.Find("Dead Signal Global Grade"), Is.Not.Null,
+                "The runtime should compose its restrained global post-processing grade.");
+            Assert.That(game.transform.Find("Tower Signal Pool")?.GetComponent<Light>(), Is.Not.Null);
+            Assert.That(game.transform.Find("Extraction Guidance Pool")?.GetComponent<Light>(), Is.Not.Null);
+            Assert.That(game.transform.Find("Salvage Annex Worklight")?.GetComponent<Light>(), Is.Not.Null);
+            Assert.That(game.transform.Find("Security Bay Alarm")?.GetComponent<Light>(), Is.Not.Null,
+                "Each major station zone should receive a distinct localized light pool.");
             Assert.That(game.HasPlayerMovementTuning, Is.True,
                 "The authored drone flight-response tuning should load from Resources.");
             Assert.That(game.IsPlayerCameraFollowing, Is.True,
@@ -1193,7 +1205,8 @@ namespace DeadSignal.Tests
                 "The activation sweep should remain hidden while the tower is dormant.");
             Assert.That(game.LowSignalWarningIntensity, Is.Zero,
                 "The emergency vignette should stay hidden while the starting Signal reserve is safe.");
-            Assert.That(game.SignalDustMaximumParticles, Is.EqualTo(56), "Ambient particles should stay within their fixed budget.");
+            Assert.That(game.SignalDustMaximumParticles, Is.EqualTo(36),
+                "Ambient particles should retain the reduced clarity-first budget.");
             Assert.That(game.IsSignalDustPowered, Is.True, "The extraction dock should begin with powered Signal dust.");
             Assert.That(game.transform.Find("Adaptive Signal Dust Field"), Is.Not.Null);
             Assert.That(game.ActiveInputPromptDevice, Is.EqualTo(InputPromptDevice.KeyboardMouse),

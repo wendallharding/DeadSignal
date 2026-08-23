@@ -1,5 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Rendering;
+using UnityEngine.Rendering.Universal;
 
 namespace DeadSignal
 {
@@ -75,6 +77,7 @@ namespace DeadSignal
         {
             m_root = root;
             m_palette = new DeadSignalPalette(comfortSettings.HighContrastEnabled);
+            _createTerritoryMaterials();
             m_signalBoltPrefab = Resources.Load<GameObject>(SIGNAL_BOLT_PREFAB_RESOURCE);
             HasSignalBoltAssets = m_signalBoltPrefab != null &&
                                   m_signalBoltPrefab.transform.Find("Bolt Shell") != null &&
@@ -174,7 +177,11 @@ namespace DeadSignal
 
         public void ActivateTower(float sapperPulseInterval)
         {
-            m_towerTerritory.GetComponent<Renderer>().sharedMaterial = m_palette.CyanDim;
+            m_towerTerritory.GetComponent<Renderer>().sharedMaterial = m_poweredTerritoryMaterial;
+            foreach (var marker in m_towerTerritoryMarkers)
+            {
+                marker.GetComponent<Renderer>().sharedMaterial = m_palette.Cyan;
+            }
             TowerCore.GetComponent<Renderer>().sharedMaterial = m_palette.Cyan;
             m_towerSignalLines.SetActive(true);
             Warden.gameObject.SetActive(true);
@@ -186,7 +193,7 @@ namespace DeadSignal
         {
             m_palette.ApplyHighContrast(enabled);
             Camera.backgroundColor = enabled ? Color.black : new Color(0.002f, 0.004f, 0.008f);
-            RenderSettings.ambientLight = enabled ? new Color(0.055f, 0.065f, 0.08f) : new Color(0.025f, 0.035f, 0.05f);
+            RenderSettings.ambientLight = enabled ? new Color(0.075f, 0.085f, 0.1f) : new Color(0.045f, 0.055f, 0.07f);
         }
 
         public void TickPlayerPresentation(
@@ -196,6 +203,7 @@ namespace DeadSignal
             Vector3 aimDirection,
             PlayerDroneMovementTuning tuning)
         {
+            PlayerCamera?.SetAimDirection(aimDirection);
             var bodyForward = velocity.sqrMagnitude > 0.01f ? velocity.normalized : PlayerBody.forward;
             bodyForward.y = 0f;
             var bodyYaw = Quaternion.LookRotation(bodyForward, Vector3.up);
@@ -361,6 +369,58 @@ namespace DeadSignal
             TowerCore.localScale = new Vector3(1.35f * pulse, 0.22f, 1.35f * pulse);
         }
 
+        public void TickEnvironmentPresentation(float dt, bool towerOnline, bool powered)
+        {
+            m_environmentTime += dt;
+            m_boundaryPulse = Mathf.MoveTowards(m_boundaryPulse, 0f, dt * 1.5f);
+            if (m_poweredTerritoryMaterial != null)
+            {
+                m_poweredTerritoryMaterial.SetFloat("_Pulse", m_boundaryPulse);
+            }
+
+            for (var index = 0; index < m_environmentAnimators.Count; index++)
+            {
+                var animator = m_environmentAnimators[index];
+                if (animator != null)
+                {
+                    animator.Rotate(Vector3.up, (index % 2 == 0 ? 12f : -9f) * dt, Space.Self);
+                }
+            }
+
+            foreach (var cache in m_salvagePickups)
+            {
+                if (!cache.activeSelf)
+                {
+                    continue;
+                }
+
+                var beacon = cache.transform.Find("Salvage Beacon");
+                if (beacon != null)
+                {
+                    var pulse = 0.75f + Mathf.Sin(m_environmentTime * 4f + cache.transform.position.x) * 0.25f;
+                    beacon.localScale = new Vector3(0.1f, 1.1f + pulse * 0.35f, 0.1f);
+                }
+            }
+
+            for (var index = 0; index < m_landmarkLights.Count; index++)
+            {
+                var light = m_landmarkLights[index];
+                var baseIntensity = index == 0 && !towerOnline ? 0.35f : 1f;
+                light.intensity = baseIntensity * (0.88f + Mathf.Sin(m_environmentTime * 2.2f + index) * 0.12f);
+            }
+
+            if (m_deadZoneVignette != null)
+            {
+                m_deadZoneVignette.intensity.value = Mathf.MoveTowards(
+                    m_deadZoneVignette.intensity.value, powered ? 0.14f : 0.22f, dt * 0.15f);
+            }
+        }
+
+        public void PlayBoundaryTransition()
+        {
+            m_boundaryPulse = 1f;
+        }
+
         public void TickExtraction(float dt, bool canExtract)
         {
             m_extractionBeacon.transform.Rotate(Vector3.up, canExtract ? 150f * dt : 30f * dt, Space.World);
@@ -406,6 +466,7 @@ namespace DeadSignal
             Camera.nearClipPlane = 0.1f;
             Camera.farClipPlane = 80f;
             cameraObject.AddComponent<AudioListener>();
+            _buildPostProcessing(cameraObject);
 
             var lightObject = new GameObject("Cold Overhead Light");
             lightObject.transform.SetParent(m_root);
@@ -413,8 +474,10 @@ namespace DeadSignal
             var key = lightObject.AddComponent<Light>();
             key.type = LightType.Directional;
             key.color = new Color(0.38f, 0.52f, 0.65f);
-            key.intensity = 1.2f;
-            RenderSettings.ambientLight = new Color(0.025f, 0.035f, 0.05f);
+            key.intensity = 1.35f;
+            key.shadows = LightShadows.Soft;
+            RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Flat;
+            RenderSettings.ambientLight = new Color(0.045f, 0.055f, 0.07f);
         }
 
         private void _configurePlayerCamera()
@@ -440,8 +503,11 @@ namespace DeadSignal
             _buildMaintenanceDeck();
             _buildMaintenanceRoomShell();
 
-            _createTerritory("Dock Power Territory", ExtractionPosition, STARTING_POWER_RADIUS, m_palette.CyanDim);
+            _createTerritory("Dock Power Territory", ExtractionPosition, STARTING_POWER_RADIUS, m_poweredTerritoryMaterial);
+            _createTerritoryMarkers("Dock Power Boundary", ExtractionPosition, STARTING_POWER_RADIUS, m_palette.Cyan, null);
             m_towerTerritory = _createTerritory("Tower Power Territory", TowerPosition, TOWER_POWER_RADIUS, m_palette.Dark);
+            _createTerritoryMarkers("Tower Power Boundary", TowerPosition, TOWER_POWER_RADIUS, m_palette.Dark,
+                m_towerTerritoryMarkers);
 
             for (var x = -12; x <= 12; x += 4)
             {
@@ -453,6 +519,9 @@ namespace DeadSignal
             _buildTower();
             _buildStationMachines();
             _buildSignalShortcut();
+            _buildRouteDetails();
+            _buildLocalizedLighting();
+            _buildEnvironmentalDressing();
         }
 
         private void _buildMaintenanceDeck()
@@ -567,6 +636,7 @@ namespace DeadSignal
                 ring.GetComponent<Renderer>().sharedMaterial = m_palette.Cyan;
                 center.GetComponent<Renderer>().sharedMaterial = m_palette.ExtractionHousing;
                 m_extractionBeacon.GetComponent<Renderer>().sharedMaterial = m_palette.Cyan;
+                m_environmentAnimators.Add(m_extractionBeacon.transform);
                 ExtractionPadPartCount = 4;
                 HasExtractionPadAssets = m_palette.HasExtractionTexture;
                 return;
@@ -584,6 +654,7 @@ namespace DeadSignal
             m_extractionBeacon = _createPrimitive("Extraction Beacon", PrimitiveType.Cube, new Vector3(0f, 0.7f, 1.5f),
                 new Vector3(0.22f, 1.4f, 0.22f), m_palette.Cyan, fallbackRoot.transform);
             ExtractionPadPartCount = 4;
+            m_environmentAnimators.Add(m_extractionBeacon.transform);
         }
 
         private void _buildTower()
@@ -605,7 +676,9 @@ namespace DeadSignal
                 towerBase.GetComponent<Renderer>().sharedMaterial = m_palette.TowerHousing;
                 towerColumn.GetComponent<Renderer>().sharedMaterial = m_palette.TowerHousing;
                 TowerCore.GetComponent<Renderer>().sharedMaterial = m_palette.RedDim;
+                m_environmentAnimators.Add(TowerCore);
                 SignalTowerPartCount = 3;
+                m_environmentAnimators.Add(TowerCore);
                 HasSignalTowerAssets = m_palette.HasTowerTexture;
             }
             else
@@ -775,6 +848,7 @@ namespace DeadSignal
                     obstacle.RightAxis,
                     obstacle.ForwardAxis,
                     false));
+                _createObstacleTrim(obstacle);
             }
 
             AuthoredMapObstacleCount = authoredObstacles.Length;
@@ -796,6 +870,10 @@ namespace DeadSignal
             WardenTelegraph.Configure(Warden, Player, comfortSettings);
 
             _buildSapper();
+            _addThreatSilhouette(Interceptor, m_palette.Red, 0.9f, true);
+            _addThreatSilhouette(Suppressor, m_palette.Amber, 1.05f, false);
+            _addThreatSilhouette(Warden, m_palette.Red, 1.25f, false);
+            _addThreatSilhouette(Sapper, m_palette.Magenta, 0.95f, true);
 
             var telegraphRoot = new GameObject("Sapper Drain Telegraph");
             telegraphRoot.transform.SetParent(m_root);
@@ -1089,6 +1167,7 @@ namespace DeadSignal
                 root.transform.Find("Salvage Case").GetComponent<Renderer>().sharedMaterial = m_palette.SalvageCacheHousing;
                 root.transform.Find("Salvage Band").GetComponent<Renderer>().sharedMaterial = m_palette.White;
             }
+
             else
             {
                 root = new GameObject("Salvage Cache");
@@ -1100,11 +1179,16 @@ namespace DeadSignal
                     new Vector3(0.9f, 0.06f, 0.28f), m_palette.White, root.transform);
             }
 
+            _createPrimitive("Salvage Locator", PrimitiveType.Cylinder, new Vector3(0f, 0.08f, 0f),
+                new Vector3(1.35f, 0.025f, 1.35f), m_palette.Amber, root.transform);
+            _createPrimitive("Salvage Beacon", PrimitiveType.Cube, new Vector3(0f, 1.35f, 0f),
+                new Vector3(0.1f, 1.3f, 0.1f), m_palette.Amber, root.transform);
+
             m_salvagePickups.Add(root);
             SalvageCacheInstanceCount++;
-            SalvageCachePartCount += 2;
+            SalvageCachePartCount += 4;
             HasSalvageCacheAssets = hasValidPrefab && m_palette.HasSalvageCacheTexture &&
-                                    SalvageCachePartCount == SalvageCacheInstanceCount * 2;
+                                    SalvageCachePartCount == SalvageCacheInstanceCount * 4;
         }
 
         private bool _isBlocked(Vector3 position, float radius, bool shortcutOpen)
@@ -1133,6 +1217,148 @@ namespace DeadSignal
                 position + new Vector3(0f, -0.095f, 0f),
                 new Vector3(radius * 2f, 0.025f, radius * 2f),
                 material);
+        }
+
+        private void _createTerritoryMarkers(
+            string objectName,
+            Vector3 position,
+            float radius,
+            Material material,
+            List<GameObject> markers)
+        {
+            var root = new GameObject(objectName);
+            root.transform.SetParent(m_root, false);
+            for (var index = 0; index < 16; index++)
+            {
+                var angle = index * Mathf.PI * 2f / 16f;
+                var markerPosition = position + new Vector3(Mathf.Cos(angle) * radius, -0.045f, Mathf.Sin(angle) * radius);
+                var marker = _createPrimitive($"Boundary Marker {index + 1:00}", PrimitiveType.Cube, markerPosition,
+                    new Vector3(0.08f, 0.035f, 0.7f), material, root.transform);
+                marker.transform.rotation = Quaternion.Euler(0f, -angle * Mathf.Rad2Deg, 0f);
+                markers?.Add(marker);
+            }
+        }
+
+        private void _createObstacleTrim(AuthoredMapObstacle obstacle)
+        {
+            var halfSize = obstacle.ScaledHalfSize;
+            var center = new Vector3(obstacle.Center.x, 0.035f, obstacle.Center.y);
+            var angle = -Mathf.Atan2(obstacle.RightAxis.y, obstacle.RightAxis.x) * Mathf.Rad2Deg;
+            var trim = _createPrimitive("Collision Readability Trim", PrimitiveType.Cube, center,
+                new Vector3(halfSize.x * 2f + 0.18f, 0.035f, halfSize.y * 2f + 0.18f), m_palette.Steel);
+            trim.transform.rotation = Quaternion.Euler(0f, angle, 0f);
+        }
+
+        private void _buildRouteDetails()
+        {
+            var details = new GameObject("Route Identity Markings");
+            details.transform.SetParent(m_root, false);
+            var routePoints = new[]
+            {
+                new Vector3(-8.8f, -0.035f, -3.5f), new Vector3(-5.8f, -0.035f, -1.6f),
+                new Vector3(2.8f, -0.035f, 2.8f), new Vector3(7.2f, -0.035f, 5.5f),
+                new Vector3(7.8f, -0.035f, -5.6f)
+            };
+            for (var index = 0; index < routePoints.Length; index++)
+            {
+                var material = index < 2 ? m_palette.CyanDim : index < 4 ? m_palette.Amber : m_palette.RedDim;
+                _createPrimitive($"Route Stripe {index + 1:00}", PrimitiveType.Cube, routePoints[index],
+                    new Vector3(2.2f, 0.025f, 0.12f), material, details.transform);
+            }
+        }
+
+        private void _createTerritoryMaterials()
+        {
+            var shader = Shader.Find("Dead Signal/Powered Territory");
+            if (shader == null)
+            {
+                Debug.LogWarning("Powered territory shader was not found; the deck will use the clarity fallback.");
+                m_poweredTerritoryMaterial = m_palette.CyanDim;
+                return;
+            }
+
+            m_poweredTerritoryMaterial = new Material(shader) { name = "Powered Territory Runtime" };
+            m_poweredTerritoryMaterial.SetColor("_BaseColor", new Color(0.015f, 0.42f, 0.5f, 0.32f));
+            m_poweredTerritoryMaterial.SetColor("_EdgeColor", new Color(0.05f, 0.95f, 1f, 0.92f));
+        }
+
+        private void _buildLocalizedLighting()
+        {
+            _createLandmarkLight("Tower Signal Pool", TowerPosition + Vector3.up * 3.2f, new Color(0.05f, 0.75f, 1f), 7f, 1.2f);
+            _createLandmarkLight("Extraction Guidance Pool", ExtractionPosition + Vector3.up * 3f,
+                new Color(0.08f, 0.9f, 1f), 6f, 1.05f);
+            _createLandmarkLight("Salvage Annex Worklight", new Vector3(8.8f, 3f, 5.8f), new Color(1f, 0.48f, 0.08f), 5f, 0.75f);
+            _createLandmarkLight("Security Bay Alarm", new Vector3(8.5f, 3f, -5.5f), new Color(1f, 0.08f, 0.12f), 5f, 0.65f);
+        }
+
+        private void _createLandmarkLight(string objectName, Vector3 position, Color color, float range, float intensity)
+        {
+            var root = new GameObject(objectName);
+            root.transform.SetParent(m_root, false);
+            root.transform.position = position;
+            var light = root.AddComponent<Light>();
+            light.type = LightType.Point;
+            light.color = color;
+            light.range = range;
+            light.intensity = intensity;
+            light.shadows = LightShadows.None;
+            m_landmarkLights.Add(light);
+        }
+
+        private void _buildEnvironmentalDressing()
+        {
+            var root = new GameObject("Station Surface Storytelling");
+            root.transform.SetParent(m_root, false);
+            var accents = new[]
+            {
+                (new Vector3(-10.2f, -0.03f, -5.8f), new Vector3(2.8f, 0.02f, 0.08f), m_palette.Cyan),
+                (new Vector3(-1.0f, -0.03f, 3.2f), new Vector3(0.08f, 0.02f, 3.2f), m_palette.CyanDim),
+                (new Vector3(9.4f, -0.03f, 5.1f), new Vector3(2.4f, 0.02f, 0.12f), m_palette.Amber),
+                (new Vector3(9.1f, -0.03f, -5.2f), new Vector3(2.4f, 0.02f, 0.12f), m_palette.RedDim),
+                (new Vector3(-5.2f, -0.025f, 6.9f), new Vector3(1.4f, 0.018f, 0.5f), m_palette.Steel)
+            };
+            for (var index = 0; index < accents.Length; index++)
+            {
+                _createPrimitive($"Floor Story Accent {index + 1:00}", PrimitiveType.Cube, accents[index].Item1,
+                    accents[index].Item2, accents[index].Item3, root.transform);
+            }
+        }
+
+        private void _buildPostProcessing(GameObject cameraObject)
+        {
+            cameraObject.AddComponent<UniversalAdditionalCameraData>().renderPostProcessing = true;
+            var volumeObject = new GameObject("Dead Signal Global Grade");
+            volumeObject.transform.SetParent(m_root, false);
+            var volume = volumeObject.AddComponent<Volume>();
+            volume.isGlobal = true;
+            volume.priority = 10f;
+            volume.profile = ScriptableObject.CreateInstance<VolumeProfile>();
+            var bloom = volume.profile.Add<Bloom>();
+            bloom.intensity.Override(0.28f);
+            bloom.threshold.Override(1.15f);
+            bloom.scatter.Override(0.5f);
+            m_deadZoneVignette = volume.profile.Add<Vignette>();
+            m_deadZoneVignette.intensity.Override(0.14f);
+            m_deadZoneVignette.smoothness.Override(0.48f);
+            var color = volume.profile.Add<ColorAdjustments>();
+            color.postExposure.Override(0.08f);
+            color.contrast.Override(8f);
+            color.saturation.Override(-5f);
+        }
+
+        private void _addThreatSilhouette(Transform threat, Material material, float width, bool swept)
+        {
+            if (threat == null)
+            {
+                return;
+            }
+
+            var left = _createPrimitive("Threat Silhouette Left", PrimitiveType.Cube,
+                new Vector3(-width, 0.28f, swept ? -0.3f : 0f), new Vector3(0.55f, 0.09f, 0.16f), material, threat);
+            var right = _createPrimitive("Threat Silhouette Right", PrimitiveType.Cube,
+                new Vector3(width, 0.28f, swept ? 0.3f : 0f), new Vector3(0.55f, 0.09f, 0.16f), material, threat);
+            left.transform.localRotation = Quaternion.Euler(0f, swept ? -28f : 0f, 0f);
+            right.transform.localRotation = Quaternion.Euler(0f, swept ? 28f : 0f, 0f);
         }
 
         private GameObject _createPrimitive(
@@ -1186,9 +1412,16 @@ namespace DeadSignal
         private readonly GameObject m_signalBoltPrefab;
         private readonly List<MovementBlocker> m_movementBlockers = new();
         private readonly List<GameObject> m_salvagePickups = new();
+        private readonly List<GameObject> m_towerTerritoryMarkers = new();
+        private readonly List<Transform> m_environmentAnimators = new();
+        private readonly List<Light> m_landmarkLights = new();
         private readonly List<Vector3> m_machineSockets = new();
         private readonly List<Vector3> m_interceptorEntrances = new();
         private GameObject m_suppressorField;
+        private Material m_poweredTerritoryMaterial;
+        private Vignette m_deadZoneVignette;
+        private float m_environmentTime;
+        private float m_boundaryPulse;
 
         private GameObject m_towerTerritory;
         private GameObject m_towerSignalLines;

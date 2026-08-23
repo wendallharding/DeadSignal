@@ -50,15 +50,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -7219663992501169361, guid: 10af3b8c6136ce84ca80d8fecaf38a93, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
-      value:
+      value: 
       objectReference: {fileID: 2100000, guid: 11da8ee3eea7c5c49a986f0226220b08, type: 2}
     - target: {fileID: -4174373956296078483, guid: 10af3b8c6136ce84ca80d8fecaf38a93, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
-      value:
+      value: 
       objectReference: {fileID: 2100000, guid: ce2983c9bb610604c8845637600a8a8d, type: 2}
     - target: {fileID: -398339407967467557, guid: 10af3b8c6136ce84ca80d8fecaf38a93, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
-      value:
+      value: 
       objectReference: {fileID: 2100000, guid: 71c4cfef0a68c354cb549c6f82c0d7b8, type: 2}
     - target: {fileID: 919132149155446097, guid: 10af3b8c6136ce84ca80d8fecaf38a93, type: 3}
       propertyPath: m_Name
@@ -87,6 +87,6 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e5c2114ec9f7be54889bb05839f089fe, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: DeadSignal.Runtime::DeadSignal.AuthoredMapObstacle
   m_localHalfSize: {x: 2.15, y: 0.39}

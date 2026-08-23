@@ -344,6 +344,7 @@ namespace DeadSignal
                 Tint = tint,
                 TargetScale = targetScale
             });
+            _playDirectionalSparks(position, tint);
 
             if (CameraImpulseEnabled)
             {
@@ -356,6 +357,35 @@ namespace DeadSignal
                 m_hitStopEndsAt = Mathf.Max(m_hitStopEndsAt, Time.realtimeSinceStartup + hitStopDuration);
                 Time.timeScale = 0f;
             }
+        }
+
+        private void _playDirectionalSparks(Vector3 position, Color tint)
+        {
+            var root = new GameObject("Directional Impact Sparks");
+            root.transform.SetParent(transform, true);
+            root.transform.position = position + Vector3.up * 0.12f;
+            var particles = root.AddComponent<ParticleSystem>();
+            particles.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+            var main = particles.main;
+            main.loop = false;
+            main.playOnAwake = false;
+            main.duration = 0.12f;
+            main.startLifetime = new ParticleSystem.MinMaxCurve(0.08f, 0.18f);
+            main.startSpeed = new ParticleSystem.MinMaxCurve(1.2f, 2.8f);
+            main.startSize = new ParticleSystem.MinMaxCurve(0.025f, 0.06f);
+            main.startColor = tint;
+            main.gravityModifier = 0.35f;
+            main.stopAction = ParticleSystemStopAction.Destroy;
+            var emission = particles.emission;
+            emission.enabled = false;
+            var shape = particles.shape;
+            shape.shapeType = ParticleSystemShapeType.Hemisphere;
+            shape.radius = 0.08f;
+            var renderer = root.GetComponent<ParticleSystemRenderer>();
+            renderer.renderMode = ParticleSystemRenderMode.Stretch;
+            renderer.velocityScale = 0.12f;
+            particles.Emit(ReducedFlashesEnabled ? 3 : 6);
+            particles.Play();
         }
 
         private void _updateHitStop()

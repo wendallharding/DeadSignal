@@ -135,6 +135,7 @@ namespace DeadSignal
 
             m_signalFill.sprite = signalSprite;
             m_runDebriefInsignia.texture = m_runDebriefTexture;
+            _configureRunHudReadability();
             _wireButtons();
             _refresh();
         }
@@ -212,8 +213,7 @@ namespace DeadSignal
                 ? string.Empty
                 : $"  //  {_overclockSynergyName()}";
             var optionalText = m_model.OptionalSalvageSecured ? "  //  OPTIONAL CACHE SECURED" : string.Empty;
-            m_salvageText.text =
-                $"SALVAGE  {m_model.Salvage}/{RunModel.SalvageRequired}{chainText}{overclockText}{auxiliaryText}{synergyText}{optionalText}";
+            m_salvageText.text = $"SALVAGE  {m_model.Salvage}/{RunModel.SalvageRequired}{chainText}{overclockText}{auxiliaryText}{synergyText}{optionalText}";
             var powered = m_world.IsPowered(m_world.Player.position, m_model.TowerOnline);
             m_zoneText.text = powered ? "● POWERED TERRITORY" : "▲ DEAD ZONE — ACTIVE DRAIN";
             m_zoneText.color = powered ? new Color(0.05f, 0.95f, 1f) : new Color(1f, 0.22f, 0.18f);
@@ -340,8 +340,20 @@ namespace DeadSignal
                 ? $"  TRACE {m_threats.DeadZoneTraceSecondsRemaining:0.0}s"
                 : string.Empty;
             var alert = m_extractionUplink.IsActive ? "PURSUIT" : $"ALERT {m_threats.EscalationTier}/{RunModel.SalvageRequired}";
-            return $"{alert}  RESERVE {m_threats.ReinforcementsRemaining}{trace}{entry}  //  " +
-                   $"{warden}  //  {interceptor}  //  {sapper}  //  {suppressor}";
+            var priorityThreat = m_threats.IsSapperAlive ? sapper : m_threats.IsInterceptorAlive ? interceptor :
+                m_threats.IsSuppressorAlive ? suppressor : warden;
+            return $"{alert}  //  {priorityThreat}  //  RESERVE {m_threats.ReinforcementsRemaining}{trace}{entry}";
+        }
+
+        private void _configureRunHudReadability()
+        {
+            m_signalText.fontSize = Mathf.Max(m_signalText.fontSize, 20);
+            m_salvageText.fontSize = Mathf.Max(m_salvageText.fontSize, 17);
+            m_zoneText.fontSize = Mathf.Max(m_zoneText.fontSize, 17);
+            m_objectiveText.fontSize = Mathf.Max(m_objectiveText.fontSize, 20);
+            m_threatText.fontSize = Mathf.Max(m_threatText.fontSize, 16);
+            m_controlLegendText.fontSize = Mathf.Max(m_controlLegendText.fontSize, 15);
+            m_feedbackText.fontSize = Mathf.Max(m_feedbackText.fontSize, 20);
         }
 
         private string _contextPrompt()
