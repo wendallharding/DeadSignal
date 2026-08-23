@@ -7,6 +7,13 @@ using UnityEngine.InputSystem.LowLevel;
 using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
 using UnityEngine.UI;
+using DeadSignal.Application;
+using DeadSignal.Combat;
+using DeadSignal.Missions;
+using DeadSignal.Player;
+using DeadSignal.Presentation;
+using DeadSignal.Salvage;
+using DeadSignal.World;
 
 namespace DeadSignal.Tests
 {

@@ -1,4 +1,5 @@
 using NUnit.Framework;
+using DeadSignal.Presentation;
 
 namespace DeadSignal.Tests
 {

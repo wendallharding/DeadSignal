@@ -92,5 +92,5 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e5c2114ec9f7be54889bb05839f089fe, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: DeadSignal.Runtime::DeadSignal.AuthoredMapObstacle
+  m_EditorClassIdentifier: DeadSignal.Runtime::DeadSignal.World.AuthoredMapObstacle
   m_localHalfSize: {x: 2.12, y: 0.51}

@@ -11,7 +11,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 0fe76f1c34f6ab7468cc7bceadb7a699, type: 3}
   m_Name: WardenThreatTelegraphTuning
-  m_EditorClassIdentifier: DeadSignal.Runtime::DeadSignal.WardenThreatTelegraphTuning
+  m_EditorClassIdentifier: DeadSignal.Runtime::DeadSignal.Combat.WardenThreatTelegraphTuning
   m_warningDistance: 2.6
   m_ringDiameter: 2.1
   m_minimumAlpha: 0.16

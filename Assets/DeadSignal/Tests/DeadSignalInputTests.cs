@@ -2,6 +2,8 @@ using NUnit.Framework;
 using System;
 using System.Reflection;
 using UnityEngine;
+using DeadSignal.Missions;
+using DeadSignal.Player;
 
 namespace DeadSignal.Tests
 {
@@ -26,7 +28,7 @@ namespace DeadSignal.Tests
             {
                 PlayerPrefs.SetString(FIRE_BINDING_KEY, "<Keyboard>/q");
                 PlayerPrefs.SetString(INTERACT_BINDING_KEY, "<Keyboard>/tab");
-                var inputType = typeof(RunModel).Assembly.GetType("DeadSignal.DeadSignalInput");
+                var inputType = typeof(RunModel).Assembly.GetType("DeadSignal.Player.DeadSignalInput");
                 Assert.That(inputType, Is.Not.Null);
                 var input = Activator.CreateInstance(inputType);
                 Assert.That(_property<string>(inputType, input, "FireKeyboardBinding"), Is.EqualTo("Q"));
@@ -65,7 +67,7 @@ namespace DeadSignal.Tests
             {
                 PlayerPrefs.DeleteKey(FIRE_BINDING_KEY);
                 PlayerPrefs.DeleteKey(INTERACT_BINDING_KEY);
-                var inputType = typeof(RunModel).Assembly.GetType("DeadSignal.DeadSignalInput");
+                var inputType = typeof(RunModel).Assembly.GetType("DeadSignal.Player.DeadSignalInput");
                 Assert.That(inputType, Is.Not.Null);
                 var input = Activator.CreateInstance(inputType);
 
@@ -100,7 +102,7 @@ namespace DeadSignal.Tests
                 PlayerPrefs.SetString(MOVE_DOWN_BINDING_KEY, "<Keyboard>/k");
                 PlayerPrefs.SetString(MOVE_LEFT_BINDING_KEY, "<Keyboard>/j");
                 PlayerPrefs.SetString(MOVE_RIGHT_BINDING_KEY, "<Keyboard>/l");
-                var inputType = typeof(RunModel).Assembly.GetType("DeadSignal.DeadSignalInput");
+                var inputType = typeof(RunModel).Assembly.GetType("DeadSignal.Player.DeadSignalInput");
                 var input = Activator.CreateInstance(inputType);
 
                 Assert.That(_property<string>(inputType, input, "MoveUpKeyboardBinding"), Is.EqualTo("I"));
@@ -143,7 +145,7 @@ namespace DeadSignal.Tests
                 PlayerPrefs.DeleteKey(MOVE_DOWN_BINDING_KEY);
                 PlayerPrefs.DeleteKey(MOVE_LEFT_BINDING_KEY);
                 PlayerPrefs.DeleteKey(MOVE_RIGHT_BINDING_KEY);
-                var inputType = typeof(RunModel).Assembly.GetType("DeadSignal.DeadSignalInput");
+                var inputType = typeof(RunModel).Assembly.GetType("DeadSignal.Player.DeadSignalInput");
                 var input = Activator.CreateInstance(inputType);
                 var tryApply = inputType.GetMethod("_tryApplyKeyboardRebind", BindingFlags.Instance | BindingFlags.NonPublic);
 

@@ -11,7 +11,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 8cc7014c075bc7a4fad98bba9d2545c6, type: 3}
   m_Name: SignalSapperTelegraphTuning
-  m_EditorClassIdentifier: DeadSignal.Runtime::DeadSignal.SignalSapperTelegraphTuning
+  m_EditorClassIdentifier: DeadSignal.Runtime::DeadSignal.Combat.SignalSapperTelegraphTuning
   m_approachRadius: 1.65
   m_countdownStartRadius: 2.25
   m_countdownEndRadius: 0.82

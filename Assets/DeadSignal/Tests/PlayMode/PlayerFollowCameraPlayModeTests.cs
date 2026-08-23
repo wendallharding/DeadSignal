@@ -5,6 +5,8 @@ using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.LowLevel;
 using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
+using DeadSignal.Application;
+using DeadSignal.Player;
 
 namespace DeadSignal.Tests
 {

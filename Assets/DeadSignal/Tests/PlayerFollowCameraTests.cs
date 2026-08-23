@@ -1,5 +1,6 @@
 using NUnit.Framework;
 using UnityEngine;
+using DeadSignal.Player;
 
 namespace DeadSignal.Tests
 {

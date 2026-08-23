@@ -11,7 +11,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: bbbb50a10760fdc4fb5c8e82ec2f6ce9, type: 3}
   m_Name: SignalOverclockTuning
-  m_EditorClassIdentifier: DeadSignal.Runtime::DeadSignal.SignalOverclockTuning
+  m_EditorClassIdentifier: DeadSignal.Runtime::DeadSignal.Missions.SignalOverclockTuning
   m_chainArcRadius: 4.5
   m_thrusterSpeedMultiplier: 1.25
   m_thrusterAccelerationMultiplier: 1.2

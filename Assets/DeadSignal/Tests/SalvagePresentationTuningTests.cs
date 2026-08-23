@@ -1,5 +1,7 @@
 using NUnit.Framework;
 using UnityEngine;
+using DeadSignal.Salvage;
+using DeadSignal.World;
 
 namespace DeadSignal.Tests
 {

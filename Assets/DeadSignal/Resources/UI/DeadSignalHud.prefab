@@ -5337,7 +5337,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6b233f86dddb7b742b8914ef2d7fd576, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: DeadSignal.Runtime::DeadSignal.DeadSignalHud
+  m_EditorClassIdentifier: DeadSignal.Runtime::DeadSignal.Presentation.DeadSignalHud
   m_canvas: {fileID: 7233945938072001404}
   m_runHud: {fileID: 21289231674125655}
   m_signalFill: {fileID: 7911382350342279212}
@@ -5406,7 +5406,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 00c44975e8d4a354282d680a71f88357, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: DeadSignal.Runtime::DeadSignal.ObjectiveBeaconHud
+  m_EditorClassIdentifier: DeadSignal.Runtime::DeadSignal.Presentation.ObjectiveBeaconHud
   m_panel: {fileID: 7559894500527283563}
   m_icon: {fileID: 2257304337319905911}
   m_label: {fileID: 5414123375719296362}
@@ -5423,7 +5423,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 5779f6fad810c45419ab7bbb2d6699ba, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: DeadSignal.Runtime::DeadSignal.LowSignalWarningController
+  m_EditorClassIdentifier: DeadSignal.Runtime::DeadSignal.Presentation.LowSignalWarningController
   m_vignette: {fileID: 8257032073606507154}
 --- !u!1 &6863608001527486433
 GameObject:

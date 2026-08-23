@@ -11,7 +11,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 2b3e9774501f439f824311b2b3e0d309, type: 3}
   m_Name: PlayerDroneMovementTuning
-  m_EditorClassIdentifier: DeadSignal.Runtime::DeadSignal.PlayerDroneMovementTuning
+  m_EditorClassIdentifier: DeadSignal.Runtime::DeadSignal.Player.PlayerDroneMovementTuning
   m_maximumSpeed: 6.4
   m_acceleration: 32
   m_braking: 21.333334

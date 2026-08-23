@@ -11,7 +11,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: b77ca000a305ae644a071bc7dc13ae4d, type: 3}
   m_Name: SalvagePresentationTuning
-  m_EditorClassIdentifier: DeadSignal.Runtime::DeadSignal.SalvagePresentationTuning
+  m_EditorClassIdentifier: DeadSignal.Runtime::DeadSignal.Salvage.SalvagePresentationTuning
   m_rotationSpeed: 70
   m_hoverHeight: 0.06
   m_hoverAmplitude: 0.04

@@ -1,6 +1,8 @@
 using System;
 using UnityEditor;
 using UnityEngine;
+using DeadSignal.Combat;
+using DeadSignal.Missions;
 
 namespace DeadSignal.Editor
 {

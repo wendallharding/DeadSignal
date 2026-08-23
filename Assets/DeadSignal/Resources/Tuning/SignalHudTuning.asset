@@ -11,7 +11,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 93907a43d9919c94184bb87969b68986, type: 3}
   m_Name: SignalHudTuning
-  m_EditorClassIdentifier: DeadSignal.Runtime::DeadSignal.SignalHudTuning
+  m_EditorClassIdentifier: DeadSignal.Runtime::DeadSignal.Presentation.SignalHudTuning
   m_strainedThreshold: 0.6
   m_criticalThreshold: 0.25
   m_criticalPulseSpeed: 3.2

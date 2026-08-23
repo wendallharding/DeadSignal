@@ -43,7 +43,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e5c2114ec9f7be54889bb05839f089fe, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: DeadSignal.Runtime::DeadSignal.AuthoredMapObstacle
+  m_EditorClassIdentifier: DeadSignal.Runtime::DeadSignal.World.AuthoredMapObstacle
   m_localHalfSize: {x: 0.16, y: 1}
 --- !u!1 &924317593541489316
 GameObject:
@@ -88,7 +88,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e5c2114ec9f7be54889bb05839f089fe, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: DeadSignal.Runtime::DeadSignal.AuthoredMapObstacle
+  m_EditorClassIdentifier: DeadSignal.Runtime::DeadSignal.World.AuthoredMapObstacle
   m_localHalfSize: {x: 0.16, y: 3.3}
 --- !u!1 &2028495981201067838
 GameObject:
@@ -133,7 +133,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e5c2114ec9f7be54889bb05839f089fe, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: DeadSignal.Runtime::DeadSignal.AuthoredMapObstacle
+  m_EditorClassIdentifier: DeadSignal.Runtime::DeadSignal.World.AuthoredMapObstacle
   m_localHalfSize: {x: 0.55, y: 1.25}
 --- !u!1 &3160900561170637860
 GameObject:
@@ -178,7 +178,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e5c2114ec9f7be54889bb05839f089fe, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: DeadSignal.Runtime::DeadSignal.AuthoredMapObstacle
+  m_EditorClassIdentifier: DeadSignal.Runtime::DeadSignal.World.AuthoredMapObstacle
   m_localHalfSize: {x: 0.16, y: 1}
 --- !u!1 &6687122487134240471
 GameObject:
@@ -223,7 +223,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e5c2114ec9f7be54889bb05839f089fe, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: DeadSignal.Runtime::DeadSignal.AuthoredMapObstacle
+  m_EditorClassIdentifier: DeadSignal.Runtime::DeadSignal.World.AuthoredMapObstacle
   m_localHalfSize: {x: 3.3, y: 0.16}
 --- !u!1 &7461942849704744897
 GameObject:
@@ -268,7 +268,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 897a2aebfeff94e47a829331b819f0e5, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: DeadSignal.Runtime::DeadSignal.AuthoredSalvageSocket
+  m_EditorClassIdentifier: DeadSignal.Runtime::DeadSignal.World.AuthoredSalvageSocket
 --- !u!1 &7622958894755135770
 GameObject:
   m_ObjectHideFlags: 0
@@ -312,7 +312,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e5c2114ec9f7be54889bb05839f089fe, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: DeadSignal.Runtime::DeadSignal.AuthoredMapObstacle
+  m_EditorClassIdentifier: DeadSignal.Runtime::DeadSignal.World.AuthoredMapObstacle
   m_localHalfSize: {x: 3.3, y: 0.16}
 --- !u!1001 &7324604412478650102
 PrefabInstance:

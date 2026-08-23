@@ -1,4 +1,6 @@
 using NUnit.Framework;
+using DeadSignal.Combat;
+using DeadSignal.Missions;
 
 namespace DeadSignal.Tests
 {

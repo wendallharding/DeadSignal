@@ -11,7 +11,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: fa0147929a3e8aa4fb6691af9e798804, type: 3}
   m_Name: ThreatBalanceTuning
-  m_EditorClassIdentifier: DeadSignal.Runtime::DeadSignal.ThreatBalanceTuning
+  m_EditorClassIdentifier: DeadSignal.Runtime::DeadSignal.Combat.ThreatBalanceTuning
   m_wardenHealth: 3
   m_wardenSpeed: 2.15
   m_wardenAttackDistance: 1.05

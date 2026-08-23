@@ -1,5 +1,7 @@
 using NUnit.Framework;
 using UnityEngine;
+using DeadSignal.Combat;
+using DeadSignal.Missions;
 
 namespace DeadSignal.Tests
 {

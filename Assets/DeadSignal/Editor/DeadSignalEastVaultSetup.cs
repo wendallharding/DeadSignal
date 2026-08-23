@@ -4,6 +4,8 @@ using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using DeadSignal.Salvage;
+using DeadSignal.World;
 
 namespace DeadSignal.Editor
 {

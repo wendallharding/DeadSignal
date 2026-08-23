@@ -11,7 +11,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 2c67828ca7209994ab6a1eee8cc1604d, type: 3}
   m_Name: SignalBoltPresentationTuning
-  m_EditorClassIdentifier: DeadSignal.Runtime::DeadSignal.SignalBoltPresentationTuning
+  m_EditorClassIdentifier: DeadSignal.Runtime::DeadSignal.Combat.SignalBoltPresentationTuning
   m_trailDuration: 0.12
   m_startingWidth: 0.18
   m_endingWidth: 0.015
