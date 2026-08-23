@@ -4390,3 +4390,41 @@ Acceptance criteria were recorded before implementation: screening must require 
 Automated runtime evidence shows the pair activates only after latch, places the contested point at `2.8m` on the player-to-Sapper line, retains a geometrically open perpendicular approach, and releases inside the `2m` guard break. Headless automation cannot establish whether players recognize the callout, actually change route, accept damage, abandon the interrupt, or find the screen too easy to orbit.
 
 Next highest-impact step: play three matched openings—direct approach, perpendicular flank, and Warden-first purge—and record first-threat time, screening recognition, route deviation, Warden hits, Sapper pulses, shots, Signal spent/reclaimed, abandoned salvage, and extraction reserve before changing tuning or expanding to a second tower.
+
+## 2026-08-23 — Autonomous Run 80: Sapper-Interceptor flank cut
+
+### Milestone and player benefit
+
+Deepened the existing mixed encounter without adding health, speed, damage, or enemies. When a live Interceptor overlaps a latched Sapper, it now contests the nearer of two perpendicular approaches at a designer-tuned 3.6-metre offset. The mirrored flank remains open, and breaching within 2.25 metres immediately restores ordinary retreat interception. Extraction Suppressor coordination retains priority, so the two pair behaviors cannot stack into an unreadable trap.
+
+Acceptance criteria were recorded before implementation: require both live roles plus an active latch; use bounded designer tuning; contest exactly one perpendicular flank; release on close breach; preserve Suppressor priority; disclose the transition and live state; retain all enemy stats, counts, entrances, budgets, rewards, and telegraphs; and pass deterministic plus live-runtime coverage.
+
+### Changed files and systems
+
+- `Assets/DeadSignal/Runtime/InterceptorTactics.cs` adds deterministic nearest-flank selection and open-side geometry.
+- `Assets/DeadSignal/Runtime/DeadSignalThreatController.cs` owns pair gating, tactical priority, breach release, and the one-time transition callout.
+- `Assets/DeadSignal/Runtime/ThreatBalanceTuning.cs` and `Assets/DeadSignal/Resources/Tuning/ThreatBalanceTuning.asset` add validated 3.6-metre flank and 2.25-metre breach values.
+- `Assets/DeadSignal/Runtime/DeadSignalGame.cs` exposes the narrow live state for runtime validation.
+- `Assets/DeadSignal/Runtime/DeadSignalHud.cs` names `FLANK CUT` alongside the urgent latched-Sapper status.
+- `Assets/DeadSignal/Tests/InterceptorTacticsTests.cs`, `Assets/DeadSignal/Tests/ThreatBalanceTuningTests.cs`, and `Assets/DeadSignal/Tests/PlayMode/BootstrapSmokeTests.cs` cover both side choices, perpendicular/open geometry, tuning relationships, live deployment, and breach release.
+- `GAME_VISION.md` records the tactical product decision; `BACKLOG.md` records acceptance and keeps the next playtest focused.
+
+No scenes, prefabs, materials, audio, input, packages, project settings, serialized save data, enemy stats, Signal rewards, spawn entrances, or asset GUIDs changed. The Windows build regenerated six component file IDs in `EastSalvageVault.prefab`; that unrelated serializer churn was restored exactly.
+
+### Exact validation
+
+- Unity `6000.3.11f1` compile/import: exit `0` (`Logs/Run80-Compile.log`).
+- Final post-format compile: exit `0` (`Logs/Run80-Final-Compile.log`).
+- Focused EditMode: `10/10` passed in `0.0422731s` (`Logs/Run80-Focused-EditMode.xml`).
+- Focused live PlayMode: `1/1` passed in `3.7636446s` (`Logs/Run80-Focused-PlayMode.xml`).
+- Full EditMode: `98/98` passed in `0.19198s` (`Logs/Run80-Full-EditMode.xml`).
+- Full PlayMode: `12/12` passed in `34.4384723s` (`Logs/Run80-Full-PlayMode.xml`).
+- Windows x64 development build: PASS, `241,225,900` bytes in `16.39s` (`Logs/Run80-WindowsBuild.log`).
+- Packaged null-device smoke: PASS with exit `0` (`Logs/Run80-StandaloneSmoke.log`).
+- Final critical log scans and `git diff --check` were clean aside from transient Unity licensing messages that resolved to the installed valid license.
+
+### Playtest evidence, limitations, and next step
+
+The focused runtime route proves a latched Sapper can coexist with the bounded first Interceptor response, the target remains 3.6 metres from the Sapper and perpendicular to the direct approach, the mirrored flank stays more than seven metres away from the contested point, and a two-metre breach releases coordination. Headless automation cannot establish whether players notice which side is cut, switch early enough, bait a dash, accept a pulse, or choose to purge the Interceptor first. No interactive feel or visual-layout session ran in this automation.
+
+Next highest-impact step: play three matched overlaps—approach the contested flank, immediately switch to the mirrored flank, and purge the Interceptor before approaching the Sapper. Record recognition time, side switches, dash locks/hits, Sapper pulses, shots, Signal spent/reclaimed, abandoned salvage, extraction mode, and final reserve before tuning either distance or expanding the map.

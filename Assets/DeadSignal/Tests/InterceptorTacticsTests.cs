@@ -56,5 +56,35 @@ namespace DeadSignal.Tests
 
             Assert.That(cutoff, Is.EqualTo(Vector3.right * 3.9f));
         }
+
+        [Test]
+        public void CalculateSapperFlankPoint_ContestsNearestSideAndLeavesOppositeFlankOpen()
+        {
+            var sapper = new Vector3(1f, 2f, -1f);
+            var player = sapper + Vector3.right * 6f;
+            var interceptor = sapper + Vector3.forward * 8f;
+
+            var cutoff = InterceptorTactics.CalculateSapperFlankPoint(player, sapper, interceptor, 3.6f);
+
+            Assert.That(cutoff, Is.EqualTo(new Vector3(1f, 0f, 2.6f)));
+            Assert.That(Vector3.Dot(
+                (cutoff - new Vector3(sapper.x, 0f, sapper.z)).normalized,
+                (player - sapper).normalized), Is.EqualTo(0f).Within(0.001f),
+                "The Interceptor should contest a perpendicular approach instead of duplicating the direct screen.");
+            Assert.That(Vector3.Distance(cutoff, new Vector3(1f, 0f, -4.6f)), Is.EqualTo(7.2f).Within(0.001f),
+                "The opposite flank must remain open as readable counterplay.");
+        }
+
+        [Test]
+        public void CalculateSapperFlankPoint_ChoosesOtherSideWhenInterceptorIsCloser()
+        {
+            var cutoff = InterceptorTactics.CalculateSapperFlankPoint(
+                Vector3.right * 6f,
+                Vector3.zero,
+                Vector3.back * 8f,
+                3.6f);
+
+            Assert.That(cutoff, Is.EqualTo(Vector3.back * 3.6f));
+        }
     }
 }

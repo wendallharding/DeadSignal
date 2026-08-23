@@ -157,6 +157,72 @@ namespace DeadSignal.Tests
         }
 
         [UnityTest]
+        public IEnumerator LatchedSapperAndInterceptor_CutOneFlankAndReleaseOnBreach()
+        {
+            yield return SceneManager.LoadSceneAsync("SampleScene");
+            yield return null;
+
+            var gamepad = InputSystem.AddDevice<Gamepad>();
+            try
+            {
+                var game = Object.FindFirstObjectByType<DeadSignalGame>();
+                var player = game.transform.Find("Maintenance Drone");
+                var sapper = game.transform.Find("Signal Sapper");
+                var interceptor = game.transform.Find("Security Interceptor");
+                player.position = new Vector3(-0.6f, 0f, 0.4f);
+                InputSystem.QueueStateEvent(gamepad, new GamepadState().WithButton(GamepadButton.West));
+                yield return null;
+                InputSystem.QueueStateEvent(gamepad, new GamepadState());
+                yield return null;
+
+                game.transform.Find("Security Warden").position = new Vector3(18f, 0f, 9f);
+                player.position = new Vector3(5.4f, 0f, 0.4f);
+                sapper.position = new Vector3(-0.6f, 0f, 0.4f);
+                yield return null;
+                Assert.That(game.IsSapperLatched, Is.True);
+
+                var firstCache = game.transform.Cast<Transform>()
+                    .First(child => child.name == "Salvage Cache" && child.gameObject.activeSelf);
+                player.position = firstCache.position;
+                yield return null;
+                player.position = Vector3.zero;
+                var entryDeadline = Time.time + 3.2f;
+                while (!interceptor.gameObject.activeSelf && Time.time < entryDeadline)
+                {
+                    yield return null;
+                }
+
+                Assert.That(interceptor.gameObject.activeSelf, Is.True,
+                    "The avoidance response should deploy an Interceptor while the opening Sapper remains latched.");
+                player.position = new Vector3(5.4f, 0f, 0.4f);
+                sapper.position = new Vector3(-0.6f, 0f, 0.4f);
+                interceptor.position = sapper.position + Vector3.forward * 8f;
+                yield return null;
+
+                Assert.That(game.IsInterceptorCuttingSapperFlank, Is.True,
+                    "The overlapping roles should contest exactly one perpendicular approach.");
+                var planarSapper = new Vector3(sapper.position.x, 0f, sapper.position.z);
+                var cutoffOffset = game.InterceptorCutoffTarget - planarSapper;
+                Assert.That(cutoffOffset.magnitude, Is.EqualTo(3.6f).Within(0.05f));
+                Assert.That(Vector3.Dot(cutoffOffset.normalized, (player.position - sapper.position).normalized),
+                    Is.EqualTo(0f).Within(0.01f), "The flank cut must remain perpendicular to the direct Sapper approach.");
+                Assert.That(Vector3.Distance(
+                        game.InterceptorCutoffTarget,
+                        planarSapper - cutoffOffset), Is.GreaterThan(7f),
+                    "The mirrored flank must remain open rather than becoming a closed ring.");
+
+                player.position = sapper.position + Vector3.right * 2f;
+                yield return null;
+                Assert.That(game.IsInterceptorCuttingSapperFlank, Is.False,
+                    "Breaching inside the tuned radius should immediately restore ordinary retreat interception.");
+            }
+            finally
+            {
+                InputSystem.RemoveDevice(gamepad);
+            }
+        }
+
+        [UnityTest]
         public IEnumerator FirstSalvage_UseSelectsOverdriveAndAppliesRuntimeSpeedTuning()
         {
             yield return SceneManager.LoadSceneAsync("SampleScene");

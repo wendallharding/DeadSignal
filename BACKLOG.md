@@ -14,6 +14,15 @@
 
 ## P1 — Prove the loop
 
+### Run 80 Sapper-Interceptor flank-cut ideas
+
+- [x] While a Sapper is latched, route a surviving Interceptor to the nearer of two perpendicular flank points
+- [x] Keep the flank offset bounded at 3.6 metres and restore ordinary retreat interception inside a 2.25-metre breach
+- [x] Preserve the mirrored flank as open counterplay and retain Suppressor-exit coordination as the extraction priority
+- [x] Surface the combined role through one transition callout and live threat status without changing enemy stats, count, or response budget
+- [x] Prove side selection, perpendicular geometry, open counterplay, live deployment, and breach release in Unity tests
+- [ ] Playtest near-flank, far-flank, and Interceptor-first responses for recognition, route switching, dashes, pulses, shots, and Signal reserve
+
 ### Run 79 Warden-Sapper screen ideas
 
 - [x] While a Sapper is latched, route a surviving Warden to a designer-tuned point on the player's direct approach

@@ -49,6 +49,7 @@ namespace DeadSignal
         private Vector3 m_interceptorDashDirection;
         private Vector3 m_interceptorDashTarget;
         private Vector3 m_interceptorCutoffTarget;
+        private bool m_interceptorCuttingSapperFlank;
         private bool m_extractionPressure;
         private ExtractionUplinkMode m_extractionUplinkMode;
         private float m_suppressorWarningCountdown;
@@ -112,6 +113,7 @@ namespace DeadSignal
         public float SuppressorSignalReward => m_tuning.SuppressorSignalReward;
         public bool IsInterceptorCharging => m_interceptorChargeCountdown > 0f;
         public Vector3 InterceptorCutoffTarget => m_interceptorCutoffTarget;
+        public bool IsInterceptorCuttingSapperFlank => m_interceptorCuttingSapperFlank;
         public bool IsSuppressorFieldActive => m_suppressorFieldCountdown > 0f;
         public bool IsSuppressorFieldWarningActive => m_suppressorWarningCountdown > 0f;
         public Vector3 SuppressorFieldCenter => m_suppressorFieldCenter;
@@ -329,11 +331,19 @@ namespace DeadSignal
         {
             if (!m_model.TowerOnline || m_interceptorHealth <= 0f)
             {
+                m_interceptorCuttingSapperFlank = false;
                 return;
             }
 
             m_interceptorHitCooldown = Mathf.Max(0f, m_interceptorHitCooldown - dt);
             m_world.InterceptorCore.Rotate(Vector3.up, 320f * dt, Space.Self);
+            var wasCuttingSapperFlank = m_interceptorCuttingSapperFlank;
+            m_interceptorCuttingSapperFlank = _isSapperFlankCutActive();
+            if (!wasCuttingSapperFlank && m_interceptorCuttingSapperFlank)
+            {
+                m_showFeedback("INTERCEPTOR CUTTING SAPPER FLANK — SWITCH SIDES");
+            }
+
             if (m_interceptorDashRemaining > 0f)
             {
                 m_interceptorDashRemaining = Mathf.Max(0f, m_interceptorDashRemaining - dt);
@@ -398,10 +408,31 @@ namespace DeadSignal
                     m_tuning.InterceptorSuppressionExitMargin);
             }
 
+            if (m_interceptorCuttingSapperFlank)
+            {
+                return InterceptorTactics.CalculateSapperFlankPoint(
+                    m_world.Player.position,
+                    m_world.Sapper.position,
+                    m_world.Interceptor.position,
+                    m_tuning.InterceptorSapperFlankDistance);
+            }
+
             return InterceptorTactics.CalculateCutoffPoint(
                 m_world.Player.position,
                 m_world.ExtractionPosition,
                 m_tuning.InterceptorCutoffFraction);
+        }
+
+        private bool _isSapperFlankCutActive()
+        {
+            var suppressorCoordinationActive = m_suppressorHealth > 0f &&
+                                               (m_suppressorWarningCountdown > 0f ||
+                                                (m_suppressorFieldCountdown > 0f && IsPlayerSuppressed));
+            return !suppressorCoordinationActive &&
+                   m_sapperLatched &&
+                   m_sapperHealth > 0f &&
+                   DeadSignalWorld.FlatDistance(m_world.Player.position, m_world.Sapper.position) >
+                   m_tuning.InterceptorSapperFlankBreakDistance;
         }
 
         private void _faceInterceptor(Vector3 target)

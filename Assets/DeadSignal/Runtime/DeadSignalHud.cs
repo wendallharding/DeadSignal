@@ -372,13 +372,18 @@ namespace DeadSignal
             var sapper = !m_threats.IsSapperAlive
                 ? "SAPPER PURGED"
                 : m_threats.IsSapperLatched
-                    ? $"SAPPER {m_threats.SapperHealth:0}/{m_threats.SapperMaximumHealth:0} DRAIN {m_threats.SapperPulseCooldown:0.0}s (+{m_threats.SapperSignalReward:0})"
+                    ? $"SAPPER {m_threats.SapperHealth:0}/{m_threats.SapperMaximumHealth:0} DRAIN {m_threats.SapperPulseCooldown:0.0}s" +
+                      $"{(m_threats.IsInterceptorCuttingSapperFlank ? " / FLANK CUT" : string.Empty)} (+{m_threats.SapperSignalReward:0})"
                     : $"SAPPER {m_threats.SapperHealth:0}/{m_threats.SapperMaximumHealth:0} APPROACHING (+{m_threats.SapperSignalReward:0})";
             var interceptor = !m_threats.IsInterceptorAlive
                 ? "INTERCEPTOR CLEAR"
                 : m_threats.IsInterceptorCharging
                     ? $"INTERCEPTOR {m_threats.InterceptorHealth:0}/{m_threats.InterceptorMaximumHealth:0} LOCKING (+{m_threats.InterceptorSignalReward:0})"
-                    : $"INTERCEPTOR {m_threats.InterceptorHealth:0}/{m_threats.InterceptorMaximumHealth:0} FLANKING (+{m_threats.InterceptorSignalReward:0})";
+                    : m_threats.IsInterceptorCuttingSapperFlank
+                        ? $"INTERCEPTOR {m_threats.InterceptorHealth:0}/{m_threats.InterceptorMaximumHealth:0} SAPPER FLANK " +
+                          $"(+{m_threats.InterceptorSignalReward:0})"
+                        : $"INTERCEPTOR {m_threats.InterceptorHealth:0}/{m_threats.InterceptorMaximumHealth:0} FLANKING " +
+                          $"(+{m_threats.InterceptorSignalReward:0})";
             var suppressor = !m_threats.IsSuppressorAlive
                 ? "SUPPRESSOR CLEAR"
                 : m_threats.IsSuppressorFieldActive

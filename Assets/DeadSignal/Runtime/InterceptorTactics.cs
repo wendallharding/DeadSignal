@@ -66,6 +66,31 @@ namespace DeadSignal
             return cutoff;
         }
 
+        public static Vector3 CalculateSapperFlankPoint(
+            Vector3 playerPosition,
+            Vector3 sapperPosition,
+            Vector3 interceptorPosition,
+            float flankDistance)
+        {
+            var approachDirection = playerPosition - sapperPosition;
+            approachDirection.y = 0f;
+            if (approachDirection.sqrMagnitude < 0.01f)
+            {
+                approachDirection = Vector3.forward;
+            }
+
+            approachDirection.Normalize();
+            var flankDirection = new Vector3(-approachDirection.z, 0f, approachDirection.x);
+            var firstFlank = sapperPosition + flankDirection * Mathf.Max(0f, flankDistance);
+            var secondFlank = sapperPosition - flankDirection * Mathf.Max(0f, flankDistance);
+            var cutoff = _flatSqrDistance(interceptorPosition, secondFlank) <
+                         _flatSqrDistance(interceptorPosition, firstFlank)
+                ? secondFlank
+                : firstFlank;
+            cutoff.y = 0f;
+            return cutoff;
+        }
+
         private static float _flatSqrDistance(Vector3 first, Vector3 second)
         {
             var delta = first - second;
