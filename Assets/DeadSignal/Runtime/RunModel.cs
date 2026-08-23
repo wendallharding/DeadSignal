@@ -24,6 +24,9 @@ namespace DeadSignal
         public float SignalRecovered { get; private set; }
         public int BestSalvageChain { get; private set; }
         public float SalvageSignalRecovered { get; private set; }
+        public float PassiveSignalSpent { get; private set; }
+        public float MovementSignalSpent { get; private set; }
+        public float WeaponSignalSpent { get; private set; }
 
         public void Advance(float seconds, bool isPowered)
         {
@@ -42,6 +45,13 @@ namespace DeadSignal
         public void RecordShot()
         {
             ShotsFired++;
+            WeaponSignalSpent += RunModel.ShotCost;
+        }
+
+        public void RecordTraversalDrain(float passive, float movement)
+        {
+            PassiveSignalSpent += Math.Max(0f, passive);
+            MovementSignalSpent += Math.Max(0f, movement);
         }
 
         public void RecordSecurityHit()
@@ -87,6 +97,7 @@ namespace DeadSignal
         public const float SecurityHitCost = 18f;
         public const float SapperPulseCost = 8f;
         public const int SalvageRequired = 3;
+        public const float CriticalRecoveryDuration = 5f;
 
         public float Signal { get; private set; } = StartingSignal;
         public int Salvage { get; private set; }
@@ -94,8 +105,14 @@ namespace DeadSignal
         public bool ShortcutOpen { get; private set; }
         public bool OptionalSalvageSecured { get; private set; }
         public RunOutcome Outcome { get; private set; } = RunOutcome.Running;
+        public float CriticalRecoveryRemaining { get; private set; }
+        public bool IsCriticalRecovery => CriticalRecoveryRemaining > 0f && Outcome == RunOutcome.Running;
 
         public bool CanExtract => Outcome == RunOutcome.Running && Salvage >= SalvageRequired;
+
+        public static float PassiveDrainRate(bool isPowered) => isPowered ? 0f : 2.8f;
+        public static float MovementDrainRate(bool isMoving, bool isPowered) =>
+            isMoving ? (isPowered ? 0.38f : 3.2f) : 0f;
 
         public bool TrySpend(float amount)
         {
@@ -116,11 +133,11 @@ namespace DeadSignal
                 return;
             }
 
-            float passiveDrain = isPowered ? 0f : 2.8f;
-            float movementDrain = isMoving ? (isPowered ? 0.38f : 3.2f) : 0f;
+            var passiveDrain = PassiveDrainRate(isPowered);
+            var movementDrain = MovementDrainRate(isMoving, isPowered);
             Signal -= (passiveDrain + movementDrain) * seconds;
             Signal = Math.Max(0f, Signal);
-            _evaluateSignal();
+            _evaluateSignal(seconds);
         }
 
         public bool TryActivateTower()
@@ -212,6 +229,10 @@ namespace DeadSignal
 
             var previousSignal = Signal;
             Signal = Math.Min(MaximumSignal, Signal + amount);
+            if (Signal > 0f)
+            {
+                CriticalRecoveryRemaining = 0f;
+            }
             return Signal - previousSignal;
         }
 
@@ -226,9 +247,26 @@ namespace DeadSignal
             return true;
         }
 
-        private void _evaluateSignal()
+        private void _evaluateSignal(float elapsedSeconds = 0f)
         {
-            if (Signal <= 0f && Outcome == RunOutcome.Running)
+            if (Signal > 0f || Outcome != RunOutcome.Running)
+            {
+                return;
+            }
+
+            if (CriticalRecoveryRemaining <= 0f && elapsedSeconds <= 0f)
+            {
+                CriticalRecoveryRemaining = CriticalRecoveryDuration;
+                return;
+            }
+
+            if (CriticalRecoveryRemaining <= 0f)
+            {
+                CriticalRecoveryRemaining = CriticalRecoveryDuration;
+            }
+
+            CriticalRecoveryRemaining = Math.Max(0f, CriticalRecoveryRemaining - elapsedSeconds);
+            if (CriticalRecoveryRemaining <= 0f)
             {
                 Outcome = RunOutcome.Destroyed;
             }

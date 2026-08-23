@@ -158,6 +158,8 @@ namespace DeadSignal.Tests
             run.TakeSecurityHit();
             run.TakeSecurityHit();
             Assert.That(run.Signal, Is.Zero);
+            Assert.That(run.IsCriticalRecovery, Is.True);
+            run.Advance(RunModel.CriticalRecoveryDuration, false, true);
             Assert.That(run.Outcome, Is.EqualTo(RunOutcome.Destroyed));
         }
 
@@ -175,6 +177,7 @@ namespace DeadSignal.Tests
             }
 
             Assert.That(run.Signal, Is.Zero);
+            run.Advance(RunModel.CriticalRecoveryDuration, false, true);
             Assert.That(run.Outcome, Is.EqualTo(RunOutcome.Destroyed));
         }
 
@@ -187,7 +190,21 @@ namespace DeadSignal.Tests
             run.TakeSuppressionPulse(4f);
 
             Assert.That(run.Signal, Is.Zero);
+            run.Advance(RunModel.CriticalRecoveryDuration, false, true);
             Assert.That(run.Outcome, Is.EqualTo(RunOutcome.Destroyed));
+        }
+
+        [Test]
+        public void CriticalRecovery_RestoringSignalCancelsDestruction()
+        {
+            var run = new RunModel();
+            run.TrySpend(run.Signal);
+
+            Assert.That(run.IsCriticalRecovery, Is.True);
+            run.Advance(2f, false, true);
+            Assert.That(run.RestoreSignal(12f), Is.EqualTo(12f));
+            Assert.That(run.IsCriticalRecovery, Is.False);
+            Assert.That(run.Outcome, Is.EqualTo(RunOutcome.Running));
         }
 
         [Test]

@@ -150,6 +150,42 @@ namespace DeadSignal
             return position;
         }
 
+        public Vector3 GetNavigationWaypoint(Vector3 current, Vector3 destination, float radius, bool shortcutOpen)
+        {
+            if (!_tryGetNavigationBlocker(current, destination, radius, shortcutOpen, out var blockingObstacle))
+            {
+                return destination;
+            }
+
+            var bestWaypoint = destination;
+            var bestScore = float.PositiveInfinity;
+            for (var index = 0; index < MovementBlocker.DETOUR_WAYPOINT_COUNT; index++)
+            {
+                var candidate = blockingObstacle.GetDetourWaypoint(index, radius + NAVIGATION_CLEARANCE);
+                var waypoint = new Vector3(candidate.x, current.y, candidate.y);
+                if (!_hasNavigationLine(current, waypoint, radius, shortcutOpen))
+                {
+                    continue;
+                }
+
+                var score = FlatDistance(current, waypoint) + FlatDistance(waypoint, destination);
+                if (!_hasNavigationLine(waypoint, destination, radius, shortcutOpen))
+                {
+                    score += NAVIGATION_BLOCKED_ROUTE_PENALTY;
+                }
+
+                if (score >= bestScore)
+                {
+                    continue;
+                }
+
+                bestScore = score;
+                bestWaypoint = waypoint;
+            }
+
+            return bestWaypoint;
+        }
+
         public bool TryGetProjectileObstacleHit(
             Vector3 start,
             Vector3 end,
@@ -428,7 +464,7 @@ namespace DeadSignal
             float guidanceStrength)
         {
             var target = _currentObjectiveTarget(model);
-            _updateGuideLine(m_routeGuide, Player.position, target, m_palette.Cyan, 0.035f + guidanceStrength * 0.045f);
+            _updateGuideLine(m_routeGuide, Player.position, target, m_palette.Amber, 0.045f + guidanceStrength * 0.055f);
             m_routeGuide.enabled = guidanceStrength > 0.01f;
 
             var aimEnd = Player.position + aimDirection.normalized * 4.2f;
@@ -460,7 +496,7 @@ namespace DeadSignal
             {
                 var poweredTarget = model.TowerOnline && FlatDistance(Player.position, TowerPosition) <
                     FlatDistance(Player.position, ExtractionPosition) ? TowerPosition : ExtractionPosition;
-                _updateGuideLine(m_emergencyGuide, Player.position, poweredTarget, m_palette.Amber, 0.1f);
+                _updateGuideLine(m_emergencyGuide, Player.position, poweredTarget, m_palette.Cyan, 0.1f);
                 m_emergencyGuide.enabled = true;
             }
             else
@@ -757,6 +793,8 @@ namespace DeadSignal
                 SignalTowerPartCount = 3;
             }
 
+            m_movementBlockers.Add(new MovementBlocker(
+                new Vector2(TowerPosition.x, TowerPosition.z), Vector2.one * TOWER_BLOCKER_HALF_SIZE, false));
             _buildSignalRouting();
         }
 
@@ -1275,6 +1313,37 @@ namespace DeadSignal
             return false;
         }
 
+        private bool _hasNavigationLine(Vector3 start, Vector3 end, float radius, bool shortcutOpen)
+        {
+            return !_tryGetNavigationBlocker(start, end, radius, shortcutOpen, out _);
+        }
+
+        private bool _tryGetNavigationBlocker(
+            Vector3 start,
+            Vector3 end,
+            float radius,
+            bool shortcutOpen,
+            out MovementBlocker blockingObstacle)
+        {
+            blockingObstacle = null;
+            var nearestFraction = float.PositiveInfinity;
+            foreach (var blocker in m_movementBlockers)
+            {
+                if ((blocker.IsShortcutGate && shortcutOpen) ||
+                    blocker.Overlaps(end, 0f) ||
+                    !blocker.TryGetSweepHit(start, end, radius, out var hitFraction, out _) ||
+                    hitFraction >= nearestFraction)
+                {
+                    continue;
+                }
+
+                nearestFraction = hitFraction;
+                blockingObstacle = blocker;
+            }
+
+            return blockingObstacle != null;
+        }
+
         private GameObject _createTerritory(string objectName, Vector3 position, float radius, Material material)
         {
             return _createPrimitive(
@@ -1563,6 +1632,9 @@ namespace DeadSignal
         private const string PLAYER_CAMERA_TUNING_RESOURCE = "Tuning/PlayerCameraTuning";
         private const float DECK_MODULE_WIDTH = 3.9f;
         private const float DECK_MODULE_DEPTH = 3.6f;
+        private const float TOWER_BLOCKER_HALF_SIZE = 0.62f;
+        private const float NAVIGATION_CLEARANCE = 0.08f;
+        private const float NAVIGATION_BLOCKED_ROUTE_PENALTY = 20f;
 
         private static readonly Vector3 s_securityWardenSpawn = new(6.8f, 0f, 4.7f);
         private static readonly Vector3 s_signalSapperSpawn = new(-10.8f, 0f, 5.7f);
@@ -1598,6 +1670,8 @@ namespace DeadSignal
 
         private sealed class MovementBlocker
         {
+            public const int DETOUR_WAYPOINT_COUNT = 4;
+
             public MovementBlocker(Vector2 center, Vector2 halfSize, bool isShortcutGate)
                 : this(center, halfSize, Vector2.right, Vector2.up, isShortcutGate)
             {
@@ -1664,6 +1738,19 @@ namespace DeadSignal
                     ForwardAxis,
                     radius,
                     out hitFraction);
+            }
+
+            public Vector2 GetDetourWaypoint(int index, float clearance)
+            {
+                var expandedRight = RightAxis * (HalfSize.x + clearance);
+                var expandedForward = ForwardAxis * (HalfSize.y + clearance);
+                return index switch
+                {
+                    0 => Center + expandedRight + expandedForward,
+                    1 => Center + expandedRight - expandedForward,
+                    2 => Center - expandedRight + expandedForward,
+                    _ => Center - expandedRight - expandedForward
+                };
             }
         }
     }

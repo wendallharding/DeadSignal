@@ -26,6 +26,7 @@ namespace DeadSignal
         Vector3 ReadAimDirection(Camera camera, Transform player);
         bool PressedFire();
         bool PressedInteract();
+        bool PressedDash();
         bool PressedRestart();
         bool PressedPause();
         bool PressedCameraImpulseToggle();
@@ -200,6 +201,24 @@ namespace DeadSignal
             }
 
             return true;
+        }
+
+        public bool PressedDash()
+        {
+            if (Keyboard.current != null &&
+                (Keyboard.current.leftShiftKey.wasPressedThisFrame || Keyboard.current.rightShiftKey.wasPressedThisFrame))
+            {
+                _useKeyboardMouse();
+                return true;
+            }
+
+            if (Gamepad.current != null && Gamepad.current.buttonSouth.wasPressedThisFrame)
+            {
+                _useGamepad();
+                return true;
+            }
+
+            return false;
         }
 
         public void BeginFireKeyboardRebind() => _beginKeyboardRebind(m_fireAction, 1, FIRE_BINDING_KEY);

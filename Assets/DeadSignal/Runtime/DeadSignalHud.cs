@@ -282,7 +282,8 @@ namespace DeadSignal
             m_outcomeTitle.color = victory ? new Color(0.08f, 0.96f, 1f) : new Color(1f, 0.08f, 0.06f);
             m_outcomeDetail.text = victory ? "Salvage extracted. The station lives a little longer." : "Signal depleted in the dark.";
             m_runReportText.text = $"DEBRIEF GRADE  {debrief.Grade}\n{debrief.Signal}   |   {debrief.Combat}\n" +
-                                   $"{debrief.Exposure}   |   {debrief.Route}\n{m_personalBestText}\n{_runReport()}";
+                                   $"{debrief.Exposure}   |   {debrief.Route}\n{debrief.Coaching}\n" +
+                                   $"{m_personalBestText}\n{_runReport()}";
             m_restartText.text = $"PRESS {_binding("R / ENTER", "GAMEPAD A")} TO RESTART";
         }
 

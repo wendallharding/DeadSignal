@@ -12,6 +12,9 @@ namespace DeadSignal
     public sealed class DeadSignalGame : MonoBehaviour
     {
         private const float PLAYER_COLLISION_RADIUS = 0.48f;
+        private const float DASH_DISTANCE = 2.4f;
+        private const float DASH_SIGNAL_COST = 4f;
+        private const float DASH_COOLDOWN = 2.4f;
 
         private RunModel m_model;
         private RunMetrics m_metrics;
@@ -33,6 +36,7 @@ namespace DeadSignal
         private ExtractionUplink m_extractionUplink;
         private ILowSignalWarning m_lowSignalWarning;
         private ITowerActivationSweep m_towerActivationSweep;
+        private MissionClarityHud m_missionClarityHud;
         private Container m_container;
         private Vector3 m_playerPresentationAcceleration;
         private bool m_lastPoweredState;
@@ -41,6 +45,7 @@ namespace DeadSignal
         private int m_onboardingStep;
         private float m_routeGuidanceStrength = 0.7f;
         private float m_difficultyDrainMultiplier = 1f;
+        private float m_dashCooldown;
 
         public float CurrentSignal => m_model?.Signal ?? 0f;
         public bool IsSapperLatched => m_threats?.IsSapperLatched ?? false;
@@ -345,6 +350,8 @@ namespace DeadSignal
             m_salvage = new DeadSignalSalvageController(
                 m_model, m_metrics, m_world, m_audio, m_combatFeedback, m_salvageTuning, m_overclockChoice, _showFeedback);
             m_hud.Configure(m_model, m_metrics, m_world, m_threats, m_salvage, m_extractionUplink, m_overclockChoice);
+            m_missionClarityHud = gameObject.AddComponent<MissionClarityHud>();
+            m_missionClarityHud.Configure(m_model, m_metrics, m_world, m_overclockChoice);
             m_objectiveBeacon.Configure(m_model, m_world);
             m_lastPoweredState = m_world.IsPowered(m_world.Player.position, m_model.TowerOnline);
             m_signalDust.Configure();
@@ -378,6 +385,7 @@ namespace DeadSignal
 
             m_threats.TickCooldown(dt);
             m_overclockChoice.Tick(dt);
+            m_dashCooldown = Mathf.Max(0f, m_dashCooldown - dt);
 
             if (m_model.Outcome != RunOutcome.Running)
             {
@@ -403,8 +411,16 @@ namespace DeadSignal
             m_world.TickGameplayAssists(dt, m_model, m_threats, aimDirection, m_routeGuidanceStrength);
 
             var powered = m_world.IsPowered(m_world.Player.position, m_model.TowerOnline);
+            var moving = movement.sqrMagnitude > 0.01f;
             m_audio.Tick(powered, m_model.TowerOnline, m_model.Signal / RunModel.MaximumSignal);
-            m_model.Advance(dt * m_difficultyDrainMultiplier, movement.sqrMagnitude > 0.01f, powered);
+            m_model.Advance(dt * m_difficultyDrainMultiplier, moving, powered);
+            m_metrics.RecordTraversalDrain(
+                RunModel.PassiveDrainRate(powered) * dt * m_difficultyDrainMultiplier,
+                RunModel.MovementDrainRate(moving, powered) * dt * m_difficultyDrainMultiplier);
+            m_missionClarityHud.DrainMultiplier = m_difficultyDrainMultiplier;
+            m_missionClarityHud.DashCooldown = m_dashCooldown;
+            m_missionClarityHud.IsMoving = moving;
+            m_missionClarityHud.IsPowered = powered;
             _tryTriggerEmergencyCapacitor();
             m_signalDust.Tick(powered, m_model.TowerOnline, m_model.Signal / RunModel.MaximumSignal);
             m_lowSignalWarning.Tick(dt);
@@ -498,6 +514,20 @@ namespace DeadSignal
                 moveInput, dt, m_playerMovementTuning, speedMultiplier, accelerationMultiplier);
             var previousPosition = m_world.Player.position;
             var desired = previousPosition + velocity * dt;
+            if (m_input.PressedDash() && m_dashCooldown <= 0f && moveInput.sqrMagnitude > 0.1f)
+            {
+                if (m_model.TrySpend(DASH_SIGNAL_COST))
+                {
+                    var dashDirection = new Vector3(moveInput.x, 0f, moveInput.y).normalized;
+                    desired += dashDirection * DASH_DISTANCE;
+                    m_dashCooldown = DASH_COOLDOWN;
+                    _showFeedback($"SIGNAL DASH  −{DASH_SIGNAL_COST:0}  //  EVADE AND REPOSITION");
+                }
+                else
+                {
+                    _showFeedback($"DASH REQUIRES {DASH_SIGNAL_COST:0} SIGNAL");
+                }
+            }
             desired = m_world.ClampToArena(desired, 0.6f);
             m_world.Player.position = m_world.ResolveMovement(
                 previousPosition,

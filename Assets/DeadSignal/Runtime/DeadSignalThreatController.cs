@@ -300,14 +300,19 @@ namespace DeadSignal
                 m_world.Player.position,
                 m_world.ExtractionPosition,
                 0.5f);
-            var delta = anchor - m_world.Suppressor.position;
+            var navigationTarget = m_world.GetNavigationWaypoint(
+                m_world.Suppressor.position,
+                anchor,
+                SUPPRESSOR_COLLISION_RADIUS,
+                m_model.ShortcutOpen);
+            var delta = navigationTarget - m_world.Suppressor.position;
             delta.y = 0f;
             if (delta.sqrMagnitude > 0.01f)
             {
                 m_world.Suppressor.rotation = Quaternion.LookRotation(delta.normalized, Vector3.up);
             }
 
-            if (delta.magnitude > m_tuning.SuppressorAnchorDistance)
+            if (DeadSignalWorld.FlatDistance(m_world.Suppressor.position, anchor) > m_tuning.SuppressorAnchorDistance)
             {
                 var desired = m_world.Suppressor.position + delta.normalized * (m_tuning.SuppressorApproachSpeed * dt);
                 m_world.Suppressor.position = m_world.ResolveMovement(
@@ -398,10 +403,16 @@ namespace DeadSignal
             }
 
             m_interceptorCutoffTarget = _calculateInterceptorCutoffTarget();
-            var delta = m_interceptorCutoffTarget - m_world.Interceptor.position;
+            var navigationTarget = m_world.GetNavigationWaypoint(
+                m_world.Interceptor.position,
+                m_interceptorCutoffTarget,
+                INTERCEPTOR_COLLISION_RADIUS,
+                m_model.ShortcutOpen);
+            var delta = navigationTarget - m_world.Interceptor.position;
             delta.y = 0f;
-            _faceInterceptor(m_interceptorCutoffTarget);
-            if (delta.magnitude > m_tuning.InterceptorChargeDistance)
+            _faceInterceptor(navigationTarget);
+            var cutoffDistance = DeadSignalWorld.FlatDistance(m_world.Interceptor.position, m_interceptorCutoffTarget);
+            if (cutoffDistance > m_tuning.InterceptorChargeDistance)
             {
                 var desired = m_world.Interceptor.position + delta.normalized * (m_tuning.InterceptorApproachSpeed * dt);
                 m_world.Interceptor.position = m_world.ResolveMovement(
@@ -538,7 +549,12 @@ namespace DeadSignal
                 return;
             }
 
-            var delta = m_wardenTacticalTarget - m_world.Warden.position;
+            var navigationTarget = m_world.GetNavigationWaypoint(
+                m_world.Warden.position,
+                m_wardenTacticalTarget,
+                WARDEN_COLLISION_RADIUS,
+                m_model.ShortcutOpen);
+            var delta = navigationTarget - m_world.Warden.position;
             delta.y = 0f;
             var distance = delta.magnitude;
             if (distance > 0.05f)
@@ -547,7 +563,7 @@ namespace DeadSignal
             }
 
             var arrivalDistance = m_wardenScreeningSapper ? 0.1f : m_tuning.WardenAttackDistance;
-            if (distance > arrivalDistance)
+            if (DeadSignalWorld.FlatDistance(m_world.Warden.position, m_wardenTacticalTarget) > arrivalDistance)
             {
                 var desired = m_world.Warden.position + delta.normalized * (m_tuning.WardenSpeed * dt);
                 m_world.Warden.position = m_world.ResolveMovement(

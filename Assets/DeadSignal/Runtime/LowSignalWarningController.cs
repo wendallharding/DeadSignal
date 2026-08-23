@@ -22,9 +22,9 @@ namespace DeadSignal
 
         private const string TEXTURE_PATH = "UI/LowSignalWarningVignette";
         private const float PULSE_SPEED = 2.4f;
-        private const float MINIMUM_ALPHA = 0.16f;
-        private const float MAXIMUM_ALPHA = 0.42f;
-        private const float REDUCED_FLASHES_ALPHA = 0.16f;
+        private const float MINIMUM_ALPHA = 0.09f;
+        private const float MAXIMUM_ALPHA = 0.27f;
+        private const float REDUCED_FLASHES_ALPHA = 0.1f;
 
         private RunModel m_model;
         private ICombatFeedback m_combatFeedback;

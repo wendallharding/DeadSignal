@@ -22,6 +22,18 @@
 - [x] Preserve the eight-second dispatch threshold, first-response budget slot, safe entry, warning delay, and enemy balance
 - [ ] Playtest shallow boundary weaving versus a four-second powered regroup for route commitment and Interceptor timing
 
+### Player clarity and recovery pass
+
+- [x] Keep the next tower, cache, or extraction target visible with distance and screen-edge guidance
+- [x] Show live Signal drain rate and distinguish safe, exposure, and movement sources
+- [x] Replace immediate zero-Signal failure with a five-second recoverable emergency link
+- [x] Disclose primary and auxiliary unlock requirements before each cache milestone
+- [x] Add a Signal-costed dash with a visible cooldown for route and telegraph counterplay
+- [x] Mark nearby threat bounties and retain the projected aim guide and hit feedback
+- [x] Reserve amber for objectives, cyan for safe recovery, and reduce the low-Signal vignette obstruction
+- [x] Add exact travel/fire/recovery accounting and one targeted next-run coaching line to the debrief
+- [ ] Run three matched full playthroughs and tune dash cost, recovery duration, and marker placement from completion data
+
 ### Run 81 Interceptor crash-recovery ideas
 
 - [x] End a committed Interceptor dash immediately when it hits authored cover or a closed route blocker
