@@ -590,7 +590,7 @@ namespace DeadSignal
                 return;
             }
 
-            m_threats.BeginExtractionPressure();
+            m_threats.BeginExtractionPressure(mode);
             _showFeedback(feedback);
         }
 

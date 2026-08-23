@@ -4234,3 +4234,39 @@ The maintenance drone now communicates two intentions at once: its chassis and S
 ### Perspective turret mount correction
 
 The first independent-turret composition retained the model's original vertical coordinates, which made the core/tool assembly read as embedded in the chassis from the new perspective camera. `PlayerDroneMovementTuning` now exposes a `0.14`-metre turret mount height and `DeadSignalWorld` applies it to the complete stabilized core/tool root after hierarchy separation. Aim, projectile origin math, meshes, pivots, UVs, collision, and gameplay remain unchanged. Focused tuning and PlayMode assertions cover the authored clearance. The owner-provided Game-view capture was visually inspected; a new live capture remains the required confirmation that the raised assembly reads as top-mounted at runtime.
+
+## 2026-08-22 — Autonomous Run 77 — Mode-reactive extraction suppression
+
+### Milestone, player benefit, and acceptance
+
+Stable and Overdrive extraction now provoke different spatial counterplay from the same bounded Suppressor. Stable retains the deployment-time player lock for a deliberate fight-and-clear route; Overdrive leads the opening ring 3.5 metres along the dock-to-drone retreat line so a straight escape is threatened and a course break is rewarded. Acceptance required pre-commitment HUD disclosure, arena-safe prediction, unchanged entry and field warnings, unchanged role budget/stats/economy/durations, deterministic coverage, and both live runtime routes.
+
+### Files and systems changed
+
+- `ThreatBalanceTuning.cs` and `ThreatBalanceTuning.asset` add the designer-tunable 3.5-metre predictive sweep lead.
+- `InterceptorTactics.cs` deterministically calculates centered versus retreat-leading opening field positions.
+- `DeadSignalGame.cs` passes the committed uplink mode into `DeadSignalThreatController.cs`; the controller clamps Overdrive prediction inside the arena and selects mode-specific warning copy while preserving the existing Suppressor lifecycle.
+- `DeadSignalHud.cs` identifies centered and predictive sweeps before selection and shows the committed mode's response instruction during the uplink.
+- `ThreatBalanceTuningTests.cs` covers the tuning relationship, Stable lock, Overdrive direction/distance, and zero-direction fallback. `BootstrapSmokeTests.cs` proves a real paid Overdrive choice and promoted deployment place the field at the predicted point; the complete runtime still proves Stable's centered lock, coordinated Interceptor exit pressure, combat-assisted link, victory, and restart.
+- `CombatFeedbackController.cs` now billboards short-lived impact sprites to the configured gameplay camera, fixing a perspective-camera regression exposed by full PlayMode validation. The bootstrap test also uses a positional tolerance for the authored turret tool because Unity reparenting produces an immaterial floating-point difference.
+- `GAME_VISION.md`, `BACKLOG.md`, and this devlog record the product decision. No scene, prefab, enemy health/damage/speed, Signal cost/reward, warning duration, response count, overclock, extraction duration, purge credit, audio, input, package, project setting, or asset GUID changed.
+
+### Exact validation evidence
+
+1. The initial focused Unity compile failed before tests because the tactical helper was placed on an internal orchestration type and was inaccessible to both test assemblies. It was moved to the existing public tactical-positioning helper; this run is excluded from passing evidence. `Logs/run77-editmode-focused.log`.
+2. Corrected focused EditMode in an isolated Unity `6000.3.11f1` copy: exit `0`; `4/4` passed in `0.0466469s`. `Logs/run77-editmode-focused2-results.xml` and `Logs/run77-editmode-focused2.log`.
+3. Focused live Overdrive PlayMode: exit `0`; `1/1` passed in `3.1536511s`. `Logs/run77-playmode-focused-results.xml` and `Logs/run77-playmode-focused.log`.
+4. Initial full EditMode: exit `0`; `92/92` passed in `0.1570777s`. `Logs/run77-editmode-final-results.xml` and `Logs/run77-editmode-final.log`.
+5. The first full PlayMode run passed `9/10`; the latest user camera/turret commit had an overly exact tool-position assertion. After tolerance correction, the second run passed `9/10` and exposed the real perspective regression: impact sprites remained deck-flat and no longer faced the camera. Both runs are excluded. `Logs/run77-playmode-final-results.xml`, `Logs/run77-playmode-final2-results.xml`, and matching logs.
+6. Corrected full PlayMode: exit `0`; `10/10` passed in `30.7202262s`. `Logs/run77-playmode-final3-results.xml` and `Logs/run77-playmode-final3.log`.
+7. Windows x64 development build from the isolated copy: exit `0`; Unity reported `241,191,004` bytes in `83.47s`. The validated package was copied to `Build/Windows/DeadSignal.exe`; build evidence is in `Logs/run77-build.log`.
+8. Packaged null-device smoke: exit `0` with one `[DEAD SIGNAL STANDALONE SMOKE] PASS`. `Logs/run77-standalone2.log`.
+9. Final full EditMode after the perspective-impact fix: exit `0`; `92/92` passed in `0.2202985s`. `Logs/run77-editmode-postfix-results.xml` and `Logs/run77-editmode-postfix.log`.
+10. `git diff --check` passed. Final scans of the authoritative passing test, build, and smoke logs found no compiler errors, missing or null references, unhandled exceptions, failed assertions, build failure, or smoke failure. The main Unity Editor remained open and untouched; all authoritative validation ran against `C:/Projects/Wendall/CodexPrototype_Run77Validation`.
+
+### Bugs fixed, limitations, playtest evidence, and next step
+
+- Overdrive previously paid Signal for a shorter clock but received the same centered opening denial as Stable. It now asks for a visible feint while Stable asks for an immediate ring exit and offers stronger combat acceleration.
+- Full validation fixed two camera-era test/presentation issues in the latest user commit: sub-millimetre turret reparenting no longer fails an exact vector assertion, and impact sprites now face the high-angle perspective camera rather than lying flat to the deck.
+- Automated evidence proves the predictive center is exactly 3.5 metres ahead of the drone on the retreat line, the warning still begins only after the full 2.5-second safe-entry delay, the role remains unique and bounded, Stable remains centered, and the complete extraction flow remains winnable. No human playtest was performed, so warning recognition, feint satisfaction, camera-facing impact appearance, and mode dominance remain subjective risks.
+- Manual playtest next: start matched high-reserve extractions. For Stable, leave the centered ring and fight for purge credit. For Overdrive, first hold a straight retreat line, then repeat with a late perpendicular feint. Record sweep recognition, field entry, Signal lost, Interceptor cutoff, shots, purges, link finish time, and final reserve. Neither mode should dominate both fight and flight tactics.

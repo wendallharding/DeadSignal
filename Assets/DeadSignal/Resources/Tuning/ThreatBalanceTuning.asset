@@ -53,3 +53,4 @@ MonoBehaviour:
   m_extractionOverdriveSignalCost: 12
   m_stableExtractionPurgeAcceleration: 0.9
   m_overdriveExtractionPurgeAcceleration: 0.25
+  m_overdriveSuppressionLeadDistance: 3.5

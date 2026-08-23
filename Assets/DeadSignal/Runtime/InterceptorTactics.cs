@@ -3,7 +3,7 @@ using UnityEngine;
 namespace DeadSignal
 {
     /// <summary>
-    /// Deterministic positioning rules for the retreat-cutting Interceptor.
+    /// Deterministic positioning rules for coordinated retreat interception and suppression.
     /// </summary>
     public static class InterceptorTactics
     {
@@ -20,6 +20,24 @@ namespace DeadSignal
             var cutoff = Vector3.Lerp(playerPosition, extractionPosition, routeFraction);
             cutoff.y = 0f;
             return cutoff;
+        }
+
+        public static Vector3 CalculateOpeningSuppressionCenter(
+            Vector3 playerPosition,
+            Vector3 extractionPosition,
+            ExtractionUplinkMode mode,
+            float overdriveLeadDistance)
+        {
+            if (mode != ExtractionUplinkMode.Overdrive)
+            {
+                return playerPosition;
+            }
+
+            var retreatDirection = playerPosition - extractionPosition;
+            retreatDirection.y = 0f;
+            return retreatDirection.sqrMagnitude > 0.01f
+                ? playerPosition + retreatDirection.normalized * Mathf.Max(0f, overdriveLeadDistance)
+                : playerPosition;
         }
 
         public static Vector3 CalculateSuppressionExitPoint(

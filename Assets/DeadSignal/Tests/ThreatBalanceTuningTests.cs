@@ -32,6 +32,9 @@ namespace DeadSignal.Tests
                 Assert.That(tuning.StableExtractionPurgeAcceleration,
                     Is.GreaterThan(tuning.OverdriveExtractionPurgeAcceleration * 3f),
                     "Stable should be the deliberate combat route while Overdrive remains the short evasion route.");
+                Assert.That(tuning.OverdriveSuppressionLeadDistance,
+                    Is.GreaterThan(tuning.SuppressorFieldRadius),
+                    "The predictive sweep should begin beyond the drone so changing course can avoid it.");
                 Assert.That(tuning.InterceptorHealth, Is.GreaterThan(0));
                 Assert.That(tuning.InterceptorChargeDuration, Is.GreaterThanOrEqualTo(0.5f));
                 Assert.That(tuning.InterceptorDashSpeed, Is.GreaterThan(tuning.InterceptorApproachSpeed));
@@ -53,6 +56,32 @@ namespace DeadSignal.Tests
             {
                 Object.DestroyImmediate(tuning);
             }
+        }
+
+        [Test]
+        public void OpeningSuppressionCenter_StableLocksPlayerWhileOverdriveLeadsRetreat()
+        {
+            var extraction = new Vector3(-9f, 0f, -5f);
+            var player = new Vector3(-6f, 0f, -1f);
+
+            var stable = InterceptorTactics.CalculateOpeningSuppressionCenter(
+                player, extraction, ExtractionUplinkMode.Stable, 3.5f);
+            var overdrive = InterceptorTactics.CalculateOpeningSuppressionCenter(
+                player, extraction, ExtractionUplinkMode.Overdrive, 3.5f);
+
+            Assert.That(stable, Is.EqualTo(player));
+            Assert.That(Vector3.Distance(player, overdrive), Is.EqualTo(3.5f).Within(0.001f));
+            Assert.That(Vector3.Dot((overdrive - player).normalized, (player - extraction).normalized),
+                Is.GreaterThan(0.999f));
+        }
+
+        [Test]
+        public void OpeningSuppressionCenter_OverdriveAtDockDoesNotInventDirection()
+        {
+            var dock = new Vector3(-9f, 0f, -5f);
+
+            Assert.That(InterceptorTactics.CalculateOpeningSuppressionCenter(
+                dock, dock, ExtractionUplinkMode.Overdrive, 3.5f), Is.EqualTo(dock));
         }
 
         [Test]

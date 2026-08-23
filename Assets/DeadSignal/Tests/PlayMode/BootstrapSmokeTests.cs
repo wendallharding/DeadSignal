@@ -324,6 +324,24 @@ namespace DeadSignal.Tests
                     "The contextual Fire input should commit the fast link rather than launch a Signal bolt.");
                 Assert.That(game.PendingSecurityReinforcement, Is.EqualTo(SecurityReinforcement.Suppressor),
                     "The paid duration choice must preserve the same bounded extraction response.");
+                player.position = new Vector3(-6f, 0f, -3f);
+                var expectedSweepCenter = InterceptorTactics.CalculateOpeningSuppressionCenter(
+                    player.position,
+                    new Vector3(-9.2f, 0f, -5.6f),
+                    ExtractionUplinkMode.Overdrive,
+                    tuning.OverdriveSuppressionLeadDistance);
+                var warningDeadline = Time.time + tuning.ReinforcementEntryDelay + 0.3f;
+                while (!game.IsSuppressorFieldWarningActive && Time.time < warningDeadline)
+                {
+                    yield return null;
+                }
+
+                Assert.That(game.IsSuppressorFieldWarningActive, Is.True);
+                Assert.That(Vector3.Distance(game.SuppressorFieldCenter, expectedSweepCenter), Is.LessThan(0.1f),
+                    "Overdrive should lead the opening sweep along the dock-to-drone retreat line.");
+                Assert.That(Vector3.Distance(player.position, game.SuppressorFieldCenter),
+                    Is.EqualTo(tuning.OverdriveSuppressionLeadDistance).Within(0.1f),
+                    "The predictive ring should begin beyond the drone so a course break remains the counterplay.");
             }
             finally
             {
@@ -492,7 +510,9 @@ namespace DeadSignal.Tests
                 "Every player part should use purpose-built geometry rather than a placeholder primitive.");
             Assert.That(playerMeshes.All(mesh => mesh.HasVertexAttribute(UnityEngine.Rendering.VertexAttribute.TexCoord0)), Is.True,
                 "Every player mesh should retain complete authored UV coordinates.");
-            Assert.That(droneTurret.Find("Drone Tool").localPosition, Is.EqualTo(new Vector3(0f, 0.3f, 0.68f)),
+            Assert.That(Vector3.Distance(
+                    droneTurret.Find("Drone Tool").localPosition,
+                    new Vector3(0f, 0.3f, 0.68f)), Is.LessThan(0.001f),
                 "The authored tool must preserve the projectile origin and aiming silhouette.");
             Assert.That(game.HasSignalBoltAssets, Is.True,
                 "The authored Signal bolt prefab should be ready before the player fires.");
@@ -1290,7 +1310,7 @@ namespace DeadSignal.Tests
                     "Reduced Flashes should cap combat-burst opacity without removing the hit confirmation.");
                 var cameraFacingDirection = -game.GetComponentInChildren<Camera>().transform.forward;
                 Assert.That(Vector3.Dot(impactBurst.forward, cameraFacingDirection), Is.GreaterThan(0.99f),
-                    "The impact sprite should face the overhead camera.");
+                    "The impact sprite should face the configured gameplay camera.");
                 Assert.That(combatFeedback.IsHitStopped, Is.True, "A combat impact should begin a brief hit-stop.");
                 Assert.That(Time.timeScale, Is.Zero);
                 yield return new WaitForSecondsRealtime(0.08f);

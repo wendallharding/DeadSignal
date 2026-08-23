@@ -323,7 +323,9 @@ namespace DeadSignal
             var root = new GameObject(objectName);
             root.transform.SetParent(transform, true);
             root.transform.position = position;
-            root.transform.rotation = Quaternion.Euler(-90f, 0f, 0f);
+            root.transform.rotation = m_targetCamera != null
+                ? Quaternion.LookRotation(-m_targetCamera.transform.forward, m_targetCamera.transform.up)
+                : Quaternion.Euler(-90f, 0f, 0f);
             root.transform.localScale = Vector3.one * 0.12f;
 
             var spriteRenderer = root.AddComponent<SpriteRenderer>();

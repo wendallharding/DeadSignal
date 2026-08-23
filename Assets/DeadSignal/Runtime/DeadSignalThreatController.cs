@@ -48,6 +48,7 @@ namespace DeadSignal
         private Vector3 m_interceptorDashTarget;
         private Vector3 m_interceptorCutoffTarget;
         private bool m_extractionPressure;
+        private ExtractionUplinkMode m_extractionUplinkMode;
         private float m_suppressorWarningCountdown;
         private float m_suppressorFieldCountdown;
         private float m_suppressorFieldCooldown;
@@ -124,9 +125,10 @@ namespace DeadSignal
         public float DeadZoneTraceSecondsRemaining => m_director.DeadZoneTraceSecondsRemaining;
         public SecurityReinforcement PendingReinforcement => m_director.PendingReinforcement;
 
-        public void BeginExtractionPressure()
+        public void BeginExtractionPressure(ExtractionUplinkMode mode)
         {
             m_extractionPressure = true;
+            m_extractionUplinkMode = mode;
         }
 
         public void TickCooldown(float dt)
@@ -219,7 +221,20 @@ namespace DeadSignal
                 m_suppressorPulseCountdown = 0f;
                 m_world.DeploySuppressorReinforcement();
                 m_showFeedback("FLANK GATES OPEN — SUPPRESSOR INBOUND");
-                _beginSuppressorWarning(m_world.Player.position, "SUPPRESSION SWEEP LOCKED — LEAVE THE RING");
+                var openingCenter = InterceptorTactics.CalculateOpeningSuppressionCenter(
+                    m_world.Player.position,
+                    m_world.ExtractionPosition,
+                    m_extractionUplinkMode,
+                    m_tuning.OverdriveSuppressionLeadDistance);
+                if (m_extractionUplinkMode == ExtractionUplinkMode.Overdrive)
+                {
+                    openingCenter = m_world.ClampToArena(openingCenter, m_tuning.SuppressorFieldRadius);
+                }
+
+                var warning = m_extractionUplinkMode == ExtractionUplinkMode.Overdrive
+                    ? "PREDICTIVE SUPPRESSION SWEEP — BREAK COURSE"
+                    : "SUPPRESSION SWEEP LOCKED — LEAVE THE RING";
+                _beginSuppressorWarning(openingCenter, warning);
             }
         }
 

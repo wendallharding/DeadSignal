@@ -14,6 +14,16 @@
 
 ## P1 — Prove the loop
 
+### Run 77 mode-reactive-extraction-suppression ideas
+
+- [x] Keep Stable's promoted Suppressor opening sweep locked to the drone's deployment-time position
+- [x] Lead Overdrive's opening sweep 3.5 metres along the dock-to-drone retreat line so holding course is unsafe
+- [x] Clamp the predictive ring inside the arena while preserving the same radius, one-second warning, and safe authored entry
+- [x] Reveal centered versus predictive sweep counterplay before the player commits to an uplink mode
+- [x] Preserve enemy count, health, damage, Signal economy, response budget, extraction durations, and purge credits
+- [x] Prove both sweep profiles deterministically and through their live extraction routes
+- [ ] Playtest straight-line and feinted Overdrive returns against Stable fight routes for warning recognition and mode dominance
+
 ### Run 76 combat-reactive-reinforcement ideas
 
 - [x] Let an avoidance route provoke the established first-cache Interceptor cutoff when both opening core roles survive

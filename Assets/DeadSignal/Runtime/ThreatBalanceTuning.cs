@@ -57,6 +57,7 @@ namespace DeadSignal
         [FormerlySerializedAs("m_extractionPurgeAcceleration")]
         [SerializeField] private float m_stableExtractionPurgeAcceleration = 0.9f;
         [SerializeField] private float m_overdriveExtractionPurgeAcceleration = 0.25f;
+        [SerializeField] private float m_overdriveSuppressionLeadDistance = 3.5f;
 
         public int WardenHealth => m_wardenHealth;
         public float WardenSpeed => m_wardenSpeed;
@@ -99,6 +100,7 @@ namespace DeadSignal
         public float ExtractionOverdriveSignalCost => m_extractionOverdriveSignalCost;
         public float StableExtractionPurgeAcceleration => m_stableExtractionPurgeAcceleration;
         public float OverdriveExtractionPurgeAcceleration => m_overdriveExtractionPurgeAcceleration;
+        public float OverdriveSuppressionLeadDistance => m_overdriveSuppressionLeadDistance;
 
         private void OnValidate()
         {
@@ -145,6 +147,7 @@ namespace DeadSignal
                 m_stableExtractionPurgeAcceleration, 0f, m_extractionUplinkDuration);
             m_overdriveExtractionPurgeAcceleration = Mathf.Clamp(
                 m_overdriveExtractionPurgeAcceleration, 0f, m_stableExtractionPurgeAcceleration);
+            m_overdriveSuppressionLeadDistance = Mathf.Max(0f, m_overdriveSuppressionLeadDistance);
         }
     }
 }

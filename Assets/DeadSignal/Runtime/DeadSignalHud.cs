@@ -226,13 +226,15 @@ namespace DeadSignal
                 : _isExtractionUplinkChoiceAvailable()
                 ? $"CHOOSE EXTRACTION LINK\nFIRE [{m_input.FireKeyboardBinding}]  OVERDRIVE — " +
                   $"{m_extractionUplink.OverdriveDuration:0.##}s / −{m_extractionUplink.OverdriveSignalCost:0} / " +
-                  $"PURGE +{m_extractionUplink.OverdrivePurgeAcceleration:0.##}s\n" +
+                  $"PURGE +{m_extractionUplink.OverdrivePurgeAcceleration:0.##}s / PREDICTIVE SWEEP\n" +
                   $"USE [{m_input.InteractKeyboardBinding}]  STABLE — {m_extractionUplink.StableDuration:0.##}s / FREE / " +
-                  $"PURGE +{m_extractionUplink.StablePurgeAcceleration:0.##}s"
+                  $"PURGE +{m_extractionUplink.StablePurgeAcceleration:0.##}s / CENTERED SWEEP"
                 : m_extractionUplink.IsActive
                 ? $"PHASE 3/3  //  {m_extractionUplink.Mode.ToString().ToUpperInvariant()} UPLINK\n" +
                   $"SURVIVE PURSUIT  {m_extractionUplink.SecondsRemaining:0.0}s\n" +
-                  "MANEUVER AND FIRE — DOCK LINK IS LOCKED"
+                  (m_extractionUplink.Mode == ExtractionUplinkMode.Overdrive
+                      ? "BREAK YOUR RETREAT LINE — PREDICTIVE SWEEP INBOUND"
+                      : "LEAVE THE LOCKED RING — FIGHTING ADVANCES THE LINK")
                 : $"PHASE {guidance.Phase}/3  //  {guidance.Title}\n{guidance.Action}\n{guidance.Advisory}";
             m_threatText.text = _threatStatus();
             m_controlLegendText.text = _activeControlLegend();
