@@ -396,7 +396,9 @@ namespace DeadSignal
                 ? string.Empty
                 : $"  {m_threats.PendingReinforcement.ToString().ToUpperInvariant()} ENTRY {m_threats.ReinforcementEntryCountdown:0.0}s";
             var trace = m_threats.IsDeadZoneTraceActive
-                ? $"  TRACE {m_threats.DeadZoneTraceSecondsRemaining:0.0}s"
+                ? m_threats.IsDeadZoneTraceCooling
+                    ? "  TRACE COOLING"
+                    : $"  TRACE {m_threats.DeadZoneTraceSecondsRemaining:0.0}s"
                 : string.Empty;
             var alert = m_extractionUplink.IsActive ? "PURSUIT" : $"ALERT {m_threats.EscalationTier}/{RunModel.SalvageRequired}";
             var priorityThreat = m_threats.IsSapperAlive ? sapper : m_threats.IsInterceptorAlive ? interceptor :

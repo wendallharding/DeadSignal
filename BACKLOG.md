@@ -14,6 +14,14 @@
 
 ## P1 — Prove the loop
 
+### Run 82 persistent dead-zone trace ideas
+
+- [x] Preserve partial security trace across brief returns to powered territory instead of erasing route pressure instantly
+- [x] Cool trace at a designer-tuned 0.5 seconds per powered second so sustained regrouping still clears it
+- [x] Distinguish active buildup from powered-territory cooling in the live threat strip
+- [x] Preserve the eight-second dispatch threshold, first-response budget slot, safe entry, warning delay, and enemy balance
+- [ ] Playtest shallow boundary weaving versus a four-second powered regroup for route commitment and Interceptor timing
+
 ### Run 81 Interceptor crash-recovery ideas
 
 - [x] End a committed Interceptor dash immediately when it hits authored cover or a closed route blocker

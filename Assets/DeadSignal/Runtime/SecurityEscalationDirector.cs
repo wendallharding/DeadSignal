@@ -19,6 +19,7 @@ namespace DeadSignal
         private readonly float m_entryDelay;
         private readonly float m_safeEntryDistance;
         private readonly float m_deadZoneTraceDuration;
+        private readonly float m_deadZoneTraceRecoveryRate;
         private readonly SecurityReinforcement m_bothPurgedPreference;
 
         private int m_observedSalvage;
@@ -26,6 +27,7 @@ namespace DeadSignal
         private float m_entryCountdown;
         private float m_deadZoneTraceProgress;
         private bool m_deadZoneTraceCompleted;
+        private bool m_deadZoneTraceCooling;
         private bool m_extractionPressure;
         private bool m_extractionResponseDeployed;
         private SecurityReinforcement m_firstCoreResponse;
@@ -36,11 +38,13 @@ namespace DeadSignal
             float entryDelay,
             float safeEntryDistance,
             bool preferSapperWhenBothPurged = false,
-            float deadZoneTraceDuration = 8f)
+            float deadZoneTraceDuration = 8f,
+            float deadZoneTraceRecoveryRate = 0.5f)
         {
             m_entryDelay = Math.Max(0f, entryDelay);
             m_safeEntryDistance = Math.Max(0f, safeEntryDistance);
             m_deadZoneTraceDuration = Math.Max(0.1f, deadZoneTraceDuration);
+            m_deadZoneTraceRecoveryRate = Math.Max(0f, deadZoneTraceRecoveryRate);
             m_bothPurgedPreference = preferSapperWhenBothPurged
                 ? SecurityReinforcement.Sapper
                 : SecurityReinforcement.Warden;
@@ -53,6 +57,7 @@ namespace DeadSignal
         public float EntryCountdown => m_entryCountdown;
         public bool IsDeadZoneTraceActive => !m_deadZoneTraceCompleted && m_observedSalvage == 0 && m_deadZoneTraceProgress > 0f;
         public bool IsDeadZoneTraceCompleted => m_deadZoneTraceCompleted;
+        public bool IsDeadZoneTraceCooling => IsDeadZoneTraceActive && m_deadZoneTraceCooling;
         public float DeadZoneTraceSecondsRemaining => IsDeadZoneTraceActive
             ? Math.Max(0f, m_deadZoneTraceDuration - m_deadZoneTraceProgress)
             : 0f;
@@ -106,6 +111,7 @@ namespace DeadSignal
             if (!towerOnline)
             {
                 m_deadZoneTraceProgress = 0f;
+                m_deadZoneTraceCooling = false;
                 return SecurityReinforcement.None;
             }
 
@@ -174,15 +180,20 @@ namespace DeadSignal
         {
             if (m_deadZoneTraceCompleted || m_observedSalvage > 0 || m_nextSalvageReinforcement > 0)
             {
+                m_deadZoneTraceCooling = false;
                 return;
             }
 
             if (playerPowered)
             {
-                m_deadZoneTraceProgress = 0f;
+                m_deadZoneTraceProgress = Math.Max(
+                    0f,
+                    m_deadZoneTraceProgress - Math.Max(0f, seconds) * m_deadZoneTraceRecoveryRate);
+                m_deadZoneTraceCooling = m_deadZoneTraceProgress > 0f;
                 return;
             }
 
+            m_deadZoneTraceCooling = false;
             m_deadZoneTraceProgress = Math.Min(
                 m_deadZoneTraceDuration,
                 m_deadZoneTraceProgress + Math.Max(0f, seconds));

@@ -88,18 +88,40 @@ namespace DeadSignal.Tests
         }
 
         [Test]
-        public void Tick_ReturningToPowerClearsPartialDeadZoneTrace()
+        public void Tick_ShortPoweredCrossingCoolsButDoesNotEraseDeadZoneTrace()
         {
-            var director = new SecurityEscalationDirector(2f, 6f, deadZoneTraceDuration: 4f);
+            var director = new SecurityEscalationDirector(
+                2f,
+                6f,
+                deadZoneTraceDuration: 4f,
+                deadZoneTraceRecoveryRate: 0.5f);
 
             director.Tick(2f, true, false, 0, false, false, true, true, false, 8f, 8f, 8f, 8f);
             director.Tick(1f, true, true, 0, false, false, true, true, false, 8f, 8f, 8f, 8f);
 
-            Assert.That(director.IsDeadZoneTraceActive, Is.False);
-            Assert.That(director.DeadZoneTraceSecondsRemaining, Is.Zero);
+            Assert.That(director.IsDeadZoneTraceActive, Is.True);
+            Assert.That(director.IsDeadZoneTraceCooling, Is.True);
+            Assert.That(director.DeadZoneTraceSecondsRemaining, Is.EqualTo(2.5f));
+            director.Tick(2.5f, true, false, 0, false, false, true, true, false, 8f, 8f, 8f, 8f);
+            Assert.That(director.IsDeadZoneTraceCompleted, Is.True);
+            Assert.That(director.PendingReinforcement, Is.EqualTo(SecurityReinforcement.Interceptor));
+        }
+
+        [Test]
+        public void Tick_SustainedPoweredRecoveryClearsPartialDeadZoneTrace()
+        {
+            var director = new SecurityEscalationDirector(
+                2f,
+                6f,
+                deadZoneTraceDuration: 4f,
+                deadZoneTraceRecoveryRate: 0.5f);
+
             director.Tick(2f, true, false, 0, false, false, true, true, false, 8f, 8f, 8f, 8f);
-            Assert.That(director.DeadZoneTraceSecondsRemaining, Is.EqualTo(2f));
-            Assert.That(director.IsDeadZoneTraceCompleted, Is.False);
+            director.Tick(4f, true, true, 0, false, false, true, true, false, 8f, 8f, 8f, 8f);
+
+            Assert.That(director.IsDeadZoneTraceActive, Is.False);
+            Assert.That(director.IsDeadZoneTraceCooling, Is.False);
+            Assert.That(director.DeadZoneTraceSecondsRemaining, Is.Zero);
         }
 
         [Test]

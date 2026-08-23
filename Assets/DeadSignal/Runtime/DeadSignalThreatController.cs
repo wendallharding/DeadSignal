@@ -85,7 +85,8 @@ namespace DeadSignal
                 tuning.ReinforcementEntryDelay,
                 tuning.ReinforcementSafeDistance,
                 UnityEngine.Random.Range(0, 2) == 1,
-                tuning.DeadZoneTraceDuration);
+                tuning.DeadZoneTraceDuration,
+                tuning.DeadZoneTraceRecoveryRate);
             m_showFeedback = showFeedback;
             m_rewardExtractionPurge = rewardExtractionPurge;
             m_wardenHealth = tuning.WardenHealth;
@@ -131,6 +132,7 @@ namespace DeadSignal
         public int ReinforcementsRemaining => m_director.ReinforcementsRemaining;
         public float ReinforcementEntryCountdown => m_director.EntryCountdown;
         public bool IsDeadZoneTraceActive => m_director.IsDeadZoneTraceActive;
+        public bool IsDeadZoneTraceCooling => m_director.IsDeadZoneTraceCooling;
         public float DeadZoneTraceSecondsRemaining => m_director.DeadZoneTraceSecondsRemaining;
         public SecurityReinforcement PendingReinforcement => m_director.PendingReinforcement;
 

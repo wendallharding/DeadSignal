@@ -52,6 +52,7 @@ MonoBehaviour:
   m_suppressorSignalDrain: 4
   m_suppressorSignalReward: 15
   m_deadZoneTraceDuration: 8
+  m_deadZoneTraceRecoveryRate: 0.5
   m_reinforcementEntryDelay: 2.5
   m_reinforcementSafeDistance: 6
   m_extractionUplinkDuration: 6
