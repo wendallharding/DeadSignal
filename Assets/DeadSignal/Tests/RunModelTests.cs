@@ -116,6 +116,25 @@ namespace DeadSignal.Tests
         }
 
         [Test]
+        public void OptionalSalvage_RequiresExtractionReadinessAndPaysOnce()
+        {
+            var run = new RunModel();
+
+            Assert.That(run.CollectOptionalSalvage(18f), Is.Zero);
+            Assert.That(run.OptionalSalvageSecured, Is.False);
+            for (var index = 0; index < RunModel.SalvageRequired; index++)
+            {
+                run.CollectSalvage();
+            }
+
+            run.TrySpend(30f);
+            Assert.That(run.CollectOptionalSalvage(18f), Is.EqualTo(18f));
+            Assert.That(run.OptionalSalvageSecured, Is.True);
+            Assert.That(run.Salvage, Is.EqualTo(RunModel.SalvageRequired));
+            Assert.That(run.CollectOptionalSalvage(18f), Is.Zero);
+        }
+
+        [Test]
         public void SignalDepletion_EndsRunAndBlocksSpending()
         {
             var run = new RunModel();

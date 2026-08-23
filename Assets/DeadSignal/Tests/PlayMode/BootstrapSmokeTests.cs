@@ -265,6 +265,70 @@ namespace DeadSignal.Tests
         }
 
         [UnityTest]
+        public IEnumerator FourthSalvage_RemainsOptionalAndRestoresExtractionSignal()
+        {
+            yield return SceneManager.LoadSceneAsync("SampleScene");
+            yield return null;
+
+            var gamepad = InputSystem.AddDevice<Gamepad>();
+            try
+            {
+                var game = Object.FindFirstObjectByType<DeadSignalGame>();
+                var player = game.transform.Find("Maintenance Drone");
+                player.position = new Vector3(-0.6f, 0f, 0.4f);
+                InputSystem.QueueStateEvent(gamepad, new GamepadState().WithButton(GamepadButton.West));
+                yield return null;
+                InputSystem.QueueStateEvent(gamepad, new GamepadState());
+                yield return null;
+                game.transform.Find("Security Warden").position = new Vector3(18f, 0f, 9f);
+                game.transform.Find("Signal Sapper").position = new Vector3(-18f, 0f, 9f);
+                for (var cacheIndex = 0; cacheIndex < RunModel.SalvageRequired; cacheIndex++)
+                {
+                    var cache = game.transform.Cast<Transform>()
+                        .First(child => child.name == "Salvage Cache" && child.gameObject.activeSelf);
+                    player.position = cache.position;
+                    yield return null;
+
+                    if (cacheIndex >= RunModel.SalvageRequired - 1)
+                    {
+                        continue;
+                    }
+
+                    InputSystem.QueueStateEvent(gamepad, new GamepadState().WithButton(GamepadButton.West));
+                    yield return null;
+                    InputSystem.QueueStateEvent(gamepad, new GamepadState());
+                    yield return null;
+                }
+
+                Assert.That(game.IsOptionalSalvageAvailable, Is.True,
+                    "Extraction readiness should leave the fourth authored cache available as a greed route.");
+                Assert.That(game.IsOptionalSalvageSecured, Is.False);
+                yield return null;
+                Assert.That(game.CurrentMissionObjective, Does.Contain("RAID OPTIONAL CACHE"));
+                Assert.That(game.CurrentMissionObjective, Does.Contain("+18 SIGNAL"));
+                var optionalCache = game.transform.Cast<Transform>()
+                    .Single(child => child.name == "Salvage Cache" && child.gameObject.activeSelf);
+                var signalBeforeGreed = game.CurrentSignal;
+                var expectedRecovery = Mathf.Min(game.OptionalSalvageSignalReward, RunModel.MaximumSignal - signalBeforeGreed);
+
+                player.position = optionalCache.position;
+                yield return null;
+
+                Assert.That(game.IsOptionalSalvageSecured, Is.True);
+                Assert.That(game.IsOptionalSalvageAvailable, Is.False);
+                Assert.That(game.CurrentSignal, Is.EqualTo(signalBeforeGreed + expectedRecovery).Within(0.05f));
+                yield return null;
+                Assert.That(game.CurrentMissionObjective, Does.Not.Contain("RAID OPTIONAL CACHE"));
+                Assert.That(game.SecurityEscalationTier, Is.EqualTo(RunModel.SalvageRequired),
+                    "The optional reward must not create a hidden fourth security tier.");
+            }
+            finally
+            {
+                InputSystem.RemoveDevice(gamepad);
+            }
+        }
+
+        [UnityTest]
         public IEnumerator ExtractionDock_FireSelectsPaidOverdriveWithoutFiringSignalBolt()
         {
             yield return SceneManager.LoadSceneAsync("SampleScene");
@@ -1515,7 +1579,7 @@ namespace DeadSignal.Tests
 
                 var cachesToSecure = game.transform.Cast<Transform>()
                     .Where(child => child.name == "Salvage Cache" && child.gameObject.activeSelf)
-                    .Take(RunModel.SalvageRequired)
+                    .Take(RunModel.SalvageRequired - 1)
                     .ToArray();
                 foreach (var child in cachesToSecure)
                 {

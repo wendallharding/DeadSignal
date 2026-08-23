@@ -19,6 +19,9 @@ namespace DeadSignal
         [SerializeField, Min(0f)] private float m_secondCacheSignalReward = 4f;
         [SerializeField, Min(0f)] private float m_thirdCacheSignalReward = 8f;
 
+        [Header("Optional Cache")]
+        [SerializeField, Min(0f)] private float m_optionalCacheSignalReward = 18f;
+
         public float RotationSpeed => m_rotationSpeed;
         public float HoverHeight => m_hoverHeight;
         public float HoverAmplitude => m_hoverAmplitude;
@@ -27,6 +30,7 @@ namespace DeadSignal
         public float ChainWindow => m_chainWindow;
         public float SecondCacheSignalReward => m_secondCacheSignalReward;
         public float ThirdCacheSignalReward => m_thirdCacheSignalReward;
+        public float OptionalCacheSignalReward => m_optionalCacheSignalReward;
 
         private void OnValidate()
         {
@@ -38,6 +42,7 @@ namespace DeadSignal
             m_chainWindow = Mathf.Max(1f, m_chainWindow);
             m_secondCacheSignalReward = Mathf.Max(0f, m_secondCacheSignalReward);
             m_thirdCacheSignalReward = Mathf.Max(m_secondCacheSignalReward, m_thirdCacheSignalReward);
+            m_optionalCacheSignalReward = Mathf.Max(0f, m_optionalCacheSignalReward);
         }
     }
 }

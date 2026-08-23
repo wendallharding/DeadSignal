@@ -20,6 +20,9 @@ namespace DeadSignal
 
         public int ChainCount => m_chain.Count;
         public float ChainSecondsRemaining => m_chain.SecondsRemaining;
+        public bool IsOptionalCacheAvailable => m_model.CanExtract && !m_model.OptionalSalvageSecured && _hasActiveCache();
+        public float OptionalCacheSignalReward => m_tuning.OptionalCacheSignalReward;
+        public float OptionalCacheDistance => _optionalCacheDistance();
 
         public DeadSignalSalvageController(
             RunModel model,
@@ -51,7 +54,8 @@ namespace DeadSignal
                     continue;
                 }
 
-                if (m_model.Salvage >= RunModel.SalvageRequired)
+                var isOptionalCache = m_model.Salvage >= RunModel.SalvageRequired;
+                if (isOptionalCache && m_model.OptionalSalvageSecured)
                 {
                     continue;
                 }
@@ -70,6 +74,16 @@ namespace DeadSignal
                 }
 
                 pickup.SetActive(false);
+                if (isOptionalCache)
+                {
+                    var optionalRecovered = m_model.CollectOptionalSalvage(m_tuning.OptionalCacheSignalReward);
+                    m_metrics.RecordSalvageSignalRecovered(optionalRecovered);
+                    m_audio.Play(DeadSignalAudioCue.Salvage);
+                    m_feedback.PlaySalvageChain(pickup.transform.position, RunModel.SalvageRequired + 1);
+                    m_showFeedback($"OPTIONAL CACHE SECURED  +{optionalRecovered:0} SIGNAL — EXTRACT NOW");
+                    continue;
+                }
+
                 m_model.CollectSalvage();
                 m_overclockChoice.NotifySalvageCollected(m_model.Salvage);
                 var reward = m_chain.RecordCollection(
@@ -85,6 +99,37 @@ namespace DeadSignal
                     ? "SALVAGE CORE SYNCED — CHOOSE AN AUXILIARY OVERCLOCK"
                     : $"SALVAGE CHAIN x{m_chain.Count}{rewardText}  {m_model.Salvage}/{RunModel.SalvageRequired}");
             }
+        }
+
+        private bool _hasActiveCache()
+        {
+            foreach (var pickup in m_world.SalvagePickups)
+            {
+                if (pickup.activeSelf)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private float _optionalCacheDistance()
+        {
+            var nearestDistance = float.PositiveInfinity;
+            foreach (var pickup in m_world.SalvagePickups)
+            {
+                if (!pickup.activeSelf)
+                {
+                    continue;
+                }
+
+                nearestDistance = Mathf.Min(
+                    nearestDistance,
+                    DeadSignalWorld.FlatDistance(m_world.Player.position, pickup.transform.position));
+            }
+
+            return nearestDistance;
         }
     }
 }

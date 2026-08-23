@@ -63,6 +63,11 @@ namespace DeadSignal
         public void RecordSalvageChain(int chainCount, float signalRecovered)
         {
             BestSalvageChain = Math.Max(BestSalvageChain, chainCount);
+            RecordSalvageSignalRecovered(signalRecovered);
+        }
+
+        public void RecordSalvageSignalRecovered(float signalRecovered)
+        {
             SalvageSignalRecovered += Math.Max(0f, signalRecovered);
         }
     }
@@ -87,6 +92,7 @@ namespace DeadSignal
         public int Salvage { get; private set; }
         public bool TowerOnline { get; private set; }
         public bool ShortcutOpen { get; private set; }
+        public bool OptionalSalvageSecured { get; private set; }
         public RunOutcome Outcome { get; private set; } = RunOutcome.Running;
 
         public bool CanExtract => Outcome == RunOutcome.Running && Salvage >= SalvageRequired;
@@ -184,6 +190,17 @@ namespace DeadSignal
             {
                 Salvage++;
             }
+        }
+
+        public float CollectOptionalSalvage(float signalReward)
+        {
+            if (!CanExtract || OptionalSalvageSecured)
+            {
+                return 0f;
+            }
+
+            OptionalSalvageSecured = true;
+            return RestoreSignal(signalReward);
         }
 
         public float RestoreSignal(float amount)

@@ -14,6 +14,16 @@
 
 ## P1 — Prove the loop
 
+### Run 78 optional-cache-greed ideas
+
+- [x] Keep the fourth authored cache active after the three-cache extraction requirement is met
+- [x] Pay a designer-tuned 18 Signal once when the player raids the remaining optional cache
+- [x] Surface the live optional-cache distance and exact reward beside the ready extraction route
+- [x] Preserve three required salvage, two overclock choices, three salvage alert tiers, four bounded responses, and both extraction profiles
+- [x] Record actual cap-safe optional recovery in the existing salvage economy report
+- [x] Prove precondition, one-time payout, live HUD disclosure, collection, and unchanged alert cap in Unity tests
+- [ ] Playtest immediate extraction versus optional-cache greed for route abandonment, damage, Signal gained/spent, and uplink reserve
+
 ### Run 77 mode-reactive-extraction-suppression ideas
 
 - [x] Keep Stable's promoted Suppressor opening sweep locked to the drone's deployment-time position

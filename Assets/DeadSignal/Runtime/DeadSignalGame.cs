@@ -139,6 +139,7 @@ namespace DeadSignal
         public ObjectiveBeaconPhase CurrentObjectiveBeaconPhase => m_objectiveBeacon?.CurrentPhase ?? ObjectiveBeaconPhase.Tower;
         public Vector3 CurrentObjectiveBeaconTarget => m_objectiveBeacon?.CurrentTarget ?? Vector3.zero;
         public int CurrentMissionPhase => m_hud?.CurrentMissionPhase ?? 0;
+        public string CurrentMissionObjective => m_hud?.CurrentMissionObjective ?? string.Empty;
         public bool IsCameraImpulseEnabled => m_comfortSettings?.CameraImpulseEnabled ?? true;
         public bool IsReducedFlashesEnabled => m_comfortSettings?.ReducedFlashesEnabled ?? false;
         public bool IsHighContrastEnabled => m_comfortSettings?.HighContrastEnabled ?? false;
@@ -150,6 +151,9 @@ namespace DeadSignal
         public bool HasSalvageChainBurst => m_combatFeedback?.HasSalvageChainTexture ?? false;
         public int CurrentSalvageChain => m_salvage?.ChainCount ?? 0;
         public float SalvageChainSecondsRemaining => m_salvage?.ChainSecondsRemaining ?? 0f;
+        public bool IsOptionalSalvageAvailable => m_salvage?.IsOptionalCacheAvailable ?? false;
+        public bool IsOptionalSalvageSecured => m_model?.OptionalSalvageSecured ?? false;
+        public float OptionalSalvageSignalReward => m_salvage?.OptionalCacheSignalReward ?? 0f;
         public bool IsOverclockChoicePending => m_overclockChoice?.IsPending ?? false;
         public bool IsAuxiliaryOverclockChoicePending => m_overclockChoice?.IsAuxiliaryPending ?? false;
         public SignalOverclock SelectedOverclock => m_overclockChoice?.Selected ?? SignalOverclock.None;

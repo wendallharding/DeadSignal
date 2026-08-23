@@ -20,3 +20,4 @@ MonoBehaviour:
   m_chainWindow: 12
   m_secondCacheSignalReward: 4
   m_thirdCacheSignalReward: 8
+  m_optionalCacheSignalReward: 18

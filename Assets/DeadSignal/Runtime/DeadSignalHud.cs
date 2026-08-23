@@ -20,6 +20,7 @@ namespace DeadSignal
         bool HasRunDebriefArt { get; }
         SignalReserveState CurrentSignalReserveState { get; }
         int CurrentMissionPhase { get; }
+        string CurrentMissionObjective { get; }
 
         void Configure(RunModel model, RunMetrics metrics, DeadSignalWorld world, DeadSignalThreatController threats,
             DeadSignalSalvageController salvage, ExtractionUplink extractionUplink, SignalOverclockChoice overclockChoice);
@@ -103,6 +104,7 @@ namespace DeadSignal
         public bool HasRunDebriefArt => m_runDebriefTexture != null && _hasTexture(m_runDebriefInsignia);
         public SignalReserveState CurrentSignalReserveState { get; private set; }
         public int CurrentMissionPhase { get; private set; }
+        public string CurrentMissionObjective => m_objectiveText == null ? string.Empty : m_objectiveText.text;
 
         [Inject]
         private void _construct(ICombatFeedback combatFeedback, IComfortSettings comfortSettings, IDeadSignalInput input)
@@ -209,8 +211,9 @@ namespace DeadSignal
             var synergyText = m_overclockChoice.Synergy == SignalOverclockSynergy.None
                 ? string.Empty
                 : $"  //  {_overclockSynergyName()}";
+            var optionalText = m_model.OptionalSalvageSecured ? "  //  OPTIONAL CACHE SECURED" : string.Empty;
             m_salvageText.text =
-                $"SALVAGE  {m_model.Salvage}/{RunModel.SalvageRequired}{chainText}{overclockText}{auxiliaryText}{synergyText}";
+                $"SALVAGE  {m_model.Salvage}/{RunModel.SalvageRequired}{chainText}{overclockText}{auxiliaryText}{synergyText}{optionalText}";
             var powered = m_world.IsPowered(m_world.Player.position, m_model.TowerOnline);
             m_zoneText.text = powered ? "● POWERED TERRITORY" : "▲ DEAD ZONE — ACTIVE DRAIN";
             m_zoneText.color = powered ? new Color(0.05f, 0.95f, 1f) : new Color(1f, 0.22f, 0.18f);
@@ -235,6 +238,10 @@ namespace DeadSignal
                   (m_extractionUplink.Mode == ExtractionUplinkMode.Overdrive
                       ? "BREAK YOUR RETREAT LINE — PREDICTIVE SWEEP INBOUND"
                       : "LEAVE THE LOCKED RING — FIGHTING ADVANCES THE LINK")
+                : m_salvage.IsOptionalCacheAvailable
+                ? $"PHASE 3/3  //  EXTRACTION READY\n" +
+                  $"RETURN TO DOCK OR RAID OPTIONAL CACHE  {m_salvage.OptionalCacheDistance:0}m\n" +
+                  $"GREED REWARD +{m_salvage.OptionalCacheSignalReward:0} SIGNAL — SECURITY REMAINS ACTIVE"
                 : $"PHASE {guidance.Phase}/3  //  {guidance.Title}\n{guidance.Action}\n{guidance.Advisory}";
             m_threatText.text = _threatStatus();
             m_controlLegendText.text = _activeControlLegend();

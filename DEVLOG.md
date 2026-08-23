@@ -4270,3 +4270,40 @@ Stable and Overdrive extraction now provoke different spatial counterplay from t
 - Full validation fixed two camera-era test/presentation issues in the latest user commit: sub-millimetre turret reparenting no longer fails an exact vector assertion, and impact sprites now face the high-angle perspective camera rather than lying flat to the deck.
 - Automated evidence proves the predictive center is exactly 3.5 metres ahead of the drone on the retreat line, the warning still begins only after the full 2.5-second safe-entry delay, the role remains unique and bounded, Stable remains centered, and the complete extraction flow remains winnable. No human playtest was performed, so warning recognition, feint satisfaction, camera-facing impact appearance, and mode dominance remain subjective risks.
 - Manual playtest next: start matched high-reserve extractions. For Stable, leave the centered ring and fight for purge credit. For Overdrive, first hold a straight retreat line, then repeat with a late perpendicular feint. Record sweep recognition, field entry, Signal lost, Interceptor cutoff, shots, purges, link finish time, and final reserve. Neither mode should dominate both fight and flight tactics.
+
+## 2026-08-22 — Autonomous Run 78 — Optional-cache greed route
+
+### Milestone, player benefit, and acceptance
+
+The fourth authored cache is now a real late-run greed decision instead of becoming inert when three required caches are secured. Extraction readiness leaves the unchosen cache collectible for one designer-tuned, cap-safe 18-Signal recovery; the mission strip names its live distance and exact reward while security remains active. Acceptance required a one-time payout, unchanged three-cache extraction readiness, unchanged overclock choices and three alert tiers, no extra response, live HUD disclosure, deterministic coverage, and a complete runtime regression.
+
+### Files and systems changed
+
+- `RunModel.cs` owns deterministic optional-cache eligibility, one-time state, and cap-safe recovery; `RunMetrics` records the actual recovered amount in the existing salvage economy report.
+- `SalvagePresentationTuning.cs` and `SalvagePresentationTuning.asset` add the designer-facing 18-Signal optional reward.
+- `DeadSignalSalvageController.cs` keeps the remaining authored cache animated and collectible after extraction readiness, plays the existing escalating salvage confirmation, records actual recovery, and exposes its nearest distance without changing required salvage or overclock selection.
+- `DeadSignalHud.cs` and `DeadSignalGame.cs` disclose/expose the optional route, exact value, secured state, and mission copy. The extraction beacon still points home, preserving the safe finish while the strip presents greed as an explicit alternative.
+- `RunModelTests.cs`, `SalvagePresentationTuningTests.cs`, and `BootstrapSmokeTests.cs` cover preconditions, single payout, cap safety, authored tuning, live collection, HUD disclosure, and the unchanged tier-three director cap. The complete-runtime fixture now collects only the two caches it still requires rather than relying on the old controller to silently reject its extra loop iteration.
+- `GAME_VISION.md`, `BACKLOG.md`, and this entry record the product decision and playtest target.
+
+No scene, prefab, new art/audio, overclock, enemy stat, Signal cost, extraction duration/profile, reinforcement count, entrance, input, package, project setting, serialized GUID, or generated source changed.
+
+### Exact validation evidence
+
+1. The first focused EditMode launch exposed a C# local-name shadowing compile error in the new optional branch and exited `1`; it is excluded. The branch-local variable was renamed. `C:/Projects/Wendall/CodexPrototype_Run77Validation/Logs/run78-editmode-focused.log`.
+2. Corrected focused EditMode with Unity `6000.3.11f1`: `2/2` passed in `0.0461082s`. `run78-editmode-focused2-results.xml` and `run78-editmode-focused2.log`.
+3. Two focused PlayMode attempts each failed `0/1` because the new test read the mission strip in the same frame as tower/salvage state changed. Production collection state was already correct; the fixture now waits one presentation frame. These attempts are excluded. `run78-playmode-focused-results.xml` and `run78-playmode-focused2-results.xml`.
+4. Corrected focused optional-route PlayMode: `1/1` passed in `0.6730548s`. `run78-playmode-focused3-results.xml` and `run78-playmode-focused3.log`.
+5. Full EditMode: `93/93` passed in `0.1564817s`. `run78-editmode-final-results.xml` and `run78-editmode-final.log`.
+6. The first full PlayMode run passed `10/11`; the complete-runtime fixture iterated over three remaining cache objects despite needing only two, so the newly collectible fourth was consumed before its old active-object assertion. The fixture was corrected to collect the exact required remainder; this run is excluded. `run78-playmode-final-results.xml` and `run78-playmode-final.log`.
+7. Corrected full PlayMode: `11/11` passed in `31.3055606s`. `run78-playmode-final2-results.xml` and `run78-playmode-final2.log`.
+8. Windows x64 development build: Unity reported PASS at `241,193,917` bytes in `25.07s`; the validated package was copied to `Build/Windows`. `run78-build.log`.
+9. Packaged null-device smoke emitted one `[DEAD SIGNAL STANDALONE SMOKE] PASS` and exited itself after runtime/resource composition. `run78-standalone.log`.
+10. `git diff --check` passed. Final authoritative result files report zero failures/skips; critical scans found no compiler errors, missing/null references, unhandled exceptions, assertions, build failure, or smoke failure. Unity's initial license-client protocol/access-token messages resolved to the installed valid license before each passing run. The user's live Editor remained open and untouched; authoritative validation used the preserved isolated copy at `C:/Projects/Wendall/CodexPrototype_Run77Validation`.
+
+### Bugs fixed, limitations, playtest evidence, and next step
+
+- The fourth cache previously remained visible but the controller stopped animating and rejected all collection after three salvage. It now remains a functioning choice and grants up to 18 Signal exactly once.
+- Automated playtest evidence proves the greed prompt appears after the third cache, exposes the live remaining-cache distance and +18 reward, collects the sole active optional cache, increases Signal by the cap-safe amount, removes the prompt, keeps salvage at `3/3`, and leaves escalation at tier three. The full combat/extraction flow remains winnable.
+- No human playtest was performed, so 18 Signal may be too automatic or too weak relative to route length, live reinforcements, and an Overdrive payment. The existing salvage burst is reused at tier four and still needs subjective scale/readability review.
+- Manual playtest next: on matched seeds, extract immediately after cache three once, then raid the remaining cache before both Stable and Overdrive returns. Record optional distance, decision time, route abandoned, damage/pulses, Signal before/recovered/spent, live roles, uplink mode, purges, finish time, and final reserve. Reduce the reward if greed dominates despite taking damage; increase it only if players consistently understand the offer and still ignore it.
