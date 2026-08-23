@@ -45,6 +45,7 @@ namespace DeadSignal
         private bool m_sapperLatched;
         private float m_interceptorChargeCountdown;
         private float m_interceptorDashRemaining;
+        private float m_interceptorRecoveryCountdown;
         private float m_interceptorHitCooldown;
         private Vector3 m_interceptorDashDirection;
         private Vector3 m_interceptorDashTarget;
@@ -112,6 +113,8 @@ namespace DeadSignal
         public float SuppressorMaximumHealth => m_tuning.SuppressorHealth;
         public float SuppressorSignalReward => m_tuning.SuppressorSignalReward;
         public bool IsInterceptorCharging => m_interceptorChargeCountdown > 0f;
+        public bool IsInterceptorRecovering => m_interceptorRecoveryCountdown > 0f;
+        public float InterceptorRecoverySecondsRemaining => m_interceptorRecoveryCountdown;
         public Vector3 InterceptorCutoffTarget => m_interceptorCutoffTarget;
         public bool IsInterceptorCuttingSapperFlank => m_interceptorCuttingSapperFlank;
         public bool IsSuppressorFieldActive => m_suppressorFieldCountdown > 0f;
@@ -200,6 +203,7 @@ namespace DeadSignal
                 m_interceptorHealth = m_tuning.InterceptorHealth;
                 m_interceptorChargeCountdown = 0f;
                 m_interceptorDashRemaining = 0f;
+                m_interceptorRecoveryCountdown = 0f;
                 m_interceptorHitCooldown = 0f;
                 m_world.DeployInterceptorReinforcement();
                 m_showFeedback("FLANK GATES OPEN — INTERCEPTOR INBOUND");
@@ -336,7 +340,8 @@ namespace DeadSignal
             }
 
             m_interceptorHitCooldown = Mathf.Max(0f, m_interceptorHitCooldown - dt);
-            m_world.InterceptorCore.Rotate(Vector3.up, 320f * dt, Space.Self);
+            var coreRotationSpeed = IsInterceptorRecovering ? 80f : 320f;
+            m_world.InterceptorCore.Rotate(Vector3.up, coreRotationSpeed * dt, Space.Self);
             var wasCuttingSapperFlank = m_interceptorCuttingSapperFlank;
             m_interceptorCuttingSapperFlank = _isSapperFlankCutActive();
             if (!wasCuttingSapperFlank && m_interceptorCuttingSapperFlank)
@@ -354,6 +359,22 @@ namespace DeadSignal
                     INTERCEPTOR_COLLISION_RADIUS,
                     m_model.ShortcutOpen);
                 _tryApplyInterceptorHit();
+                if (m_world.LastMovementBlocked)
+                {
+                    m_interceptorDashRemaining = 0f;
+                    _beginInterceptorRecovery(true);
+                }
+                else if (m_interceptorDashRemaining <= 0f)
+                {
+                    _beginInterceptorRecovery(false);
+                }
+
+                return;
+            }
+
+            if (m_interceptorRecoveryCountdown > 0f)
+            {
+                m_interceptorRecoveryCountdown = Mathf.Max(0f, m_interceptorRecoveryCountdown - dt);
                 return;
             }
 
@@ -393,6 +414,17 @@ namespace DeadSignal
             m_interceptorChargeCountdown = m_tuning.InterceptorChargeDuration;
             m_world.SetInterceptorTelegraph(true, m_interceptorDashTarget);
             m_showFeedback("INTERCEPTOR LOCK — BREAK THE LINE");
+        }
+
+        private void _beginInterceptorRecovery(bool hitCover)
+        {
+            m_interceptorRecoveryCountdown = InterceptorTactics.CalculateDashRecoveryDuration(
+                hitCover,
+                m_tuning.InterceptorDashRecoveryDuration,
+                m_tuning.InterceptorCrashRecoveryDuration);
+            m_showFeedback(hitCover
+                ? "INTERCEPTOR CRASHED — COUNTERATTACK WINDOW"
+                : "INTERCEPTOR RECOVERING — REPOSITION OR FIRE");
         }
 
         private Vector3 _calculateInterceptorCutoffTarget()

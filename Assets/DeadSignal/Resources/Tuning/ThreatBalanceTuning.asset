@@ -32,6 +32,8 @@ MonoBehaviour:
   m_interceptorChargeDuration: 0.8
   m_interceptorDashSpeed: 8.5
   m_interceptorDashDuration: 0.65
+  m_interceptorDashRecoveryDuration: 0.7
+  m_interceptorCrashRecoveryDuration: 1.5
   m_interceptorHitDistance: 0.9
   m_interceptorHitCooldown: 1.2
   m_interceptorSignalReward: 14

@@ -223,6 +223,69 @@ namespace DeadSignal.Tests
         }
 
         [UnityTest]
+        public IEnumerator InterceptorDash_HittingAuthoredCoverCreatesLongRecovery()
+        {
+            yield return SceneManager.LoadSceneAsync("SampleScene");
+            yield return null;
+
+            var gamepad = InputSystem.AddDevice<Gamepad>();
+            try
+            {
+                var game = Object.FindFirstObjectByType<DeadSignalGame>();
+                var player = game.transform.Find("Maintenance Drone");
+                var interceptor = game.transform.Find("Security Interceptor");
+                player.position = new Vector3(-0.6f, 0f, 0.4f);
+                InputSystem.QueueStateEvent(gamepad, new GamepadState().WithButton(GamepadButton.West));
+                yield return null;
+                InputSystem.QueueStateEvent(gamepad, new GamepadState());
+                yield return null;
+
+                game.transform.Find("Security Warden").position = new Vector3(18f, 0f, 9f);
+                game.transform.Find("Signal Sapper").position = new Vector3(18f, 0f, 9f);
+                var firstCache = game.transform.Cast<Transform>()
+                    .First(child => child.name == "Salvage Cache" && child.gameObject.activeSelf);
+                player.position = firstCache.position;
+                yield return null;
+                player.position = Vector3.zero;
+                var entryDeadline = Time.time + 3.2f;
+                while (!interceptor.gameObject.activeSelf && Time.time < entryDeadline)
+                {
+                    yield return null;
+                }
+
+                Assert.That(interceptor.gameObject.activeSelf, Is.True);
+                player.position = new Vector3(6f, 0f, 3.55f);
+                interceptor.position = InterceptorTactics.CalculateCutoffPoint(
+                    player.position,
+                    new Vector3(-9.2f, 0f, -5.6f),
+                    0.48f);
+                yield return null;
+                Assert.That(game.IsInterceptorCharging, Is.True,
+                    "The Interceptor should disclose its committed line before cover can punish the dash.");
+
+                var crashDeadline = Time.time + 2f;
+                while (!game.IsInterceptorRecovering && Time.time < crashDeadline)
+                {
+                    yield return null;
+                }
+
+                Assert.That(game.IsInterceptorRecovering, Is.True,
+                    "Contact with the authored shortcut bulkhead should stop the committed dash immediately.");
+                Assert.That(game.InterceptorRecoverySecondsRemaining, Is.GreaterThan(1.2f),
+                    "A cover crash should expose the longer counterattack window instead of the clean-miss recovery.");
+                Assert.That(interceptor.position.x, Is.LessThan(4f),
+                    "The Interceptor must remain on the entry side of the visible bulkhead it struck.");
+                yield return null;
+                Assert.That(game.IsInterceptorCharging, Is.False,
+                    "Recovery must block an immediate follow-up lock so the counterattack window is real.");
+            }
+            finally
+            {
+                InputSystem.RemoveDevice(gamepad);
+            }
+        }
+
+        [UnityTest]
         public IEnumerator FirstSalvage_UseSelectsOverdriveAndAppliesRuntimeSpeedTuning()
         {
             yield return SceneManager.LoadSceneAsync("SampleScene");

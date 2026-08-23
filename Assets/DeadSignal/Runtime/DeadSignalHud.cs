@@ -377,7 +377,10 @@ namespace DeadSignal
                     : $"SAPPER {m_threats.SapperHealth:0}/{m_threats.SapperMaximumHealth:0} APPROACHING (+{m_threats.SapperSignalReward:0})";
             var interceptor = !m_threats.IsInterceptorAlive
                 ? "INTERCEPTOR CLEAR"
-                : m_threats.IsInterceptorCharging
+                : m_threats.IsInterceptorRecovering
+                    ? $"INTERCEPTOR {m_threats.InterceptorHealth:0}/{m_threats.InterceptorMaximumHealth:0} EXPOSED " +
+                      $"{m_threats.InterceptorRecoverySecondsRemaining:0.0}s (+{m_threats.InterceptorSignalReward:0})"
+                    : m_threats.IsInterceptorCharging
                     ? $"INTERCEPTOR {m_threats.InterceptorHealth:0}/{m_threats.InterceptorMaximumHealth:0} LOCKING (+{m_threats.InterceptorSignalReward:0})"
                     : m_threats.IsInterceptorCuttingSapperFlank
                         ? $"INTERCEPTOR {m_threats.InterceptorHealth:0}/{m_threats.InterceptorMaximumHealth:0} SAPPER FLANK " +

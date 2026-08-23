@@ -4428,3 +4428,41 @@ No scenes, prefabs, materials, audio, input, packages, project settings, seriali
 The focused runtime route proves a latched Sapper can coexist with the bounded first Interceptor response, the target remains 3.6 metres from the Sapper and perpendicular to the direct approach, the mirrored flank stays more than seven metres away from the contested point, and a two-metre breach releases coordination. Headless automation cannot establish whether players notice which side is cut, switch early enough, bait a dash, accept a pulse, or choose to purge the Interceptor first. No interactive feel or visual-layout session ran in this automation.
 
 Next highest-impact step: play three matched overlaps—approach the contested flank, immediately switch to the mirrored flank, and purge the Interceptor before approaching the Sapper. Record recognition time, side switches, dash locks/hits, Sapper pulses, shots, Signal spent/reclaimed, abandoned salvage, extraction mode, and final reserve before tuning either distance or expanding the map.
+
+## 2026-08-23 — Autonomous Run 81: Interceptor crash recovery
+
+### Milestone, player benefit, and acceptance
+
+Turned the Interceptor's existing collision-bounded dash into a route-and-combat decision. A dash that strikes authored cover now stops immediately and exposes the Interceptor for a designer-tuned 1.5 seconds; a cleanly avoided dash receives a shorter 0.7-second recovery. The player can keep fleeing, spend route distance to bait a visible obstacle, or use the earned opening for Signal-expensive counterfire. Enemy health, approach speed, dash speed, charge duration, impact damage, response budget, bounty, safe entrances, and role coordination are unchanged.
+
+Acceptance criteria were recorded before implementation: choose the recovery duration deterministically; use the established authored blocker collision; terminate a blocked dash immediately; disclose the exposed state and time; prevent a follow-up lock during recovery; retain all threat stats and budgets; and prove the behavior in focused pure-logic and live-runtime tests.
+
+### Changed files and systems
+
+- `Assets/DeadSignal/Runtime/ThreatBalanceTuning.cs` and `Assets/DeadSignal/Resources/Tuning/ThreatBalanceTuning.asset` add validated 0.7-second clean and 1.5-second crash recovery values.
+- `Assets/DeadSignal/Runtime/InterceptorTactics.cs` owns deterministic recovery selection.
+- `Assets/DeadSignal/Runtime/DeadSignalThreatController.cs` detects blocker contact from the authoritative movement resolver, terminates the dash, owns recovery, slows the exposed core spin, and blocks relocking.
+- `Assets/DeadSignal/Runtime/DeadSignalGame.cs` exposes the narrow live state for runtime validation.
+- `Assets/DeadSignal/Runtime/DeadSignalHud.cs` names the Interceptor as exposed and shows the remaining counterattack window.
+- `Assets/DeadSignal/Tests/InterceptorTacticsTests.cs`, `Assets/DeadSignal/Tests/ThreatBalanceTuningTests.cs`, and `Assets/DeadSignal/Tests/PlayMode/BootstrapSmokeTests.cs` cover duration selection, tuning relationships, an authored-shortcut-bulkhead crash, immediate stop, long recovery, and relock prevention.
+- `GAME_VISION.md` records the material bait-and-punish product decision; `BACKLOG.md` records acceptance and the matched manual playtest.
+
+No scenes, prefabs, materials, art, audio, input, packages, project settings, serialized save data, enemy stats, Signal rewards, entrances, response counts, or asset GUIDs changed. The build setup regenerated six component file IDs in `EastSalvageVault.prefab`; that unrelated serializer churn was restored exactly.
+
+### Exact validation and bugs found
+
+- Unity `6000.3.11f1` compile/import: exit `0` (`Logs/Run81-Compile.log`).
+- Focused EditMode: `11/11` passed in `0.0426836s` (`Logs/Run81-Focused-EditMode.xml`).
+- Corrected focused PlayMode: `1/1` passed in `4.578358s` (`Logs/Run81-Focused-PlayMode-Corrected.xml`).
+- Full EditMode: `99/99` passed in `0.1427546s` (`Logs/Run81-Full-EditMode.xml`).
+- Full PlayMode: `13/13` passed in `38.5508957s` (`Logs/Run81-Full-PlayMode.xml`).
+- Windows x64 development build: PASS, `241,227,853` bytes in `16.37s` (`Logs/Run81-WindowsBuild.log`).
+- Packaged null-device smoke: PASS with exit `0` (`Logs/Run81-StandaloneSmoke.log`).
+- The first focused PlayMode command used an incorrect namespace and executed zero tests; it is excluded from authoritative evidence. No production or test defect was found by the corrected run.
+- Unity's initial licensing handshake warnings resolved to the installed valid license. Final critical scans and `git diff --check` were clean.
+
+### Playtest evidence, limitations, and next step
+
+The focused runtime route proves the Interceptor commits across the visible shortcut bulkhead, remains on the entry side after collision, exposes more than 1.2 seconds of its 1.5-second crash window when observed, and cannot begin another lock on the next frame. Automated validation also proves the shorter 0.7-second clean recovery selection. Headless automation cannot establish whether the slowed core and HUD copy are noticed in motion, whether the cover setup feels deliberate rather than accidental, or whether 1.5 seconds permits a satisfying number of shots under mixed-role pressure.
+
+Next highest-impact step: play three matched Interceptor responses—open-floor dodge, successful cover bait, and a failed bait that leaves the player in the dash line. Record lock recognition, obstacle chosen, crash recognition, shots landed during recovery, dash hits, Sapper pulses or Suppressor fields, Signal spent/reclaimed, abandoned salvage, extraction mode, and final reserve before changing either recovery value or expanding the map.

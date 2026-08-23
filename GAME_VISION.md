@@ -214,3 +214,7 @@ The first salvage response now records the opening fight instead of always begin
 ### Run 77 product decision — mode-reactive extraction suppression
 
 The promoted Suppressor now counters the extraction plan the player chose. Stable retains a centered opening ring that asks the player to leave the lock and use its stronger purge credit; Overdrive projects its ring 3.5 metres ahead along the dock-to-drone retreat line, asking the faster drone to break course rather than hold a scripted escape. Both profiles keep the same bounded role, safe authored entrance, one-second telegraph, field radius, penalties, and extraction duration, and the dock identifies each sweep before commitment. This was selected over another wave or stat increase because the two uplink modes needed different spatial counterplay, not merely different clocks and prices.
+
+### Run 81 product decision — Interceptor crash recovery
+
+A committed Interceptor dash now stops when it hits authored cover and exposes a designer-tuned 1.5-second counterattack window; a cleanly avoided dash retains a shorter 0.7-second recovery. Both states block an immediate follow-up lock and are disclosed through combat feedback and live threat status. This was selected over additional health, speed, reinforcements, or a second region because the existing authored obstacles should support a deliberate bait-and-punish decision: flee across open floor, spend route distance to line up a crash, or turn the resulting opening into Signal-expensive counterfire.

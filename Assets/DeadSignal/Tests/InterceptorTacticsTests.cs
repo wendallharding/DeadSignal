@@ -86,5 +86,12 @@ namespace DeadSignal.Tests
 
             Assert.That(cutoff, Is.EqualTo(Vector3.back * 3.6f));
         }
+
+        [Test]
+        public void CalculateDashRecoveryDuration_CoverCrashCreatesLongerCounterattackWindow()
+        {
+            Assert.That(InterceptorTactics.CalculateDashRecoveryDuration(false, 0.7f, 1.5f), Is.EqualTo(0.7f));
+            Assert.That(InterceptorTactics.CalculateDashRecoveryDuration(true, 0.7f, 1.5f), Is.EqualTo(1.5f));
+        }
     }
 }

@@ -14,6 +14,15 @@
 
 ## P1 — Prove the loop
 
+### Run 81 Interceptor crash-recovery ideas
+
+- [x] End a committed Interceptor dash immediately when it hits authored cover or a closed route blocker
+- [x] Expose a designer-tuned 1.5-second crash recovery versus a 0.7-second clean-miss recovery
+- [x] Keep health, approach speed, dash speed, damage, response count, bounty, entrances, and charge warning unchanged
+- [x] Surface the recovery as an explicit counterattack window and block immediate follow-up locks
+- [x] Prove duration selection, authored-bulkhead collision, dash termination, live recovery, and relock prevention in Unity tests
+- [ ] Playtest open-floor dodge, cover bait, and failed bait for recognition, shots landed, hits taken, route choice, and Signal reserve
+
 ### Run 80 Sapper-Interceptor flank-cut ideas
 
 - [x] While a Sapper is latched, route a surviving Interceptor to the nearer of two perpendicular flank points

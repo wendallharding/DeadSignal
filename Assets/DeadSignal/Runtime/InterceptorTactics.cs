@@ -91,6 +91,16 @@ namespace DeadSignal
             return cutoff;
         }
 
+        public static float CalculateDashRecoveryDuration(
+            bool hitCover,
+            float dashRecoveryDuration,
+            float crashRecoveryDuration)
+        {
+            dashRecoveryDuration = Mathf.Max(0f, dashRecoveryDuration);
+            crashRecoveryDuration = Mathf.Max(dashRecoveryDuration, crashRecoveryDuration);
+            return hitCover ? crashRecoveryDuration : dashRecoveryDuration;
+        }
+
         private static float _flatSqrDistance(Vector3 first, Vector3 second)
         {
             var delta = first - second;

@@ -31,6 +31,8 @@ namespace DeadSignal
         [SerializeField] private float m_interceptorChargeDuration = 0.8f;
         [SerializeField] private float m_interceptorDashSpeed = 8.5f;
         [SerializeField] private float m_interceptorDashDuration = 0.65f;
+        [SerializeField] private float m_interceptorDashRecoveryDuration = 0.7f;
+        [SerializeField] private float m_interceptorCrashRecoveryDuration = 1.5f;
         [SerializeField] private float m_interceptorHitDistance = 0.9f;
         [SerializeField] private float m_interceptorHitCooldown = 1.2f;
         [SerializeField] private float m_interceptorSignalReward = 14f;
@@ -83,6 +85,8 @@ namespace DeadSignal
         public float InterceptorChargeDuration => m_interceptorChargeDuration;
         public float InterceptorDashSpeed => m_interceptorDashSpeed;
         public float InterceptorDashDuration => m_interceptorDashDuration;
+        public float InterceptorDashRecoveryDuration => m_interceptorDashRecoveryDuration;
+        public float InterceptorCrashRecoveryDuration => m_interceptorCrashRecoveryDuration;
         public float InterceptorHitDistance => m_interceptorHitDistance;
         public float InterceptorHitCooldown => m_interceptorHitCooldown;
         public float InterceptorSignalReward => m_interceptorSignalReward;
@@ -133,6 +137,9 @@ namespace DeadSignal
             m_interceptorChargeDuration = Mathf.Max(0.1f, m_interceptorChargeDuration);
             m_interceptorDashSpeed = Mathf.Max(0.1f, m_interceptorDashSpeed);
             m_interceptorDashDuration = Mathf.Max(0.1f, m_interceptorDashDuration);
+            m_interceptorDashRecoveryDuration = Mathf.Max(0.1f, m_interceptorDashRecoveryDuration);
+            m_interceptorCrashRecoveryDuration = Mathf.Max(
+                m_interceptorDashRecoveryDuration, m_interceptorCrashRecoveryDuration);
             m_interceptorHitDistance = Mathf.Max(0.1f, m_interceptorHitDistance);
             m_interceptorHitCooldown = Mathf.Max(0.1f, m_interceptorHitCooldown);
             m_interceptorSignalReward = Mathf.Max(0f, m_interceptorSignalReward);

@@ -41,6 +41,9 @@ namespace DeadSignal.Tests
                 Assert.That(tuning.InterceptorHealth, Is.GreaterThan(0));
                 Assert.That(tuning.InterceptorChargeDuration, Is.GreaterThanOrEqualTo(0.5f));
                 Assert.That(tuning.InterceptorDashSpeed, Is.GreaterThan(tuning.InterceptorApproachSpeed));
+                Assert.That(tuning.InterceptorDashRecoveryDuration, Is.InRange(0.5f, 1f));
+                Assert.That(tuning.InterceptorCrashRecoveryDuration,
+                    Is.GreaterThan(tuning.InterceptorDashRecoveryDuration).And.LessThanOrEqualTo(2f));
                 Assert.That(tuning.InterceptorSuppressionExitMargin, Is.InRange(0.25f, 1f));
                 Assert.That(tuning.InterceptorSapperFlankDistance, Is.InRange(3f, 4.5f));
                 Assert.That(tuning.InterceptorSapperFlankBreakDistance,
