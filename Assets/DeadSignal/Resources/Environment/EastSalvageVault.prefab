@@ -9,7 +9,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1627454149184432961}
-  - component: {fileID: 3470417124887106716}
+  - component: {fileID: 4579225588565167928}
   m_Layer: 0
   m_Name: Vault West South Gate Bounds
   m_TagString: Untagged
@@ -32,7 +32,7 @@ Transform:
   m_Children: []
   m_Father: {fileID: 7074171615813112093}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &3470417124887106716
+--- !u!114 &4579225588565167928
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -54,7 +54,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 694919903065053016}
-  - component: {fileID: 1389440228175861168}
+  - component: {fileID: 7061036427014152192}
   m_Layer: 0
   m_Name: Vault East Wall Bounds
   m_TagString: Untagged
@@ -77,7 +77,7 @@ Transform:
   m_Children: []
   m_Father: {fileID: 7074171615813112093}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1389440228175861168
+--- !u!114 &7061036427014152192
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -99,7 +99,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 8875289832004955945}
-  - component: {fileID: 282941296835904816}
+  - component: {fileID: 55072426723751258}
   m_Layer: 0
   m_Name: Vault Route Splitter Bounds
   m_TagString: Untagged
@@ -122,7 +122,7 @@ Transform:
   m_Children: []
   m_Father: {fileID: 7074171615813112093}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &282941296835904816
+--- !u!114 &55072426723751258
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -144,7 +144,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 5317685481905693562}
-  - component: {fileID: 2871451048670924092}
+  - component: {fileID: 5340800079731619934}
   m_Layer: 0
   m_Name: Vault West North Gate Bounds
   m_TagString: Untagged
@@ -167,7 +167,7 @@ Transform:
   m_Children: []
   m_Father: {fileID: 7074171615813112093}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &2871451048670924092
+--- !u!114 &5340800079731619934
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -189,7 +189,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4399762887561477261}
-  - component: {fileID: 396087829173663265}
+  - component: {fileID: 4846963288937062431}
   m_Layer: 0
   m_Name: Vault North Wall Bounds
   m_TagString: Untagged
@@ -212,7 +212,7 @@ Transform:
   m_Children: []
   m_Father: {fileID: 7074171615813112093}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &396087829173663265
+--- !u!114 &4846963288937062431
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -278,7 +278,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1635671658256247026}
-  - component: {fileID: 2086245207303859159}
+  - component: {fileID: 5090426453902284666}
   m_Layer: 0
   m_Name: Vault South Wall Bounds
   m_TagString: Untagged
@@ -301,7 +301,7 @@ Transform:
   m_Children: []
   m_Father: {fileID: 7074171615813112093}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &2086245207303859159
+--- !u!114 &5090426453902284666
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}

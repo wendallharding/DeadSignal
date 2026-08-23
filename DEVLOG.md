@@ -4338,3 +4338,19 @@ Implemented the eleven requested follow-up improvements while preserving determi
 - The first PlayMode attempt exposed the immediate-play ParticleSystem configuration assertion and stale silhouette counts; excluded. Corrected PlayMode and final post-smoke rerun: `11/11` passed in `31.3431323s` (`TestResults-Presentation2-PlayMode-Final.xml`).
 - Windows x64 development build passed at `241,211,769` bytes in `17.22s` (`Logs/Presentation2-WindowsBuild.log`).
 - Manual packaged-build playtest covered opening, tower activation, boundary crossing, combat, and first salvage at 1280×720. Territory transparency preserves floor detail; circuitry, light pools, enemy silhouettes, grade, and boundary hierarchy remained readable in motion and under the pause overlay.
+
+## 2026-08-22 — Navigation, usability, and replayability pass
+
+Implemented the fifteen requested playtest improvements as a cohesive assistance layer without replacing deterministic combat. The world now presents a curved pulsing route toward the current objective, a projected aim line, proximity-responsive cache rings, collision-color feedback on the drone wake, world-space threat health, a critical-signal escape line, and a fourteen-light extraction approach. Controller aim receives bounded target magnetism, focus loss pauses immediately and blocks the first two resumed input frames, feedback messages use urgency priority, and the opening run teaches movement, powered territory, salvage, and extraction in sequence.
+
+Persistent accessibility/replay support now includes route-strength and drain-difficulty profiles (`G` and `V` while paused), the existing flash/contrast/camera/audio controls, configurable controller aim-assist preference, three known-clear cache-layout variants, and personal-best time/grade comparison in the debrief. Existing threat tactics continue to supply role differentiation; their new world health bars expose combat progress without requiring HUD inspection.
+
+### Files and validation
+
+- `DeadSignalWorld.cs` owns route/aim/emergency guides, cache proximity, health bars, collision response, extraction lane, and bounded cache layouts.
+- `DeadSignalGame.cs` owns onboarding sequencing, focus safety, aim magnetism, persisted guidance/difficulty profiles, and assist orchestration.
+- `DeadSignalInput.cs` adds keyboard/controller preference toggles; `DeadSignalHud.cs` prioritizes feedback, advertises the toggles, and persists personal-best debrief data.
+- `PlayerDroneSignalWake.cs` provides brief amber collision feedback; `BootstrapSmokeTests.cs` covers assist composition, extraction lane size, world health presentation, and variant-aware nearest-cache guidance.
+- EditMode: `93/93` passed in `0.1599453s` (`TestResults-Usability-EditMode-Final.xml`).
+- Initial PlayMode correctly exposed stale Warden/Sapper renderer counts; corrected run passed `11/11`. The first cache-variation run then exposed one hard-coded original coordinate; after converting it to a nearest-active-cache invariant, final variant run passed `11/11` in `31.2701535s` (`TestResults-Usability-PlayMode-VariantFinal.xml`).
+- Final Windows x64 build and packaged playtest evidence are recorded in `Logs/Usability-WindowsBuild-Final.log`; the opening check confirmed the curved guide, projected aim line, extraction lane, territory shader, HUD, and floor readability coexist at 1280×720.

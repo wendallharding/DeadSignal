@@ -37,6 +37,10 @@ namespace DeadSignal
         private Vector3 m_playerPresentationAcceleration;
         private bool m_lastPoweredState;
         private bool m_fireBuffered;
+        private int m_focusInputBlockFrames;
+        private int m_onboardingStep;
+        private float m_routeGuidanceStrength = 0.7f;
+        private float m_difficultyDrainMultiplier = 1f;
 
         public float CurrentSignal => m_model?.Signal ?? 0f;
         public bool IsSapperLatched => m_threats?.IsSapperLatched ?? false;
@@ -295,6 +299,11 @@ namespace DeadSignal
 
             m_playerMovement = new PlayerDroneMovement();
             m_overclockChoice = new SignalOverclockChoice();
+            m_routeGuidanceStrength = Mathf.Clamp01(PlayerPrefs.GetFloat("DeadSignal.RouteGuidance", 0.7f));
+            m_difficultyDrainMultiplier = Mathf.Clamp(PlayerPrefs.GetFloat("DeadSignal.DifficultyDrain", 1f), 0.75f, 1.2f);
+            var routeVariant = (PlayerPrefs.GetInt("DeadSignal.RouteVariant", 0) + 1) % 3;
+            PlayerPrefs.SetInt("DeadSignal.RouteVariant", routeVariant);
+            PlayerPrefs.Save();
 
             m_world = new DeadSignalWorld(transform, m_comfortSettings);
             m_world.ConfigurePlayerSignalWake(m_playerMovementTuning);
@@ -342,6 +351,12 @@ namespace DeadSignal
 
         private void Update()
         {
+            if (m_focusInputBlockFrames > 0)
+            {
+                m_focusInputBlockFrames--;
+                return;
+            }
+
             _handlePauseInput();
             var dt = Mathf.Min(Time.deltaTime, 0.05f);
             m_hud.Tick(dt);
@@ -370,7 +385,7 @@ namespace DeadSignal
             }
 
             var movement = _updatePlayer(dt);
-            var aimDirection = m_input.ReadAimDirection(m_world.Camera, m_world.Player);
+            var aimDirection = _applyAimAssist(m_input.ReadAimDirection(m_world.Camera, m_world.Player));
             m_world.TickPlayerPresentation(
                 dt,
                 m_playerPresentationAcceleration,
@@ -380,14 +395,16 @@ namespace DeadSignal
             m_world.TickEnvironmentPresentation(dt, m_model.TowerOnline, powered: m_world.IsPowered(
                 m_world.Player.position, m_model.TowerOnline));
             m_world.PlayerSignalWake.Tick(m_playerMovement.Velocity);
+            m_world.TickGameplayAssists(dt, m_model, m_threats, aimDirection, m_routeGuidanceStrength);
 
             var powered = m_world.IsPowered(m_world.Player.position, m_model.TowerOnline);
             m_audio.Tick(powered, m_model.TowerOnline, m_model.Signal / RunModel.MaximumSignal);
-            m_model.Advance(dt, movement.sqrMagnitude > 0.01f, powered);
+            m_model.Advance(dt * m_difficultyDrainMultiplier, movement.sqrMagnitude > 0.01f, powered);
             _tryTriggerEmergencyCapacitor();
             m_signalDust.Tick(powered, m_model.TowerOnline, m_model.Signal / RunModel.MaximumSignal);
             m_lowSignalWarning.Tick(dt);
             m_metrics.Advance(dt, powered);
+            _tickOnboarding();
             if (powered != m_lastPoweredState)
             {
                 _showFeedback(powered ? "NETWORK LINK RESTORED" : "DEAD ZONE — SIGNAL BLEED");
@@ -437,6 +454,22 @@ namespace DeadSignal
             }
         }
 
+        private void OnApplicationFocus(bool hasFocus)
+        {
+            if (m_model == null || m_model.Outcome != RunOutcome.Running)
+            {
+                return;
+            }
+
+            if (!hasFocus)
+            {
+                _setPaused(true);
+                return;
+            }
+
+            m_focusInputBlockFrames = 2;
+        }
+
         private Vector3 _updatePlayer(float dt)
         {
             if (dt <= 0f)
@@ -473,6 +506,68 @@ namespace DeadSignal
             return resolvedVelocity;
         }
 
+        private Vector3 _applyAimAssist(Vector3 aimDirection)
+        {
+            var strength = Mathf.Clamp01(PlayerPrefs.GetFloat("DeadSignal.AimAssist", 0.35f));
+            if (strength <= 0f || m_input.ActivePromptDevice != InputPromptDevice.Gamepad)
+            {
+                return aimDirection;
+            }
+
+            var candidates = new[] { m_world.Warden, m_world.Sapper, m_world.Interceptor, m_world.Suppressor };
+            Transform best = null;
+            var bestDot = 0.82f;
+            foreach (var candidate in candidates)
+            {
+                if (candidate == null || !candidate.gameObject.activeSelf)
+                {
+                    continue;
+                }
+
+                var direction = candidate.position - m_world.Player.position;
+                direction.y = 0f;
+                var dot = Vector3.Dot(aimDirection.normalized, direction.normalized);
+                if (dot > bestDot && direction.sqrMagnitude <= 64f)
+                {
+                    best = candidate;
+                    bestDot = dot;
+                }
+            }
+
+            if (best == null)
+            {
+                return aimDirection;
+            }
+
+            var assisted = best.position - m_world.Player.position;
+            assisted.y = 0f;
+            return Vector3.Slerp(aimDirection.normalized, assisted.normalized, strength);
+        }
+
+        private void _tickOnboarding()
+        {
+            if (m_onboardingStep == 0 && m_metrics.ElapsedSeconds >= 1f)
+            {
+                _showFeedback("TRAINING LINK — MOVE, AIM, AND FIRE WHILE SIGNAL DRAINS");
+                m_onboardingStep++;
+            }
+            else if (m_onboardingStep == 1 && m_metrics.ElapsedSeconds >= 5f)
+            {
+                _showFeedback("CYAN TERRITORY STOPS ACTIVE SIGNAL DRAIN");
+                m_onboardingStep++;
+            }
+            else if (m_onboardingStep == 2 && m_model.TowerOnline)
+            {
+                _showFeedback("NETWORK ONLINE — FOLLOW THE PULSE TO THREE SALVAGE CORES");
+                m_onboardingStep++;
+            }
+            else if (m_onboardingStep == 3 && m_model.CanExtract)
+            {
+                _showFeedback("TRAINING COMPLETE — RETURN THROUGH THE CYAN APPROACH LANE");
+                m_onboardingStep++;
+            }
+        }
+
         private void _handlePauseInput()
         {
             if (m_model.Outcome == RunOutcome.Running && m_input.PressedPause())
@@ -503,6 +598,21 @@ namespace DeadSignal
             if (m_input.PressedAudioToggle())
             {
                 ToggleAudio();
+            }
+
+            if (m_input.PressedGuidanceToggle())
+            {
+                m_routeGuidanceStrength = m_routeGuidanceStrength < 0.1f ? 0.7f : m_routeGuidanceStrength < 0.9f ? 1f : 0f;
+                PlayerPrefs.SetFloat("DeadSignal.RouteGuidance", m_routeGuidanceStrength);
+                PlayerPrefs.Save();
+            }
+
+            if (m_input.PressedDifficultyToggle())
+            {
+                m_difficultyDrainMultiplier = m_difficultyDrainMultiplier < 0.9f ? 1f :
+                    m_difficultyDrainMultiplier < 1.1f ? 1.2f : 0.75f;
+                PlayerPrefs.SetFloat("DeadSignal.DifficultyDrain", m_difficultyDrainMultiplier);
+                PlayerPrefs.Save();
             }
         }
 

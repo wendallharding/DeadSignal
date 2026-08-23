@@ -87,6 +87,9 @@ namespace DeadSignal
         private Texture2D m_runDebriefTexture;
         private float m_feedbackTimer;
         private float m_signalPulseTime;
+        private int m_feedbackPriority;
+        private bool m_resultRecorded;
+        private string m_personalBestText = string.Empty;
         private string m_feedback = string.Empty;
 
         public bool HasPauseInsignia => _hasTexture(m_pauseInsignia);
@@ -142,13 +145,24 @@ namespace DeadSignal
 
         void IDeadSignalHud.ShowFeedback(string message)
         {
+            var priority = _feedbackPriority(message);
+            if (m_feedbackTimer > 0.35f && priority < m_feedbackPriority)
+            {
+                return;
+            }
+
             m_feedback = message;
             m_feedbackTimer = 2.2f;
+            m_feedbackPriority = priority;
         }
 
         void IDeadSignalHud.Tick(float dt)
         {
             m_feedbackTimer = Mathf.Max(0f, m_feedbackTimer - dt);
+            if (m_feedbackTimer <= 0f)
+            {
+                m_feedbackPriority = 0;
+            }
             if (!m_combatFeedback.IsPaused)
             {
                 m_signalPulseTime += Mathf.Max(0f, dt);
@@ -263,11 +277,12 @@ namespace DeadSignal
 
             var victory = m_model.Outcome == RunOutcome.Victory;
             var debrief = RunDebrief.Evaluate(m_model, m_metrics);
+            _recordPersonalBest();
             m_outcomeTitle.text = victory ? "SIGNAL RECOVERED" : "DRONE OFFLINE";
             m_outcomeTitle.color = victory ? new Color(0.08f, 0.96f, 1f) : new Color(1f, 0.08f, 0.06f);
             m_outcomeDetail.text = victory ? "Salvage extracted. The station lives a little longer." : "Signal depleted in the dark.";
             m_runReportText.text = $"DEBRIEF GRADE  {debrief.Grade}\n{debrief.Signal}   |   {debrief.Combat}\n" +
-                                   $"{debrief.Exposure}   |   {debrief.Route}\n{_runReport()}";
+                                   $"{debrief.Exposure}   |   {debrief.Route}\n{m_personalBestText}\n{_runReport()}";
             m_restartText.text = $"PRESS {_binding("R / ENTER", "GAMEPAD A")} TO RESTART";
         }
 
@@ -284,7 +299,8 @@ namespace DeadSignal
             m_optionStateTexts[3].text = $"{_binding("M", "D-PAD LEFT")}  AUDIO {(m_comfortSettings.AudioEnabled ? "ON" : "MUTED")}";
             var conflict = !string.IsNullOrEmpty(m_input.RebindStatusMessage);
             m_routingStatusText.text = conflict ? m_input.RebindStatusMessage :
-                m_input.IsRebinding ? "PRESS A KEY  |  ESC CANCELS" : "PERSISTED KEYBOARD BINDINGS";
+                m_input.IsRebinding ? "PRESS A KEY  |  ESC CANCELS" :
+                "PERSISTED BINDINGS  |  G GUIDANCE  |  V DIFFICULTY";
             var labels = new[] { $"UP  {m_input.MoveUpKeyboardBinding}", $"DOWN  {m_input.MoveDownKeyboardBinding}",
                 $"LEFT  {m_input.MoveLeftKeyboardBinding}", $"RIGHT  {m_input.MoveRightKeyboardBinding}",
                 $"FIRE  {m_input.FireKeyboardBinding}", $"USE  {m_input.InteractKeyboardBinding}", "RESET" };
@@ -305,6 +321,39 @@ namespace DeadSignal
                    $"PURGES {m_metrics.ThreatsPurged}   |   RECLAIMED {m_metrics.SignalRecovered:0}   |   " +
                    $"BEST CHAIN x{m_metrics.BestSalvageChain}   |   CHAIN SIGNAL {m_metrics.SalvageSignalRecovered:0}   |   " +
                    $"SIGNAL {Mathf.CeilToInt(m_model.Signal)}";
+        }
+
+        private void _recordPersonalBest()
+        {
+            if (m_resultRecorded)
+            {
+                return;
+            }
+
+            m_resultRecorded = true;
+            const string bestTimeKey = "DeadSignal.PersonalBest.VictorySeconds";
+            const string bestGradeKey = "DeadSignal.PersonalBest.Grade";
+            var previousBest = PlayerPrefs.GetFloat(bestTimeKey, float.PositiveInfinity);
+            if (m_model.Outcome == RunOutcome.Victory && m_metrics.ElapsedSeconds < previousBest)
+            {
+                PlayerPrefs.SetFloat(bestTimeKey, m_metrics.ElapsedSeconds);
+                PlayerPrefs.SetString(bestGradeKey, RunDebrief.Evaluate(m_model, m_metrics).Grade);
+                PlayerPrefs.Save();
+                m_personalBestText = "NEW PERSONAL BEST — FASTEST RECOVERY";
+                return;
+            }
+
+            m_personalBestText = float.IsPositiveInfinity(previousBest)
+                ? "PERSONAL BEST — COMPLETE A RECOVERY TO ESTABLISH"
+                : $"PERSONAL BEST  {Mathf.FloorToInt(previousBest) / 60:00}:{Mathf.FloorToInt(previousBest) % 60:00}  //  " +
+                  $"GRADE {PlayerPrefs.GetString(bestGradeKey, "—")}";
+        }
+
+        private static int _feedbackPriority(string message)
+        {
+            if (message.Contains("CRITICAL") || message.Contains("DEAD ZONE") || message.Contains("AWAKENED")) return 3;
+            if (message.Contains("CHOOSE") || message.Contains("EXTRACTION") || message.Contains("TOWER")) return 2;
+            return 1;
         }
 
         private string _threatStatus()

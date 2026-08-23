@@ -103,6 +103,17 @@ namespace DeadSignal
             }
         }
 
+        public void SetCollisionIntensity(float intensity)
+        {
+            if (m_material == null)
+            {
+                return;
+            }
+
+            var color = Color.Lerp(Color.white, new Color(1f, 0.42f, 0.08f), Mathf.Clamp01(intensity));
+            m_material.SetColor("_BaseColor", color);
+        }
+
         private void OnDestroy()
         {
             if (m_material != null)

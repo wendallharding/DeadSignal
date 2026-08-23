@@ -72,6 +72,7 @@ namespace DeadSignal
         public int AuthoredSalvageSocketCount { get; private set; }
         public bool HasPlayerCameraTuning { get; private set; }
         public PlayerFollowCamera PlayerCamera { get; private set; }
+        public bool LastMovementBlocked { get; private set; }
 
         public DeadSignalWorld(Transform root, IComfortSettings comfortSettings)
         {
@@ -109,6 +110,7 @@ namespace DeadSignal
 
         public Vector3 ResolveMovement(Vector3 current, Vector3 desired, float radius, bool shortcutOpen)
         {
+            LastMovementBlocked = false;
             var position = current;
             var target = desired;
             for (var iteration = 0; iteration < 3; iteration++)
@@ -132,6 +134,8 @@ namespace DeadSignal
                 {
                     return target;
                 }
+
+                LastMovementBlocked = true;
 
                 var resolved = OrientedObstacleCollision.ResolveSlide(position, target, nearestFraction, nearestNormal);
                 position = Vector3.Lerp(position, target, nearestFraction) +
@@ -416,6 +420,62 @@ namespace DeadSignal
             }
         }
 
+        public void TickGameplayAssists(
+            float dt,
+            RunModel model,
+            DeadSignalThreatController threats,
+            Vector3 aimDirection,
+            float guidanceStrength)
+        {
+            var target = _currentObjectiveTarget(model);
+            _updateGuideLine(m_routeGuide, Player.position, target, m_palette.Cyan, 0.035f + guidanceStrength * 0.045f);
+            m_routeGuide.enabled = guidanceStrength > 0.01f;
+
+            var aimEnd = Player.position + aimDirection.normalized * 4.2f;
+            _updateGuideLine(m_aimGuide, Player.position + Vector3.up * 0.18f, aimEnd + Vector3.up * 0.18f,
+                m_palette.White, 0.025f);
+
+            _updateThreatHealth(Warden, threats.WardenHealth, threats.WardenMaximumHealth);
+            _updateThreatHealth(Sapper, threats.SapperHealth, threats.SapperMaximumHealth);
+            _updateThreatHealth(Interceptor, threats.InterceptorHealth, threats.InterceptorMaximumHealth);
+            _updateThreatHealth(Suppressor, threats.SuppressorHealth, threats.SuppressorMaximumHealth);
+
+            foreach (var cache in m_salvagePickups)
+            {
+                if (!cache.activeSelf)
+                {
+                    continue;
+                }
+
+                var locator = cache.transform.Find("Salvage Locator");
+                if (locator != null)
+                {
+                    var distance = FlatDistance(Player.position, cache.transform.position);
+                    var proximity = 1f - Mathf.Clamp01((distance - 0.85f) / 3f);
+                    locator.localScale = Vector3.one * Mathf.Lerp(1.35f, 1.65f, proximity);
+                }
+            }
+
+            if (model.Signal / RunModel.MaximumSignal <= 0.25f)
+            {
+                var poweredTarget = model.TowerOnline && FlatDistance(Player.position, TowerPosition) <
+                    FlatDistance(Player.position, ExtractionPosition) ? TowerPosition : ExtractionPosition;
+                _updateGuideLine(m_emergencyGuide, Player.position, poweredTarget, m_palette.Amber, 0.1f);
+                m_emergencyGuide.enabled = true;
+            }
+            else
+            {
+                m_emergencyGuide.enabled = false;
+            }
+
+            if (LastMovementBlocked)
+            {
+                m_collisionPulse = 1f;
+            }
+            m_collisionPulse = Mathf.MoveTowards(m_collisionPulse, 0f, dt * 4f);
+            PlayerSignalWake.SetCollisionIntensity(m_collisionPulse);
+        }
+
         public void PlayBoundaryTransition()
         {
             m_boundaryPulse = 1f;
@@ -522,6 +582,8 @@ namespace DeadSignal
             _buildRouteDetails();
             _buildLocalizedLighting();
             _buildEnvironmentalDressing();
+            _buildGameplayAssists();
+            _buildExtractionApproach();
         }
 
         private void _buildMaintenanceDeck()
@@ -880,9 +942,13 @@ namespace DeadSignal
             SapperTelegraph = telegraphRoot.AddComponent<SignalSapperTelegraph>();
             SapperTelegraph.Configure(Sapper, TowerPosition, m_palette.Magenta, m_palette.Magenta, comfortSettings);
 
-            _createSalvage(new Vector3(9.7f, 0f, 6.3f));
-            _createSalvage(new Vector3(10.4f, 0f, -6.4f));
-            _createSalvage(new Vector3(-5.8f, 0f, 7.2f));
+            var routeVariant = PlayerPrefs.GetInt("DeadSignal.RouteVariant", 0) % 3;
+            var northCache = routeVariant == 1 ? new Vector3(8.7f, 0f, 6.5f) : new Vector3(9.7f, 0f, 6.3f);
+            var southCache = routeVariant == 2 ? new Vector3(9.2f, 0f, -6.5f) : new Vector3(10.4f, 0f, -6.4f);
+            var relayCache = routeVariant == 0 ? new Vector3(-5.8f, 0f, 7.2f) : new Vector3(-7f, 0f, 6.9f);
+            _createSalvage(northCache);
+            _createSalvage(southCache);
+            _createSalvage(relayCache);
             var authoredSockets = Object.FindObjectsByType<AuthoredSalvageSocket>(FindObjectsSortMode.None);
             foreach (var socket in authoredSockets)
             {
@@ -1346,6 +1412,98 @@ namespace DeadSignal
             color.saturation.Override(-5f);
         }
 
+        private void _buildGameplayAssists()
+        {
+            m_routeGuide = _createGuideLine("Objective Route Pulse", 18);
+            m_aimGuide = _createGuideLine("Projected Aim Guide", 2);
+            m_emergencyGuide = _createGuideLine("Critical Signal Route", 12);
+        }
+
+        private LineRenderer _createGuideLine(string objectName, int positionCount)
+        {
+            var root = new GameObject(objectName);
+            root.transform.SetParent(m_root, false);
+            var line = root.AddComponent<LineRenderer>();
+            line.sharedMaterial = m_palette.SignalRouting;
+            line.useWorldSpace = true;
+            line.positionCount = positionCount;
+            line.textureMode = LineTextureMode.Tile;
+            line.numCapVertices = 2;
+            line.enabled = false;
+            return line;
+        }
+
+        private void _updateGuideLine(LineRenderer line, Vector3 start, Vector3 end, Material material, float width)
+        {
+            line.sharedMaterial = material;
+            line.startWidth = width;
+            line.endWidth = width * 0.35f;
+            var count = line.positionCount;
+            var flatDirection = end - start;
+            flatDirection.y = 0f;
+            var side = Vector3.Cross(Vector3.up, flatDirection.normalized);
+            var bend = Mathf.Min(1.35f, flatDirection.magnitude * 0.16f);
+            var control = Vector3.Lerp(start, end, 0.5f) + side * bend;
+            for (var index = 0; index < count; index++)
+            {
+                var progress = count <= 1 ? 1f : index / (count - 1f);
+                var inverse = 1f - progress;
+                var position = inverse * inverse * start + 2f * inverse * progress * control + progress * progress * end;
+                position.y = 0.12f + Mathf.Sin(progress * Mathf.PI * 8f - m_environmentTime * 4f) * 0.025f;
+                line.SetPosition(index, position);
+            }
+            line.enabled = true;
+        }
+
+        private Vector3 _currentObjectiveTarget(RunModel model)
+        {
+            if (!model.TowerOnline)
+            {
+                return TowerPosition;
+            }
+            if (model.CanExtract)
+            {
+                return ExtractionPosition;
+            }
+            var nearest = TowerPosition;
+            var distance = float.PositiveInfinity;
+            foreach (var cache in m_salvagePickups)
+            {
+                if (cache.activeSelf && FlatDistance(Player.position, cache.transform.position) < distance)
+                {
+                    nearest = cache.transform.position;
+                    distance = FlatDistance(Player.position, nearest);
+                }
+            }
+            return nearest;
+        }
+
+        private void _updateThreatHealth(Transform threat, float health, float maximum)
+        {
+            var bar = threat?.Find("World Health Remaining");
+            if (bar == null)
+            {
+                return;
+            }
+            bar.gameObject.SetActive(threat.gameObject.activeSelf && health > 0f);
+            bar.localScale = new Vector3(Mathf.Clamp01(health / maximum) * 1.15f, 0.06f, 0.08f);
+        }
+
+        private void _buildExtractionApproach()
+        {
+            var root = new GameObject("Extraction Approach Lane");
+            root.transform.SetParent(m_root, false);
+            for (var index = 0; index < 7; index++)
+            {
+                var progress = index / 6f;
+                var center = Vector3.Lerp(new Vector3(-3.5f, -0.02f, -3.8f), ExtractionPosition, progress);
+                _createPrimitive($"Approach Light L {index + 1:00}", PrimitiveType.Cube,
+                    center + new Vector3(-0.65f, 0f, 0f), new Vector3(0.32f, 0.025f, 0.07f), m_palette.Cyan, root.transform);
+                _createPrimitive($"Approach Light R {index + 1:00}", PrimitiveType.Cube,
+                    center + new Vector3(0.65f, 0f, 0f), new Vector3(0.32f, 0.025f, 0.07f), m_palette.Cyan, root.transform);
+            }
+        }
+
         private void _addThreatSilhouette(Transform threat, Material material, float width, bool swept)
         {
             if (threat == null)
@@ -1359,6 +1517,10 @@ namespace DeadSignal
                 new Vector3(width, 0.28f, swept ? 0.3f : 0f), new Vector3(0.55f, 0.09f, 0.16f), material, threat);
             left.transform.localRotation = Quaternion.Euler(0f, swept ? -28f : 0f, 0f);
             right.transform.localRotation = Quaternion.Euler(0f, swept ? 28f : 0f, 0f);
+            _createPrimitive("World Health Backing", PrimitiveType.Cube, new Vector3(-0.58f, 1.28f, 0f),
+                new Vector3(1.25f, 0.08f, 0.1f), m_palette.Dark, threat);
+            _createPrimitive("World Health Remaining", PrimitiveType.Cube, new Vector3(-0.58f, 1.3f, 0f),
+                new Vector3(1.15f, 0.06f, 0.08f), material, threat);
         }
 
         private GameObject _createPrimitive(
@@ -1422,6 +1584,10 @@ namespace DeadSignal
         private Vignette m_deadZoneVignette;
         private float m_environmentTime;
         private float m_boundaryPulse;
+        private float m_collisionPulse;
+        private LineRenderer m_routeGuide;
+        private LineRenderer m_aimGuide;
+        private LineRenderer m_emergencyGuide;
 
         private GameObject m_towerTerritory;
         private GameObject m_towerSignalLines;

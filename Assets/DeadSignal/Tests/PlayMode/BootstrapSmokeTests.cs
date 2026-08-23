@@ -642,10 +642,10 @@ namespace DeadSignal.Tests
             Assert.That(authoredWardenPrefab.transform.Find("Warden Crown").GetComponent<Renderer>().sharedMaterial,
                 Is.EqualTo(Resources.Load<Material>("Materials/SecurityWardenCrown")));
             Assert.That(securityWarden, Is.Not.Null, "Dormant security should exist before tower activation.");
-            Assert.That(securityWarden.GetComponentsInChildren<Renderer>(true).Length, Is.EqualTo(5),
-                "The Warden should include two broad silhouette fins in addition to its authored body.");
+            Assert.That(securityWarden.GetComponentsInChildren<Renderer>(true).Length, Is.EqualTo(7),
+                "The Warden should include silhouette fins and an in-world health bar in addition to its authored body.");
             var wardenMeshes = securityWarden.GetComponentsInChildren<MeshFilter>(true).Select(filter => filter.sharedMesh).ToArray();
-            Assert.That(wardenMeshes.Length, Is.EqualTo(5));
+            Assert.That(wardenMeshes.Length, Is.EqualTo(7));
             Assert.That(wardenMeshes.All(mesh => mesh != null && mesh.vertexCount >= 24), Is.True,
                 "Every Warden part should use purpose-built geometry rather than a placeholder primitive.");
             Assert.That(wardenMeshes.All(mesh => mesh.HasVertexAttribute(UnityEngine.Rendering.VertexAttribute.TexCoord0)), Is.True,
@@ -990,10 +990,10 @@ namespace DeadSignal.Tests
             Assert.That(signalSapper, Is.Not.Null, "Dormant sapper should exist before tower activation.");
             Assert.That(game.HasSignalSapperAssets, Is.True);
             Assert.That(game.SignalSapperPartCount, Is.EqualTo(4));
-            Assert.That(signalSapper.GetComponentsInChildren<Renderer>(true).Length, Is.EqualTo(6),
-                "The Sapper should include swept silhouette fins in addition to its authored body.");
+            Assert.That(signalSapper.GetComponentsInChildren<Renderer>(true).Length, Is.EqualTo(8),
+                "The Sapper should include swept silhouette fins and an in-world health bar in addition to its authored body.");
             var sapperMeshes = signalSapper.GetComponentsInChildren<MeshFilter>(true).Select(filter => filter.sharedMesh).ToArray();
-            Assert.That(sapperMeshes.Length, Is.EqualTo(6));
+            Assert.That(sapperMeshes.Length, Is.EqualTo(8));
             Assert.That(sapperMeshes.All(mesh => mesh != null && mesh.vertexCount >= 24), Is.True,
                 "Every Sapper part should use purpose-built geometry rather than a placeholder primitive.");
             Assert.That(sapperMeshes.All(mesh => mesh.HasVertexAttribute(UnityEngine.Rendering.VertexAttribute.TexCoord0)), Is.True,
@@ -1159,6 +1159,11 @@ namespace DeadSignal.Tests
             Assert.That(game.transform.Find("Salvage Annex Worklight")?.GetComponent<Light>(), Is.Not.Null);
             Assert.That(game.transform.Find("Security Bay Alarm")?.GetComponent<Light>(), Is.Not.Null,
                 "Each major station zone should receive a distinct localized light pool.");
+            Assert.That(game.transform.Find("Objective Route Pulse")?.GetComponent<LineRenderer>(), Is.Not.Null);
+            Assert.That(game.transform.Find("Projected Aim Guide")?.GetComponent<LineRenderer>(), Is.Not.Null);
+            Assert.That(game.transform.Find("Critical Signal Route")?.GetComponent<LineRenderer>(), Is.Not.Null);
+            Assert.That(game.transform.Find("Extraction Approach Lane")?.childCount, Is.EqualTo(14),
+                "Extraction should have a converging seven-pair approach lane.");
             Assert.That(game.HasPlayerMovementTuning, Is.True,
                 "The authored drone flight-response tuning should load from Resources.");
             Assert.That(game.IsPlayerCameraFollowing, Is.True,
@@ -1484,8 +1489,11 @@ namespace DeadSignal.Tests
                 Assert.That(game.CurrentMissionPhase, Is.EqualTo(2),
                     "The mission command strip should advance from network restoration to salvage recovery.");
                 var salvageTarget = game.CurrentObjectiveBeaconTarget;
-                Assert.That(new Vector2(salvageTarget.x, salvageTarget.z), Is.EqualTo(new Vector2(-5.8f, 7.2f)),
-                    "The beacon should select the closest remaining cache from the tower.");
+                var expectedSalvageTarget = salvageCaches.Where(cache => cache.gameObject.activeSelf)
+                    .OrderBy(cache => (cache.position - maintenanceDrone.position).sqrMagnitude).First().position;
+                Assert.That(new Vector2(salvageTarget.x, salvageTarget.z),
+                    Is.EqualTo(new Vector2(expectedSalvageTarget.x, expectedSalvageTarget.z)),
+                    "The beacon should select the closest remaining cache for every authored-safe route variant.");
 
                 var signalBeforePulse = game.CurrentSignal;
                 sapper.position = new Vector3(-0.6f, 0f, 0.4f);

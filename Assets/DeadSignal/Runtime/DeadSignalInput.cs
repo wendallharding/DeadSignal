@@ -32,6 +32,8 @@ namespace DeadSignal
         bool PressedReducedFlashesToggle();
         bool PressedHighContrastToggle();
         bool PressedAudioToggle();
+        bool PressedGuidanceToggle();
+        bool PressedDifficultyToggle();
         void BeginFireKeyboardRebind();
         void BeginInteractKeyboardRebind();
         void BeginMoveUpKeyboardRebind();
@@ -291,6 +293,16 @@ namespace DeadSignal
         public bool PressedAudioToggle()
         {
             return _pressed(Keyboard.current?.mKey, Gamepad.current?.dpad.left);
+        }
+
+        public bool PressedGuidanceToggle()
+        {
+            return _pressed(Keyboard.current?.gKey, Gamepad.current?.leftStickButton);
+        }
+
+        public bool PressedDifficultyToggle()
+        {
+            return _pressed(Keyboard.current?.vKey, Gamepad.current?.rightStickButton);
         }
 
         private bool _pressed(ButtonControl keyboardButton, ButtonControl gamepadButton)
