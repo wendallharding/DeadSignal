@@ -1,3 +1,6 @@
+using System.Collections;
+using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using Reflex.Attributes;
 using Reflex.Core;
@@ -55,6 +58,14 @@ namespace DeadSignal.Application
         private float m_dashCooldown;
         private float m_blockedFeedbackCooldown;
         private bool m_debugMenuOpen;
+        private bool m_debugInfiniteSignal;
+        private bool m_debugRouteDriving;
+        private DebugLocation m_debugRouteDestination;
+        private int m_lastDebugInputFrame = -1;
+        private readonly Queue<string> m_debugEventLog = new();
+        private DeadSignalDebugVisualization m_debugVisualization;
+        private DeadSignalDebugCamera m_debugCamera;
+        private string m_lastDebugCapturePath = "None";
 
         public float CurrentSignal => m_model?.Signal ?? 0f;
         public int CurrentSalvage => m_model?.Salvage ?? 0;
@@ -235,6 +246,20 @@ namespace DeadSignal.Application
             $"Authored — obstacles:{AuthoredMapObstacleCount}, salvage sockets:{AuthoredSalvageSocketCount}, " +
             $"entries:{AuthoredInterceptorEntranceCount}\n" +
             $"Runtime — projectiles:{ActiveSignalBoltCount}, objective:{CurrentObjectiveBeaconPhase}, audio:{HasGeneratedAudio}";
+        public string DebugTelemetry => m_world == null
+            ? "Runtime unavailable"
+            : $"Position {m_world.Player.position.x:0.00}, {m_world.Player.position.z:0.00}  " +
+              $"Velocity {m_playerMovement.Velocity.magnitude:0.00}  FPS {(Time.unscaledDeltaTime > 0f ? 1f / Time.unscaledDeltaTime : 0f):0}\n" +
+              $"Focus {(UnityEngine.Application.isFocused ? "OWNED" : "LOST")}  Input {(Time.frameCount - m_lastDebugInputFrame <= 1 ? "RECEIVED" : "IDLE")}  " +
+              $"Time {Time.timeScale:0.00}x\nCamera {m_world.Camera.transform.position.x:0.0}, " +
+              $"{m_world.Camera.transform.position.y:0.0}, {m_world.Camera.transform.position.z:0.0}  " +
+              $"Route {(m_debugRouteDriving ? m_debugRouteDestination.ToString() : "MANUAL")}";
+        public string DebugEventLog => string.Join("\n", m_debugEventLog);
+        public string DebugReplayInfo =>
+            $"Route seed {PlayerPrefs.GetInt("DeadSignal.RouteVariant", 0)}  Frame {Time.frameCount}  Capture {m_lastDebugCapturePath}";
+        public Vector3 DebugPlayerPosition => m_world?.Player.position ?? Vector3.zero;
+        public bool IsDebugRouteDriving => m_debugRouteDriving;
+        public bool IsDebugMenuOpen => m_debugMenuOpen;
 
         public void SetDebugMenuState(bool open, bool runWhileOpen)
         {
@@ -244,10 +269,128 @@ namespace DeadSignal.Application
             }
 
             m_debugMenuOpen = open;
+            m_hud?.SetDebugMenuVisible(open);
+            if (m_missionClarityHud != null)
+            {
+                m_missionClarityHud.enabled = !open;
+            }
+            if (m_objectiveBeacon is MonoBehaviour objectiveBeacon)
+            {
+                objectiveBeacon.enabled = !open;
+            }
             _setPaused(open && !runWhileOpen);
         }
 
+        public void DebugConfirm(string message) => _showFeedback($"DEBUG — {message}");
+
         public void DebugSetSignal(float signal) => m_model?.SetSignalForDebug(signal);
+
+        public void DebugSetInfiniteSignal(bool enabled)
+        {
+            m_debugInfiniteSignal = enabled;
+            if (enabled)
+            {
+                m_model?.SetSignalForDebug(RunModel.MaximumSignal);
+            }
+        }
+
+        public void DebugSetInvulnerable(bool enabled) => m_threats?.SetPlayerInvulnerableForDebug(enabled);
+
+        public void DebugSetThreatsFrozen(bool frozen) => m_threats?.SetFrozenForDebug(frozen);
+
+        public void DebugSetTimeScale(float scale)
+        {
+            scale = Mathf.Clamp(scale, 0f, 2f);
+            m_combatFeedback.SetPaused(scale <= 0f);
+            if (scale > 0f)
+            {
+                Time.timeScale = scale;
+            }
+        }
+
+        public void DebugStepFrame() => StartCoroutine(_debugStepFrame());
+
+        public void DebugDamageThreat(SecurityReinforcement reinforcement) => m_threats?.DamageForDebug(reinforcement);
+
+        public void DebugForceThreatAttack(SecurityReinforcement reinforcement) => m_threats?.ForceAttackForDebug(reinforcement);
+
+        public void DebugStartRouteDriver(DebugLocation destination)
+        {
+            m_debugRouteDestination = destination;
+            m_debugRouteDriving = true;
+        }
+
+        public void DebugStopRouteDriver() => m_debugRouteDriving = false;
+
+        public void DebugToggleWorldVisualization()
+        {
+            if (m_debugVisualization == null)
+            {
+                m_debugVisualization = gameObject.AddComponent<DeadSignalDebugVisualization>();
+                m_debugVisualization.Configure(m_world.Camera, m_world.Player);
+            }
+
+            m_debugVisualization.SetVisible(!m_debugVisualization.IsVisible);
+        }
+
+        public void DebugToggleFreeCamera()
+        {
+            if (m_debugCamera == null)
+            {
+                m_debugCamera = m_world.Camera.gameObject.AddComponent<DeadSignalDebugCamera>();
+                m_debugCamera.Configure(m_world.PlayerCamera);
+            }
+
+            m_debugCamera.SetFree(!m_debugCamera.IsFree);
+        }
+
+        public void DebugCameraOverview()
+        {
+            if (m_debugCamera == null)
+            {
+                m_debugCamera = m_world.Camera.gameObject.AddComponent<DeadSignalDebugCamera>();
+                m_debugCamera.Configure(m_world.PlayerCamera);
+            }
+
+            m_debugCamera.ShowOverview();
+        }
+
+        public void DebugCaptureScreenshot()
+        {
+            var directory = Path.Combine(UnityEngine.Application.persistentDataPath, "PlaytestCaptures");
+            Directory.CreateDirectory(directory);
+            m_lastDebugCapturePath = Path.Combine(directory, $"DeadSignal-{System.DateTime.Now:yyyyMMdd-HHmmssfff}.png");
+            ScreenCapture.CaptureScreenshot(m_lastDebugCapturePath);
+            _showFeedback("DEBUG — SCREENSHOT CAPTURED");
+        }
+
+        public void DebugCaptureCombatSequence() => StartCoroutine(_debugCaptureCombatSequence());
+
+        public void DebugExerciseCombatFeedback()
+        {
+            DebugPlaySignalImpact();
+            m_combatFeedback?.PlayShieldImpact(m_world.Player.position + Vector3.left);
+            m_combatFeedback?.PlayEnvironmentImpact(m_world.Player.position + Vector3.right);
+            DebugPlaySignalRecovery();
+            DebugPlaySalvageChain();
+        }
+
+        public void DebugExerciseThreatTelegraphs()
+        {
+            foreach (var reinforcement in new[] { SecurityReinforcement.Warden, SecurityReinforcement.Sapper,
+                         SecurityReinforcement.Interceptor, SecurityReinforcement.Suppressor })
+            {
+                DebugForceThreatAttack(reinforcement);
+            }
+            _showFeedback("DEBUG — ALL THREAT TELEGRAPHS ARMED");
+        }
+
+        public void DebugVisitCameraBoundaries() => StartCoroutine(_debugVisitCameraBoundaries());
+
+        public void DebugCopyReplayData()
+        {
+            GUIUtility.systemCopyBuffer = $"{DebugReplayInfo}\n{DebugTelemetry}\n{DebugEventLog}";
+        }
 
         public void DebugResetDashCooldown() => m_dashCooldown = 0f;
 
@@ -329,19 +472,9 @@ namespace DeadSignal.Application
                 return;
             }
 
-            m_world.Player.position = location switch
-            {
-                DebugLocation.Extraction => m_world.ExtractionPosition,
-                DebugLocation.CentralTower => m_world.TowerPosition,
-                DebugLocation.Shortcut => m_world.ShortcutPosition,
-                DebugLocation.RelayTower => m_world.RelayTowerPosition,
-                DebugLocation.CacheOne => m_world.GetSalvagePosition(0),
-                DebugLocation.CacheTwo => m_world.GetSalvagePosition(1),
-                DebugLocation.CacheThree => m_world.GetSalvagePosition(2),
-                DebugLocation.CacheFour => m_world.GetSalvagePosition(3),
-                _ => m_world.ExtractionPosition
-            };
+            m_world.Player.position = _debugLocationPosition(location);
             m_playerMovement = new PlayerDroneMovement();
+            _showFeedback($"DEBUG TELEPORT — {location.ToString().ToUpperInvariant()}");
         }
 
         public void DebugCollectNextCache()
@@ -381,6 +514,24 @@ namespace DeadSignal.Application
         {
             DebugActivateTower();
             m_threats.SpawnForDebug(reinforcement);
+        }
+
+        public void DebugRepositionThreat(SecurityReinforcement reinforcement)
+        {
+            DebugSpawnThreat(reinforcement);
+            var position = m_world.Player.position + m_world.Player.forward * 3f;
+            var target = reinforcement switch
+            {
+                SecurityReinforcement.Warden => m_world.Warden,
+                SecurityReinforcement.Sapper => m_world.Sapper,
+                SecurityReinforcement.Interceptor => m_world.Interceptor,
+                SecurityReinforcement.Suppressor => m_world.Suppressor,
+                _ => null
+            };
+            if (target != null)
+            {
+                target.position = m_world.ClampToArena(position, 0.8f);
+            }
         }
 
         public void DebugPurgeThreat(SecurityReinforcement reinforcement) => m_threats?.PurgeForDebug(reinforcement);
@@ -465,6 +616,10 @@ namespace DeadSignal.Application
                 case DebugScenario.OverdriveExtraction: DebugBeginExtraction(ExtractionUplinkMode.Overdrive); DebugTeleport(DebugLocation.Extraction); break;
                 case DebugScenario.Victory: DebugCompleteExtraction(); break;
                 case DebugScenario.Failure: m_model.SetSignalForDebug(0f); m_model.Advance(RunModel.CriticalRecoveryDuration, false, false); break;
+                case DebugScenario.EasternRoomCombat:
+                    DebugActivateRelayTower(); DebugTeleport(DebugLocation.FarEast); DebugSpawnThreat(SecurityReinforcement.Warden); break;
+                case DebugScenario.AllEffects:
+                    DebugActivateTower(); DebugTeleport(DebugLocation.CentralTower); DebugExerciseCombatFeedback(); break;
             }
         }
 
@@ -641,6 +796,11 @@ namespace DeadSignal.Application
 
         private void Update()
         {
+            if (m_debugInfiniteSignal)
+            {
+                m_model?.SetSignalForDebug(RunModel.MaximumSignal);
+            }
+
             if (m_focusInputBlockFrames > 0)
             {
                 m_focusInputBlockFrames--;
@@ -676,7 +836,7 @@ namespace DeadSignal.Application
                 return;
             }
 
-            var movement = m_debugMenuOpen ? Vector3.zero : _updatePlayer(dt);
+            var movement = m_debugMenuOpen && !m_debugRouteDriving ? Vector3.zero : _updatePlayer(dt);
             var aimDirection = m_debugMenuOpen
                 ? m_world.Player.forward
                 : _applyAimAssist(m_input.ReadAimDirection(m_world.Camera, m_world.Player));
@@ -742,6 +902,10 @@ namespace DeadSignal.Application
             }
 
             _tickRunSystems(dt, powered);
+            if (m_debugInfiniteSignal)
+            {
+                m_model.SetSignalForDebug(RunModel.MaximumSignal);
+            }
         }
 
         private void OnDestroy()
@@ -777,7 +941,11 @@ namespace DeadSignal.Application
                 return Vector3.zero;
             }
 
-            var moveInput = m_input.ReadMovement();
+            var moveInput = m_debugRouteDriving ? _debugRouteInput() : m_input.ReadMovement();
+            if (moveInput.sqrMagnitude > 0.01f)
+            {
+                m_lastDebugInputFrame = Time.frameCount;
+            }
             var previousVelocity = m_playerMovement.Velocity;
             var hasThrusterOverclock = m_overclockChoice.Selected == SignalOverclock.OverdriveThrusters;
             var suppressionMultiplier = m_threats.PlayerMovementMultiplier;
@@ -920,6 +1088,11 @@ namespace DeadSignal.Application
 
         private void _handlePauseInput()
         {
+            if (m_debugMenuOpen)
+            {
+                return;
+            }
+
             if (m_model.Outcome == RunOutcome.Running && m_input.PressedPause())
             {
                 _setPaused(!IsPaused);
@@ -1220,6 +1393,75 @@ namespace DeadSignal.Application
         {
             m_hud.ShowFeedback(message);
             m_missionClarityHud?.NotifySignalEvent(message);
+            if (DeadSignalDebugMenu.IsAvailable)
+            {
+                while (m_debugEventLog.Count >= 12)
+                {
+                    m_debugEventLog.Dequeue();
+                }
+                m_debugEventLog.Enqueue($"{Time.unscaledTime:000.00}s  {message}");
+            }
+        }
+
+        private Vector2 _debugRouteInput()
+        {
+            var delta = _debugLocationPosition(m_debugRouteDestination) - m_world.Player.position;
+            delta.y = 0f;
+            if (delta.sqrMagnitude <= 0.16f)
+            {
+                m_debugRouteDriving = false;
+                _showFeedback($"DEBUG ROUTE COMPLETE — {m_debugRouteDestination.ToString().ToUpperInvariant()}");
+                return Vector2.zero;
+            }
+
+            delta.Normalize();
+            return new Vector2(delta.x, delta.z);
+        }
+
+        private Vector3 _debugLocationPosition(DebugLocation location)
+        {
+            return location switch
+            {
+                DebugLocation.Extraction => m_world.ExtractionPosition,
+                DebugLocation.CentralTower => m_world.TowerPosition,
+                DebugLocation.Shortcut => m_world.ShortcutPosition,
+                DebugLocation.RelayTower => m_world.RelayTowerPosition,
+                DebugLocation.SpineTower => m_world.SpineTowerPosition,
+                DebugLocation.CacheOne => m_world.GetSalvagePosition(0),
+                DebugLocation.CacheTwo => m_world.GetSalvagePosition(1),
+                DebugLocation.CacheThree => m_world.GetSalvagePosition(2),
+                DebugLocation.CacheFour => m_world.GetSalvagePosition(3),
+                DebugLocation.FarEast => new Vector3(m_world.ArenaHalfExtents.x - 1.2f, 0f, 0f),
+                DebugLocation.NorthBoundary => new Vector3(0f, 0f, m_world.ArenaHalfExtents.y - 1.2f),
+                DebugLocation.SouthBoundary => new Vector3(0f, 0f, -m_world.ArenaHalfExtents.y + 1.2f),
+                _ => m_world.ExtractionPosition
+            };
+        }
+
+        private IEnumerator _debugStepFrame()
+        {
+            m_combatFeedback.SetPaused(false);
+            Time.timeScale = 1f;
+            yield return null;
+            m_combatFeedback.SetPaused(true);
+        }
+
+        private IEnumerator _debugCaptureCombatSequence()
+        {
+            DebugExerciseCombatFeedback();
+            yield return new WaitForEndOfFrame();
+            DebugCaptureScreenshot();
+        }
+
+        private IEnumerator _debugVisitCameraBoundaries()
+        {
+            var locations = new[] { DebugLocation.Extraction, DebugLocation.NorthBoundary, DebugLocation.FarEast,
+                DebugLocation.SouthBoundary };
+            foreach (var location in locations)
+            {
+                DebugTeleport(location);
+                yield return new WaitForEndOfFrame();
+            }
         }
 
         private void _tickRunSystems(float dt, bool powered)

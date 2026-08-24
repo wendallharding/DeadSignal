@@ -6,6 +6,9 @@ using UnityEngine.TestTools;
 using DeadSignal.Application;
 using DeadSignal.Diagnostics;
 using DeadSignal.Missions;
+using DeadSignal.Combat;
+using DeadSignal.Presentation;
+using UnityEngine.UI;
 
 namespace DeadSignal.Tests.PlayMode
 {
@@ -71,6 +74,116 @@ namespace DeadSignal.Tests.PlayMode
 
             game.DebugCompleteExtraction();
             Assert.That(game.CurrentRunOutcome, Is.EqualTo(RunOutcome.Victory));
+        }
+
+        [UnityTest]
+        public IEnumerator Harness_ControlsStateAutomationCameraVisualizationAndTelemetry()
+        {
+            SceneManager.LoadScene("SampleScene");
+            yield return null;
+            yield return null;
+
+            var game = Object.FindFirstObjectByType<DeadSignalGame>();
+            Assert.That(game, Is.Not.Null);
+
+            game.DebugTeleport(DebugLocation.SpineTower);
+            Assert.That(Vector3.Distance(game.DebugPlayerPosition, game.SpineTowerPosition), Is.LessThan(0.01f));
+
+            game.DebugSetInfiniteSignal(true);
+            game.DebugSetSignal(2f);
+            yield return null;
+            Assert.That(game.CurrentSignal, Is.EqualTo(RunModel.MaximumSignal));
+            game.DebugSetInfiniteSignal(false);
+
+            game.DebugSpawnThreat(SecurityReinforcement.Warden);
+            var health = game.WardenHealth;
+            game.DebugDamageThreat(SecurityReinforcement.Warden);
+            Assert.That(game.WardenHealth, Is.LessThan(health));
+            game.DebugRepositionThreat(SecurityReinforcement.Warden);
+            game.DebugForceThreatAttack(SecurityReinforcement.Warden);
+            game.DebugSetThreatsFrozen(true);
+            game.DebugSetThreatsFrozen(false);
+            game.DebugSetInvulnerable(true);
+            game.DebugSetInvulnerable(false);
+
+            game.DebugToggleWorldVisualization();
+            Assert.That(Object.FindFirstObjectByType<DeadSignalDebugVisualization>(), Is.Not.Null);
+            game.DebugToggleFreeCamera();
+            var debugCamera = Object.FindFirstObjectByType<DeadSignalDebugCamera>();
+            Assert.That(debugCamera, Is.Not.Null);
+            Assert.That(debugCamera.IsFree, Is.True);
+            game.DebugToggleFreeCamera();
+
+            game.DebugStartRouteDriver(DebugLocation.CentralTower);
+            Assert.That(game.IsDebugRouteDriving, Is.True);
+            yield return null;
+            game.DebugStopRouteDriver();
+            Assert.That(game.IsDebugRouteDriving, Is.False);
+
+            game.DebugSetTimeScale(0.5f);
+            Assert.That(Time.timeScale, Is.EqualTo(0.5f));
+            game.DebugSetTimeScale(1f);
+            game.DebugExerciseCombatFeedback();
+            game.DebugExerciseThreatTelegraphs();
+            Assert.That(game.DebugTelemetry, Does.Contain("Focus"));
+            Assert.That(game.DebugReplayInfo, Does.Contain("Route seed"));
+            Assert.That(game.DebugEventLog, Does.Contain("DEBUG"));
+        }
+
+        [UnityTest]
+        public IEnumerator GeneratedPages_FitSmallViewportAndOwnPausedPresentation()
+        {
+            var originalWidth = Screen.width;
+            var originalHeight = Screen.height;
+            Screen.SetResolution(1280, 720, false);
+            SceneManager.LoadScene("SampleScene");
+            yield return null;
+            yield return null;
+
+            var game = Object.FindFirstObjectByType<DeadSignalGame>();
+            var menu = Object.FindFirstObjectByType<DeadSignalDebugMenu>(FindObjectsInactive.Include);
+            var hud = Object.FindFirstObjectByType<DeadSignalHud>(FindObjectsInactive.Include);
+            Assert.That(game, Is.Not.Null);
+            Assert.That(menu, Is.Not.Null);
+            Assert.That(hud, Is.Not.Null);
+
+            menu.SendMessage("_setOpen", true);
+            yield return null;
+            yield return null;
+
+            Assert.That(game.IsDebugMenuOpen, Is.True);
+            Assert.That(hud.IsDebugMenuVisible, Is.True);
+            Assert.That(hud.IsPauseOverlayVisible, Is.False, "The normal pause overlay must not compete with AutoUI.");
+            Assert.That(menu.DebugCanvas.sortingOrder, Is.GreaterThanOrEqualTo(200));
+
+            var pages = new System.Collections.Generic.List<RectTransform>();
+            foreach (var rect in menu.DebugCanvas.GetComponentsInChildren<RectTransform>(true))
+            {
+                if (rect.name.EndsWith(" Page", System.StringComparison.Ordinal))
+                {
+                    pages.Add(rect);
+                }
+            }
+            Assert.That(pages, Has.Count.EqualTo(6));
+
+            foreach (var page in pages)
+            {
+                foreach (var candidate in pages)
+                {
+                    candidate.gameObject.SetActive(candidate == page);
+                }
+                Canvas.ForceUpdateCanvases();
+                foreach (var panel in page.GetComponentsInChildren<ScrollRect>(false))
+                {
+                    var corners = new Vector3[4];
+                    panel.GetComponent<RectTransform>().GetWorldCorners(corners);
+                    Assert.That(corners[0].x, Is.GreaterThanOrEqualTo(-1f), $"{page.name}/{panel.name} extends left of the viewport.");
+                    Assert.That(corners[2].x, Is.LessThanOrEqualTo(Screen.width + 1f), $"{page.name}/{panel.name} extends right of the viewport.");
+                }
+            }
+
+            menu.SendMessage("_setOpen", false);
+            Screen.SetResolution(originalWidth, originalHeight, false);
         }
     }
 }

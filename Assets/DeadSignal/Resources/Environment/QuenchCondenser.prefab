@@ -43,7 +43,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e5c2114ec9f7be54889bb05839f089fe, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: DeadSignal.Runtime::DeadSignal.World.AuthoredMapObstacle
   m_localHalfSize: {x: 1.1, y: 0.75}
 --- !u!1001 &4488299851441757258
@@ -96,19 +96,19 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -7553085906556819250, guid: 25addef047c117b4eafedfa039bbd3f5, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
-      value:
+      value: 
       objectReference: {fileID: 2100000, guid: 176965cec8cfe07498e14cf82864a9d4, type: 2}
     - target: {fileID: -1472610249470217136, guid: 25addef047c117b4eafedfa039bbd3f5, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
-      value:
+      value: 
       objectReference: {fileID: 2100000, guid: b75efb78baa672d4a93a959f831e30b9, type: 2}
     - target: {fileID: -18577876600940484, guid: 25addef047c117b4eafedfa039bbd3f5, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
-      value:
+      value: 
       objectReference: {fileID: 2100000, guid: 4a8c60dfc2ed4e54dbe0d38bc42e774f, type: 2}
     - target: {fileID: -4233691336299853, guid: 25addef047c117b4eafedfa039bbd3f5, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
-      value:
+      value: 
       objectReference: {fileID: 2100000, guid: 6e9d46d0fbc79774ba9e0adacc12b767, type: 2}
     - target: {fileID: 919132149155446097, guid: 25addef047c117b4eafedfa039bbd3f5, type: 3}
       propertyPath: m_Name
@@ -116,11 +116,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3289298097477902920, guid: 25addef047c117b4eafedfa039bbd3f5, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
-      value:
+      value: 
       objectReference: {fileID: 2100000, guid: 176965cec8cfe07498e14cf82864a9d4, type: 2}
     - target: {fileID: 9186509319921760134, guid: 25addef047c117b4eafedfa039bbd3f5, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
-      value:
+      value: 
       objectReference: {fileID: 2100000, guid: 176965cec8cfe07498e14cf82864a9d4, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

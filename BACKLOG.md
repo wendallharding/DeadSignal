@@ -105,7 +105,11 @@
 - [x] Add curated one-click scenarios for the major playable phases and edge cases
 - [x] Add presentation and accessibility controls for VFX, comfort modes, contrast, and audio
 - [x] Prove AutoUI resource packaging, runtime bootstrap, command integration, and non-development-player exclusion
-- [ ] Interactively inspect every page at 16:9 and controller navigation; tune panel widths and labels from capture evidence
+- [x] Interactively inspect every page at 16:9, split the laboratory into six reachable tabs, and tune panel widths and labels from capture evidence
+- [x] Give AutoUI exclusive paused-presentation ownership so the normal HUD and pause overlay cannot obscure or intercept debug controls
+- [x] Add Escape close, LB+Menu controller access, command confirmations, an opaque debug backdrop, and a resolution-scaled tab strip
+- [x] Prove every generated panel remains inside a 1280×720 viewport and preserve vertical scrolling for nested capture/settings tools
+- [ ] Verify directional controller selection on physical hardware and add explicit selected-control styling if AutoUI's default event-system highlight is insufficient
 - [ ] Add each future gameplay feature's prerequisite, trigger, edge case, telemetry, reset, and scenario controls as part of its definition of done
 
 ## P0 — Relay lockdown security composition (Run 87)
@@ -154,6 +158,20 @@
 - [x] Deterministic EditMode tests and Unity batch validation
 
 ## P1 — Prove the loop
+
+### Development playtest harness
+
+- [x] Extend the existing AutoUI F5 menu instead of adding a competing debug overlay
+- [x] Add serialized-landmark teleports and deterministic scenario presets
+- [x] Add Signal, salvage, upgrade, tower, shortcut, invulnerability, and infinite-Signal controls
+- [x] Add spawn, purge, damage, reposition, freeze, and forced-attack threat controls
+- [x] Add pause, quarter-speed, half-speed, normal, double-speed, and one-frame stepping
+- [x] Add free camera, room overview, blocker/entry visualization, and boundary visits
+- [x] Add a deterministic named-destination route driver
+- [x] Add screenshot, combat-frame capture, and validation shortcuts
+- [x] Add live telemetry, focus/input status, recent event history, route seed, and replay copy
+- [x] Keep the orange development watermark and exclude the harness from non-development players
+- [ ] Record one complete automated route through every authored region and add destinations where route telemetry finds gaps
 
 ### Combat VFX and foreground readability
 

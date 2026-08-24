@@ -64,6 +64,8 @@ namespace DeadSignal.Combat
         private float m_suppressorPulseCountdown;
         private Vector3 m_suppressorFieldCenter;
         private int m_pendingEntryIndex = -1;
+        private bool m_debugFrozen;
+        private bool m_debugPlayerInvulnerable;
 
         public DeadSignalThreatController(
             RunModel model,
@@ -207,6 +209,33 @@ namespace DeadSignal.Combat
             }
         }
 
+        public void SetFrozenForDebug(bool frozen) => m_debugFrozen = frozen;
+
+        public void SetPlayerInvulnerableForDebug(bool invulnerable) => m_debugPlayerInvulnerable = invulnerable;
+
+        public void DamageForDebug(SecurityReinforcement reinforcement)
+        {
+            switch (reinforcement)
+            {
+                case SecurityReinforcement.Warden: if (m_wardenHealth > 0f) _hitWarden(); break;
+                case SecurityReinforcement.Sapper: if (m_sapperHealth > 0f) _hitSapper(); break;
+                case SecurityReinforcement.Interceptor: if (m_interceptorHealth > 0f) _hitInterceptor(); break;
+                case SecurityReinforcement.Suppressor: if (m_suppressorHealth > 0f) _hitSuppressor(); break;
+            }
+        }
+
+        public void ForceAttackForDebug(SecurityReinforcement reinforcement)
+        {
+            SpawnForDebug(reinforcement);
+            switch (reinforcement)
+            {
+                case SecurityReinforcement.Warden: m_wardenAttackCooldown = 0f; break;
+                case SecurityReinforcement.Sapper: m_sapperLatched = true; m_sapperPulseCooldown = 0f; break;
+                case SecurityReinforcement.Interceptor: m_interceptorChargeCountdown = 0.01f; break;
+                case SecurityReinforcement.Suppressor: m_suppressorFieldCooldown = 0f; break;
+            }
+        }
+
         public void TickCooldown(float dt)
         {
             m_shotCooldown = Mathf.Max(0f, m_shotCooldown - dt);
@@ -214,6 +243,11 @@ namespace DeadSignal.Combat
 
         public void Tick(float dt, bool playerPowered)
         {
+            if (m_debugFrozen)
+            {
+                return;
+            }
+
             _tickDirector(dt, playerPowered);
             _tickInterceptor(dt);
             _tickSuppressor(dt);
@@ -1237,6 +1271,12 @@ namespace DeadSignal.Combat
 
         private bool _tryAbsorbThreatDamage(string threatName)
         {
+            if (m_debugPlayerInvulnerable)
+            {
+                m_showFeedback($"DEBUG SHIELD — {threatName} BLOCKED");
+                return true;
+            }
+
             if (!m_overclockChoice.TryAbsorbThreatDamage(m_overclockTuning))
             {
                 return false;

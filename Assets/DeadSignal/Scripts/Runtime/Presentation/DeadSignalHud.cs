@@ -30,6 +30,7 @@ namespace DeadSignal.Presentation
         void Configure(RunModel model, RunMetrics metrics, DeadSignalWorld world, DeadSignalThreatController threats,
             DeadSignalSalvageController salvage, ExtractionUplink extractionUplink, SignalOverclockChoice overclockChoice);
         void ShowFeedback(string message);
+        void SetDebugMenuVisible(bool visible);
         void Tick(float dt);
     }
 
@@ -94,6 +95,7 @@ namespace DeadSignal.Presentation
         private float m_signalPulseTime;
         private int m_feedbackPriority;
         private bool m_resultRecorded;
+        private bool m_debugMenuVisible;
         private string m_personalBestText = string.Empty;
         private string m_feedback = string.Empty;
 
@@ -113,6 +115,8 @@ namespace DeadSignal.Presentation
         public SignalReserveState CurrentSignalReserveState { get; private set; }
         public int CurrentMissionPhase { get; private set; }
         public string CurrentMissionObjective => m_objectiveText == null ? string.Empty : m_objectiveText.text;
+        public bool IsDebugMenuVisible => m_debugMenuVisible;
+        public bool IsPauseOverlayVisible => m_pauseOverlay != null && m_pauseOverlay.activeSelf;
 
         [Inject]
         private void _construct(ICombatFeedback combatFeedback, IComfortSettings comfortSettings, IDeadSignalInput input)
@@ -167,6 +171,12 @@ namespace DeadSignal.Presentation
             m_feedbackPriority = priority;
         }
 
+        void IDeadSignalHud.SetDebugMenuVisible(bool visible)
+        {
+            m_debugMenuVisible = visible;
+            _refresh();
+        }
+
         void IDeadSignalHud.Tick(float dt)
         {
             m_feedbackTimer = Mathf.Max(0f, m_feedbackTimer - dt);
@@ -206,9 +216,9 @@ namespace DeadSignal.Presentation
 
             var paused = m_combatFeedback.IsPaused;
             var running = m_model.Outcome == RunOutcome.Running;
-            m_runHud.SetActive(running && !paused);
-            m_pauseOverlay.SetActive(paused);
-            m_outcomeOverlay.SetActive(!running && !paused);
+            m_runHud.SetActive(running && !paused && !m_debugMenuVisible);
+            m_pauseOverlay.SetActive(paused && !m_debugMenuVisible);
+            m_outcomeOverlay.SetActive(!running && !paused && !m_debugMenuVisible);
             _refreshRunHud();
             _refreshOutcome();
             _refreshPause();
