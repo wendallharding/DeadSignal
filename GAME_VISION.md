@@ -254,3 +254,7 @@ The far Spine berth is now a real third Signal tower after the Relay is online. 
 ### Run 90 product decision — Capacitor Spine discharge return
 
 The Spine transfer bank now acts as a progress-gated return gate. It remains collision- and projectile-authoritative while the player chooses the protected north or exposed south approach, then retracts with the third tower to reveal a direct central route home. This was selected over more corridor area or another combat modifier because the deepest objective should transform the return journey immediately; the same landmark now creates different outward and inward navigation without changing Signal economy, enemy stats, reinforcement count, safe entrances, or the existing weapon evolution.
+
+### Run 91 product decision — Spine Induction Gallery
+
+The Capacitor Spine's north edge now opens through two authored doorways into a compact outer gallery. On the outward trip its induction coil and angled baffles offer a longer, cover-rich dead-zone approach; after the third tower comes online, the complete gallery becomes a powered return foothold while the retracted center bank remains the shortest exposed route. This was selected over another corridor, reward, or combat-stat increase because one reusable room now changes route length, cover geometry, Signal expenditure, weapon positioning, and the return decision without changing the bounded threat roster, economy, or objective sequence.

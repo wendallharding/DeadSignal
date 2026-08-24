@@ -30,6 +30,7 @@ namespace DeadSignal.World
         [SerializeField] private GameObject m_relaySignalRouting;
         [SerializeField] private GameObject m_relayShortcutGate;
         [SerializeField] private GameObject m_capacitorSpine;
+        [SerializeField] private GameObject m_spineInductionGallery;
         [SerializeField] private GameObject m_spineTower;
         [SerializeField] private GameObject m_spineSignalRouting;
 
@@ -64,6 +65,7 @@ namespace DeadSignal.World
         public GameObject RelaySignalRouting => m_relaySignalRouting;
         public GameObject RelayShortcutGate => m_relayShortcutGate;
         public GameObject CapacitorSpine => m_capacitorSpine;
+        public GameObject SpineInductionGallery => m_spineInductionGallery;
         public GameObject SpineTower => m_spineTower;
         public GameObject SpineSignalRouting => m_spineSignalRouting;
         public Camera PlayerCamera => m_playerCamera;
@@ -82,7 +84,8 @@ namespace DeadSignal.World
             m_maintenanceDeck != null && m_maintenanceRoomShell != null && m_extractionPad != null &&
             m_signalTower != null && m_signalRouting != null && m_shortcutGate != null && m_stationMachines != null &&
             m_relayFoundry != null && m_relayTower != null && m_relaySignalRouting != null && m_relayShortcutGate != null &&
-            m_capacitorSpine != null && m_spineTower != null && m_spineSignalRouting != null &&
+            m_capacitorSpine != null && m_spineInductionGallery != null &&
+            m_spineTower != null && m_spineSignalRouting != null &&
             m_playerCamera != null && m_cameraRig != null && m_keyLight != null && m_player != null &&
             m_warden != null && m_sapper != null && m_interceptor != null && m_suppressor != null;
 
@@ -106,6 +109,7 @@ namespace DeadSignal.World
             m_relaySignalRouting == null ? nameof(m_relaySignalRouting) : null,
             m_relayShortcutGate == null ? nameof(m_relayShortcutGate) : null,
             m_capacitorSpine == null ? nameof(m_capacitorSpine) : null,
+            m_spineInductionGallery == null ? nameof(m_spineInductionGallery) : null,
             m_spineTower == null ? nameof(m_spineTower) : null,
             m_spineSignalRouting == null ? nameof(m_spineSignalRouting) : null,
             m_playerCamera == null ? nameof(m_playerCamera) : null,

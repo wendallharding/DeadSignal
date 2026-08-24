@@ -48,7 +48,7 @@ namespace DeadSignal.Editor
                        AssetDatabase.LoadAssetAtPath<Material>(DECAL_MATERIAL_PATH) != null &&
                        AssetDatabase.LoadAssetAtPath<Material>(ACTIVATION_DECAL_MATERIAL_PATH) != null &&
                        AssetDatabase.LoadAssetAtPath<Material>(RETURN_DECAL_MATERIAL_PATH) != null &&
-                       prefab.GetComponentsInChildren<AuthoredMapObstacle>().Length == 8 &&
+                       prefab.GetComponentsInChildren<AuthoredMapObstacle>().Length == 10 &&
                        prefab.GetComponentsInChildren<AuthoredSalvageSocket>().Length == 1 &&
                        prefab.transform.Find("Capacitor Transfer Bank") != null &&
                        prefab.transform.Find("Third Tower Berth") != null &&
@@ -202,6 +202,14 @@ namespace DeadSignal.Editor
             var root = PrefabUtility.LoadPrefabContents(RELAY_FOUNDRY_PATH);
             try
             {
+                if (root.transform.Find("Foundry East Bulkhead") == null &&
+                    root.transform.Find("Foundry East North") != null &&
+                    root.transform.Find("Foundry East Center") != null &&
+                    root.transform.Find("Foundry East South") != null)
+                {
+                    return;
+                }
+
                 foreach (var name in new[]
                          {
                              "Foundry East Bulkhead", "Foundry East North", "Foundry East Center", "Foundry East South"
@@ -295,6 +303,18 @@ namespace DeadSignal.Editor
             try
             {
                 var changed = false;
+                var oldNorthBulkhead = root.transform.Find("Capacitor Spine North Bulkhead");
+                if (oldNorthBulkhead != null)
+                {
+                    UnityEngine.Object.DestroyImmediate(oldNorthBulkhead.gameObject);
+                    _wall(root.transform, "Capacitor Spine North West", new Vector3(-6.375f, 0.5f, 5f),
+                        new Vector3(1.25f, 1f, 0.35f), materials.Armor, true);
+                    _wall(root.transform, "Capacitor Spine North Center", new Vector3(0f, 0.5f, 5f),
+                        new Vector3(7f, 1f, 0.35f), materials.Armor, true);
+                    _wall(root.transform, "Capacitor Spine North East", new Vector3(6.375f, 0.5f, 5f),
+                        new Vector3(1.25f, 1f, 0.35f), materials.Armor, true);
+                    changed = true;
+                }
                 var signalLines = root.transform.Find("Spine Signal Lines")?.gameObject;
                 if (signalLines == null)
                 {

@@ -1,5 +1,16 @@
 # DEAD SIGNAL — Product Backlog
 
+## P0 — Spine Induction Gallery (Run 91)
+
+- [x] Add a separate scene-authored modular gallery beyond the Spine's protected north lane
+- [x] Open two independently traversable doorways so the gallery forms an outer loop rather than a dead end
+- [x] Use an induction-coil landmark and two rotated baffles for readable, projectile-authoritative cover
+- [x] Keep the gallery in the dead zone on the outward journey, then power it with the third tower as a return foothold
+- [x] Preserve all tower/cache/security/economy rules and the four established safe reinforcement entrances
+- [x] Expand movement, camera, and tactical-map bounds and package an original text-free route/power decal
+- [x] Prove both doorways, oriented cover, power-state transition, Resources packaging, and complete regression
+- [ ] Compare gallery outbound/direct-center return, north outbound/gallery return, and south-cache/direct return; record time, Signal, cover use, and extraction reserve
+
 ## P0 — Capacitor Spine discharge return (Run 90)
 
 - [x] Keep the transfer bank collision- and projectile-authoritative during the outward journey

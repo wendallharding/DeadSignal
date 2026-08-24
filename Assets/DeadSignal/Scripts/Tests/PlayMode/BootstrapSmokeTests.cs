@@ -1060,7 +1060,7 @@ namespace DeadSignal.Tests
                 "The tower approach should be placed as scene-authored prefab content rather than runtime layout code.");
             var authoredObstacles = towerJunction.GetComponentsInChildren<AuthoredMapObstacle>();
             Assert.That(authoredObstacles.Length, Is.EqualTo(3));
-            Assert.That(game.AuthoredMapObstacleCount, Is.EqualTo(42),
+            Assert.That(game.AuthoredMapObstacleCount, Is.EqualTo(50),
                 "Every authored junction, salvage area, departure channel, and threat-bay obstacle should participate " +
                 "in movement resolution.");
             Assert.That(authoredObstacles.Sum(obstacle => obstacle.GetComponentsInChildren<Renderer>().Length), Is.EqualTo(6));
@@ -1770,7 +1770,6 @@ namespace DeadSignal.Tests
                     "Powered territory should carry a visibly denser Signal-dust field.");
 
                 var gameCamera = game.GetComponentInChildren<Camera>();
-                var cameraRestPosition = gameCamera.transform.position;
                 combatFeedback.PlaySignalImpact(player.position + Vector3.up * 0.5f, false);
                 Assert.That(combatFeedback.ActiveImpactCount, Is.EqualTo(1));
                 var impactBurst = combatFeedback.transform.Find("Combat Impact Burst");
@@ -1782,12 +1781,12 @@ namespace DeadSignal.Tests
                 Assert.That(Vector3.Dot(impactBurst.forward, cameraFacingDirection), Is.GreaterThan(0.99f),
                     "The impact sprite should face the configured gameplay camera.");
                 Assert.That(combatFeedback.IsHitStopped, Is.True, "A combat impact should begin a brief hit-stop.");
+                Assert.That(combatFeedback.IsCameraShakeActive, Is.False,
+                    "Steady Camera should suppress camera impulse without removing hit-stop or impact art.");
                 Assert.That(Time.timeScale, Is.Zero);
                 yield return new WaitForSecondsRealtime(0.08f);
                 Assert.That(combatFeedback.IsHitStopped, Is.False, "Hit-stop should end using real time.");
                 Assert.That(Time.timeScale, Is.EqualTo(1f));
-                Assert.That(gameCamera.transform.position, Is.EqualTo(cameraRestPosition),
-                    "Steady Camera should suppress camera impulse without removing hit-stop or impact art.");
                 Assert.That(combatFeedback.ActiveImpactCount, Is.EqualTo(1),
                     "The burst should remain long enough to read after hit-stop ends.");
                 yield return new WaitForSeconds(0.3f);

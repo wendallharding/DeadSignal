@@ -30,7 +30,7 @@ namespace DeadSignal.Tests
                 var socket = spine.GetComponentInChildren<AuthoredSalvageSocket>();
 
                 Assert.That(spine.position, Is.EqualTo(new Vector3(42.5f, 0f, 0f)));
-                Assert.That(spine.GetComponentsInChildren<AuthoredMapObstacle>().Length, Is.EqualTo(8));
+                Assert.That(spine.GetComponentsInChildren<AuthoredMapObstacle>().Length, Is.EqualTo(10));
                 Assert.That(spine.GetComponentsInChildren<Collider>().Length, Is.Zero);
                 Assert.That(spine.Find("Capacitor Transfer Bank"), Is.Not.Null);
                 Assert.That(spine.Find("North Capacitor Shield"), Is.Not.Null);
@@ -47,7 +47,7 @@ namespace DeadSignal.Tests
                 Assert.That(Resources.Load<Material>("Materials/CapacitorSpine/CapacitorSpineActivationDecal"), Is.Not.Null);
                 Assert.That(Resources.Load<Texture2D>("Environment/CapacitorSpineReturnDecal"), Is.Not.Null);
                 Assert.That(Resources.Load<Material>("Materials/CapacitorSpine/CapacitorSpineReturnDecal"), Is.Not.Null);
-                Assert.That(game.AuthoredMapObstacleCount, Is.EqualTo(42));
+                Assert.That(game.AuthoredMapObstacleCount, Is.EqualTo(50));
                 Assert.That(game.AuthoredSalvageSocketCount, Is.EqualTo(1));
                 Assert.That(game.AuthoredInterceptorEntranceCount, Is.EqualTo(4),
                     "The extension must preserve the Foundry's established safe reinforcement pair.");

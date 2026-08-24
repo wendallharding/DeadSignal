@@ -251,6 +251,9 @@ namespace DeadSignal.Application
 
         public void DebugResetDashCooldown() => m_dashCooldown = 0f;
 
+        public bool DebugIsPoweredAt(Vector3 position) => m_world != null && m_world.IsPowered(
+            position, m_model.TowerOnline, m_model.RelayTowerOnline, m_model.SpineTowerOnline);
+
         public void DebugActivateTower()
         {
             if (m_model == null || m_model.TowerOnline)

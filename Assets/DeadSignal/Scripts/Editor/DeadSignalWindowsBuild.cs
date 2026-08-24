@@ -46,6 +46,7 @@ namespace DeadSignal.Editor
             DeadSignalEastVaultSetup.EnsureAssets();
             DeadSignalRelayFoundrySetup.EnsureAssets();
             DeadSignalCapacitorSpineSetup.EnsureAssets();
+            DeadSignalSpineInductionGallerySetup.EnsureAssets();
             DeadSignalSignalSpineSetup.EnsureAssets();
             DeadSignalBoundaryThresholdSetup.EnsureAssets();
             DeadSignalHudSetup.EnsureAssets();
@@ -179,6 +180,11 @@ namespace DeadSignal.Editor
             if (!DeadSignalCapacitorSpineSetup.HasAssets)
             {
                 throw new BuildFailedException("The scene-authored Capacitor Spine region is missing or incomplete.");
+            }
+
+            if (!DeadSignalSpineInductionGallerySetup.HasAssets)
+            {
+                throw new BuildFailedException("The scene-authored Spine Induction Gallery is missing or incomplete.");
             }
 
             if (!DeadSignalActorSetup.HasSecurityWardenAssets)

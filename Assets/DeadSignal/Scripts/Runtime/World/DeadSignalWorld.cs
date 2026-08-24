@@ -16,7 +16,7 @@ namespace DeadSignal.World
     internal sealed class DeadSignalWorld
     {
         public const float ARENA_HALF_WIDTH = 50.5f;
-        public const float ARENA_HALF_HEIGHT = 8.8f;
+        public const float ARENA_HALF_HEIGHT = 12.4f;
         public const float STARTING_POWER_RADIUS = 3.6f;
         public const float TOWER_POWER_RADIUS = 7.2f;
         public const float SPINE_POWER_RADIUS = 6.2f;
@@ -118,6 +118,7 @@ namespace DeadSignal.World
             _buildPresentation();
             _buildArena();
             _registerAuthoredMapObstacles();
+            _registerAuthoredPoweredTerritories();
             _buildActors(comfortSettings);
             _configurePlayerCamera();
             _configurePlayerCombatPresentation(comfortSettings);
@@ -132,9 +133,23 @@ namespace DeadSignal.World
                 return true;
             }
 
-            return towerOnline && FlatDistance(position, TowerPosition) <= TOWER_POWER_RADIUS ||
+            if (towerOnline && FlatDistance(position, TowerPosition) <= TOWER_POWER_RADIUS ||
                    relayTowerOnline && FlatDistance(position, RelayTowerPosition) <= TOWER_POWER_RADIUS ||
-                   spineTowerOnline && FlatDistance(position, SpineTowerPosition) <= SPINE_POWER_RADIUS;
+                   spineTowerOnline && FlatDistance(position, SpineTowerPosition) <= SPINE_POWER_RADIUS)
+            {
+                return true;
+            }
+
+            foreach (var territory in m_authoredPoweredTerritories)
+            {
+                if (_isTerritorySourceOnline(territory.Source, towerOnline, relayTowerOnline, spineTowerOnline) &&
+                    territory.Contains(position))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         public Vector3 ClampToArena(Vector3 position, float radius)
@@ -299,6 +314,7 @@ namespace DeadSignal.World
             Warden.gameObject.SetActive(true);
             Sapper.gameObject.SetActive(true);
             SapperTelegraph.SetThreatState(true, false, 0f, sapperPulseInterval);
+            _activateAuthoredTerritories(PoweredTerritorySource.CentralTower);
         }
 
         public void ActivateRelayTower()
@@ -312,6 +328,7 @@ namespace DeadSignal.World
             m_relaySignalLines.SetActive(true);
             m_relayShortcutGate.SetActive(false);
             m_relayShortcutOpen = true;
+            _activateAuthoredTerritories(PoweredTerritorySource.RelayTower);
         }
 
         public void ActivateSpineTower()
@@ -325,6 +342,7 @@ namespace DeadSignal.World
             m_spineSignalLines.SetActive(true);
             m_spineReturnGate.SetActive(false);
             m_spineReturnOpen = true;
+            _activateAuthoredTerritories(PoweredTerritorySource.SpineTower);
         }
 
         public void ApplyHighContrast(bool enabled)
@@ -777,6 +795,7 @@ namespace DeadSignal.World
             m_scene.StationMachines.transform.SetParent(m_root, true);
             m_scene.RelayFoundry.transform.SetParent(m_root, true);
             m_scene.CapacitorSpine.transform.SetParent(m_root, true);
+            m_scene.SpineInductionGallery.transform.SetParent(m_root, true);
             foreach (var renderer in m_scene.MaintenanceDeck.GetComponentsInChildren<Renderer>())
             {
                 MaintenanceDeckModuleCount++;
@@ -889,6 +908,41 @@ namespace DeadSignal.World
             }
 
             AuthoredMapObstacleCount = authoredObstacles.Length;
+        }
+
+        private void _registerAuthoredPoweredTerritories()
+        {
+            foreach (var territory in Object.FindObjectsByType<AuthoredPoweredTerritory>(FindObjectsSortMode.None))
+            {
+                territory.SetPowered(false);
+                m_authoredPoweredTerritories.Add(territory);
+            }
+        }
+
+        private void _activateAuthoredTerritories(PoweredTerritorySource source)
+        {
+            foreach (var territory in m_authoredPoweredTerritories)
+            {
+                if (territory.Source == source)
+                {
+                    territory.SetPowered(true);
+                }
+            }
+        }
+
+        private static bool _isTerritorySourceOnline(
+            PoweredTerritorySource source,
+            bool towerOnline,
+            bool relayTowerOnline,
+            bool spineTowerOnline)
+        {
+            return source switch
+            {
+                PoweredTerritorySource.CentralTower => towerOnline,
+                PoweredTerritorySource.RelayTower => relayTowerOnline,
+                PoweredTerritorySource.SpineTower => spineTowerOnline,
+                _ => false
+            };
         }
 
         private void _configurePlayerCombatPresentation(IComfortSettings comfortSettings)
@@ -1415,6 +1469,7 @@ namespace DeadSignal.World
         private readonly List<AuthoredMapObstacle> m_authoredMapObstacles = new();
         private readonly List<MovementBlocker> m_movementBlockers = new();
         private readonly List<GameObject> m_salvagePickups = new();
+        private readonly List<AuthoredPoweredTerritory> m_authoredPoweredTerritories = new();
         private readonly List<GameObject> m_towerTerritoryMarkers = new();
         private readonly List<GameObject> m_relayTerritoryMarkers = new();
         private readonly List<GameObject> m_spineTerritoryMarkers = new();

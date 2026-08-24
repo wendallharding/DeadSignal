@@ -80,6 +80,7 @@ namespace DeadSignal.Combat
         public bool HasSignalRecoveryTexture => m_signalRecoveryTexture != null;
         public bool HasSalvageChainTexture => m_salvageChainTexture != null;
         public bool CameraImpulseEnabled => m_comfortSettings?.CameraImpulseEnabled ?? true;
+        public bool IsCameraShakeActive => m_shakeRemaining > 0f;
         public bool ReducedFlashesEnabled => m_comfortSettings?.ReducedFlashesEnabled ?? false;
         public int ActiveImpactCount => m_impacts.Count;
         public int ChainArcsPlayed { get; private set; }
