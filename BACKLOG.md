@@ -1,5 +1,7 @@
 # DEAD SIGNAL — Product Backlog
 
+- [x] Migrate the fixed world envelope, landmarks, camera/light rig, and persistent actors from `DeadSignalWorld` into `SampleScene` behind a validated scene-reference contract
+
 ## P0 — First playable (this run)
 
 - [x] Runtime-built arena with readable powered/dead-zone states

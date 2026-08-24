@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
+using UnityEngine.SceneManagement;
 using DeadSignal.Combat;
 using DeadSignal.Missions;
 using DeadSignal.Player;
@@ -19,9 +20,9 @@ namespace DeadSignal.World
         public const float STARTING_POWER_RADIUS = 3.6f;
         public const float TOWER_POWER_RADIUS = 7.2f;
 
-        public Vector3 ExtractionPosition { get; } = new(-9.2f, 0f, -5.6f);
-        public Vector3 TowerPosition { get; } = new(-0.6f, 0f, 0.4f);
-        public Vector3 ShortcutPosition { get; } = new(4f, 0f, 0.4f);
+        public Vector3 ExtractionPosition => m_scene.ExtractionPosition;
+        public Vector3 TowerPosition => m_scene.TowerPosition;
+        public Vector3 ShortcutPosition => m_scene.ShortcutPosition;
 
         public Camera Camera { get; private set; }
         public Transform Player { get; private set; }
@@ -81,6 +82,15 @@ namespace DeadSignal.World
         public DeadSignalWorld(Transform root, IComfortSettings comfortSettings)
         {
             m_root = root;
+            m_scene = _findSceneReferences();
+            if (m_scene == null || !m_scene.IsComplete)
+            {
+                throw new MissingReferenceException(
+                    "SampleScene is missing its complete DeadSignalSceneReferences composition. " +
+                    $"Missing: {m_scene?.MissingReferences ?? "component"}. " +
+                    "Run Tools/DEAD SIGNAL/Migrate Runtime World To Scene.");
+            }
+
             m_palette = new DeadSignalPalette(comfortSettings.HighContrastEnabled);
             _createTerritoryMaterials();
             m_signalBoltPrefab = Resources.Load<GameObject>(SIGNAL_BOLT_PREFAB_RESOURCE);
@@ -565,49 +575,34 @@ namespace DeadSignal.World
             return Vector3.Distance(a, b);
         }
 
+        private static DeadSignalSceneReferences _findSceneReferences()
+        {
+            for (var sceneIndex = 0; sceneIndex < SceneManager.sceneCount; sceneIndex++)
+            {
+                var scene = SceneManager.GetSceneAt(sceneIndex);
+                foreach (var sceneRoot in scene.GetRootGameObjects())
+                {
+                    var references = sceneRoot.GetComponentInChildren<DeadSignalSceneReferences>(true);
+                    if (references != null)
+                    {
+                        return references;
+                    }
+                }
+            }
+
+            return null;
+        }
+
         private void _buildPresentation()
         {
-            foreach (var existing in Object.FindObjectsByType<Camera>(FindObjectsSortMode.None))
-            {
-                existing.enabled = false;
-            }
-
-            foreach (var existing in Object.FindObjectsByType<AudioListener>(FindObjectsSortMode.None))
-            {
-                existing.enabled = false;
-            }
-
-            foreach (var existing in Object.FindObjectsByType<Light>(FindObjectsSortMode.None))
-            {
-                existing.enabled = false;
-            }
-
-            var cameraRigObject = new GameObject("Player Camera Rig");
-            cameraRigObject.transform.SetParent(m_root);
-            m_cameraRig = cameraRigObject.transform;
-
-            var cameraObject = new GameObject("Dead Signal Camera");
-            cameraObject.transform.SetParent(m_cameraRig, false);
-            cameraObject.transform.localPosition = new Vector3(0f, 12f, -7.4f);
-            cameraObject.transform.localRotation = Quaternion.Euler(55f, 0f, 0f);
-            Camera = cameraObject.AddComponent<Camera>();
-            Camera.orthographic = false;
-            Camera.fieldOfView = 38f;
-            Camera.clearFlags = CameraClearFlags.SolidColor;
-            Camera.backgroundColor = new Color(0.002f, 0.004f, 0.008f);
-            Camera.nearClipPlane = 0.1f;
-            Camera.farClipPlane = 80f;
-            cameraObject.AddComponent<AudioListener>();
-            _buildPostProcessing(cameraObject);
-
-            var lightObject = new GameObject("Cold Overhead Light");
-            lightObject.transform.SetParent(m_root);
-            lightObject.transform.rotation = Quaternion.Euler(55f, -35f, 0f);
-            var key = lightObject.AddComponent<Light>();
-            key.type = LightType.Directional;
-            key.color = new Color(0.38f, 0.52f, 0.65f);
-            key.intensity = 1.35f;
-            key.shadows = LightShadows.Soft;
+            Camera = m_scene.PlayerCamera;
+            m_cameraRig = m_scene.CameraRig;
+            m_cameraRig.SetParent(m_root, true);
+            Camera.gameObject.SetActive(true);
+            Camera.enabled = true;
+            m_scene.KeyLight.gameObject.SetActive(true);
+            m_scene.KeyLight.enabled = true;
+            _buildPostProcessing(Camera.gameObject);
             RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Flat;
             RenderSettings.ambientLight = new Color(0.045f, 0.055f, 0.07f);
         }
@@ -632,8 +627,7 @@ namespace DeadSignal.World
 
         private void _buildArena()
         {
-            _buildMaintenanceDeck();
-            _buildMaintenanceRoomShell();
+            _bindAuthoredEnvironment();
 
             _createTerritory("Dock Power Territory", ExtractionPosition, STARTING_POWER_RADIUS, m_poweredTerritoryMaterial);
             _createTerritoryMarkers("Dock Power Boundary", ExtractionPosition, STARTING_POWER_RADIUS, m_palette.Cyan, null);
@@ -641,21 +635,96 @@ namespace DeadSignal.World
             _createTerritoryMarkers("Tower Power Boundary", TowerPosition, TOWER_POWER_RADIUS, m_palette.Dark,
                 m_towerTerritoryMarkers);
 
-            for (var x = -12; x <= 12; x += 4)
-            {
-                _createPrimitive("Security Edge Marker", PrimitiveType.Cube, new Vector3(x, -0.06f, 8.55f), new Vector3(1.5f, 0.035f, 0.07f), m_palette.RedDim);
-                _createPrimitive("Security Edge Marker", PrimitiveType.Cube, new Vector3(x, -0.06f, -8.55f), new Vector3(1.5f, 0.035f, 0.07f), m_palette.RedDim);
-            }
-
-            _buildExtraction();
-            _buildTower();
-            _buildStationMachines();
-            _buildSignalShortcut();
             _buildRouteDetails();
             _buildLocalizedLighting();
             _buildEnvironmentalDressing();
             _buildGameplayAssists();
             _buildExtractionApproach();
+        }
+
+        private void _bindAuthoredEnvironment()
+        {
+            m_scene.MaintenanceDeck.transform.SetParent(m_root, true);
+            m_scene.MaintenanceRoomShell.transform.SetParent(m_root, true);
+            m_scene.ExtractionPad.transform.SetParent(m_root, true);
+            m_scene.SignalTower.transform.SetParent(m_root, true);
+            m_scene.SignalRouting.transform.SetParent(m_root, true);
+            m_scene.ShortcutGate.transform.SetParent(m_root, true);
+            m_scene.StationMachines.transform.SetParent(m_root, true);
+            foreach (var renderer in m_scene.MaintenanceDeck.GetComponentsInChildren<Renderer>())
+            {
+                renderer.sharedMaterial = m_palette.Deck;
+                MaintenanceDeckModuleCount++;
+            }
+
+            HasMaintenanceDeckAssets = MaintenanceDeckModuleCount == 35 && m_palette.HasDeckTexture;
+            foreach (var renderer in m_scene.MaintenanceRoomShell.GetComponentsInChildren<Renderer>())
+            {
+                renderer.sharedMaterial = m_palette.Bulkhead;
+                RoomShellBulkheadCount++;
+            }
+
+            var sockets = m_scene.MaintenanceRoomShell.transform.Find("Machine Sockets");
+            if (sockets != null)
+            {
+                foreach (Transform socket in sockets)
+                {
+                    m_machineSockets.Add(socket.position);
+                }
+            }
+
+            HasMaintenanceRoomShellAssets = RoomShellBulkheadCount == 5 && m_machineSockets.Count == 6 &&
+                                            m_palette.HasBulkheadTexture;
+            var extraction = m_scene.ExtractionPad.transform;
+            extraction.Find("Extraction Plinth").GetComponent<Renderer>().sharedMaterial = m_palette.ExtractionHousing;
+            extraction.Find("Extraction Ring").GetComponent<Renderer>().sharedMaterial = m_palette.Cyan;
+            extraction.Find("Extraction Center").GetComponent<Renderer>().sharedMaterial = m_palette.ExtractionHousing;
+            m_extractionBeacon = extraction.Find("Extraction Beacon").gameObject;
+            m_extractionBeacon.GetComponent<Renderer>().sharedMaterial = m_palette.Cyan;
+            m_environmentAnimators.Add(m_extractionBeacon.transform);
+            ExtractionPadPartCount = 4;
+            HasExtractionPadAssets = m_palette.HasExtractionTexture;
+
+            var tower = m_scene.SignalTower.transform;
+            tower.Find("Tower Base").GetComponent<Renderer>().sharedMaterial = m_palette.TowerHousing;
+            tower.Find("Tower Column").GetComponent<Renderer>().sharedMaterial = m_palette.TowerHousing;
+            TowerCore = tower.Find("Tower Core");
+            TowerCore.GetComponent<Renderer>().sharedMaterial = m_palette.RedDim;
+            m_environmentAnimators.Add(TowerCore);
+            SignalTowerPartCount = 3;
+            HasSignalTowerAssets = m_palette.HasTowerTexture;
+
+            m_towerSignalLines = m_scene.SignalRouting;
+            foreach (var renderer in m_towerSignalLines.GetComponentsInChildren<Renderer>())
+            {
+                renderer.sharedMaterial = m_palette.SignalRouting;
+                SignalRoutingPartCount++;
+            }
+            HasSignalRoutingAssets = SignalRoutingPartCount == 3 && m_palette.HasSignalRoutingTexture;
+            m_towerSignalLines.SetActive(false);
+
+            foreach (Transform machine in m_scene.StationMachines.transform)
+            {
+                machine.Find("Machine Housing").GetComponent<Renderer>().sharedMaterial = m_palette.StationMachineHousing;
+                machine.Find("Machine Status").GetComponent<Renderer>().sharedMaterial =
+                    StationMachineInstanceCount % 2 == 0 ? m_palette.RedDim : m_palette.CyanDim;
+                StationMachineInstanceCount++;
+                StationMachinePartCount += 2;
+            }
+            HasStationMachineAssets = StationMachineInstanceCount == 6 && m_palette.HasStationMachineTexture;
+
+            var shortcut = m_scene.ShortcutGate.transform;
+            foreach (var renderer in shortcut.GetComponentsInChildren<Renderer>())
+            {
+                renderer.sharedMaterial = renderer.name == "Shortcut Gate Signal" ? m_palette.CyanDim : m_palette.ShortcutHousing;
+                ShortcutGatePartCount++;
+            }
+            m_shortcutGate = shortcut.Find("Signal Shortcut Gate").gameObject;
+            m_shortcutGate.GetComponent<Renderer>().sharedMaterial = m_palette.ShortcutLocked;
+            HasShortcutGateAssets = ShortcutGatePartCount == 6 && m_palette.HasShortcutTexture;
+            _addShortcutMovementBlockers();
+            m_movementBlockers.Add(new MovementBlocker(
+                new Vector2(TowerPosition.x, TowerPosition.z), Vector2.one * TOWER_BLOCKER_HALF_SIZE, false));
         }
 
         private void _buildMaintenanceDeck()
@@ -992,20 +1061,16 @@ namespace DeadSignal.World
 
         private void _buildActors(IComfortSettings comfortSettings)
         {
-            _buildPlayer();
-
+            _bindAuthoredActors();
             _registerInterceptorEntrances();
-            _buildInterceptor();
-            _buildSuppressor();
-
-            _buildWarden();
+            Interceptor.position = m_interceptorEntrances[0];
+            Suppressor.position = m_interceptorEntrances[0];
 
             var wardenTelegraphRoot = new GameObject("Warden Strike Warning");
             wardenTelegraphRoot.transform.SetParent(m_root);
             WardenTelegraph = wardenTelegraphRoot.AddComponent<WardenThreatTelegraph>();
             WardenTelegraph.Configure(Warden, Player, comfortSettings);
 
-            _buildSapper();
             _addThreatSilhouette(Interceptor, m_palette.Red, 0.9f, true);
             _addThreatSilhouette(Suppressor, m_palette.Amber, 1.05f, false);
             _addThreatSilhouette(Warden, m_palette.Red, 1.25f, false);
@@ -1030,6 +1095,80 @@ namespace DeadSignal.World
             }
 
             AuthoredSalvageSocketCount = authoredSockets.Length;
+        }
+
+        private void _bindAuthoredActors()
+        {
+            Player = m_scene.Player;
+            Player.SetParent(m_root, true);
+            Player.position = ExtractionPosition;
+            Player.Find("Drone Chassis").GetComponent<Renderer>().sharedMaterial = m_palette.PlayerDroneHousing;
+            Player.Find("Drone Signal Ring").GetComponent<Renderer>().sharedMaterial = m_palette.Cyan;
+            Player.Find("Drone Core").GetComponent<Renderer>().sharedMaterial = m_palette.Dark;
+            PlayerNose = Player.Find("Drone Tool");
+            PlayerNose.GetComponent<Renderer>().sharedMaterial = m_palette.Cyan;
+            _createPlayerPresentationPivot();
+            PlayerDronePartCount = 4;
+            HasPlayerDroneAssets = m_palette.HasPlayerDroneTexture;
+
+            Warden = m_scene.Warden;
+            Warden.SetParent(m_root, true);
+            Warden.Find("Warden Chassis").GetComponent<Renderer>().sharedMaterial = m_palette.WardenHousing;
+            Warden.Find("Warden Eye").GetComponent<Renderer>().sharedMaterial = m_palette.Red;
+            Warden.Find("Warden Crown").GetComponent<Renderer>().sharedMaterial = m_palette.RedDim;
+
+            Sapper = m_scene.Sapper;
+            Sapper.SetParent(m_root, true);
+            Sapper.Find("Sapper Chassis").GetComponent<Renderer>().sharedMaterial = m_palette.SapperHousing;
+            Sapper.Find("Sapper Fork Left").GetComponent<Renderer>().sharedMaterial = m_palette.Magenta;
+            Sapper.Find("Sapper Fork Right").GetComponent<Renderer>().sharedMaterial = m_palette.Magenta;
+            SapperCore = Sapper.Find("Sapper Drain Core");
+            SapperCore.GetComponent<Renderer>().sharedMaterial = m_palette.Magenta;
+            SapperCoreBaseScale = SapperCore.localScale;
+            HasSignalSapperAssets = m_palette.HasSapperTexture;
+            SignalSapperPartCount = 4;
+
+            Interceptor = m_scene.Interceptor;
+            Interceptor.SetParent(m_root, true);
+            Interceptor.Find("Interceptor Chassis").GetComponent<Renderer>().sharedMaterial = m_palette.WardenHousing;
+            Interceptor.Find("Interceptor Blade Left").GetComponent<Renderer>().sharedMaterial = m_palette.RedDim;
+            Interceptor.Find("Interceptor Blade Right").GetComponent<Renderer>().sharedMaterial = m_palette.RedDim;
+            InterceptorCore = Interceptor.Find("Interceptor Core");
+            InterceptorCore.GetComponent<Renderer>().sharedMaterial = m_palette.Amber;
+            HasSecurityInterceptorAssets = true;
+            SecurityInterceptorPartCount = 4;
+
+            Suppressor = m_scene.Suppressor;
+            Suppressor.SetParent(m_root, true);
+            Suppressor.Find("Suppressor Chassis").GetComponent<Renderer>().sharedMaterial = m_palette.WardenHousing;
+            Suppressor.Find("Suppressor Emitter Left").GetComponent<Renderer>().sharedMaterial = m_palette.Magenta;
+            Suppressor.Find("Suppressor Emitter Right").GetComponent<Renderer>().sharedMaterial = m_palette.Magenta;
+            SuppressorCore = Suppressor.Find("Suppressor Core");
+            SuppressorCore.GetComponent<Renderer>().sharedMaterial = m_palette.Amber;
+            HasSecuritySuppressorAssets = true;
+            SecuritySuppressorPartCount = 4;
+
+            Warden.gameObject.SetActive(false);
+            Sapper.gameObject.SetActive(false);
+            Interceptor.gameObject.SetActive(false);
+            Suppressor.gameObject.SetActive(false);
+
+            var interceptorTelegraphRoot = new GameObject("Interceptor Charge Telegraph");
+            interceptorTelegraphRoot.transform.SetParent(m_root);
+            m_interceptorTelegraph = interceptorTelegraphRoot.AddComponent<LineRenderer>();
+            m_interceptorTelegraph.positionCount = 2;
+            m_interceptorTelegraph.startWidth = 0.16f;
+            m_interceptorTelegraph.endWidth = 0.05f;
+            m_interceptorTelegraph.sharedMaterial = m_palette.Red;
+            m_interceptorTelegraph.textureMode = LineTextureMode.Stretch;
+            m_interceptorTelegraph.shadowCastingMode = ShadowCastingMode.Off;
+            m_interceptorTelegraph.receiveShadows = false;
+            interceptorTelegraphRoot.SetActive(false);
+
+            m_suppressorField = _createPrimitive("Suppressor Field Warning", PrimitiveType.Cylinder, Vector3.zero,
+                Vector3.one, m_palette.Amber, m_root);
+            Object.Destroy(m_suppressorField.GetComponent<Collider>());
+            m_suppressorField.SetActive(false);
         }
 
         private void _registerInterceptorEntrances()
@@ -1678,6 +1817,7 @@ namespace DeadSignal.World
         private static readonly Vector3 s_interceptorSouthSpawn = new(1.5f, 0f, -7.5f);
 
         private readonly Transform m_root;
+        private readonly DeadSignalSceneReferences m_scene;
         private readonly DeadSignalPalette m_palette;
         private readonly GameObject m_signalBoltPrefab;
         private readonly List<MovementBlocker> m_movementBlockers = new();

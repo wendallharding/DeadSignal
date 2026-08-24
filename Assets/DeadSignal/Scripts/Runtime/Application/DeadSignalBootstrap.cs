@@ -5,6 +5,7 @@ using UnityEngine.SceneManagement;
 using DeadSignal.Combat;
 using DeadSignal.Player;
 using DeadSignal.Presentation;
+using DeadSignal.World;
 
 namespace DeadSignal.Application
 {
@@ -31,6 +32,13 @@ namespace DeadSignal.Application
         private static void _createFirstPlayable()
         {
             if (Object.FindFirstObjectByType<DeadSignalGame>() != null)
+            {
+                return;
+            }
+
+            // The Test Runner and additive tooling can load support scenes before the playable scene.
+            // Composition begins only when the authored world contract is present.
+            if (Object.FindFirstObjectByType<DeadSignalSceneReferences>(FindObjectsInactive.Include) == null)
             {
                 return;
             }

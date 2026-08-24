@@ -1,5 +1,19 @@
 # DEAD SIGNAL — Development Log
 
+## 2026-08-23 — Scene-authored world migration
+
+Moved the fixed playable composition out of the active `DeadSignalWorld` construction path and into `Assets/DeadSignal/Scenes/SampleScene.unity`. The scene now owns a visible `DEAD SIGNAL — Authored World` hierarchy containing 35 maintenance-deck prefab instances, the room shell, extraction pad, signal tower and routing, shortcut gate, six station machines, spatial anchors, camera/light rig, and the player plus four persistent threat prefab instances.
+
+- Added `DeadSignalSceneReferences.cs`, the validated serialized contract between scene authoring and runtime rules.
+- Added `DeadSignalSceneMigration.cs`, an idempotent Editor command that reconstructs the authored hierarchy from the established prefabs and saves `SampleScene`.
+- Updated `DeadSignalWorld.cs` to bind and adopt scene-authored objects while retaining runtime ownership of rules, state transitions, transient effects, telegraphs, salvage variation, and collision queries.
+- Updated `DeadSignalBootstrap.cs` to wait for the authored-world contract, preventing Test Runner support scenes and additive tooling from composing an invalid playable before `SampleScene` loads.
+- Unity `6000.3.11f1` compiled the runtime and Editor assemblies successfully and generated both new `.meta` files.
+- EditMode: 103/103 passed, 0 failed, 0 skipped in 0.2129938 seconds. Results: `TestResults-SceneMigration-EditMode.xml`; log: `scene-migration-editmode.log`.
+- Full PlayMode: 13/13 passed, 0 failed, 0 skipped in 42.2474032 seconds. Results: `TestResults-SceneMigration-FullPlayMode.xml`; log: `scene-migration-full-playmode.log`.
+
+The scene was generated and structurally validated in batch mode. Interactive Game-view validation remains required for camera framing, lighting, and authored module seams in normal and High Contrast modes.
+
 ## 2026-08-20 — Autonomous Run 01
 
 ### Baseline audit
