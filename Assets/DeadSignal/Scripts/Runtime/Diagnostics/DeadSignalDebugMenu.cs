@@ -13,7 +13,7 @@ namespace DeadSignal.Diagnostics
     public enum DebugLocation
     {
         Extraction, CentralTower, Shortcut, RelayTower, SpineTower, CacheOne, CacheTwo, CacheThree, CacheFour,
-        FarEast, NorthBoundary, SouthBoundary
+        FarEast, NorthBoundary, SouthBoundary, CurrentObjective
     }
 
     public enum DebugScenario
@@ -142,10 +142,9 @@ namespace DeadSignal.Diagnostics
 
         private void OnDisable()
         {
-            if (m_isOpen)
-            {
-                _setOpen(false);
-            }
+            m_isOpen = false;
+            Cursor.visible = false;
+            Cursor.lockState = CursorLockMode.Locked;
         }
 
         private void OnGUI()
@@ -169,8 +168,14 @@ namespace DeadSignal.Diagnostics
         private void _setOpen(bool open)
         {
             m_isOpen = open;
-            m_provider.CanvasRef.gameObject.SetActive(open);
-            m_game.SetDebugMenuState(open, m_runWhileOpen);
+            if (m_provider != null && m_provider.CanvasRef != null)
+            {
+                m_provider.CanvasRef.gameObject.SetActive(open);
+            }
+            if (m_game != null)
+            {
+                m_game.SetDebugMenuState(open, m_runWhileOpen);
+            }
             Cursor.visible = open;
             Cursor.lockState = open ? CursorLockMode.None : CursorLockMode.Locked;
         }

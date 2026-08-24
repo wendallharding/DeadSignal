@@ -170,6 +170,11 @@
 - [x] Add a deterministic named-destination route driver
 - [x] Add screenshot, combat-frame capture, and validation shortcuts
 - [x] Add live telemetry, focus/input status, recent event history, route seed, and replay copy
+- [x] Add ordered route presets and exact-position recording for reusable A → B → C → D playtests
+- [x] Add destination-specific arrival contracts, proportional braking, locked detour anchors, and overshoot correction
+- [x] Add progress watchdogs, bounded recovery attempts, retry/skip/abort controls, and blocked-route diagnostics
+- [x] Add verified arrival actions, route assertions, step-by-step mode, per-step captures, and structured reports
+- [x] Add assisted-playthrough and deterministic-validation modes with live, safe-navigation, and combat profiles
 - [x] Keep the orange development watermark and exclude the harness from non-development players
 - [ ] Record one complete automated route through every authored region and add destinations where route telemetry finds gaps
 

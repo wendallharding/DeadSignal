@@ -109,7 +109,7 @@ namespace DeadSignal.Presentation
             var source = IsPowered ? (IsMoving ? "POWERED MOVEMENT" : "POWERED SAFE ZONE") :
                 IsMoving ? "DEAD ZONE + MOVEMENT" : "DEAD ZONE EXPOSURE";
             GUI.Label(new Rect(18f, 198f, 310f, 48f),
-                total > 0f ? $"SIGNAL  −{total:0.0}/s\n{source}" : "SIGNAL  STABLE\nPOWERED SAFE ZONE", m_smallStyle);
+                total > 0f ? $"TRAVERSAL  −{total:0.0}/s\n{source}" : "TRAVERSAL  STABLE\nPOWERED SAFE ZONE", m_smallStyle);
         }
 
         private void _drawAbilityStatus()

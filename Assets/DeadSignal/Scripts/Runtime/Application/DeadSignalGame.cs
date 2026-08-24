@@ -25,6 +25,7 @@ namespace DeadSignal.Application
         private const float DASH_DISTANCE = 2.4f;
         private const float DASH_SIGNAL_COST = 4f;
         private const float DASH_COOLDOWN = 2.4f;
+        private const float TOWER_INTERACTION_RADIUS = 2.2f;
 
         private RunModel m_model;
         private RunMetrics m_metrics;
@@ -61,7 +62,18 @@ namespace DeadSignal.Application
         private bool m_debugInfiniteSignal;
         private bool m_debugRouteDriving;
         private DebugLocation m_debugRouteDestination;
+        private DebugRouteSequencer m_debugRouteSequencer;
         private int m_lastDebugInputFrame = -1;
+        private float m_debugRouteBlockedSeconds;
+        private Vector3 m_debugRouteAnchor;
+        private Vector3 m_debugRouteAnchorDestination;
+        private bool m_debugRouteAnchorActive;
+        private int m_debugObservedRecoveryCount;
+        private int m_debugObservedSequenceStep = -1;
+        private Vector3 m_debugSequenceTarget;
+        private bool m_debugCaptureEachRouteStep;
+        private float m_debugSignalDeltaRate;
+        private float m_debugPreviousSignal = -1f;
         private readonly Queue<string> m_debugEventLog = new();
         private DeadSignalDebugVisualization m_debugVisualization;
         private DeadSignalDebugCamera m_debugCamera;
@@ -251,15 +263,32 @@ namespace DeadSignal.Application
             : $"Position {m_world.Player.position.x:0.00}, {m_world.Player.position.z:0.00}  " +
               $"Velocity {m_playerMovement.Velocity.magnitude:0.00}  FPS {(Time.unscaledDeltaTime > 0f ? 1f / Time.unscaledDeltaTime : 0f):0}\n" +
               $"Focus {(UnityEngine.Application.isFocused ? "OWNED" : "LOST")}  Input {(Time.frameCount - m_lastDebugInputFrame <= 1 ? "RECEIVED" : "IDLE")}  " +
-              $"Time {Time.timeScale:0.00}x\nCamera {m_world.Camera.transform.position.x:0.0}, " +
+              $"Time {Time.timeScale:0.00}x  Signal Δ {m_debugSignalDeltaRate:+0.0;-0.0;0.0}/s\nCamera {m_world.Camera.transform.position.x:0.0}, " +
               $"{m_world.Camera.transform.position.y:0.0}, {m_world.Camera.transform.position.z:0.0}  " +
-              $"Route {(m_debugRouteDriving ? m_debugRouteDestination.ToString() : "MANUAL")}";
+              $"Route {(m_debugRouteDriving ? m_debugRouteDestination.ToString() : "MANUAL")}" +
+              $"{(m_debugRouteBlockedSeconds > 0.1f ? $" BLOCKED {m_debugRouteBlockedSeconds:0.0}s" : string.Empty)}\n" +
+              $"Interaction {_debugInteractionTelemetry()}";
+        public string DebugRouteSequenceStatus => m_debugRouteSequencer == null
+            ? "ROUTE SEQUENCE  Unavailable"
+            : $"ROUTE SEQUENCE  {m_debugRouteSequencer.State}  " +
+              $"{m_debugRouteSequencer.StepNumber}/{m_debugRouteSequencer.StepCount}\n" +
+              $"{m_debugRouteSequencer.CurrentStep?.Name ?? "No active step"}  " +
+              $"{m_debugRouteSequencer.StepSeconds:0.0}s  Recoveries {m_debugRouteSequencer.RecoveryCount}";
+        public string DebugRouteSequenceReport => m_debugRouteSequencer?.Report ?? "No route report available.";
+        public DebugRouteRunState DebugRouteSequenceState => m_debugRouteSequencer?.State ?? DebugRouteRunState.Idle;
         public string DebugEventLog => string.Join("\n", m_debugEventLog);
         public string DebugReplayInfo =>
             $"Route seed {PlayerPrefs.GetInt("DeadSignal.RouteVariant", 0)}  Frame {Time.frameCount}  Capture {m_lastDebugCapturePath}";
         public Vector3 DebugPlayerPosition => m_world?.Player.position ?? Vector3.zero;
         public bool IsDebugRouteDriving => m_debugRouteDriving;
         public bool IsDebugMenuOpen => m_debugMenuOpen;
+
+        public float DebugDistanceToLocation(DebugLocation location)
+        {
+            return m_world == null
+                ? float.PositiveInfinity
+                : DeadSignalWorld.FlatDistance(m_world.Player.position, _debugLocationPosition(location));
+        }
 
         public void SetDebugMenuState(bool open, bool runWhileOpen)
         {
@@ -317,10 +346,69 @@ namespace DeadSignal.Application
         public void DebugStartRouteDriver(DebugLocation destination)
         {
             m_debugRouteDestination = destination;
+            m_debugRouteBlockedSeconds = 0f;
             m_debugRouteDriving = true;
         }
 
-        public void DebugStopRouteDriver() => m_debugRouteDriving = false;
+        public void DebugStopRouteDriver()
+        {
+            m_debugRouteDriving = false;
+            m_debugRouteBlockedSeconds = 0f;
+        }
+
+        public void DebugStartRouteSequence(DebugRoutePreset preset, DebugAutomationMode mode, DebugAutomationProfile profile)
+        {
+            _resetDebugTransientState();
+            m_debugRouteSequencer.Start(preset, mode, profile, CurrentSignal);
+            m_debugObservedSequenceStep = -1;
+            m_debugRouteDriving = m_debugRouteSequencer.IsRunning;
+            _applyDebugAutomationProfile(profile);
+            _showFeedback($"DEBUG ROUTE SEQUENCE — {preset.ToString().ToUpperInvariant()}");
+        }
+
+        public void DebugPauseRouteSequence()
+        {
+            m_debugRouteSequencer?.Pause();
+            m_debugRouteDriving = false;
+        }
+
+        public void DebugResumeRouteSequence()
+        {
+            m_debugRouteSequencer?.Resume();
+            m_debugRouteDriving = m_debugRouteSequencer?.IsRunning == true;
+        }
+
+        public void DebugSkipRouteStep() => m_debugRouteSequencer?.Skip();
+
+        public void DebugRetryRouteStep()
+        {
+            m_debugRouteSequencer?.Retry();
+            m_debugRouteDriving = m_debugRouteSequencer?.IsRunning == true;
+        }
+
+        public void DebugAbortRouteSequence()
+        {
+            m_debugRouteSequencer?.Abort("Aborted by operator.");
+            m_debugRouteDriving = false;
+            _writeDebugRouteReport();
+        }
+
+        public void DebugRecordRouteNode()
+        {
+            if (m_world != null)
+            {
+                m_debugRouteSequencer.Record(m_world.Player.position);
+                _showFeedback($"DEBUG ROUTE NODE RECORDED — {m_world.Player.position.x:0.0}, {m_world.Player.position.z:0.0}");
+            }
+        }
+
+        public void DebugClearRecordedRoute() => m_debugRouteSequencer?.ClearRecording();
+
+        public void DebugCopyRouteReport() => GUIUtility.systemCopyBuffer = _finishDebugRouteReport();
+
+        public void DebugSetRouteStepMode(bool enabled) => m_debugRouteSequencer.PauseAfterEachStep = enabled;
+
+        public void DebugSetRouteCaptureEachStep(bool enabled) => m_debugCaptureEachRouteStep = enabled;
 
         public void DebugToggleWorldVisualization()
         {
@@ -596,6 +684,7 @@ namespace DeadSignal.Application
 
         public void DebugApplyScenario(DebugScenario scenario)
         {
+            _resetDebugTransientState();
             if (scenario == DebugScenario.FreshRun)
             {
                 SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
@@ -740,6 +829,7 @@ namespace DeadSignal.Application
             }
 
             m_playerMovement = new PlayerDroneMovement();
+            m_debugRouteSequencer = new DebugRouteSequencer();
             m_overclockChoice = new SignalOverclockChoice();
             m_routeGuidanceStrength = Mathf.Clamp01(PlayerPrefs.GetFloat("DeadSignal.RouteGuidance", 0.7f));
             m_difficultyDrainMultiplier = Mathf.Clamp(PlayerPrefs.GetFloat("DeadSignal.DifficultyDrain", 1f), 0.75f, 1.2f);
@@ -796,6 +886,7 @@ namespace DeadSignal.Application
 
         private void Update()
         {
+            _sampleDebugSignalRate();
             if (m_debugInfiniteSignal)
             {
                 m_model?.SetSignalForDebug(RunModel.MaximumSignal);
@@ -830,6 +921,7 @@ namespace DeadSignal.Application
             {
                 if (m_input.PressedRestart())
                 {
+                    _resetDebugTransientState();
                     SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
                 }
 
@@ -861,6 +953,7 @@ namespace DeadSignal.Application
             m_missionClarityHud.DashCooldown = m_dashCooldown;
             m_missionClarityHud.IsMoving = moving;
             m_missionClarityHud.IsPowered = powered;
+            _tickDebugRouteSequence(dt);
             _tryTriggerEmergencyCapacitor();
             m_signalDust.Tick(powered, m_model.TowerOnline, m_model.Signal / RunModel.MaximumSignal);
             m_lowSignalWarning.Tick(dt);
@@ -966,7 +1059,7 @@ namespace DeadSignal.Application
             var desired = previousPosition + velocity * dt;
             var dashRequested = false;
             var dashSpentSignal = false;
-            if (m_input.PressedDash() && m_dashCooldown <= 0f && moveInput.sqrMagnitude > 0.1f)
+            if (!m_debugRouteDriving && m_input.PressedDash() && m_dashCooldown <= 0f && moveInput.sqrMagnitude > 0.1f)
             {
                 if (m_model.IsCriticalRecovery || m_model.TrySpend(DASH_SIGNAL_COST))
                 {
@@ -990,6 +1083,14 @@ namespace DeadSignal.Application
                 desired,
                 PLAYER_COLLISION_RADIUS,
                 m_model.ShortcutOpen);
+            if (m_debugRouteDriving && m_world.LastMovementBlocked)
+            {
+                m_debugRouteBlockedSeconds += dt;
+            }
+            else
+            {
+                m_debugRouteBlockedSeconds = 0f;
+            }
             var travelled = DeadSignalWorld.FlatDistance(previousPosition, m_world.Player.position);
             if (dashRequested && travelled < DASH_DISTANCE * 0.5f)
             {
@@ -1142,7 +1243,7 @@ namespace DeadSignal.Application
         private void _handleInteraction()
         {
             if (!m_model.SpineTowerOnline &&
-                DeadSignalWorld.FlatDistance(m_world.Player.position, m_world.SpineTowerPosition) < 1.8f)
+                DeadSignalWorld.FlatDistance(m_world.Player.position, m_world.SpineTowerPosition) < TOWER_INTERACTION_RADIUS)
             {
                 if (m_model.TryActivateSpineTower())
                 {
@@ -1167,7 +1268,7 @@ namespace DeadSignal.Application
             }
 
             if (!m_model.RelayTowerOnline &&
-                DeadSignalWorld.FlatDistance(m_world.Player.position, m_world.RelayTowerPosition) < 1.8f)
+                DeadSignalWorld.FlatDistance(m_world.Player.position, m_world.RelayTowerPosition) < TOWER_INTERACTION_RADIUS)
             {
                 if (m_model.TryActivateRelayTower())
                 {
@@ -1188,7 +1289,8 @@ namespace DeadSignal.Application
                 return;
             }
 
-            if (!m_model.TowerOnline && DeadSignalWorld.FlatDistance(m_world.Player.position, m_world.TowerPosition) < 1.8f)
+            if (!m_model.TowerOnline &&
+                DeadSignalWorld.FlatDistance(m_world.Player.position, m_world.TowerPosition) < TOWER_INTERACTION_RADIUS)
             {
                 if (m_model.TryActivateTower())
                 {
@@ -1405,17 +1507,215 @@ namespace DeadSignal.Application
 
         private Vector2 _debugRouteInput()
         {
-            var delta = _debugLocationPosition(m_debugRouteDestination) - m_world.Player.position;
-            delta.y = 0f;
-            if (delta.sqrMagnitude <= 0.16f)
+            var sequenceStep = m_debugRouteSequencer?.IsRunning == true ? m_debugRouteSequencer.CurrentStep : null;
+            var destination = sequenceStep == null
+                ? _debugLocationPosition(m_debugRouteDestination)
+                : _debugRouteSequenceDestination(sequenceStep);
+            var completionRadius = sequenceStep?.ArrivalRadius ?? _debugRouteCompletionRadius(m_debugRouteDestination);
+            if (DeadSignalWorld.FlatDistance(destination, m_debugRouteAnchorDestination) > 0.1f ||
+                m_debugObservedRecoveryCount != (m_debugRouteSequencer?.RecoveryCount ?? 0))
             {
+                m_debugRouteAnchorActive = false;
+                m_debugRouteAnchorDestination = destination;
+                m_debugObservedRecoveryCount = m_debugRouteSequencer?.RecoveryCount ?? 0;
+            }
+            var targetDelta = destination - m_world.Player.position;
+            targetDelta.y = 0f;
+            if (targetDelta.sqrMagnitude <= completionRadius * completionRadius)
+            {
+                if (sequenceStep != null)
+                {
+                    return Vector2.zero;
+                }
                 m_debugRouteDriving = false;
+                m_debugRouteBlockedSeconds = 0f;
                 _showFeedback($"DEBUG ROUTE COMPLETE — {m_debugRouteDestination.ToString().ToUpperInvariant()}");
                 return Vector2.zero;
             }
 
+            if (m_debugRouteAnchorActive && DeadSignalWorld.FlatDistance(m_world.Player.position, m_debugRouteAnchor) <= 0.65f)
+            {
+                m_debugRouteAnchorActive = false;
+            }
+            var waypoint = m_debugRouteAnchorActive
+                ? m_debugRouteAnchor
+                : m_world.GetNavigationWaypoint(m_world.Player.position, destination, PLAYER_COLLISION_RADIUS, m_model.ShortcutOpen);
+            if (!m_debugRouteAnchorActive && DeadSignalWorld.FlatDistance(waypoint, destination) > 0.35f)
+            {
+                m_debugRouteAnchor = waypoint;
+                m_debugRouteAnchorActive = true;
+            }
+            var delta = waypoint - m_world.Player.position;
+            delta.y = 0f;
             delta.Normalize();
-            return new Vector2(delta.x, delta.z);
+            var remainingDistance = Mathf.Max(0f, targetDelta.magnitude - completionRadius);
+            var speed = Mathf.Clamp(remainingDistance / 2.5f, 0.2f, 1f);
+            return new Vector2(delta.x, delta.z) * speed;
+        }
+
+        private void _tickDebugRouteSequence(float dt)
+        {
+            if (m_debugRouteSequencer == null || !m_debugRouteSequencer.IsRunning || m_world == null)
+            {
+                return;
+            }
+
+            var step = m_debugRouteSequencer.CurrentStep;
+            var destination = _debugRouteSequenceDestination(step);
+            var distance = DeadSignalWorld.FlatDistance(m_world.Player.position, destination);
+            var arrived = m_debugRouteSequencer.TickNavigation(distance, dt, m_world.LastMovementBlocked);
+            if (arrived && m_debugCaptureEachRouteStep)
+            {
+                DebugCaptureScreenshot();
+            }
+            if (m_debugRouteSequencer.ShouldIssueAction())
+            {
+                _executeDebugRouteAction(step.Action);
+            }
+            if (m_debugRouteSequencer.State == DebugRouteRunState.Verifying)
+            {
+                var verified = _verifyDebugRouteAction(step.Action);
+                var assertionPassed = _verifyDebugRouteAssertion(step.Assertion, distance);
+                m_debugRouteSequencer.TickVerification(dt, verified, assertionPassed,
+                    $"distance {distance:0.00}m, assertion {step.Assertion}", CurrentSignal);
+            }
+
+            m_debugRouteDriving = m_debugRouteSequencer.State == DebugRouteRunState.Navigating;
+            if (m_debugRouteSequencer.State == DebugRouteRunState.Completed ||
+                m_debugRouteSequencer.State == DebugRouteRunState.Failed)
+            {
+                _showFeedback($"DEBUG ROUTE {m_debugRouteSequencer.State.ToString().ToUpperInvariant()}");
+                _writeDebugRouteReport();
+            }
+        }
+
+        private void _executeDebugRouteAction(DebugRouteAction action)
+        {
+            switch (action)
+            {
+                case DebugRouteAction.ActivateCentralTower: DebugActivateTower(); break;
+                case DebugRouteAction.CollectCache: DebugCollectNextCache(); break;
+                case DebugRouteAction.SelectPrimaryOverclock: DebugSelectOverclock(SignalOverclock.ChainArc); break;
+                case DebugRouteAction.ActivateRelayTower: DebugActivateRelayTower(); break;
+                case DebugRouteAction.SelectWeaponOverclock: DebugSelectWeapon(SignalWeaponOverclock.PiercingPulse); break;
+                case DebugRouteAction.ActivateSpineTower: DebugActivateSpineTower(); break;
+                case DebugRouteAction.BeginStableExtraction: DebugBeginExtraction(ExtractionUplinkMode.Stable); break;
+                case DebugRouteAction.CaptureScreenshot: DebugCaptureScreenshot(); break;
+            }
+        }
+
+        private Vector3 _debugRouteSequenceDestination(DebugRouteStep step)
+        {
+            if (m_debugObservedSequenceStep != m_debugRouteSequencer.StepNumber)
+            {
+                m_debugObservedSequenceStep = m_debugRouteSequencer.StepNumber;
+                m_debugSequenceTarget = step.UsesCustomPosition ? step.CustomPosition : _debugLocationPosition(step.Location);
+            }
+            return m_debugSequenceTarget;
+        }
+
+        private bool _verifyDebugRouteAction(DebugRouteAction action)
+        {
+            return action switch
+            {
+                DebugRouteAction.ActivateCentralTower => m_model.TowerOnline,
+                DebugRouteAction.CollectCache => m_model.Salvage > 0,
+                DebugRouteAction.SelectPrimaryOverclock => m_overclockChoice.Selected != SignalOverclock.None,
+                DebugRouteAction.ActivateRelayTower => m_model.RelayTowerOnline,
+                DebugRouteAction.SelectWeaponOverclock => m_overclockChoice.SelectedWeapon != SignalWeaponOverclock.None,
+                DebugRouteAction.ActivateSpineTower => m_model.SpineTowerOnline,
+                DebugRouteAction.BeginStableExtraction => m_extractionUplink.IsActive,
+                _ => true
+            };
+        }
+
+        private bool _verifyDebugRouteAssertion(DebugRouteAssertion assertion, float distance)
+        {
+            if (assertion == DebugRouteAssertion.SignalAboveTwenty)
+            {
+                return CurrentSignal >= 20f;
+            }
+            if (assertion == DebugRouteAssertion.InteractionInRange)
+            {
+                return distance <= TOWER_INTERACTION_RADIUS;
+            }
+            if (assertion == DebugRouteAssertion.CameraContainsPlayer)
+            {
+                var viewport = m_world.Camera.WorldToViewportPoint(m_world.Player.position);
+                return viewport.z > 0f && viewport.x >= 0f && viewport.x <= 1f && viewport.y >= 0f && viewport.y <= 1f;
+            }
+            return true;
+        }
+
+        private void _applyDebugAutomationProfile(DebugAutomationProfile profile)
+        {
+            DebugSetInfiniteSignal(profile != DebugAutomationProfile.LiveBalance);
+            var safe = profile == DebugAutomationProfile.SafeNavigation &&
+                       m_debugRouteSequencer.Mode == DebugAutomationMode.DeterministicValidation;
+            DebugSetInvulnerable(safe);
+            DebugSetThreatsFrozen(safe);
+        }
+
+        private string _finishDebugRouteReport()
+        {
+            return m_debugRouteSequencer?.FinishReport(CurrentSignal, ShotsFired, ThreatsPurged,
+                m_world?.Player.position ?? Vector3.zero) ?? "No route report available.";
+        }
+
+        private void _writeDebugRouteReport()
+        {
+            var directory = Path.Combine(UnityEngine.Application.persistentDataPath, "PlaytestReports");
+            Directory.CreateDirectory(directory);
+            var path = Path.Combine(directory, $"route-{System.DateTime.Now:yyyyMMdd-HHmmss}.txt");
+            File.WriteAllText(path, _finishDebugRouteReport());
+            m_lastDebugCapturePath = path;
+        }
+
+        private float _debugRouteCompletionRadius(DebugLocation location)
+        {
+            return location switch
+            {
+                DebugLocation.CentralTower or DebugLocation.RelayTower or DebugLocation.SpineTower =>
+                    TOWER_INTERACTION_RADIUS - 0.2f,
+                DebugLocation.Extraction => 1.5f,
+                DebugLocation.Shortcut => 1.75f,
+                _ => 0.65f
+            };
+        }
+
+        private string _debugInteractionTelemetry()
+        {
+            var target = m_world.GetObjectiveTarget(m_model);
+            var distance = DeadSignalWorld.FlatDistance(m_world.Player.position, target);
+            var radius = !m_model.TowerOnline || !m_model.RelayTowerOnline || !m_model.SpineTowerOnline
+                ? TOWER_INTERACTION_RADIUS
+                : m_model.CanExtract ? 1.65f : 1.9f;
+            return $"{distance:0.00}m / {radius:0.00}m {(distance < radius ? "IN RANGE" : "OUT OF RANGE")}";
+        }
+
+        private void _sampleDebugSignalRate()
+        {
+            if (m_model == null)
+            {
+                return;
+            }
+
+            if (m_debugPreviousSignal >= 0f && Time.unscaledDeltaTime > 0f)
+            {
+                var instantaneousRate = (m_model.Signal - m_debugPreviousSignal) / Time.unscaledDeltaTime;
+                m_debugSignalDeltaRate = Mathf.Lerp(m_debugSignalDeltaRate, instantaneousRate, 0.2f);
+            }
+            m_debugPreviousSignal = m_model.Signal;
+        }
+
+        private void _resetDebugTransientState()
+        {
+            m_debugRouteDriving = false;
+            m_debugRouteBlockedSeconds = 0f;
+            m_debugRouteAnchorActive = false;
+            m_debugObservedSequenceStep = -1;
+            m_fireBuffered = false;
+            m_playerMovement?.ApplyResolvedVelocity(Vector3.zero);
         }
 
         private Vector3 _debugLocationPosition(DebugLocation location)
@@ -1434,6 +1734,7 @@ namespace DeadSignal.Application
                 DebugLocation.FarEast => new Vector3(m_world.ArenaHalfExtents.x - 1.2f, 0f, 0f),
                 DebugLocation.NorthBoundary => new Vector3(0f, 0f, m_world.ArenaHalfExtents.y - 1.2f),
                 DebugLocation.SouthBoundary => new Vector3(0f, 0f, -m_world.ArenaHalfExtents.y + 1.2f),
+                DebugLocation.CurrentObjective => m_world.GetObjectiveTarget(m_model),
                 _ => m_world.ExtractionPosition
             };
         }

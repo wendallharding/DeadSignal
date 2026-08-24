@@ -114,11 +114,17 @@ namespace DeadSignal.Tests.PlayMode
             Assert.That(debugCamera.IsFree, Is.True);
             game.DebugToggleFreeCamera();
 
+            game.DebugTeleport(DebugLocation.Extraction);
             game.DebugStartRouteDriver(DebugLocation.CentralTower);
             Assert.That(game.IsDebugRouteDriving, Is.True);
-            yield return null;
-            game.DebugStopRouteDriver();
-            Assert.That(game.IsDebugRouteDriving, Is.False);
+            game.DebugSetInfiniteSignal(true);
+            for (var frame = 0; frame < 600 && game.IsDebugRouteDriving; frame++)
+            {
+                yield return null;
+            }
+            Assert.That(game.IsDebugRouteDriving, Is.False, game.DebugTelemetry);
+            Assert.That(game.DebugDistanceToLocation(DebugLocation.CentralTower), Is.LessThan(2.1f));
+            game.DebugSetInfiniteSignal(false);
 
             game.DebugSetTimeScale(0.5f);
             Assert.That(Time.timeScale, Is.EqualTo(0.5f));
@@ -126,6 +132,8 @@ namespace DeadSignal.Tests.PlayMode
             game.DebugExerciseCombatFeedback();
             game.DebugExerciseThreatTelegraphs();
             Assert.That(game.DebugTelemetry, Does.Contain("Focus"));
+            Assert.That(game.DebugTelemetry, Does.Contain("Signal Δ"));
+            Assert.That(game.DebugTelemetry, Does.Contain("Interaction"));
             Assert.That(game.DebugReplayInfo, Does.Contain("Route seed"));
             Assert.That(game.DebugEventLog, Does.Contain("DEBUG"));
         }
@@ -184,6 +192,57 @@ namespace DeadSignal.Tests.PlayMode
 
             menu.SendMessage("_setOpen", false);
             Screen.SetResolution(originalWidth, originalHeight, false);
+        }
+
+        [UnityTest]
+        public IEnumerator FreshRun_ClosesOpenMenuWithoutTeardownExceptions()
+        {
+            SceneManager.LoadScene("SampleScene");
+            yield return null;
+            yield return null;
+
+            var game = Object.FindFirstObjectByType<DeadSignalGame>();
+            var menu = Object.FindFirstObjectByType<DeadSignalDebugMenu>(FindObjectsInactive.Include);
+            Assert.That(game, Is.Not.Null);
+            Assert.That(menu, Is.Not.Null);
+
+            menu.SendMessage("_setOpen", true);
+            game.DebugStartRouteDriver(DebugLocation.Extraction);
+            game.DebugApplyScenario(DebugScenario.FreshRun);
+            yield return null;
+            yield return null;
+
+            var restartedGame = Object.FindFirstObjectByType<DeadSignalGame>();
+            Assert.That(restartedGame, Is.Not.Null);
+            Assert.That(restartedGame.IsDebugRouteDriving, Is.False);
+            Assert.That(restartedGame.IsDebugMenuOpen, Is.False);
+        }
+
+        [UnityTest]
+        public IEnumerator RouteSequence_ExecutesOpeningNavigationActionsAndReport()
+        {
+            SceneManager.LoadScene("SampleScene");
+            yield return null;
+            yield return null;
+
+            var game = Object.FindFirstObjectByType<DeadSignalGame>();
+            Assert.That(game, Is.Not.Null);
+            game.DebugSetTimeScale(2f);
+            game.DebugStartRouteSequence(DebugRoutePreset.OpeningLoop, DebugAutomationMode.DeterministicValidation,
+                DebugAutomationProfile.SafeNavigation);
+
+            var timeout = Time.realtimeSinceStartup + 35f;
+            while ((game.DebugRouteSequenceState == DebugRouteRunState.Navigating ||
+                    game.DebugRouteSequenceState == DebugRouteRunState.Verifying) && Time.realtimeSinceStartup < timeout)
+            {
+                yield return null;
+            }
+
+            Assert.That(game.DebugRouteSequenceState, Is.EqualTo(DebugRouteRunState.Completed),
+                $"{game.DebugRouteSequenceReport}\n{game.DebugRouteSequenceStatus}\n{game.DebugTelemetry}");
+            Assert.That(game.IsTowerOnline, Is.True);
+            Assert.That(game.DebugRouteSequenceReport, Does.Contain("ROUTE COMPLETE"));
+            game.DebugSetTimeScale(1f);
         }
     }
 }
