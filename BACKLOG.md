@@ -1,5 +1,16 @@
 # DEAD SIGNAL — Product Backlog
 
+## P0 — Flux Bypass return flank (Run 93)
+
+- [x] Link the Induction Gallery and Convergence Chamber through a separate scene-authored west-side loop
+- [x] Open two independently traversable thresholds so the bypass changes outward and return routing
+- [x] Add angled projectile-authoritative cover and a readable modular flux landmark without adding empty floor area
+- [x] Keep the bypass dead-zone outbound and power it with the Spine tower as a return foothold
+- [x] Preserve five safe reinforcement entrances, the four-response cap, enemy stats, rewards, objectives, and Signal economy
+- [x] Preserve the existing scene-authored bounds and package one original text-free route decal
+- [x] Prove both thresholds, object-aligned cover, power transition, packaging, and complete-run regression
+- [ ] Compare bypass-out/chamber-back, chamber-out/bypass-back, and direct Gallery/Spine transit; record time, Signal, cover use, and extraction reserve
+
 ## P0 — Convergence Chamber deep-route pressure (Run 92)
 
 - [x] Extend the Induction Gallery through two independently traversable authored doorways

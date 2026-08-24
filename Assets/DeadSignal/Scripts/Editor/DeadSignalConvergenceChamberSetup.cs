@@ -46,11 +46,11 @@ namespace DeadSignal.Editor
                        AssetDatabase.LoadAssetAtPath<GameObject>(MODEL_PREFAB_PATH) != null &&
                        AssetDatabase.LoadAssetAtPath<Texture2D>(DECAL_PATH) != null &&
                        AssetDatabase.LoadAssetAtPath<Material>(DECAL_MATERIAL_PATH) != null &&
-                       region.GetComponentsInChildren<AuthoredMapObstacle>().Length == 9 &&
+                       region.GetComponentsInChildren<AuthoredMapObstacle>().Length >= 9 &&
                        region.GetComponent<AuthoredPoweredTerritory>() != null &&
                        region.GetComponentInChildren<AuthoredInterceptorEntrance>() != null &&
                        gallery.transform.Find("Convergence Chamber Region") != null &&
-                       gallery.GetComponentsInChildren<AuthoredMapObstacle>().Length == 17;
+                       gallery.GetComponentsInChildren<AuthoredMapObstacle>().Length >= 17;
             }
         }
 

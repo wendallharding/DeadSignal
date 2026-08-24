@@ -48,6 +48,7 @@ namespace DeadSignal.Editor
             DeadSignalCapacitorSpineSetup.EnsureAssets();
             DeadSignalSpineInductionGallerySetup.EnsureAssets();
             DeadSignalConvergenceChamberSetup.EnsureAssets();
+            DeadSignalFluxBypassSetup.EnsureAssets();
             DeadSignalSignalSpineSetup.EnsureAssets();
             DeadSignalBoundaryThresholdSetup.EnsureAssets();
             DeadSignalHudSetup.EnsureAssets();
@@ -191,6 +192,11 @@ namespace DeadSignal.Editor
             if (!DeadSignalConvergenceChamberSetup.HasAssets)
             {
                 throw new BuildFailedException("The scene-authored Convergence Chamber is missing or incomplete.");
+            }
+
+            if (!DeadSignalFluxBypassSetup.HasAssets)
+            {
+                throw new BuildFailedException("The scene-authored Flux Bypass is missing or incomplete.");
             }
 
             if (!DeadSignalActorSetup.HasSecurityWardenAssets)
