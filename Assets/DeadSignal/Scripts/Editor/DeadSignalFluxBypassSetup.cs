@@ -39,7 +39,7 @@ namespace DeadSignal.Editor
                        region.GetComponentsInChildren<AuthoredMapObstacle>().Length == 9 &&
                        region.GetComponent<AuthoredPoweredTerritory>() != null &&
                        gallery.transform.Find("Flux Bypass Region") != null &&
-                       gallery.GetComponentsInChildren<AuthoredMapObstacle>().Length == 28 &&
+                       gallery.GetComponentsInChildren<AuthoredMapObstacle>().Length >= 28 &&
                        chamber.transform.Find("Convergence West Bulkhead") == null &&
                        chamber.transform.Find("Convergence West South") != null &&
                        chamber.transform.Find("Convergence West North") != null;

@@ -49,6 +49,7 @@ namespace DeadSignal.Editor
             DeadSignalSpineInductionGallerySetup.EnsureAssets();
             DeadSignalConvergenceChamberSetup.EnsureAssets();
             DeadSignalFluxBypassSetup.EnsureAssets();
+            DeadSignalArcFurnaceSetup.EnsureAssets();
             DeadSignalSignalSpineSetup.EnsureAssets();
             DeadSignalBoundaryThresholdSetup.EnsureAssets();
             DeadSignalHudSetup.EnsureAssets();
@@ -197,6 +198,11 @@ namespace DeadSignal.Editor
             if (!DeadSignalFluxBypassSetup.HasAssets)
             {
                 throw new BuildFailedException("The scene-authored Flux Bypass is missing or incomplete.");
+            }
+
+            if (!DeadSignalArcFurnaceSetup.HasAssets)
+            {
+                throw new BuildFailedException("The scene-authored Arc Furnace is missing or incomplete.");
             }
 
             if (!DeadSignalActorSetup.HasSecurityWardenAssets)

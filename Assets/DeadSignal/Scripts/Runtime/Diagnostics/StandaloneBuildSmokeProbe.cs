@@ -18,7 +18,7 @@ namespace DeadSignal.Diagnostics
         public const string COMMAND_LINE_ARGUMENT = "-deadSignalBuildSmoke";
         public const string PASS_MARKER = "[DEAD SIGNAL STANDALONE SMOKE] PASS";
 
-        private const int EXPECTED_AUTHORED_OBSTACLE_COUNT = 72;
+        private const int EXPECTED_AUTHORED_OBSTACLE_COUNT = 83;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         private static void _startWhenRequested()
@@ -102,7 +102,7 @@ namespace DeadSignal.Diagnostics
                                 Resources.Load<WardenThreatTelegraphTuning>("Tuning/WardenThreatTelegraphTuning") != null &&
                                 game.HasSecurityInterceptorAssets &&
                                 game.SecurityInterceptorPartCount == 4 &&
-                                game.AuthoredInterceptorEntranceCount == 5 &&
+                                game.AuthoredInterceptorEntranceCount == 6 &&
                                 Resources.Load<GameObject>("Actors/SecurityInterceptorAssembly") != null &&
                                 game.HasSecuritySuppressorAssets &&
                                 game.SecuritySuppressorPartCount == 4 &&
@@ -162,6 +162,16 @@ namespace DeadSignal.Diagnostics
                                 Resources.Load<GameObject>("Environment/FluxBypassRegion") != null &&
                                 Resources.Load<Texture2D>("Environment/FluxBypassRouteDecal") != null &&
                                 Resources.Load<Material>("Materials/FluxBypass/FluxBypassRouteDecal") != null &&
+                                game.transform.Find(
+                                    "Spine Induction Gallery Region/Convergence Chamber Region/" +
+                                    "Arc Furnace Region/Arc Furnace Assembly") != null &&
+                                game.transform.Find(
+                                    "Spine Induction Gallery Region/Convergence Chamber Region/" +
+                                    "Arc Furnace Region/Arc Furnace Salvage Socket") != null &&
+                                Resources.Load<GameObject>("Environment/ArcFurnaceRegion") != null &&
+                                Resources.Load<GameObject>("Environment/ArcFurnace") != null &&
+                                Resources.Load<Texture2D>("Environment/ArcFurnaceRouteDecal") != null &&
+                                Resources.Load<Material>("Materials/ArcFurnace/ArcFurnaceRouteDecal") != null &&
                                 weaponDecalReady &&
                                 weaponTextureReady &&
                                 weaponMaterialReady &&

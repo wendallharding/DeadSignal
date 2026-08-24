@@ -5898,7 +5898,7 @@ MonoBehaviour:
   m_relayTowerAnchor: {fileID: 1752854266}
   m_relayShortcutAnchor: {fileID: 1752854265}
   m_spineTowerAnchor: {fileID: 1591059657}
-  m_arenaHalfExtents: {x: 50.5, y: 21.4}
+  m_arenaHalfExtents: {x: 50.5, y: 30.4}
   m_maintenanceDeck: {fileID: 969288187}
   m_maintenanceRoomShell: {fileID: 1678895568}
   m_extractionPad: {fileID: 626674125}

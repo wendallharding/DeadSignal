@@ -49,7 +49,7 @@ namespace DeadSignal.Editor
                        AssetDatabase.LoadAssetAtPath<Material>(ACTIVATION_DECAL_MATERIAL_PATH) != null &&
                        AssetDatabase.LoadAssetAtPath<Material>(RETURN_DECAL_MATERIAL_PATH) != null &&
                        prefab.GetComponentsInChildren<AuthoredMapObstacle>().Length == 10 &&
-                       prefab.GetComponentsInChildren<AuthoredSalvageSocket>().Length == 1 &&
+                       prefab.GetComponentsInChildren<AuthoredSalvageSocket>().Length == 0 &&
                        prefab.transform.Find("Capacitor Transfer Bank") != null &&
                        prefab.transform.Find("Third Tower Berth") != null &&
                        prefab.transform.Find("Spine Signal Lines") != null &&
@@ -71,6 +71,7 @@ namespace DeadSignal.Editor
             var materials = _ensureMaterials();
             _openFoundryEastApproaches(materials.Armor);
             _ensurePrefab(materials);
+            _removeRelocatedSalvageSocket();
             _ensureScenePlacement();
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
@@ -89,6 +90,24 @@ namespace DeadSignal.Editor
                     $"north={foundry?.transform.Find("Foundry East North") != null}, " +
                     $"center={foundry?.transform.Find("Foundry East Center") != null}, " +
                     $"south={foundry?.transform.Find("Foundry East South") != null}.");
+            }
+        }
+
+        private static void _removeRelocatedSalvageSocket()
+        {
+            var root = PrefabUtility.LoadPrefabContents(PREFAB_PATH);
+            try
+            {
+                var socket = root.transform.Find("Capacitor Spine Salvage Socket");
+                if (socket != null)
+                {
+                    UnityEngine.Object.DestroyImmediate(socket.gameObject);
+                    PrefabUtility.SaveAsPrefabAsset(root, PREFAB_PATH);
+                }
+            }
+            finally
+            {
+                PrefabUtility.UnloadPrefabContents(root);
             }
         }
 

@@ -27,7 +27,6 @@ namespace DeadSignal.Tests
                 var player = game.transform.Find("Maintenance Drone");
                 var foundry = game.transform.Find("Relay Foundry Region");
                 var spine = GameObject.Find("Capacitor Spine Region").transform;
-                var socket = spine.GetComponentInChildren<AuthoredSalvageSocket>();
 
                 Assert.That(spine.position, Is.EqualTo(new Vector3(42.5f, 0f, 0f)));
                 Assert.That(spine.GetComponentsInChildren<AuthoredMapObstacle>().Length, Is.EqualTo(10));
@@ -39,18 +38,18 @@ namespace DeadSignal.Tests
                 Assert.That(spine.Find("Capacitor Spine Activation Decal"), Is.Not.Null);
                 Assert.That(spine.Find("Capacitor Spine Return Decal"), Is.Not.Null);
                 Assert.That(spine.Find("Capacitor Spine Route Decal"), Is.Not.Null);
-                Assert.That(socket, Is.Not.Null);
-                Assert.That(socket.Position, Is.EqualTo(new Vector3(47.15f, 0f, -3.35f)));
+                Assert.That(spine.GetComponentInChildren<AuthoredSalvageSocket>(), Is.Null,
+                    "The optional greed cache should move to the deeper Arc Furnace route.");
                 Assert.That(Resources.Load<Texture2D>("Environment/CapacitorSpineRouteDecal"), Is.Not.Null);
                 Assert.That(Resources.Load<Material>("Materials/CapacitorSpine/CapacitorSpineRouteDecal"), Is.Not.Null);
                 Assert.That(Resources.Load<Texture2D>("Environment/CapacitorSpineActivationDecal"), Is.Not.Null);
                 Assert.That(Resources.Load<Material>("Materials/CapacitorSpine/CapacitorSpineActivationDecal"), Is.Not.Null);
                 Assert.That(Resources.Load<Texture2D>("Environment/CapacitorSpineReturnDecal"), Is.Not.Null);
                 Assert.That(Resources.Load<Material>("Materials/CapacitorSpine/CapacitorSpineReturnDecal"), Is.Not.Null);
-                Assert.That(game.AuthoredMapObstacleCount, Is.EqualTo(72));
+                Assert.That(game.AuthoredMapObstacleCount, Is.EqualTo(83));
                 Assert.That(game.AuthoredSalvageSocketCount, Is.EqualTo(1));
-                Assert.That(game.AuthoredInterceptorEntranceCount, Is.EqualTo(5),
-                    "The extension must preserve the Foundry's established safe reinforcement pair.");
+                Assert.That(game.AuthoredInterceptorEntranceCount, Is.EqualTo(6),
+                    "The extension should preserve the established gates and add one safe deep-region entrance.");
                 Assert.That(foundry.Find("Foundry East Bulkhead"), Is.Null);
                 Assert.That(foundry.Find("Foundry East North"), Is.Not.Null);
                 Assert.That(foundry.Find("Foundry East Center"), Is.Not.Null);

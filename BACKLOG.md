@@ -1,5 +1,16 @@
 # DEAD SIGNAL — Product Backlog
 
+## P0 — Arc Furnace greed crossing (Run 94)
+
+- [x] Extend the Convergence Chamber through two independently traversable authored thresholds
+- [x] Add a 14-by-9-metre room whose shielded switchback and exposed lane create distinct combat positioning
+- [x] Relocate the optional fourth cache from the Spine into the deeper route without changing its reward or requirement
+- [x] Add a UV-mapped furnace landmark that blocks movement and projectiles plus one safe far-side security gate
+- [x] Keep the room dead-zone outbound and power it with the Spine tower for the return journey
+- [x] Expand scene-authored movement, camera, and tactical-map bounds without changing combat stats, response cap, or Signal economy
+- [x] Package an original transparent route decal and prove both thresholds, collision, power, packaging, and full regression
+- [ ] Compare shielded-west and exposed-east cache raids against abandoning the optional cache; record route time, hits, Signal, and extraction reserve
+
 ## P0 — Flux Bypass return flank (Run 93)
 
 - [x] Link the Induction Gallery and Convergence Chamber through a separate scene-authored west-side loop
