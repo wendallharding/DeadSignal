@@ -1,5 +1,16 @@
 # DEAD SIGNAL — Product Backlog
 
+## P0 — Quench Loop return flank (Run 95)
+
+- [x] Open two independently traversable thresholds in the Arc Furnace east wall
+- [x] Add a compact scene-authored loop that changes optional-cache outbound and return routing
+- [x] Add two rotated projectile-authoritative deflectors and an original UV-mapped condenser landmark
+- [x] Keep the loop dead-zone outbound and power it with the Spine tower as a cyan return foothold
+- [x] Preserve one optional cache, six safe gates, the four-response cap, enemy stats, objectives, and Signal economy
+- [x] Expand scene-authored movement, camera, and tactical-map bounds and package one original transparent route decal
+- [x] Prove both thresholds, loop traversal, cover, power transition, Resources packaging, and complete regression
+- [ ] Compare Furnace-out/Quench-back, Quench-out/Furnace-back, and cache abandonment; record time, hits, Signal, and extraction reserve
+
 ## P0 — Arc Furnace greed crossing (Run 94)
 
 - [x] Extend the Convergence Chamber through two independently traversable authored thresholds

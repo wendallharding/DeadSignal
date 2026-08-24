@@ -272,3 +272,7 @@ The Gallery and Chamber now share a separate west-side bypass rather than forcin
 ### Run 94 product decision — Arc Furnace greed crossing
 
 The optional fourth cache now waits beyond the Convergence Chamber in a separate Arc Furnace room instead of beside the Spine tower. Two authored thresholds divide around a collision- and projectile-authoritative furnace: the western approach is a tight ceramic-shield switchback suited to ricochet play, while the eastern approach is a long exposed lane suited to piercing fire and rapid abandonment. A sixth authored gate becomes the deep-route reinforcement direction while remaining beyond the six-metre safety exclusion, and Spine activation powers the complete room for withdrawal. This was selected over empty room area, another reward, or enemy-stat inflation because the existing greed decision now asks the player to spend more dead-zone time, choose terrain that fits the current weapon, and plan a distinct return through the same bounded four-response roster.
+
+### Run 95 product decision — Quench Loop return flank
+
+The Quench Loop wraps the Arc Furnace's east side as a compact two-threshold flank. Its rotated ceramic deflectors and condenser landmark offer a shielded alternative to the Furnace firing line before Spine activation, then its cyan routing turns the same lane into a powered cache-return option. This was selected over extending the run with another dead-end room because the deepest greed commitment needs a different withdrawal answer before more objectives or a guardian.

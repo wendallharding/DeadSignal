@@ -50,6 +50,7 @@ namespace DeadSignal.Editor
             DeadSignalConvergenceChamberSetup.EnsureAssets();
             DeadSignalFluxBypassSetup.EnsureAssets();
             DeadSignalArcFurnaceSetup.EnsureAssets();
+            DeadSignalQuenchLoopSetup.EnsureAssets();
             DeadSignalSignalSpineSetup.EnsureAssets();
             DeadSignalBoundaryThresholdSetup.EnsureAssets();
             DeadSignalHudSetup.EnsureAssets();
@@ -203,6 +204,11 @@ namespace DeadSignal.Editor
             if (!DeadSignalArcFurnaceSetup.HasAssets)
             {
                 throw new BuildFailedException("The scene-authored Arc Furnace is missing or incomplete.");
+            }
+
+            if (!DeadSignalQuenchLoopSetup.HasAssets)
+            {
+                throw new BuildFailedException("The scene-authored Quench Loop is missing or incomplete.");
             }
 
             if (!DeadSignalActorSetup.HasSecurityWardenAssets)

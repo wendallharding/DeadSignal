@@ -18,7 +18,7 @@ namespace DeadSignal.Diagnostics
         public const string COMMAND_LINE_ARGUMENT = "-deadSignalBuildSmoke";
         public const string PASS_MARKER = "[DEAD SIGNAL STANDALONE SMOKE] PASS";
 
-        private const int EXPECTED_AUTHORED_OBSTACLE_COUNT = 83;
+        private const int EXPECTED_AUTHORED_OBSTACLE_COUNT = 94;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         private static void _startWhenRequested()
@@ -172,6 +172,16 @@ namespace DeadSignal.Diagnostics
                                 Resources.Load<GameObject>("Environment/ArcFurnace") != null &&
                                 Resources.Load<Texture2D>("Environment/ArcFurnaceRouteDecal") != null &&
                                 Resources.Load<Material>("Materials/ArcFurnace/ArcFurnaceRouteDecal") != null &&
+                                game.transform.Find(
+                                    "Spine Induction Gallery Region/Convergence Chamber Region/" +
+                                    "Arc Furnace Region/Quench Loop Region/Quench Condenser Assembly") != null &&
+                                game.transform.Find(
+                                    "Spine Induction Gallery Region/Convergence Chamber Region/" +
+                                    "Arc Furnace Region/Quench Loop Region/Quench Loop Signal Lines") != null &&
+                                Resources.Load<GameObject>("Environment/QuenchLoopRegion") != null &&
+                                Resources.Load<GameObject>("Environment/QuenchCondenser") != null &&
+                                Resources.Load<Texture2D>("Environment/QuenchLoopRouteDecal") != null &&
+                                Resources.Load<Material>("Materials/QuenchLoop/QuenchLoopRouteDecal") != null &&
                                 weaponDecalReady &&
                                 weaponTextureReady &&
                                 weaponMaterialReady &&
