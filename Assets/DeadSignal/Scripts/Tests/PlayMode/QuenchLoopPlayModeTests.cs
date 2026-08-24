@@ -33,19 +33,25 @@ namespace DeadSignal.Tests
                 var routing = loop.Find("Quench Loop Signal Lines").gameObject;
 
                 Assert.That(loop.position, Is.EqualTo(new Vector3(53f, 0f, 25.5f)));
-                Assert.That(loop.GetComponentsInChildren<AuthoredMapObstacle>().Length, Is.EqualTo(9));
+                Assert.That(loop.GetComponentsInChildren<AuthoredMapObstacle>().Length, Is.EqualTo(10));
                 Assert.That(loop.GetComponentsInChildren<Collider>().Length, Is.Zero);
                 Assert.That(loop.Find("Quench Condenser Assembly"), Is.Not.Null);
                 Assert.That(loop.Find("South Quench Deflector"), Is.Not.Null);
                 Assert.That(loop.Find("North Quench Deflector"), Is.Not.Null);
                 Assert.That(loop.Find("Quench Loop Route Decal"), Is.Not.Null);
+                var shutter = loop.Find("Quench Pressure Shutter").gameObject;
+                var cacheReturnSignal = loop.Find("Quench Cache Return Signal").gameObject;
+                Assert.That(shutter.activeSelf, Is.True);
+                Assert.That(cacheReturnSignal.activeSelf, Is.False);
                 Assert.That(territory.Source, Is.EqualTo(PoweredTerritorySource.SpineTower));
                 Assert.That(territory.HalfExtents, Is.EqualTo(new Vector2(3.15f, 4.15f)));
                 Assert.That(Resources.Load<GameObject>("Environment/QuenchLoopRegion"), Is.Not.Null);
                 Assert.That(Resources.Load<GameObject>("Environment/QuenchCondenser"), Is.Not.Null);
                 Assert.That(Resources.Load<Texture2D>("Environment/QuenchLoopRouteDecal"), Is.Not.Null);
                 Assert.That(Resources.Load<Material>("Materials/QuenchLoop/QuenchLoopRouteDecal"), Is.Not.Null);
-                Assert.That(game.AuthoredMapObstacleCount, Is.EqualTo(94));
+                Assert.That(Resources.Load<Texture2D>("Environment/QuenchCacheReturnDecal"), Is.Not.Null);
+                Assert.That(Resources.Load<Material>("Materials/QuenchLoop/QuenchCacheReturnDecal"), Is.Not.Null);
+                Assert.That(game.AuthoredMapObstacleCount, Is.EqualTo(95));
                 Assert.That(game.AuthoredInterceptorEntranceCount, Is.EqualTo(6));
                 Assert.That(sceneReferences.ArenaHalfExtents, Is.EqualTo(new Vector2(57.5f, 30.4f)));
                 Assert.That(furnace.Find("Arc Furnace East Bulkhead"), Is.Null);
@@ -87,6 +93,27 @@ namespace DeadSignal.Tests
                 Assert.That(game.DebugIsPoweredAt(loopCenter), Is.True,
                     "The loop should become a powered return flank with the Spine tower.");
                 Assert.That(routing.activeSelf, Is.True);
+
+                player.position = new Vector3(51.75f, 0f, 24.2f);
+                yield return _move(gamepad, player, Vector2.up, () => player.position.z > 26.1f);
+                Assert.That(player.position.z, Is.LessThan(25.3f),
+                    "The authored pressure shutter should block the direct cut-through before the optional cache.");
+
+                game.DebugMakeExtractionReady();
+                while (!game.IsOptionalSalvageSecured)
+                {
+                    game.DebugCollectNextCache();
+                    yield return null;
+                }
+
+                Assert.That(shutter.activeSelf, Is.False,
+                    "Securing the deep optional cache should retract the Quench pressure shutter.");
+                Assert.That(cacheReturnSignal.activeSelf, Is.True,
+                    "The opened cut-through should reveal its authored cyan return cue.");
+                player.position = new Vector3(51.75f, 0f, 24.2f);
+                yield return _move(gamepad, player, Vector2.up, () => player.position.z > 26.1f);
+                Assert.That(player.position.z, Is.GreaterThan(26.1f),
+                    "The released shutter should open the direct Quench return for movement.");
             }
             finally
             {

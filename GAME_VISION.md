@@ -276,3 +276,7 @@ The optional fourth cache now waits beyond the Convergence Chamber in a separate
 ### Run 95 product decision — Quench Loop return flank
 
 The Quench Loop wraps the Arc Furnace's east side as a compact two-threshold flank. Its rotated ceramic deflectors and condenser landmark offer a shielded alternative to the Furnace firing line before Spine activation, then its cyan routing turns the same lane into a powered cache-return option. This was selected over extending the run with another dead-end room because the deepest greed commitment needs a different withdrawal answer before more objectives or a guardian.
+
+### Run 96 product decision — Quench cache-release shortcut
+
+The optional Arc Furnace cache now transforms the Quench Loop instead of paying Signal alone. A scene-authored pressure shutter leaves a narrow exposed east-edge passage on the outward journey, then retracts when the cache is secured to reveal a direct cyan cut-through for the return. This was selected over more floor area, another reward, or stronger enemies because the greed objective should immediately reshape withdrawal through already-authored cover while preserving the same cache economy, six safe gates, four-response cap, combat stats, and Signal drains.

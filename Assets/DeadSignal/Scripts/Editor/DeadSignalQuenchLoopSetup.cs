@@ -24,8 +24,11 @@ namespace DeadSignal.Editor
             "Assets/DeadSignal/Resources/Environment/QuenchCondenser.prefab";
         private const string DECAL_PATH =
             "Assets/DeadSignal/Resources/Environment/QuenchLoopRouteDecal.png";
+        private const string RETURN_DECAL_PATH =
+            "Assets/DeadSignal/Resources/Environment/QuenchCacheReturnDecal.png";
         private const string MATERIAL_DIRECTORY = "Assets/DeadSignal/Resources/Materials/QuenchLoop";
         private const string DECAL_MATERIAL_PATH = MATERIAL_DIRECTORY + "/QuenchLoopRouteDecal.mat";
+        private const string RETURN_DECAL_MATERIAL_PATH = MATERIAL_DIRECTORY + "/QuenchCacheReturnDecal.mat";
         private const string ARMOR_MATERIAL_PATH =
             "Assets/DeadSignal/Resources/Materials/RelayFoundry/RelayFoundryArmor.mat";
         private const string DECK_MATERIAL_PATH =
@@ -49,7 +52,10 @@ namespace DeadSignal.Editor
                        AssetDatabase.LoadAssetAtPath<GameObject>(MODEL_PREFAB_PATH) != null &&
                        AssetDatabase.LoadAssetAtPath<Texture2D>(DECAL_PATH) != null &&
                        AssetDatabase.LoadAssetAtPath<Material>(DECAL_MATERIAL_PATH) != null &&
-                       region.GetComponentsInChildren<AuthoredMapObstacle>().Length == 9 &&
+                       AssetDatabase.LoadAssetAtPath<Material>(RETURN_DECAL_MATERIAL_PATH) != null &&
+                       region.GetComponentsInChildren<AuthoredMapObstacle>().Length == 10 &&
+                       region.transform.Find("Quench Pressure Shutter") != null &&
+                       region.transform.Find("Quench Cache Return Signal") != null &&
                        region.GetComponent<AuthoredPoweredTerritory>() != null &&
                        furnace.transform.Find("Arc Furnace East Bulkhead") == null &&
                        furnace.transform.Find("Quench Loop Region") != null &&
@@ -81,10 +87,16 @@ namespace DeadSignal.Editor
 
         private static void _configureDecalImport()
         {
-            var importer = AssetImporter.GetAtPath(DECAL_PATH) as TextureImporter;
+            _configureDecalImport(DECAL_PATH);
+            _configureDecalImport(RETURN_DECAL_PATH);
+        }
+
+        private static void _configureDecalImport(string path)
+        {
+            var importer = AssetImporter.GetAtPath(path) as TextureImporter;
             if (importer == null)
             {
-                throw new InvalidOperationException($"Could not find the Quench Loop decal at {DECAL_PATH}.");
+                throw new InvalidOperationException($"Could not find the Quench Loop decal at {path}.");
             }
 
             importer.alphaIsTransparency = true;
@@ -125,6 +137,26 @@ namespace DeadSignal.Editor
             decal.renderQueue = (int)UnityEngine.Rendering.RenderQueue.Transparent;
             EditorUtility.SetDirty(decal);
 
+            var returnDecal = AssetDatabase.LoadAssetAtPath<Material>(RETURN_DECAL_MATERIAL_PATH);
+            if (returnDecal == null)
+            {
+                returnDecal = new Material(Shader.Find("Universal Render Pipeline/Unlit"))
+                {
+                    name = "QuenchCacheReturnDecal"
+                };
+                AssetDatabase.CreateAsset(returnDecal, RETURN_DECAL_MATERIAL_PATH);
+            }
+
+            returnDecal.SetTexture("_BaseMap", AssetDatabase.LoadAssetAtPath<Texture2D>(RETURN_DECAL_PATH));
+            returnDecal.SetColor("_BaseColor", Color.white);
+            returnDecal.SetFloat("_Surface", 1f);
+            returnDecal.SetFloat("_SrcBlend", (float)UnityEngine.Rendering.BlendMode.SrcAlpha);
+            returnDecal.SetFloat("_DstBlend", (float)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+            returnDecal.SetFloat("_ZWrite", 0f);
+            returnDecal.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
+            returnDecal.renderQueue = (int)UnityEngine.Rendering.RenderQueue.Transparent;
+            EditorUtility.SetDirty(returnDecal);
+
             return new Materials
             {
                 Armor = AssetDatabase.LoadAssetAtPath<Material>(ARMOR_MATERIAL_PATH),
@@ -132,7 +164,8 @@ namespace DeadSignal.Editor
                 White = AssetDatabase.LoadAssetAtPath<Material>(WHITE_MATERIAL_PATH),
                 Amber = AssetDatabase.LoadAssetAtPath<Material>(AMBER_MATERIAL_PATH),
                 Cyan = AssetDatabase.LoadAssetAtPath<Material>(CYAN_MATERIAL_PATH),
-                Decal = decal
+                Decal = decal,
+                ReturnDecal = returnDecal
             };
         }
 
@@ -211,6 +244,9 @@ namespace DeadSignal.Editor
                     new Vector3(2.6f, 1f, 0.45f), materials.White, true).transform.localRotation =
                     Quaternion.Euler(0f, 31f, 0f);
 
+                _wall(root.transform, "Quench Pressure Shutter", new Vector3(-1.25f, 0.5f, 0f),
+                    new Vector3(3.9f, 1f, 0.42f), materials.Amber, true);
+
                 var condenserPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(MODEL_PREFAB_PATH);
                 var condenser = (GameObject)PrefabUtility.InstantiatePrefab(condenserPrefab, root.transform);
                 condenser.name = "Quench Condenser Assembly";
@@ -232,6 +268,15 @@ namespace DeadSignal.Editor
                 decal.transform.localScale = Vector3.one * 3.8f;
                 decal.GetComponent<Renderer>().sharedMaterial = materials.Decal;
                 UnityEngine.Object.DestroyImmediate(decal.GetComponent<Collider>());
+
+                var returnSignal = GameObject.CreatePrimitive(PrimitiveType.Quad);
+                returnSignal.name = "Quench Cache Return Signal";
+                returnSignal.transform.SetParent(root.transform, false);
+                returnSignal.transform.localPosition = new Vector3(-1.25f, -0.107f, 0f);
+                returnSignal.transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
+                returnSignal.transform.localScale = Vector3.one * 3.15f;
+                returnSignal.GetComponent<Renderer>().sharedMaterial = materials.ReturnDecal;
+                UnityEngine.Object.DestroyImmediate(returnSignal.GetComponent<Collider>());
 
                 root.AddComponent<AuthoredPoweredTerritory>().Configure(
                     PoweredTerritorySource.SpineTower, new Vector2(3.15f, 4.15f), routing);
@@ -362,6 +407,7 @@ namespace DeadSignal.Editor
             public Material Amber;
             public Material Cyan;
             public Material Decal;
+            public Material ReturnDecal;
         }
     }
 }

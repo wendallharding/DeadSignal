@@ -1228,6 +1228,10 @@ namespace DeadSignal.Application
             m_threats.Tick(dt, powered);
             _tryTriggerEmergencyCapacitor();
             m_salvage.Tick(dt);
+            if (m_model.OptionalSalvageSecured)
+            {
+                m_world.OpenQuenchReturn();
+            }
             m_world.TickExtraction(dt, m_model.CanExtract);
             if (m_extractionUplink.Tick(dt))
             {

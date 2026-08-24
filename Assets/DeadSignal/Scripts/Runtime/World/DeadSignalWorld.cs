@@ -171,6 +171,7 @@ namespace DeadSignal.World
                 {
                     if ((blocker.IsShortcutGate && shortcutOpen) || (blocker.IsRelayShortcutGate && m_relayShortcutOpen) ||
                         (blocker.IsSpineReturnGate && m_spineReturnOpen) ||
+                        (blocker.IsQuenchReturnGate && m_quenchReturnOpen) ||
                         !blocker.TryGetSweepHit(position, target, radius, out var hitFraction, out var hitNormal) ||
                         hitFraction >= nearestFraction)
                     {
@@ -342,6 +343,21 @@ namespace DeadSignal.World
             m_spineReturnGate.SetActive(false);
             m_spineReturnOpen = true;
             _activateAuthoredTerritories(PoweredTerritorySource.SpineTower);
+        }
+
+        public void OpenQuenchReturn()
+        {
+            if (m_quenchReturnOpen || m_quenchReturnGate == null)
+            {
+                return;
+            }
+
+            m_quenchReturnGate.SetActive(false);
+            if (m_quenchReturnSignal != null)
+            {
+                m_quenchReturnSignal.SetActive(true);
+            }
+            m_quenchReturnOpen = true;
         }
 
         public void ApplyHighContrast(bool enabled)
@@ -860,6 +876,14 @@ namespace DeadSignal.World
             m_spineSignalLines = m_scene.SpineSignalRouting;
             m_spineSignalLines.SetActive(false);
             m_spineReturnGate = m_scene.CapacitorSpine.transform.Find("Capacitor Transfer Bank").gameObject;
+            var quenchLoop = m_root.Find(
+                "Spine Induction Gallery Region/Convergence Chamber Region/Arc Furnace Region/Quench Loop Region");
+            m_quenchReturnGate = quenchLoop?.Find("Quench Pressure Shutter")?.gameObject;
+            m_quenchReturnSignal = quenchLoop?.Find("Quench Cache Return Signal")?.gameObject;
+            if (m_quenchReturnSignal != null)
+            {
+                m_quenchReturnSignal.SetActive(false);
+            }
             m_movementBlockers.Add(new MovementBlocker(
                 new Vector2(SpineTowerPosition.x, SpineTowerPosition.z), Vector2.one * TOWER_BLOCKER_HALF_SIZE, false));
 
@@ -900,6 +924,9 @@ namespace DeadSignal.World
                 m_authoredMapObstacles.Add(obstacle);
                 var opensWithSpineTower = obstacle.transform == m_spineReturnGate.transform ||
                                           obstacle.transform.IsChildOf(m_spineReturnGate.transform);
+                var opensWithOptionalCache = m_quenchReturnGate != null &&
+                                             (obstacle.transform == m_quenchReturnGate.transform ||
+                                              obstacle.transform.IsChildOf(m_quenchReturnGate.transform));
                 m_movementBlockers.Add(new MovementBlocker(
                     obstacle.Center,
                     obstacle.ScaledHalfSize,
@@ -907,7 +934,8 @@ namespace DeadSignal.World
                     obstacle.ForwardAxis,
                     false,
                     false,
-                    opensWithSpineTower));
+                    opensWithSpineTower,
+                    opensWithOptionalCache));
                 _createObstacleTrim(obstacle);
             }
 
@@ -1155,7 +1183,8 @@ namespace DeadSignal.World
             foreach (var blocker in m_movementBlockers)
             {
                 if ((blocker.IsShortcutGate && shortcutOpen) || (blocker.IsRelayShortcutGate && m_relayShortcutOpen) ||
-                    (blocker.IsSpineReturnGate && m_spineReturnOpen))
+                    (blocker.IsSpineReturnGate && m_spineReturnOpen) ||
+                    (blocker.IsQuenchReturnGate && m_quenchReturnOpen))
                 {
                     continue;
                 }
@@ -1187,6 +1216,7 @@ namespace DeadSignal.World
             {
                 if ((blocker.IsShortcutGate && shortcutOpen) || (blocker.IsRelayShortcutGate && m_relayShortcutOpen) ||
                     (blocker.IsSpineReturnGate && m_spineReturnOpen) ||
+                    (blocker.IsQuenchReturnGate && m_quenchReturnOpen) ||
                     blocker.Overlaps(end, 0f) ||
                     !blocker.TryGetSweepHit(start, end, radius, out var hitFraction, out _) ||
                     hitFraction >= nearestFraction)
@@ -1503,6 +1533,9 @@ namespace DeadSignal.World
         private GameObject m_spineSignalLines;
         private GameObject m_spineReturnGate;
         private bool m_spineReturnOpen;
+        private GameObject m_quenchReturnGate;
+        private GameObject m_quenchReturnSignal;
+        private bool m_quenchReturnOpen;
         private GameObject m_relayShortcutGate;
         private bool m_relayShortcutOpen;
         private GameObject m_extractionBeacon;
@@ -1519,9 +1552,10 @@ namespace DeadSignal.World
                 Vector2 halfSize,
                 bool isShortcutGate,
                 bool isRelayShortcutGate = false,
-                bool isSpineReturnGate = false)
+                bool isSpineReturnGate = false,
+                bool isQuenchReturnGate = false)
                 : this(center, halfSize, Vector2.right, Vector2.up, isShortcutGate, isRelayShortcutGate,
-                    isSpineReturnGate)
+                    isSpineReturnGate, isQuenchReturnGate)
             {
             }
 
@@ -1532,7 +1566,8 @@ namespace DeadSignal.World
                 Vector2 forwardAxis,
                 bool isShortcutGate,
                 bool isRelayShortcutGate = false,
-                bool isSpineReturnGate = false)
+                bool isSpineReturnGate = false,
+                bool isQuenchReturnGate = false)
             {
                 Center = center;
                 HalfSize = halfSize;
@@ -1541,6 +1576,7 @@ namespace DeadSignal.World
                 IsShortcutGate = isShortcutGate;
                 IsRelayShortcutGate = isRelayShortcutGate;
                 IsSpineReturnGate = isSpineReturnGate;
+                IsQuenchReturnGate = isQuenchReturnGate;
             }
 
             public Vector2 Center { get; }
@@ -1550,6 +1586,7 @@ namespace DeadSignal.World
             public bool IsShortcutGate { get; }
             public bool IsRelayShortcutGate { get; }
             public bool IsSpineReturnGate { get; }
+            public bool IsQuenchReturnGate { get; }
 
             public bool Overlaps(Vector3 position, float radius)
             {

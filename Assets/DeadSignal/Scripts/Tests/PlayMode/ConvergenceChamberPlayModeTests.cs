@@ -33,7 +33,7 @@ namespace DeadSignal.Tests
                 var routing = chamber.Find("Convergence Signal Lines").gameObject;
 
                 Assert.That(chamber.position, Is.EqualTo(new Vector3(42.5f, 0f, 17f)));
-                Assert.That(chamber.GetComponentsInChildren<AuthoredMapObstacle>().Length, Is.EqualTo(32));
+                Assert.That(chamber.GetComponentsInChildren<AuthoredMapObstacle>().Length, Is.EqualTo(33));
                 Assert.That(chamber.GetComponentsInChildren<Collider>().Length, Is.Zero);
                 Assert.That(chamber.Find("Convergence Busbar Assembly"), Is.Not.Null);
                 Assert.That(chamber.Find("West Convergence Baffle"), Is.Not.Null);
@@ -47,7 +47,7 @@ namespace DeadSignal.Tests
                 Assert.That(Resources.Load<Texture2D>("Environment/ConvergenceChamberRouteDecal"), Is.Not.Null);
                 Assert.That(Resources.Load<Material>(
                     "Materials/ConvergenceChamber/ConvergenceChamberRouteDecal"), Is.Not.Null);
-                Assert.That(game.AuthoredMapObstacleCount, Is.EqualTo(94));
+                Assert.That(game.AuthoredMapObstacleCount, Is.EqualTo(95));
                 Assert.That(game.AuthoredInterceptorEntranceCount, Is.EqualTo(6));
                 Assert.That(gallery.Find("Induction Gallery North Bulkhead"), Is.Null);
                 Assert.That(gallery.Find("Induction Gallery North West"), Is.Not.Null);

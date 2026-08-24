@@ -18,7 +18,7 @@ namespace DeadSignal.Diagnostics
         public const string COMMAND_LINE_ARGUMENT = "-deadSignalBuildSmoke";
         public const string PASS_MARKER = "[DEAD SIGNAL STANDALONE SMOKE] PASS";
 
-        private const int EXPECTED_AUTHORED_OBSTACLE_COUNT = 94;
+        private const int EXPECTED_AUTHORED_OBSTACLE_COUNT = 95;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         private static void _startWhenRequested()
@@ -182,6 +182,8 @@ namespace DeadSignal.Diagnostics
                                 Resources.Load<GameObject>("Environment/QuenchCondenser") != null &&
                                 Resources.Load<Texture2D>("Environment/QuenchLoopRouteDecal") != null &&
                                 Resources.Load<Material>("Materials/QuenchLoop/QuenchLoopRouteDecal") != null &&
+                                Resources.Load<Texture2D>("Environment/QuenchCacheReturnDecal") != null &&
+                                Resources.Load<Material>("Materials/QuenchLoop/QuenchCacheReturnDecal") != null &&
                                 weaponDecalReady &&
                                 weaponTextureReady &&
                                 weaponMaterialReady &&

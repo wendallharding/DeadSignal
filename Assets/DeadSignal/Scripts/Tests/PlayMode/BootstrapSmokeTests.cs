@@ -1060,7 +1060,7 @@ namespace DeadSignal.Tests
                 "The tower approach should be placed as scene-authored prefab content rather than runtime layout code.");
             var authoredObstacles = towerJunction.GetComponentsInChildren<AuthoredMapObstacle>();
             Assert.That(authoredObstacles.Length, Is.EqualTo(3));
-            Assert.That(game.AuthoredMapObstacleCount, Is.EqualTo(94),
+            Assert.That(game.AuthoredMapObstacleCount, Is.EqualTo(95),
                 "Every authored junction, salvage area, departure channel, and threat-bay obstacle should participate " +
                 "in movement resolution.");
             Assert.That(authoredObstacles.Sum(obstacle => obstacle.GetComponentsInChildren<Renderer>().Length), Is.EqualTo(6));

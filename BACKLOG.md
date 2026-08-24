@@ -1,5 +1,15 @@
 # DEAD SIGNAL — Product Backlog
 
+## P0 — Quench cache-release shortcut (Run 96)
+
+- [x] Add a scene-authored pressure shutter that forces the outbound Quench route onto its exposed east edge
+- [x] Retract the shutter only after the optional Arc Furnace cache is secured
+- [x] Reveal an original cyan/amber return decal when the direct cut-through opens
+- [x] Keep movement and projectile collision authoritative before release and remove both after release
+- [x] Preserve cache reward, required salvage, six safe gates, four-response cap, combat stats, and Signal economy
+- [x] Prove closed/open traversal, resource packaging, complete regression, Windows build, and packaged smoke
+- [ ] Compare cache abandonment against Furnace-out/Quench-back and Quench-out/Furnace-back; record route time, hits, Signal, and extraction reserve
+
 ## P0 — Quench Loop return flank (Run 95)
 
 - [x] Open two independently traversable thresholds in the Arc Furnace east wall

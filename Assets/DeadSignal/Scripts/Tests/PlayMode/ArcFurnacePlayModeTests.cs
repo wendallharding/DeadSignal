@@ -32,7 +32,7 @@ namespace DeadSignal.Tests
                 var routing = furnace.Find("Arc Furnace Signal Lines").gameObject;
 
                 Assert.That(furnace.position, Is.EqualTo(new Vector3(42.5f, 0f, 25.5f)));
-                Assert.That(furnace.GetComponentsInChildren<AuthoredMapObstacle>().Length, Is.EqualTo(20));
+                Assert.That(furnace.GetComponentsInChildren<AuthoredMapObstacle>().Length, Is.EqualTo(21));
                 Assert.That(furnace.GetComponentsInChildren<Collider>().Length, Is.Zero);
                 Assert.That(furnace.Find("Arc Furnace Assembly"), Is.Not.Null);
                 Assert.That(furnace.Find("West Furnace Shield South"), Is.Not.Null);
@@ -44,7 +44,7 @@ namespace DeadSignal.Tests
                 Assert.That(Resources.Load<GameObject>("Environment/ArcFurnace"), Is.Not.Null);
                 Assert.That(Resources.Load<Texture2D>("Environment/ArcFurnaceRouteDecal"), Is.Not.Null);
                 Assert.That(Resources.Load<Material>("Materials/ArcFurnace/ArcFurnaceRouteDecal"), Is.Not.Null);
-                Assert.That(game.AuthoredMapObstacleCount, Is.EqualTo(94));
+                Assert.That(game.AuthoredMapObstacleCount, Is.EqualTo(95));
                 Assert.That(game.AuthoredSalvageSocketCount, Is.EqualTo(1));
                 Assert.That(game.AuthoredInterceptorEntranceCount, Is.EqualTo(6));
                 Assert.That(sceneReferences.ArenaHalfExtents, Is.EqualTo(new Vector2(57.5f, 30.4f)));
