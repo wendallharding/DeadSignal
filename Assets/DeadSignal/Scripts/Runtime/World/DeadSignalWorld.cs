@@ -92,7 +92,6 @@ namespace DeadSignal.World
             }
 
             m_palette = new DeadSignalPalette(comfortSettings.HighContrastEnabled);
-            _createTerritoryMaterials();
             m_signalBoltPrefab = Resources.Load<GameObject>(SIGNAL_BOLT_PREFAB_RESOURCE);
             HasSignalBoltAssets = m_signalBoltPrefab != null &&
                                   m_signalBoltPrefab.transform.Find("Bolt Shell") != null &&
@@ -255,7 +254,7 @@ namespace DeadSignal.World
 
         public void ActivateTower(float sapperPulseInterval)
         {
-            m_towerTerritory.GetComponent<Renderer>().sharedMaterial = m_poweredTerritoryMaterial;
+            m_towerTerritory.GetComponent<Renderer>().sharedMaterial = m_palette.PoweredTerritory;
             foreach (var marker in m_towerTerritoryMarkers)
             {
                 marker.GetComponent<Renderer>().sharedMaterial = m_palette.Cyan;
@@ -451,9 +450,9 @@ namespace DeadSignal.World
         {
             m_environmentTime += dt;
             m_boundaryPulse = Mathf.MoveTowards(m_boundaryPulse, 0f, dt * 1.5f);
-            if (m_poweredTerritoryMaterial != null)
+            if (m_palette.PoweredTerritory != null)
             {
-                m_poweredTerritoryMaterial.SetFloat("_Pulse", m_boundaryPulse);
+                m_palette.PoweredTerritory.SetFloat("_Pulse", m_boundaryPulse);
             }
 
             for (var index = 0; index < m_environmentAnimators.Count; index++)
@@ -629,7 +628,7 @@ namespace DeadSignal.World
         {
             _bindAuthoredEnvironment();
 
-            _createTerritory("Dock Power Territory", ExtractionPosition, STARTING_POWER_RADIUS, m_poweredTerritoryMaterial);
+            _createTerritory("Dock Power Territory", ExtractionPosition, STARTING_POWER_RADIUS, m_palette.PoweredTerritory);
             _createTerritoryMarkers("Dock Power Boundary", ExtractionPosition, STARTING_POWER_RADIUS, m_palette.Cyan, null);
             m_towerTerritory = _createTerritory("Tower Power Territory", TowerPosition, TOWER_POWER_RADIUS, m_palette.Dark);
             _createTerritoryMarkers("Tower Power Boundary", TowerPosition, TOWER_POWER_RADIUS, m_palette.Dark,
@@ -653,14 +652,12 @@ namespace DeadSignal.World
             m_scene.StationMachines.transform.SetParent(m_root, true);
             foreach (var renderer in m_scene.MaintenanceDeck.GetComponentsInChildren<Renderer>())
             {
-                renderer.sharedMaterial = m_palette.Deck;
                 MaintenanceDeckModuleCount++;
             }
 
             HasMaintenanceDeckAssets = MaintenanceDeckModuleCount == 35 && m_palette.HasDeckTexture;
             foreach (var renderer in m_scene.MaintenanceRoomShell.GetComponentsInChildren<Renderer>())
             {
-                renderer.sharedMaterial = m_palette.Bulkhead;
                 RoomShellBulkheadCount++;
             }
 
@@ -676,20 +673,13 @@ namespace DeadSignal.World
             HasMaintenanceRoomShellAssets = RoomShellBulkheadCount == 5 && m_machineSockets.Count == 6 &&
                                             m_palette.HasBulkheadTexture;
             var extraction = m_scene.ExtractionPad.transform;
-            extraction.Find("Extraction Plinth").GetComponent<Renderer>().sharedMaterial = m_palette.ExtractionHousing;
-            extraction.Find("Extraction Ring").GetComponent<Renderer>().sharedMaterial = m_palette.Cyan;
-            extraction.Find("Extraction Center").GetComponent<Renderer>().sharedMaterial = m_palette.ExtractionHousing;
             m_extractionBeacon = extraction.Find("Extraction Beacon").gameObject;
-            m_extractionBeacon.GetComponent<Renderer>().sharedMaterial = m_palette.Cyan;
             m_environmentAnimators.Add(m_extractionBeacon.transform);
             ExtractionPadPartCount = 4;
             HasExtractionPadAssets = m_palette.HasExtractionTexture;
 
             var tower = m_scene.SignalTower.transform;
-            tower.Find("Tower Base").GetComponent<Renderer>().sharedMaterial = m_palette.TowerHousing;
-            tower.Find("Tower Column").GetComponent<Renderer>().sharedMaterial = m_palette.TowerHousing;
             TowerCore = tower.Find("Tower Core");
-            TowerCore.GetComponent<Renderer>().sharedMaterial = m_palette.RedDim;
             m_environmentAnimators.Add(TowerCore);
             SignalTowerPartCount = 3;
             HasSignalTowerAssets = m_palette.HasTowerTexture;
@@ -697,7 +687,6 @@ namespace DeadSignal.World
             m_towerSignalLines = m_scene.SignalRouting;
             foreach (var renderer in m_towerSignalLines.GetComponentsInChildren<Renderer>())
             {
-                renderer.sharedMaterial = m_palette.SignalRouting;
                 SignalRoutingPartCount++;
             }
             HasSignalRoutingAssets = SignalRoutingPartCount == 3 && m_palette.HasSignalRoutingTexture;
@@ -705,9 +694,6 @@ namespace DeadSignal.World
 
             foreach (Transform machine in m_scene.StationMachines.transform)
             {
-                machine.Find("Machine Housing").GetComponent<Renderer>().sharedMaterial = m_palette.StationMachineHousing;
-                machine.Find("Machine Status").GetComponent<Renderer>().sharedMaterial =
-                    StationMachineInstanceCount % 2 == 0 ? m_palette.RedDim : m_palette.CyanDim;
                 StationMachineInstanceCount++;
                 StationMachinePartCount += 2;
             }
@@ -716,320 +702,13 @@ namespace DeadSignal.World
             var shortcut = m_scene.ShortcutGate.transform;
             foreach (var renderer in shortcut.GetComponentsInChildren<Renderer>())
             {
-                renderer.sharedMaterial = renderer.name == "Shortcut Gate Signal" ? m_palette.CyanDim : m_palette.ShortcutHousing;
                 ShortcutGatePartCount++;
             }
             m_shortcutGate = shortcut.Find("Signal Shortcut Gate").gameObject;
-            m_shortcutGate.GetComponent<Renderer>().sharedMaterial = m_palette.ShortcutLocked;
             HasShortcutGateAssets = ShortcutGatePartCount == 6 && m_palette.HasShortcutTexture;
             _addShortcutMovementBlockers();
             m_movementBlockers.Add(new MovementBlocker(
                 new Vector2(TowerPosition.x, TowerPosition.z), Vector2.one * TOWER_BLOCKER_HALF_SIZE, false));
-        }
-
-        private void _buildMaintenanceDeck()
-        {
-            var modulePrefab = Resources.Load<GameObject>(MAINTENANCE_DECK_MODULE_RESOURCE);
-            var deckRoot = new GameObject("Maintenance Deck Modules");
-            deckRoot.transform.SetParent(m_root);
-
-            for (var gridX = -3; gridX <= 3; gridX++)
-            {
-                for (var gridZ = -2; gridZ <= 2; gridZ++)
-                {
-                    var position = new Vector3(gridX * DECK_MODULE_WIDTH, -0.45f, gridZ * DECK_MODULE_DEPTH);
-                    GameObject module;
-                    if (modulePrefab != null)
-                    {
-                        module = Object.Instantiate(modulePrefab, deckRoot.transform);
-                        module.name = $"Maintenance Deck Module {gridX},{gridZ}";
-                        module.transform.localPosition = position;
-                        module.transform.localRotation = Quaternion.identity;
-                        module.transform.localScale = new Vector3(DECK_MODULE_WIDTH, 0.6f, DECK_MODULE_DEPTH);
-                        module.GetComponent<Renderer>().sharedMaterial = m_palette.Deck;
-                    }
-                    else
-                    {
-                        module = _createPrimitive(
-                            $"Maintenance Deck Module {gridX},{gridZ}",
-                            PrimitiveType.Cube,
-                            position,
-                            new Vector3(DECK_MODULE_WIDTH, 0.6f, DECK_MODULE_DEPTH),
-                            m_palette.Deck,
-                            deckRoot.transform);
-                    }
-
-                    MaintenanceDeckModuleCount++;
-                }
-            }
-
-            HasMaintenanceDeckAssets = modulePrefab != null && m_palette.HasDeckTexture;
-        }
-
-        private void _buildMaintenanceRoomShell()
-        {
-            var shellPrefab = Resources.Load<GameObject>(MAINTENANCE_ROOM_SHELL_RESOURCE);
-            if (shellPrefab == null)
-            {
-                var fallbackRoot = new GameObject("Maintenance Room Shell");
-                fallbackRoot.transform.SetParent(m_root);
-                _createPrimitive("North Bulkhead", PrimitiveType.Cube, new Vector3(0f, 0.25f, 9.1f),
-                    new Vector3(27.8f, 0.8f, 0.5f), m_palette.Bulkhead, fallbackRoot.transform);
-                _createPrimitive("South Bulkhead", PrimitiveType.Cube, new Vector3(0f, 0.25f, -9.1f),
-                    new Vector3(27.8f, 0.8f, 0.5f), m_palette.Bulkhead, fallbackRoot.transform);
-                _createPrimitive("East Bulkhead North", PrimitiveType.Cube, new Vector3(13.7f, 0.25f, 5.425f),
-                    new Vector3(0.5f, 0.8f, 7.85f), m_palette.Bulkhead, fallbackRoot.transform);
-                _createPrimitive("East Bulkhead South", PrimitiveType.Cube, new Vector3(13.7f, 0.25f, -5.425f),
-                    new Vector3(0.5f, 0.8f, 7.85f), m_palette.Bulkhead, fallbackRoot.transform);
-                m_movementBlockers.Add(new MovementBlocker(new Vector2(13.7f, 5.425f), new Vector2(0.25f, 3.925f), false));
-                m_movementBlockers.Add(new MovementBlocker(new Vector2(13.7f, -5.425f), new Vector2(0.25f, 3.925f), false));
-                _createPrimitive("West Bulkhead", PrimitiveType.Cube, new Vector3(-13.7f, 0.25f, 0f),
-                    new Vector3(0.5f, 0.8f, 18.7f), m_palette.Bulkhead, fallbackRoot.transform);
-                m_machineSockets.AddRange(new[]
-                {
-                    new Vector3(-11.6f, 0f, 6.8f), new Vector3(-8.8f, 0f, 6.9f), new Vector3(10.8f, 0f, 6.8f),
-                    new Vector3(11.2f, 0f, -6.7f), new Vector3(4.8f, 0f, -7.1f), new Vector3(-3.8f, 0f, 7.1f)
-                });
-                RoomShellBulkheadCount = 5;
-                return;
-            }
-
-            var shell = Object.Instantiate(shellPrefab, m_root);
-            shell.name = "Maintenance Room Shell";
-            shell.transform.localPosition = Vector3.zero;
-            shell.transform.localRotation = Quaternion.identity;
-            foreach (var bulkheadRenderer in shell.GetComponentsInChildren<Renderer>())
-            {
-                bulkheadRenderer.sharedMaterial = m_palette.Bulkhead;
-                RoomShellBulkheadCount++;
-            }
-
-            var sockets = shell.transform.Find("Machine Sockets");
-            if (sockets != null)
-            {
-                foreach (Transform socket in sockets)
-                {
-                    m_machineSockets.Add(socket.position);
-                }
-            }
-
-            HasMaintenanceRoomShellAssets =
-                m_palette.HasBulkheadTexture && RoomShellBulkheadCount == 5 && m_machineSockets.Count == 6;
-        }
-
-        private void _buildExtraction()
-        {
-            var extractionPrefab = Resources.Load<GameObject>(EXTRACTION_PAD_PREFAB_RESOURCE);
-            var hasValidPrefab = extractionPrefab != null &&
-                                 extractionPrefab.transform.Find("Extraction Plinth") != null &&
-                                 extractionPrefab.transform.Find("Extraction Ring") != null &&
-                                 extractionPrefab.transform.Find("Extraction Center") != null &&
-                                 extractionPrefab.transform.Find("Extraction Beacon") != null;
-            if (hasValidPrefab)
-            {
-                var extractionPad = Object.Instantiate(extractionPrefab, m_root);
-                extractionPad.name = "Extraction Pad Assembly";
-                extractionPad.transform.localPosition = ExtractionPosition;
-                extractionPad.transform.localRotation = Quaternion.identity;
-                var plinth = extractionPad.transform.Find("Extraction Plinth");
-                var ring = extractionPad.transform.Find("Extraction Ring");
-                var center = extractionPad.transform.Find("Extraction Center");
-                m_extractionBeacon = extractionPad.transform.Find("Extraction Beacon").gameObject;
-                plinth.GetComponent<Renderer>().sharedMaterial = m_palette.ExtractionHousing;
-                ring.GetComponent<Renderer>().sharedMaterial = m_palette.Cyan;
-                center.GetComponent<Renderer>().sharedMaterial = m_palette.ExtractionHousing;
-                m_extractionBeacon.GetComponent<Renderer>().sharedMaterial = m_palette.Cyan;
-                m_environmentAnimators.Add(m_extractionBeacon.transform);
-                ExtractionPadPartCount = 4;
-                HasExtractionPadAssets = m_palette.HasExtractionTexture;
-                return;
-            }
-
-            var fallbackRoot = new GameObject("Extraction Pad Assembly");
-            fallbackRoot.transform.SetParent(m_root, false);
-            fallbackRoot.transform.localPosition = ExtractionPosition;
-            _createPrimitive("Extraction Plinth", PrimitiveType.Cylinder, new Vector3(0f, 0.02f, 0f),
-                new Vector3(3.2f, 0.08f, 3.2f), m_palette.ExtractionHousing, fallbackRoot.transform);
-            _createPrimitive("Extraction Ring", PrimitiveType.Cylinder, new Vector3(0f, 0.08f, 0f),
-                new Vector3(2.55f, 0.08f, 2.55f), m_palette.Cyan, fallbackRoot.transform);
-            _createPrimitive("Extraction Center", PrimitiveType.Cylinder, new Vector3(0f, 0.14f, 0f),
-                new Vector3(2.1f, 0.08f, 2.1f), m_palette.ExtractionHousing, fallbackRoot.transform);
-            m_extractionBeacon = _createPrimitive("Extraction Beacon", PrimitiveType.Cube, new Vector3(0f, 0.7f, 1.5f),
-                new Vector3(0.22f, 1.4f, 0.22f), m_palette.Cyan, fallbackRoot.transform);
-            ExtractionPadPartCount = 4;
-            m_environmentAnimators.Add(m_extractionBeacon.transform);
-        }
-
-        private void _buildTower()
-        {
-            var towerPrefab = Resources.Load<GameObject>(SIGNAL_TOWER_PREFAB_RESOURCE);
-            var hasValidPrefab = towerPrefab != null &&
-                                 towerPrefab.transform.Find("Tower Base") != null &&
-                                 towerPrefab.transform.Find("Tower Column") != null &&
-                                 towerPrefab.transform.Find("Tower Core") != null;
-            if (hasValidPrefab)
-            {
-                var tower = Object.Instantiate(towerPrefab, m_root);
-                tower.name = "Signal Tower Assembly";
-                tower.transform.localPosition = TowerPosition;
-                tower.transform.localRotation = Quaternion.identity;
-                var towerBase = tower.transform.Find("Tower Base");
-                var towerColumn = tower.transform.Find("Tower Column");
-                TowerCore = tower.transform.Find("Tower Core");
-                towerBase.GetComponent<Renderer>().sharedMaterial = m_palette.TowerHousing;
-                towerColumn.GetComponent<Renderer>().sharedMaterial = m_palette.TowerHousing;
-                TowerCore.GetComponent<Renderer>().sharedMaterial = m_palette.RedDim;
-                m_environmentAnimators.Add(TowerCore);
-                SignalTowerPartCount = 3;
-                m_environmentAnimators.Add(TowerCore);
-                HasSignalTowerAssets = m_palette.HasTowerTexture;
-            }
-            else
-            {
-                var tower = new GameObject("Signal Tower Assembly");
-                tower.transform.SetParent(m_root, false);
-                tower.transform.localPosition = TowerPosition;
-                _createPrimitive("Tower Base", PrimitiveType.Cylinder, new Vector3(0f, 0.15f, 0f),
-                    new Vector3(2.2f, 0.25f, 2.2f), m_palette.TowerHousing, tower.transform);
-                _createPrimitive("Tower Column", PrimitiveType.Cylinder, new Vector3(0f, 0.85f, 0f),
-                    new Vector3(0.8f, 1.35f, 0.8f), m_palette.TowerHousing, tower.transform);
-                TowerCore = _createPrimitive("Tower Core", PrimitiveType.Cylinder, new Vector3(0f, 1.65f, 0f),
-                    new Vector3(1.35f, 0.22f, 1.35f), m_palette.RedDim, tower.transform).transform;
-                SignalTowerPartCount = 3;
-            }
-
-            m_movementBlockers.Add(new MovementBlocker(
-                new Vector2(TowerPosition.x, TowerPosition.z), Vector2.one * TOWER_BLOCKER_HALF_SIZE, false));
-            _buildSignalRouting();
-        }
-
-        private void _buildSignalRouting()
-        {
-            var routingPrefab = Resources.Load<GameObject>(SIGNAL_ROUTING_PREFAB_RESOURCE);
-            var hasValidPrefab = routingPrefab != null &&
-                                 routingPrefab.transform.Find("Signal Trunk West") != null &&
-                                 routingPrefab.transform.Find("Signal Trunk East") != null &&
-                                 routingPrefab.transform.Find("Signal Branch") != null;
-            if (hasValidPrefab)
-            {
-                m_towerSignalLines = Object.Instantiate(routingPrefab, m_root);
-                m_towerSignalLines.name = "Tower Signal Lines";
-                m_towerSignalLines.transform.localPosition = Vector3.zero;
-                m_towerSignalLines.transform.localRotation = Quaternion.identity;
-                foreach (var routingRenderer in m_towerSignalLines.GetComponentsInChildren<Renderer>())
-                {
-                    routingRenderer.sharedMaterial = m_palette.SignalRouting;
-                    SignalRoutingPartCount++;
-                }
-
-                HasSignalRoutingAssets = m_palette.HasSignalRoutingTexture && SignalRoutingPartCount == 3;
-                m_towerSignalLines.SetActive(false);
-                return;
-            }
-
-            m_towerSignalLines = new GameObject("Tower Signal Lines");
-            m_towerSignalLines.transform.SetParent(m_root, false);
-            var westTrunk = _createPrimitive("Signal Trunk West", PrimitiveType.Cube, new Vector3(-4.7f, -0.03f, 0.4f),
-                new Vector3(0.09f, 0.04f, 8.2f), m_palette.SignalRouting, m_towerSignalLines.transform);
-            westTrunk.transform.localRotation = Quaternion.Euler(0f, 90f, 0f);
-            var eastTrunk = _createPrimitive("Signal Trunk East", PrimitiveType.Cube, new Vector3(4.1f, -0.03f, 0.4f),
-                new Vector3(0.09f, 0.04f, 9.4f), m_palette.SignalRouting, m_towerSignalLines.transform);
-            eastTrunk.transform.localRotation = Quaternion.Euler(0f, 90f, 0f);
-            _createPrimitive("Signal Branch", PrimitiveType.Cube, new Vector3(-0.6f, -0.025f, -3.5f),
-                new Vector3(0.09f, 0.04f, 7.8f), m_palette.SignalRouting, m_towerSignalLines.transform);
-            SignalRoutingPartCount = 3;
-            m_towerSignalLines.SetActive(false);
-        }
-
-        private void _buildStationMachines()
-        {
-            var machinePrefab = Resources.Load<GameObject>(STATION_MACHINE_PREFAB_RESOURCE);
-            var hasValidPrefab = machinePrefab != null &&
-                                 machinePrefab.transform.Find("Machine Housing") != null &&
-                                 machinePrefab.transform.Find("Machine Status") != null;
-            var machinesRoot = new GameObject("Station Machines");
-            machinesRoot.transform.SetParent(m_root, false);
-            for (var i = 0; i < m_machineSockets.Count; i++)
-            {
-                var position = m_machineSockets[i];
-                if (hasValidPrefab)
-                {
-                    var machine = Object.Instantiate(machinePrefab, machinesRoot.transform);
-                    machine.name = $"Station Machine {i + 1:00}";
-                    machine.transform.localPosition = position;
-                    machine.transform.localRotation = Quaternion.identity;
-                    machine.transform.Find("Machine Housing").GetComponent<Renderer>().sharedMaterial = m_palette.StationMachineHousing;
-                    machine.transform.Find("Machine Status").GetComponent<Renderer>().sharedMaterial =
-                        i % 2 == 0 ? m_palette.RedDim : m_palette.CyanDim;
-                }
-                else
-                {
-                    var machine = new GameObject($"Station Machine {i + 1:00}");
-                    machine.transform.SetParent(machinesRoot.transform, false);
-                    machine.transform.localPosition = position;
-                    _createPrimitive("Machine Housing", PrimitiveType.Cube, new Vector3(0f, 0.45f, 0f),
-                        new Vector3(1.5f, 0.9f, 1.1f), m_palette.StationMachineHousing, machine.transform);
-                    _createPrimitive("Machine Status", PrimitiveType.Cube, new Vector3(0f, 0.92f, -0.15f),
-                        new Vector3(0.75f, 0.06f, 0.18f), i % 2 == 0 ? m_palette.RedDim : m_palette.CyanDim, machine.transform);
-                }
-
-                StationMachineInstanceCount++;
-                StationMachinePartCount += 2;
-            }
-
-            HasStationMachineAssets = hasValidPrefab && m_palette.HasStationMachineTexture &&
-                                      StationMachineInstanceCount == 6 && StationMachinePartCount == 12;
-        }
-
-        private void _buildSignalShortcut()
-        {
-            // The end passages stay open, so spending Signal for the central route is optional.
-            var shortcutPrefab = Resources.Load<GameObject>(SHORTCUT_GATE_PREFAB_RESOURCE);
-            var hasValidPrefab = shortcutPrefab != null &&
-                                 shortcutPrefab.transform.Find("Shortcut Bulkhead South") != null &&
-                                 shortcutPrefab.transform.Find("Shortcut Bulkhead North") != null &&
-                                 shortcutPrefab.transform.Find("Shortcut Gate South Post") != null &&
-                                 shortcutPrefab.transform.Find("Shortcut Gate North Post") != null &&
-                                 shortcutPrefab.transform.Find("Shortcut Gate Signal") != null &&
-                                 shortcutPrefab.transform.Find("Signal Shortcut Gate") != null;
-            if (hasValidPrefab)
-            {
-                var shortcut = Object.Instantiate(shortcutPrefab, m_root);
-                shortcut.name = "Shortcut Gate Assembly";
-                shortcut.transform.localPosition = ShortcutPosition;
-                shortcut.transform.localRotation = Quaternion.identity;
-                foreach (var childRenderer in shortcut.GetComponentsInChildren<Renderer>())
-                {
-                    childRenderer.sharedMaterial = childRenderer.name == "Shortcut Gate Signal"
-                        ? m_palette.CyanDim
-                        : m_palette.ShortcutHousing;
-                    ShortcutGatePartCount++;
-                }
-
-                m_shortcutGate = shortcut.transform.Find("Signal Shortcut Gate").gameObject;
-                m_shortcutGate.GetComponent<Renderer>().sharedMaterial = m_palette.ShortcutLocked;
-                HasShortcutGateAssets = m_palette.HasShortcutTexture && ShortcutGatePartCount == 6;
-                _addShortcutMovementBlockers();
-                return;
-            }
-
-            var fallbackRoot = new GameObject("Shortcut Gate Assembly");
-            fallbackRoot.transform.SetParent(m_root, false);
-            fallbackRoot.transform.localPosition = ShortcutPosition;
-            _createPrimitive("Shortcut Bulkhead South", PrimitiveType.Cube, new Vector3(0f, 0.46f, -3.55f),
-                new Vector3(0.55f, 1.1f, 4.7f), m_palette.ShortcutHousing, fallbackRoot.transform);
-            _createPrimitive("Shortcut Bulkhead North", PrimitiveType.Cube, new Vector3(0f, 0.46f, 3.15f),
-                new Vector3(0.55f, 1.1f, 3.9f), m_palette.ShortcutHousing, fallbackRoot.transform);
-            _createPrimitive("Shortcut Gate South Post", PrimitiveType.Cube, new Vector3(-0.16f, 0.68f, -1.34f),
-                new Vector3(0.85f, 1.45f, 0.25f), m_palette.ShortcutHousing, fallbackRoot.transform);
-            _createPrimitive("Shortcut Gate North Post", PrimitiveType.Cube, new Vector3(-0.16f, 0.68f, 1.34f),
-                new Vector3(0.85f, 1.45f, 0.25f), m_palette.ShortcutHousing, fallbackRoot.transform);
-            _createPrimitive("Shortcut Gate Signal", PrimitiveType.Cube, new Vector3(-0.31f, 1.38f, 0f),
-                new Vector3(0.12f, 0.08f, 2.3f), m_palette.CyanDim, fallbackRoot.transform);
-            m_shortcutGate = _createPrimitive("Signal Shortcut Gate", PrimitiveType.Cube, new Vector3(0f, 0.55f, 0f),
-                new Vector3(0.42f, 1.05f, 2.4f), m_palette.ShortcutLocked, fallbackRoot.transform);
-            ShortcutGatePartCount = 6;
-            _addShortcutMovementBlockers();
         }
 
         private void _addShortcutMovementBlockers()
@@ -1102,49 +781,30 @@ namespace DeadSignal.World
             Player = m_scene.Player;
             Player.SetParent(m_root, true);
             Player.position = ExtractionPosition;
-            Player.Find("Drone Chassis").GetComponent<Renderer>().sharedMaterial = m_palette.PlayerDroneHousing;
-            Player.Find("Drone Signal Ring").GetComponent<Renderer>().sharedMaterial = m_palette.Cyan;
-            Player.Find("Drone Core").GetComponent<Renderer>().sharedMaterial = m_palette.Dark;
             PlayerNose = Player.Find("Drone Tool");
-            PlayerNose.GetComponent<Renderer>().sharedMaterial = m_palette.Cyan;
             _createPlayerPresentationPivot();
             PlayerDronePartCount = 4;
             HasPlayerDroneAssets = m_palette.HasPlayerDroneTexture;
 
             Warden = m_scene.Warden;
             Warden.SetParent(m_root, true);
-            Warden.Find("Warden Chassis").GetComponent<Renderer>().sharedMaterial = m_palette.WardenHousing;
-            Warden.Find("Warden Eye").GetComponent<Renderer>().sharedMaterial = m_palette.Red;
-            Warden.Find("Warden Crown").GetComponent<Renderer>().sharedMaterial = m_palette.RedDim;
 
             Sapper = m_scene.Sapper;
             Sapper.SetParent(m_root, true);
-            Sapper.Find("Sapper Chassis").GetComponent<Renderer>().sharedMaterial = m_palette.SapperHousing;
-            Sapper.Find("Sapper Fork Left").GetComponent<Renderer>().sharedMaterial = m_palette.Magenta;
-            Sapper.Find("Sapper Fork Right").GetComponent<Renderer>().sharedMaterial = m_palette.Magenta;
             SapperCore = Sapper.Find("Sapper Drain Core");
-            SapperCore.GetComponent<Renderer>().sharedMaterial = m_palette.Magenta;
             SapperCoreBaseScale = SapperCore.localScale;
             HasSignalSapperAssets = m_palette.HasSapperTexture;
             SignalSapperPartCount = 4;
 
             Interceptor = m_scene.Interceptor;
             Interceptor.SetParent(m_root, true);
-            Interceptor.Find("Interceptor Chassis").GetComponent<Renderer>().sharedMaterial = m_palette.WardenHousing;
-            Interceptor.Find("Interceptor Blade Left").GetComponent<Renderer>().sharedMaterial = m_palette.RedDim;
-            Interceptor.Find("Interceptor Blade Right").GetComponent<Renderer>().sharedMaterial = m_palette.RedDim;
             InterceptorCore = Interceptor.Find("Interceptor Core");
-            InterceptorCore.GetComponent<Renderer>().sharedMaterial = m_palette.Amber;
             HasSecurityInterceptorAssets = true;
             SecurityInterceptorPartCount = 4;
 
             Suppressor = m_scene.Suppressor;
             Suppressor.SetParent(m_root, true);
-            Suppressor.Find("Suppressor Chassis").GetComponent<Renderer>().sharedMaterial = m_palette.WardenHousing;
-            Suppressor.Find("Suppressor Emitter Left").GetComponent<Renderer>().sharedMaterial = m_palette.Magenta;
-            Suppressor.Find("Suppressor Emitter Right").GetComponent<Renderer>().sharedMaterial = m_palette.Magenta;
             SuppressorCore = Suppressor.Find("Suppressor Core");
-            SuppressorCore.GetComponent<Renderer>().sharedMaterial = m_palette.Amber;
             HasSecuritySuppressorAssets = true;
             SecuritySuppressorPartCount = 4;
 
@@ -1187,221 +847,6 @@ namespace DeadSignal.World
                 m_interceptorEntrances.Add(s_interceptorNorthSpawn);
                 m_interceptorEntrances.Add(s_interceptorSouthSpawn);
             }
-        }
-
-        private void _buildInterceptor()
-        {
-            var prefab = Resources.Load<GameObject>(SECURITY_INTERCEPTOR_PREFAB_RESOURCE);
-            var hasValidPrefab = prefab != null &&
-                                 prefab.transform.Find("Interceptor Chassis") != null &&
-                                 prefab.transform.Find("Interceptor Blade Left") != null &&
-                                 prefab.transform.Find("Interceptor Blade Right") != null &&
-                                 prefab.transform.Find("Interceptor Core") != null;
-            if (hasValidPrefab)
-            {
-                var root = Object.Instantiate(prefab, m_root);
-                root.name = "Security Interceptor";
-                Interceptor = root.transform;
-                Interceptor.Find("Interceptor Chassis").GetComponent<Renderer>().sharedMaterial = m_palette.WardenHousing;
-                Interceptor.Find("Interceptor Blade Left").GetComponent<Renderer>().sharedMaterial = m_palette.RedDim;
-                Interceptor.Find("Interceptor Blade Right").GetComponent<Renderer>().sharedMaterial = m_palette.RedDim;
-                InterceptorCore = Interceptor.Find("Interceptor Core");
-                InterceptorCore.GetComponent<Renderer>().sharedMaterial = m_palette.Amber;
-                HasSecurityInterceptorAssets = true;
-                SecurityInterceptorPartCount = 4;
-            }
-            else
-            {
-                var root = new GameObject("Security Interceptor");
-                root.transform.SetParent(m_root);
-                Interceptor = root.transform;
-                _createPrimitive("Interceptor Chassis", PrimitiveType.Cube, new Vector3(0f, 0.3f, 0f),
-                    new Vector3(0.75f, 0.28f, 1.1f), m_palette.WardenHousing, Interceptor);
-                _createPrimitive("Interceptor Blade Left", PrimitiveType.Cube, new Vector3(-0.56f, 0.22f, 0f),
-                    new Vector3(0.16f, 0.12f, 1.5f), m_palette.RedDim, Interceptor);
-                _createPrimitive("Interceptor Blade Right", PrimitiveType.Cube, new Vector3(0.56f, 0.22f, 0f),
-                    new Vector3(0.16f, 0.12f, 1.5f), m_palette.RedDim, Interceptor);
-                InterceptorCore = _createPrimitive("Interceptor Core", PrimitiveType.Sphere, new Vector3(0f, 0.42f, -0.3f),
-                    new Vector3(0.26f, 0.18f, 0.26f), m_palette.Amber, Interceptor).transform;
-                HasSecurityInterceptorAssets = false;
-                SecurityInterceptorPartCount = 4;
-            }
-
-            Interceptor.position = m_interceptorEntrances[0];
-            Interceptor.gameObject.SetActive(false);
-            var telegraphRoot = new GameObject("Interceptor Charge Telegraph");
-            telegraphRoot.transform.SetParent(m_root);
-            m_interceptorTelegraph = telegraphRoot.AddComponent<LineRenderer>();
-            m_interceptorTelegraph.positionCount = 2;
-            m_interceptorTelegraph.startWidth = 0.16f;
-            m_interceptorTelegraph.endWidth = 0.05f;
-            m_interceptorTelegraph.sharedMaterial = m_palette.Red;
-            m_interceptorTelegraph.textureMode = LineTextureMode.Stretch;
-            m_interceptorTelegraph.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
-            m_interceptorTelegraph.receiveShadows = false;
-            telegraphRoot.SetActive(false);
-        }
-
-        private void _buildSuppressor()
-        {
-            var prefab = Resources.Load<GameObject>(SECURITY_SUPPRESSOR_PREFAB_RESOURCE);
-            var hasValidPrefab = prefab != null &&
-                                 prefab.transform.Find("Suppressor Chassis") != null &&
-                                 prefab.transform.Find("Suppressor Emitter Left") != null &&
-                                 prefab.transform.Find("Suppressor Emitter Right") != null &&
-                                 prefab.transform.Find("Suppressor Core") != null;
-            var root = hasValidPrefab ? Object.Instantiate(prefab, m_root) : new GameObject("Security Suppressor");
-            root.name = "Security Suppressor";
-            if (!hasValidPrefab)
-            {
-                root.transform.SetParent(m_root);
-                _createPrimitive("Suppressor Chassis", PrimitiveType.Cylinder, new Vector3(0f, 0.34f, 0f),
-                    new Vector3(0.9f, 0.22f, 0.9f), m_palette.WardenHousing, root.transform);
-                _createPrimitive("Suppressor Emitter Left", PrimitiveType.Cube, new Vector3(-0.58f, 0.38f, 0f),
-                    new Vector3(0.18f, 0.18f, 0.92f), m_palette.Magenta, root.transform);
-                _createPrimitive("Suppressor Emitter Right", PrimitiveType.Cube, new Vector3(0.58f, 0.38f, 0f),
-                    new Vector3(0.18f, 0.18f, 0.92f), m_palette.Magenta, root.transform);
-                _createPrimitive("Suppressor Core", PrimitiveType.Sphere, new Vector3(0f, 0.58f, 0f),
-                    new Vector3(0.3f, 0.22f, 0.3f), m_palette.Magenta, root.transform);
-            }
-
-            Suppressor = root.transform;
-            Suppressor.Find("Suppressor Chassis").GetComponent<Renderer>().sharedMaterial = m_palette.WardenHousing;
-            Suppressor.Find("Suppressor Emitter Left").GetComponent<Renderer>().sharedMaterial = m_palette.Magenta;
-            Suppressor.Find("Suppressor Emitter Right").GetComponent<Renderer>().sharedMaterial = m_palette.Magenta;
-            SuppressorCore = Suppressor.Find("Suppressor Core");
-            SuppressorCore.GetComponent<Renderer>().sharedMaterial = m_palette.Amber;
-            HasSecuritySuppressorAssets = hasValidPrefab;
-            SecuritySuppressorPartCount = 4;
-            Suppressor.position = m_interceptorEntrances[0];
-            Suppressor.gameObject.SetActive(false);
-
-            m_suppressorField = _createPrimitive("Suppressor Field Warning", PrimitiveType.Cylinder, Vector3.zero,
-                Vector3.one, m_palette.Amber, m_root);
-            Object.Destroy(m_suppressorField.GetComponent<Collider>());
-            m_suppressorField.SetActive(false);
-        }
-
-        private void _buildSapper()
-        {
-            var sapperPrefab = Resources.Load<GameObject>(SIGNAL_SAPPER_PREFAB_RESOURCE);
-            var hasValidPrefab = sapperPrefab != null &&
-                                 sapperPrefab.transform.Find("Sapper Chassis") != null &&
-                                 sapperPrefab.transform.Find("Sapper Fork Left") != null &&
-                                 sapperPrefab.transform.Find("Sapper Fork Right") != null &&
-                                 sapperPrefab.transform.Find("Sapper Drain Core") != null;
-            if (hasValidPrefab)
-            {
-                var sapperRoot = Object.Instantiate(sapperPrefab, m_root);
-                sapperRoot.name = "Signal Sapper";
-                sapperRoot.transform.localPosition = s_signalSapperSpawn;
-                sapperRoot.transform.localRotation = Quaternion.identity;
-                Sapper = sapperRoot.transform;
-                Sapper.Find("Sapper Chassis").GetComponent<Renderer>().sharedMaterial = m_palette.SapperHousing;
-                Sapper.Find("Sapper Fork Left").GetComponent<Renderer>().sharedMaterial = m_palette.Magenta;
-                Sapper.Find("Sapper Fork Right").GetComponent<Renderer>().sharedMaterial = m_palette.Magenta;
-                SapperCore = Sapper.Find("Sapper Drain Core");
-                SapperCore.GetComponent<Renderer>().sharedMaterial = m_palette.Magenta;
-                HasSignalSapperAssets = m_palette.HasSapperTexture;
-                SignalSapperPartCount = 4;
-            }
-            else
-            {
-                var fallbackRoot = new GameObject("Signal Sapper");
-                fallbackRoot.transform.SetParent(m_root);
-                fallbackRoot.transform.position = s_signalSapperSpawn;
-                Sapper = fallbackRoot.transform;
-                _createPrimitive("Sapper Chassis", PrimitiveType.Cube, new Vector3(0f, 0.32f, 0f),
-                    new Vector3(0.72f, 0.34f, 1.25f), m_palette.SapperHousing, Sapper);
-                _createPrimitive("Sapper Fork Left", PrimitiveType.Cube, new Vector3(-0.43f, 0.28f, 0.28f),
-                    new Vector3(0.18f, 0.18f, 0.92f), m_palette.Magenta, Sapper);
-                _createPrimitive("Sapper Fork Right", PrimitiveType.Cube, new Vector3(0.43f, 0.28f, 0.28f),
-                    new Vector3(0.18f, 0.18f, 0.92f), m_palette.Magenta, Sapper);
-                SapperCore = _createPrimitive("Sapper Drain Core", PrimitiveType.Cylinder, new Vector3(0f, 0.55f, -0.12f),
-                    new Vector3(0.42f, 0.1f, 0.42f), m_palette.Magenta, Sapper).transform;
-                HasSignalSapperAssets = false;
-                SignalSapperPartCount = 4;
-            }
-
-            SapperCoreBaseScale = SapperCore.localScale;
-            Sapper.gameObject.SetActive(false);
-        }
-
-        private void _buildWarden()
-        {
-            var wardenPrefab = Resources.Load<GameObject>(SECURITY_WARDEN_PREFAB_RESOURCE);
-            var hasValidPrefab = wardenPrefab != null &&
-                                 wardenPrefab.transform.Find("Warden Chassis") != null &&
-                                 wardenPrefab.transform.Find("Warden Eye") != null &&
-                                 wardenPrefab.transform.Find("Warden Crown") != null;
-            if (hasValidPrefab)
-            {
-                var wardenRoot = Object.Instantiate(wardenPrefab, m_root);
-                wardenRoot.name = "Security Warden";
-                wardenRoot.transform.localPosition = s_securityWardenSpawn;
-                wardenRoot.transform.localRotation = Quaternion.identity;
-                Warden = wardenRoot.transform;
-                Warden.Find("Warden Chassis").GetComponent<Renderer>().sharedMaterial = m_palette.WardenHousing;
-                Warden.Find("Warden Eye").GetComponent<Renderer>().sharedMaterial = m_palette.Red;
-                Warden.Find("Warden Crown").GetComponent<Renderer>().sharedMaterial = m_palette.RedDim;
-            }
-            else
-            {
-                var fallbackRoot = new GameObject("Security Warden");
-                fallbackRoot.transform.SetParent(m_root);
-                fallbackRoot.transform.position = s_securityWardenSpawn;
-                Warden = fallbackRoot.transform;
-                _createPrimitive("Warden Chassis", PrimitiveType.Cube, new Vector3(0f, 0.38f, 0f),
-                    new Vector3(1.15f, 0.55f, 1.15f), m_palette.WardenHousing, Warden);
-                _createPrimitive("Warden Eye", PrimitiveType.Cube, new Vector3(0f, 0.48f, -0.59f),
-                    new Vector3(0.68f, 0.16f, 0.06f), m_palette.Red, Warden);
-                _createPrimitive("Warden Crown", PrimitiveType.Cylinder, new Vector3(0f, 0.76f, 0f),
-                    new Vector3(0.68f, 0.12f, 0.68f), m_palette.RedDim, Warden);
-            }
-
-            Warden.gameObject.SetActive(false);
-        }
-
-        private void _buildPlayer()
-        {
-            var playerPrefab = Resources.Load<GameObject>(PLAYER_DRONE_PREFAB_RESOURCE);
-            var hasValidPrefab = playerPrefab != null &&
-                                 playerPrefab.transform.Find("Drone Chassis") != null &&
-                                 playerPrefab.transform.Find("Drone Signal Ring") != null &&
-                                 playerPrefab.transform.Find("Drone Core") != null &&
-                                 playerPrefab.transform.Find("Drone Tool") != null;
-            if (hasValidPrefab)
-            {
-                var playerRoot = Object.Instantiate(playerPrefab, m_root);
-                playerRoot.name = "Maintenance Drone";
-                playerRoot.transform.localPosition = ExtractionPosition;
-                playerRoot.transform.localRotation = Quaternion.identity;
-                Player = playerRoot.transform;
-                Player.Find("Drone Chassis").GetComponent<Renderer>().sharedMaterial = m_palette.PlayerDroneHousing;
-                Player.Find("Drone Signal Ring").GetComponent<Renderer>().sharedMaterial = m_palette.Cyan;
-                Player.Find("Drone Core").GetComponent<Renderer>().sharedMaterial = m_palette.Dark;
-                PlayerNose = Player.Find("Drone Tool");
-                PlayerNose.GetComponent<Renderer>().sharedMaterial = m_palette.Cyan;
-                _createPlayerPresentationPivot();
-                PlayerDronePartCount = 4;
-                HasPlayerDroneAssets = m_palette.HasPlayerDroneTexture;
-                return;
-            }
-
-            var fallbackRoot = new GameObject("Maintenance Drone");
-            fallbackRoot.transform.SetParent(m_root);
-            fallbackRoot.transform.position = ExtractionPosition;
-            Player = fallbackRoot.transform;
-            _createPrimitive("Drone Chassis", PrimitiveType.Cylinder, new Vector3(0f, 0.28f, 0f),
-                new Vector3(1.05f, 0.22f, 1.05f), m_palette.PlayerDroneHousing, Player);
-            _createPrimitive("Drone Signal Ring", PrimitiveType.Cylinder, new Vector3(0f, 0.42f, 0f),
-                new Vector3(0.72f, 0.08f, 0.72f), m_palette.Cyan, Player);
-            _createPrimitive("Drone Core", PrimitiveType.Cylinder, new Vector3(0f, 0.5f, 0f),
-                new Vector3(0.36f, 0.09f, 0.36f), m_palette.Dark, Player);
-            PlayerNose = _createPrimitive("Drone Tool", PrimitiveType.Cube, new Vector3(0f, 0.3f, 0.68f),
-                new Vector3(0.24f, 0.2f, 0.7f), m_palette.Cyan, Player).transform;
-            _createPlayerPresentationPivot();
-            PlayerDronePartCount = 4;
         }
 
         private void _createPlayerPresentationPivot()
@@ -1575,21 +1020,6 @@ namespace DeadSignal.World
                 _createPrimitive($"Route Stripe {index + 1:00}", PrimitiveType.Cube, routePoints[index],
                     new Vector3(2.2f, 0.025f, 0.12f), material, details.transform);
             }
-        }
-
-        private void _createTerritoryMaterials()
-        {
-            var shader = Shader.Find("Dead Signal/Powered Territory");
-            if (shader == null)
-            {
-                Debug.LogWarning("Powered territory shader was not found; the deck will use the clarity fallback.");
-                m_poweredTerritoryMaterial = m_palette.CyanDim;
-                return;
-            }
-
-            m_poweredTerritoryMaterial = new Material(shader) { name = "Powered Territory Runtime" };
-            m_poweredTerritoryMaterial.SetColor("_BaseColor", new Color(0.015f, 0.42f, 0.5f, 0.32f));
-            m_poweredTerritoryMaterial.SetColor("_EdgeColor", new Color(0.05f, 0.95f, 1f, 0.92f));
         }
 
         private void _buildLocalizedLighting()
@@ -1790,23 +1220,9 @@ namespace DeadSignal.World
             return visual;
         }
 
-        private const string MAINTENANCE_DECK_MODULE_RESOURCE = "Environment/MaintenanceDeckModule";
-        private const string MAINTENANCE_ROOM_SHELL_RESOURCE = "Environment/MaintenanceRoomShell";
-        private const string SIGNAL_TOWER_PREFAB_RESOURCE = "Environment/SignalTowerAssembly";
-        private const string EXTRACTION_PAD_PREFAB_RESOURCE = "Environment/ExtractionPadAssembly";
-        private const string SHORTCUT_GATE_PREFAB_RESOURCE = "Environment/ShortcutGateAssembly";
-        private const string SIGNAL_ROUTING_PREFAB_RESOURCE = "Environment/SignalRoutingAssembly";
-        private const string STATION_MACHINE_PREFAB_RESOURCE = "Environment/StationMachineAssembly";
         private const string SALVAGE_CACHE_PREFAB_RESOURCE = "Environment/SalvageCacheAssembly";
-        private const string PLAYER_DRONE_PREFAB_RESOURCE = "Actors/MaintenanceDroneAssembly";
-        private const string SECURITY_WARDEN_PREFAB_RESOURCE = "Actors/SecurityWardenAssembly";
-        private const string SIGNAL_SAPPER_PREFAB_RESOURCE = "Actors/SignalSapperAssembly";
-        private const string SECURITY_INTERCEPTOR_PREFAB_RESOURCE = "Actors/SecurityInterceptorAssembly";
-        private const string SECURITY_SUPPRESSOR_PREFAB_RESOURCE = "Actors/SecuritySuppressorAssembly";
         private const string SIGNAL_BOLT_PREFAB_RESOURCE = "Projectiles/SignalBoltAssembly";
         private const string PLAYER_CAMERA_TUNING_RESOURCE = "Tuning/PlayerCameraTuning";
-        private const float DECK_MODULE_WIDTH = 3.9f;
-        private const float DECK_MODULE_DEPTH = 3.6f;
         private const float TOWER_BLOCKER_HALF_SIZE = 0.62f;
         private const float NAVIGATION_CLEARANCE = 0.08f;
         private const float NAVIGATION_BLOCKED_ROUTE_PENALTY = 20f;
@@ -1828,7 +1244,6 @@ namespace DeadSignal.World
         private readonly List<Vector3> m_machineSockets = new();
         private readonly List<Vector3> m_interceptorEntrances = new();
         private GameObject m_suppressorField;
-        private Material m_poweredTerritoryMaterial;
         private Vignette m_deadZoneVignette;
         private float m_environmentTime;
         private float m_boundaryPulse;

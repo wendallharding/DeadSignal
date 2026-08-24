@@ -1,10 +1,9 @@
-using System;
 using UnityEngine;
 
 namespace DeadSignal.Presentation
 {
     /// <summary>
-    /// Owns and live-updates the runtime material palette used by the generated world.
+    /// Loads the authored material palette and applies accessibility color variants at runtime.
     /// </summary>
     internal sealed class DeadSignalPalette
     {
@@ -29,6 +28,7 @@ namespace DeadSignal.Presentation
         public Material Dark { get; }
         public Material Steel { get; }
         public Material White { get; }
+        public Material PoweredTerritory { get; }
         public bool HasDeckTexture { get; }
         public bool HasBulkheadTexture { get; }
         public bool HasTowerTexture { get; }
@@ -43,205 +43,39 @@ namespace DeadSignal.Presentation
 
         public DeadSignalPalette(bool highContrastEnabled)
         {
-            Cyan = _createMaterial("Signal Cyan");
-            CyanDim = _createMaterial("Powered Deck");
-            Amber = _createMaterial("Salvage Amber");
-            Red = _createMaterial("Security Red");
-            RedDim = _createMaterial("Dead Zone Red");
-            Magenta = _createMaterial("Sapper Magenta");
-            Deck = _createMaterial("Maintenance Deck");
-            Bulkhead = _createMaterial("Maintenance Bulkhead");
-            TowerHousing = _createMaterial("Signal Tower Housing");
-            ExtractionHousing = _createMaterial("Extraction Dock Housing");
-            ShortcutHousing = _createMaterial("Shortcut Gate Housing");
-            ShortcutLocked = _createMaterial("Shortcut Gate Locked");
-            SignalRouting = _createMaterial("Signal Routing");
-            StationMachineHousing = _createMaterial("Station Machine Housing");
-            SalvageCacheHousing = _createMaterial("Salvage Cache Housing");
-            PlayerDroneHousing = _createMaterial("Maintenance Drone Housing");
-            WardenHousing = _createMaterial("Security Warden Housing");
-            SapperHousing = _createMaterial("Signal Sapper Housing");
-            Dark = _createMaterial("Station Black");
-            Steel = _createMaterial("Station Steel");
-            White = _createMaterial("Drone White");
-            var deckTexture = Resources.Load<Texture2D>(MAINTENANCE_DECK_TEXTURE_RESOURCE);
-            if (deckTexture != null)
-            {
-                Deck.mainTexture = deckTexture;
-                if (Deck.HasProperty("_BaseMap"))
-                {
-                    Deck.SetTexture("_BaseMap", deckTexture);
-                }
-
-                if (Deck.HasProperty("_Smoothness"))
-                {
-                    Deck.SetFloat("_Smoothness", 0.22f);
-                }
-            }
-
-            HasDeckTexture = deckTexture != null;
-            var bulkheadTexture = Resources.Load<Texture2D>(MAINTENANCE_BULKHEAD_TEXTURE_RESOURCE);
-            if (bulkheadTexture != null)
-            {
-                Bulkhead.mainTexture = bulkheadTexture;
-                if (Bulkhead.HasProperty("_BaseMap"))
-                {
-                    Bulkhead.SetTexture("_BaseMap", bulkheadTexture);
-                }
-
-                if (Bulkhead.HasProperty("_Smoothness"))
-                {
-                    Bulkhead.SetFloat("_Smoothness", 0.3f);
-                }
-            }
-
-            HasBulkheadTexture = bulkheadTexture != null;
-            var towerTexture = Resources.Load<Texture2D>(SIGNAL_TOWER_TEXTURE_RESOURCE);
-            if (towerTexture != null)
-            {
-                TowerHousing.mainTexture = towerTexture;
-                if (TowerHousing.HasProperty("_BaseMap"))
-                {
-                    TowerHousing.SetTexture("_BaseMap", towerTexture);
-                }
-
-                if (TowerHousing.HasProperty("_Smoothness"))
-                {
-                    TowerHousing.SetFloat("_Smoothness", 0.38f);
-                }
-            }
-
-            HasTowerTexture = towerTexture != null;
-            var extractionTexture = Resources.Load<Texture2D>(EXTRACTION_DOCK_TEXTURE_RESOURCE);
-            if (extractionTexture != null)
-            {
-                ExtractionHousing.mainTexture = extractionTexture;
-                if (ExtractionHousing.HasProperty("_BaseMap"))
-                {
-                    ExtractionHousing.SetTexture("_BaseMap", extractionTexture);
-                }
-
-                if (ExtractionHousing.HasProperty("_Smoothness"))
-                {
-                    ExtractionHousing.SetFloat("_Smoothness", 0.32f);
-                }
-            }
-
-            HasExtractionTexture = extractionTexture != null;
-            var shortcutTexture = Resources.Load<Texture2D>(SHORTCUT_GATE_TEXTURE_RESOURCE);
-            if (shortcutTexture != null)
-            {
-                ShortcutHousing.mainTexture = shortcutTexture;
-                ShortcutLocked.mainTexture = shortcutTexture;
-                if (ShortcutHousing.HasProperty("_BaseMap"))
-                {
-                    ShortcutHousing.SetTexture("_BaseMap", shortcutTexture);
-                    ShortcutLocked.SetTexture("_BaseMap", shortcutTexture);
-                }
-
-                if (ShortcutHousing.HasProperty("_Smoothness"))
-                {
-                    ShortcutHousing.SetFloat("_Smoothness", 0.34f);
-                }
-            }
-
-            HasShortcutTexture = shortcutTexture != null;
-            var signalRoutingTexture = Resources.Load<Texture2D>(SIGNAL_ROUTING_TEXTURE_RESOURCE);
-            if (signalRoutingTexture != null)
-            {
-                SignalRouting.mainTexture = signalRoutingTexture;
-                if (SignalRouting.HasProperty("_BaseMap"))
-                {
-                    SignalRouting.SetTexture("_BaseMap", signalRoutingTexture);
-                }
-
-                if (SignalRouting.HasProperty("_Smoothness"))
-                {
-                    SignalRouting.SetFloat("_Smoothness", 0.4f);
-                }
-            }
-
-            HasSignalRoutingTexture = signalRoutingTexture != null;
-            var stationMachineTexture = Resources.Load<Texture2D>(STATION_MACHINE_TEXTURE_RESOURCE);
-            if (stationMachineTexture != null)
-            {
-                StationMachineHousing.mainTexture = stationMachineTexture;
-                if (StationMachineHousing.HasProperty("_BaseMap"))
-                {
-                    StationMachineHousing.SetTexture("_BaseMap", stationMachineTexture);
-                }
-
-                if (StationMachineHousing.HasProperty("_Smoothness"))
-                {
-                    StationMachineHousing.SetFloat("_Smoothness", 0.28f);
-                }
-            }
-
-            HasStationMachineTexture = stationMachineTexture != null;
-            var salvageCacheTexture = Resources.Load<Texture2D>(SALVAGE_CACHE_TEXTURE_RESOURCE);
-            if (salvageCacheTexture != null)
-            {
-                SalvageCacheHousing.mainTexture = salvageCacheTexture;
-                if (SalvageCacheHousing.HasProperty("_BaseMap"))
-                {
-                    SalvageCacheHousing.SetTexture("_BaseMap", salvageCacheTexture);
-                }
-
-                if (SalvageCacheHousing.HasProperty("_Smoothness"))
-                {
-                    SalvageCacheHousing.SetFloat("_Smoothness", 0.36f);
-                }
-            }
-
-            HasSalvageCacheTexture = salvageCacheTexture != null;
-            var playerDroneTexture = Resources.Load<Texture2D>(PLAYER_DRONE_TEXTURE_RESOURCE);
-            if (playerDroneTexture != null)
-            {
-                PlayerDroneHousing.mainTexture = playerDroneTexture;
-                if (PlayerDroneHousing.HasProperty("_BaseMap"))
-                {
-                    PlayerDroneHousing.SetTexture("_BaseMap", playerDroneTexture);
-                }
-
-                if (PlayerDroneHousing.HasProperty("_Smoothness"))
-                {
-                    PlayerDroneHousing.SetFloat("_Smoothness", 0.42f);
-                }
-            }
-
-            HasPlayerDroneTexture = playerDroneTexture != null;
-            var wardenTexture = Resources.Load<Texture2D>(SECURITY_WARDEN_TEXTURE_RESOURCE);
-            if (wardenTexture != null)
-            {
-                WardenHousing.mainTexture = wardenTexture;
-                if (WardenHousing.HasProperty("_BaseMap"))
-                {
-                    WardenHousing.SetTexture("_BaseMap", wardenTexture);
-                }
-
-                if (WardenHousing.HasProperty("_Smoothness"))
-                {
-                    WardenHousing.SetFloat("_Smoothness", 0.3f);
-                }
-            }
-
-            HasWardenTexture = wardenTexture != null;
-            var sapperTexture = Resources.Load<Texture2D>(SIGNAL_SAPPER_TEXTURE_RESOURCE);
-            if (sapperTexture != null)
-            {
-                SapperHousing.mainTexture = sapperTexture;
-                if (SapperHousing.HasProperty("_BaseMap"))
-                {
-                    SapperHousing.SetTexture("_BaseMap", sapperTexture);
-                }
-
-                if (SapperHousing.HasProperty("_Smoothness"))
-                {
-                    SapperHousing.SetFloat("_Smoothness", 0.38f);
-                }
-            }
-
-            HasSapperTexture = sapperTexture != null;
+            Cyan = _loadMaterial("SignalCyan");
+            CyanDim = _loadMaterial("PoweredDeck");
+            Amber = _loadMaterial("SalvageAmber");
+            Red = _loadMaterial("SecurityRed");
+            RedDim = _loadMaterial("DeadZoneRed");
+            Magenta = _loadMaterial("SapperMagenta");
+            Deck = _loadMaterial("MaintenanceDeck");
+            Bulkhead = _loadMaterial("MaintenanceBulkhead");
+            TowerHousing = _loadMaterial("SignalTowerHousing");
+            ExtractionHousing = _loadMaterial("ExtractionDockHousing");
+            ShortcutHousing = _loadMaterial("ShortcutGateHousing");
+            ShortcutLocked = _loadMaterial("ShortcutGateLocked");
+            SignalRouting = _loadMaterial("SignalRouting");
+            StationMachineHousing = _loadMaterial("StationMachineHousing");
+            SalvageCacheHousing = _loadMaterial("SalvageCacheHousing");
+            PlayerDroneHousing = _loadMaterial("MaintenanceDroneHousing");
+            WardenHousing = _loadMaterial("SecurityWardenHousing");
+            SapperHousing = _loadMaterial("SignalSapperHousing");
+            Dark = _loadMaterial("StationBlack");
+            Steel = _loadMaterial("StationSteel");
+            White = _loadMaterial("DroneWhite");
+            PoweredTerritory = _loadMaterial("PoweredTerritory");
+            HasDeckTexture = Deck.mainTexture != null;
+            HasBulkheadTexture = Bulkhead.mainTexture != null;
+            HasTowerTexture = TowerHousing.mainTexture != null;
+            HasExtractionTexture = ExtractionHousing.mainTexture != null;
+            HasShortcutTexture = ShortcutHousing.mainTexture != null && ShortcutLocked.mainTexture != null;
+            HasSignalRoutingTexture = SignalRouting.mainTexture != null;
+            HasStationMachineTexture = StationMachineHousing.mainTexture != null;
+            HasSalvageCacheTexture = SalvageCacheHousing.mainTexture != null;
+            HasPlayerDroneTexture = PlayerDroneHousing.mainTexture != null;
+            HasWardenTexture = WardenHousing.mainTexture != null;
+            HasSapperTexture = SapperHousing.mainTexture != null;
             ApplyHighContrast(highContrastEnabled);
         }
 
@@ -312,23 +146,13 @@ namespace DeadSignal.Presentation
                 enabled ? new Color(0.18f, 0.22f, 0.24f) : new Color(0.03f, 0.06f, 0.07f));
         }
 
-        private static Material _createMaterial(string materialName)
+        private static Material _loadMaterial(string materialName)
         {
-            var template = Resources.Load<Material>(RUNTIME_MATERIAL_RESOURCE);
-            var material = template == null ? null : new Material(template);
+            var material = Resources.Load<Material>($"Materials/WorldPalette/{materialName}");
             if (material == null)
             {
-                var shader = Shader.Find("Universal Render Pipeline/Lit") ?? Shader.Find("Standard");
-                if (shader == null)
-                {
-                    throw new InvalidOperationException("DEAD SIGNAL could not load its runtime Lit material or fallback shader.");
-                }
-
-                material = new Material(shader);
+                throw new MissingReferenceException($"Authored world material is missing: Materials/WorldPalette/{materialName}.");
             }
-
-            material.name = materialName;
-            material.enableInstancing = true;
             return material;
         }
 
@@ -347,17 +171,5 @@ namespace DeadSignal.Presentation
             }
         }
 
-        private const string RUNTIME_MATERIAL_RESOURCE = "Materials/RuntimeLitTemplate";
-        private const string MAINTENANCE_DECK_TEXTURE_RESOURCE = "Environment/MaintenanceDeckPanel";
-        private const string MAINTENANCE_BULKHEAD_TEXTURE_RESOURCE = "Environment/MaintenanceBulkheadPanel";
-        private const string SIGNAL_TOWER_TEXTURE_RESOURCE = "Environment/SignalTowerHousingPanel";
-        private const string EXTRACTION_DOCK_TEXTURE_RESOURCE = "Environment/ExtractionDockPanel";
-        private const string SHORTCUT_GATE_TEXTURE_RESOURCE = "Environment/ShortcutGatePanel";
-        private const string SIGNAL_ROUTING_TEXTURE_RESOURCE = "Environment/SignalRoutingPanel";
-        private const string STATION_MACHINE_TEXTURE_RESOURCE = "Environment/StationMachinePanel";
-        private const string SALVAGE_CACHE_TEXTURE_RESOURCE = "Environment/SalvageCachePanel";
-        private const string PLAYER_DRONE_TEXTURE_RESOURCE = "Actors/MaintenanceDroneHullAlbedo";
-        private const string SECURITY_WARDEN_TEXTURE_RESOURCE = "Actors/SecurityWardenArmorAlbedo";
-        private const string SIGNAL_SAPPER_TEXTURE_RESOURCE = "Actors/SignalSapperArmorAlbedo";
     }
 }

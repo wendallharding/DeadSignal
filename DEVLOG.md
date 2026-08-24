@@ -36,6 +36,19 @@ No interactive feel test, standalone build, or visual HUD inspection ran. Human 
 
 Next highest-impact step: compare three first-response routes—retreat immediately after the warning, cross the exclusion once and leave, and repeatedly feint the gate while the opening Warden remains alive. Record blocked-state recognition, total gate occupation, actual deployment time, route abandonment, live role mix, shots, hits, Signal spent/reclaimed, cache split, extraction mode, and final reserve before changing the warning or exclusion tuning.
 
+## 2026-08-23 — Authored scene materials and world cleanup
+
+Moved the world palette from runtime material cloning to 22 persistent `.mat` assets under `Assets/DeadSignal/Resources/Materials/WorldPalette`. `SampleScene` now serializes those assets on the deck, shell, extraction, tower, routing, shortcut, machines, player, and persistent threats. `DeadSignalPalette` loads the authored assets and retains only live accessibility color updates.
+
+- Removed the environment and persistent-actor material assignments from `DeadSignalWorld`; remaining assignments belong to runtime state changes or transient objects.
+- Removed the obsolete environment and actor builder methods, their primitive fallbacks, twelve unused prefab-resource constants, deck-layout constants, and the final runtime `new Material(...)` from `DeadSignalWorld` (589 deleted lines before focused binding additions).
+- Updated the idempotent scene migration command to create/update the palette assets and apply them while authoring the scene.
+- Unity `6000.3.11f1` compiled and imported the material assets successfully.
+- EditMode: 104/104 passed, 0 failed, 0 skipped in 0.1718412 seconds. Results: `TestResults-SceneMaterials-EditMode.xml`; log: `scene-materials-editmode.log`.
+- Full PlayMode: 13/13 passed, 0 failed, 0 skipped in 42.3996099 seconds. Results: `TestResults-SceneMaterials-PlayMode.xml`; log: `scene-materials-playmode.log`.
+
+Interactive inspection remains necessary to judge the authored materials in normal and High Contrast modes. Unity-generated scene YAML contains its normal empty serialized-field whitespace; it was not hand-edited.
+
 ## 2026-08-23 — Scene-authored world migration
 
 Moved the fixed playable composition out of the active `DeadSignalWorld` construction path and into `Assets/DeadSignal/Scenes/SampleScene.unity`. The scene now owns a visible `DEAD SIGNAL — Authored World` hierarchy containing 35 maintenance-deck prefab instances, the room shell, extraction pad, signal tower and routing, shortcut gate, six station machines, spatial anchors, camera/light rig, and the player plus four persistent threat prefab instances.
