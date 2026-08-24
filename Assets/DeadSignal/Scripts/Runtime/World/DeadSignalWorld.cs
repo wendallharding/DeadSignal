@@ -25,6 +25,16 @@ namespace DeadSignal.World
         public Vector3 ShortcutPosition => m_scene.ShortcutPosition;
         public Vector3 RelayTowerPosition => m_scene.RelayTowerPosition;
 
+        public Vector3 GetSalvagePosition(int index)
+        {
+            if (m_salvagePickups.Count == 0)
+            {
+                return TowerPosition;
+            }
+
+            return m_salvagePickups[Mathf.Clamp(index, 0, m_salvagePickups.Count - 1)].transform.position;
+        }
+
         public Camera Camera { get; private set; }
         public Transform Player { get; private set; }
         public Transform PlayerNose { get; private set; }

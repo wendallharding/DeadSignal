@@ -1,5 +1,17 @@
 # DEAD SIGNAL — Product Backlog
 
+## P0 — AutoUI feature laboratory
+
+- [x] Add an Editor/development-build-only AutoUI debug menu opened with F5
+- [x] Pause by default, block gameplay input, and allow an explicit live-simulation mode
+- [x] Add live overview and composition telemetry for run, threats, upgrades, extraction, authored assets, and runtime objects
+- [x] Add invariant-preserving controls for Signal, teleporting, towers, shortcut, salvage, threats, upgrades, and extraction
+- [x] Add curated one-click scenarios for the major playable phases and edge cases
+- [x] Add presentation and accessibility controls for VFX, comfort modes, contrast, and audio
+- [x] Prove AutoUI resource packaging, runtime bootstrap, command integration, and non-development-player exclusion
+- [ ] Interactively inspect every page at 16:9 and controller navigation; tune panel widths and labels from capture evidence
+- [ ] Add each future gameplay feature's prerequisite, trigger, edge case, telemetry, reset, and scenario controls as part of its definition of done
+
 ## P0 — Relay lockdown security composition (Run 87)
 
 - [x] Promote the existing final Suppressor response when the optional Relay tower comes online

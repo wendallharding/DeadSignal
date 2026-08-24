@@ -3,6 +3,7 @@ using Reflex.Injectors;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using DeadSignal.Combat;
+using DeadSignal.Diagnostics;
 using DeadSignal.Player;
 using DeadSignal.Presentation;
 using DeadSignal.World;
@@ -65,7 +66,12 @@ namespace DeadSignal.Application
             var signalDust = root.AddComponent<SignalDustController>();
             var lowSignalWarning = hudInstance.GetComponent<LowSignalWarningController>();
             var towerActivationSweep = root.AddComponent<TowerActivationSweepController>();
-            root.AddComponent<DeadSignalGame>();
+            var game = root.AddComponent<DeadSignalGame>();
+            DeadSignalDebugMenu debugMenu = null;
+            if (DeadSignalDebugMenu.IsAvailable)
+            {
+                debugMenu = root.AddComponent<DeadSignalDebugMenu>();
+            }
 
             var container = new ContainerBuilder()
                 .SetName("DEAD SIGNAL Runtime")
@@ -82,6 +88,7 @@ namespace DeadSignal.Application
             GameObjectInjector.InjectObject(root, container);
             GameObjectInjector.InjectObject(hudInstance, container);
             root.SetActive(true);
+            debugMenu?.Configure(game);
         }
     }
 }

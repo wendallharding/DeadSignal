@@ -151,6 +151,62 @@ namespace DeadSignal.Combat
             m_extractionUplinkMode = mode;
         }
 
+        public void SpawnForDebug(SecurityReinforcement reinforcement)
+        {
+            switch (reinforcement)
+            {
+                case SecurityReinforcement.Warden:
+                    m_wardenHealth = m_tuning.WardenHealth;
+                    m_world.DeployWardenReinforcement();
+                    break;
+                case SecurityReinforcement.Sapper:
+                    m_sapperHealth = m_tuning.SapperHealth;
+                    m_sapperLatched = false;
+                    m_sapperPulseCooldown = m_tuning.SapperFirstPulseDelay;
+                    m_world.DeploySapperReinforcement(m_tuning.SapperPulseInterval);
+                    break;
+                case SecurityReinforcement.Interceptor:
+                    m_interceptorHealth = m_tuning.InterceptorHealth;
+                    m_world.DeployInterceptorReinforcement();
+                    break;
+                case SecurityReinforcement.Suppressor:
+                    m_suppressorHealth = m_tuning.SuppressorHealth;
+                    m_world.DeploySuppressorReinforcement();
+                    break;
+            }
+        }
+
+        public void PurgeForDebug(SecurityReinforcement reinforcement)
+        {
+            switch (reinforcement)
+            {
+                case SecurityReinforcement.Warden:
+                    while (m_wardenHealth > 0f)
+                    {
+                        _hitWarden();
+                    }
+                    break;
+                case SecurityReinforcement.Sapper:
+                    while (m_sapperHealth > 0f)
+                    {
+                        _hitSapper();
+                    }
+                    break;
+                case SecurityReinforcement.Interceptor:
+                    while (m_interceptorHealth > 0f)
+                    {
+                        _hitInterceptor();
+                    }
+                    break;
+                case SecurityReinforcement.Suppressor:
+                    while (m_suppressorHealth > 0f)
+                    {
+                        _hitSuppressor();
+                    }
+                    break;
+            }
+        }
+
         public void TickCooldown(float dt)
         {
             m_shotCooldown = Mathf.Max(0f, m_shotCooldown - dt);

@@ -1,5 +1,29 @@
 # DEAD SIGNAL — Development Log
 
+## 2026-08-23 — AutoUI feature laboratory
+
+Implemented the five-phase debug-menu plan as an Editor/development-build-only feature laboratory. F5 opens a generated AutoUI menu that pauses by default, can deliberately run live simulation, blocks normal gameplay commands while open, and exposes live run/composition telemetry. The menu includes curated scenarios plus focused controls for Signal, landmark teleporting, towers, shortcut access, salvage, all current overclock families, Warden/Sapper/Interceptor/Suppressor deployment and purge, stable/overdrive extraction, presentation replay, accessibility settings, and clipboard diagnostics.
+
+The debug surface delegates to explicit `DeadSignalGame` commands and focused controller hooks rather than mutating private state through reflection. Scenario commands preserve normal transactions and presentation where practical: towers activate their world state and sweep, caches pass through the salvage controller, purges use normal reward/feedback paths, and extraction uses the normal uplink model. Release safety is centralized in a policy that permits the menu only in the Editor or a development build.
+
+Changed files and assets:
+
+- `DeadSignalDebugMenu.cs` provides the AutoUI pages, F5 input, scenarios, telemetry, and release guard.
+- `DeadSignalBootstrap.cs` composes the menu only when the guard permits it.
+- `DeadSignalGame.cs`, `RunModel.cs`, `DeadSignalThreatController.cs`, and `DeadSignalWorld.cs` provide narrow invariant-preserving debug commands and state.
+- `DeadSignal.Runtime.asmdef` now references `OOI.AutoUI`.
+- `DeadSignalDebugMenuAssetSetup.cs` copies the two required AutoUI roots into DEAD SIGNAL-owned Resources assets while retaining their package-template dependencies.
+- `Assets/DeadSignal/Resources/UI/Debug` contains project-owned generator and canvas prefab copies; a small isolated compatibility bridge configures AutoUI 1.0's serialized provider fields without modifying or publishing the AutoUI package.
+- Imported Unity's standard TMP Essential Resources under `Assets/TextMesh Pro`; AutoUI's TMP labels now initialize without opening an Editor-only package importer, including in headless tests and player builds.
+- `DeadSignalDebugMenuTests.cs` and `DeadSignalDebugMenuPlayModeTests.cs` cover release exclusion, resource packaging, bootstrap, initial visibility, and an end-to-end tower/cache/overclock/extraction command sequence.
+- `BACKLOG.md` records the completed debug contract and the remaining interactive UI pass.
+
+Focused Unity `6000.3.11f1` validation: EditMode `2/2` passed in `0.026036s` (`TestResults-DebugMenu-EditMode.xml`, `Logs/DebugMenu-EditMode.log`); final project-owned-resource PlayMode `2/2` passed in `1.5045332s` (`TestResults-DebugMenu-PlayMode-ProjectOwned.xml`, `Logs/DebugMenu-PlayMode-ProjectOwned.log`). Full EditMode passed `111/111` in `0.1677401s` (`TestResults-DebugMenu-Full-EditMode.xml`, `Logs/DebugMenu-Full-EditMode.log`); a full PlayMode run before concurrent Capacitor Spine integration passed `18/18` in `52.2241019s` (`TestResults-DebugMenu-Full-PlayMode-Final.xml`, `Logs/DebugMenu-Full-PlayMode-Final.log`). The first focused PlayMode attempt found null optional-page collections during runtime provider configuration; the project bridge now initializes both collections. The first full PlayMode attempt exposed missing TMP Essential Resources when headless Unity tried to open the resource importer; importing the standard assets fixed the dependency. The debug-menu-focused authoritative rerun contains no compiler errors, null/missing references, unhandled exceptions, or failed assertions. A later mixed-workspace full run passed `17/19`; both failures belong to the concurrently added Capacitor Spine scene contract (32 versus 40 obstacles and a missing region reference), while both debug-menu tests passed.
+
+The Windows development-build command ran while the concurrent Capacitor Spine assets were mid-integration and stopped because its route decal was not yet present. `Logs/DebugMenu-Windows-Build-Final.log` records the exact `InvalidOperationException`. No new player build was produced, and all task-triggered setup-command asset rewrites were excluded; standalone packaging should be retried after that separate scene pass is complete.
+
+An interactive visual/controller-navigation pass and standalone development/release build comparison remain. The next debug-menu step is to inspect every page in a normal Game view, confirm F5/cursor ownership and live-simulation feel, then add a controller chord if F5-only access becomes inconvenient for couch testing.
+
 ## 2026-08-23 — Autonomous Run 83: Persistent reinforcement entry
 
 ### Milestone, player benefit, and acceptance

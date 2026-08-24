@@ -253,6 +253,17 @@ namespace DeadSignal.Missions
             return Signal - previousSignal;
         }
 
+        internal void SetSignalForDebug(float signal)
+        {
+            if (Outcome != RunOutcome.Running)
+            {
+                return;
+            }
+
+            Signal = Math.Max(0f, Math.Min(MaximumSignal, signal));
+            CriticalRecoveryRemaining = Signal <= 0f ? CriticalRecoveryDuration : 0f;
+        }
+
         public bool TryExtract()
         {
             if (!CanExtract)

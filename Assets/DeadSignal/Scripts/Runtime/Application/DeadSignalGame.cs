@@ -4,6 +4,7 @@ using Reflex.Core;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using DeadSignal.Combat;
+using DeadSignal.Diagnostics;
 using DeadSignal.Missions;
 using DeadSignal.Player;
 using DeadSignal.Presentation;
@@ -53,8 +54,12 @@ namespace DeadSignal.Application
         private float m_difficultyDrainMultiplier = 1f;
         private float m_dashCooldown;
         private float m_blockedFeedbackCooldown;
+        private bool m_debugMenuOpen;
 
         public float CurrentSignal => m_model?.Signal ?? 0f;
+        public int CurrentSalvage => m_model?.Salvage ?? 0;
+        public bool IsTowerOnline => m_model?.TowerOnline ?? false;
+        public RunOutcome CurrentRunOutcome => m_model?.Outcome ?? RunOutcome.Destroyed;
         public bool IsRelayTowerOnline => m_model?.RelayTowerOnline ?? false;
         public Vector3 RelayTowerPosition => m_world?.RelayTowerPosition ?? Vector3.zero;
         public Vector3 SafestReinforcementEntryPosition => m_world == null
@@ -211,6 +216,230 @@ namespace DeadSignal.Application
         public int ActiveSignalBoltCount => transform.Cast<Transform>().Count(child => child.name == "Signal Bolt");
         public int PiercingPulseFollowThroughs => m_threats?.PiercingPulseFollowThroughs ?? 0;
         public int ControlledRicochets => m_threats?.ControlledRicochets ?? 0;
+        public string DebugOverview =>
+            $"DEBUG ACTIVE\n" +
+            $"Run: {m_model?.Outcome}  //  Phase {CurrentMissionPhase}\n" +
+            $"Signal: {CurrentSignal:0.0}  {CurrentSignalReserveState}\n" +
+            $"Tower: {(m_model?.TowerOnline == true ? "ONLINE" : "DORMANT")}  Relay: {(IsRelayTowerOnline ? "ONLINE" : "DORMANT")}\n" +
+            $"Salvage: {m_model?.Salvage ?? 0}/{RunModel.SalvageRequired}  Chain: {CurrentSalvageChain} ({SalvageChainSecondsRemaining:0.0}s)\n" +
+            $"Threats: W {WardenHealth:0}  S {SapperHealth:0}  I {InterceptorHealth:0}  X {SuppressorHealth:0}\n" +
+            $"Security: Tier {SecurityEscalationTier}  Reserve {SecurityReinforcementsRemaining}\n" +
+            $"Upgrades: {SelectedOverclock} / {SelectedAuxiliaryOverclock} / {SelectedWeaponOverclock}\n" +
+            $"Extraction: {CurrentExtractionUplinkMode} {ExtractionUplinkSecondsRemaining:0.0}s";
+        public string DebugComposition =>
+            $"Assets — deck:{HasMaintenanceDeckAssets}, shell:{HasMaintenanceRoomShellAssets}, tower:{HasSignalTowerAssets}, " +
+            $"drone:{HasPlayerDroneAssets}, bolt:{HasSignalBoltAssets}\n" +
+            $"Authored — obstacles:{AuthoredMapObstacleCount}, salvage sockets:{AuthoredSalvageSocketCount}, " +
+            $"entries:{AuthoredInterceptorEntranceCount}\n" +
+            $"Runtime — projectiles:{ActiveSignalBoltCount}, objective:{CurrentObjectiveBeaconPhase}, audio:{HasGeneratedAudio}";
+
+        public void SetDebugMenuState(bool open, bool runWhileOpen)
+        {
+            if (!DeadSignalDebugMenu.IsAvailable)
+            {
+                return;
+            }
+
+            m_debugMenuOpen = open;
+            _setPaused(open && !runWhileOpen);
+        }
+
+        public void DebugSetSignal(float signal) => m_model?.SetSignalForDebug(signal);
+
+        public void DebugResetDashCooldown() => m_dashCooldown = 0f;
+
+        public void DebugActivateTower()
+        {
+            if (m_model == null || m_model.TowerOnline)
+            {
+                return;
+            }
+
+            if (m_model.Signal < RunModel.TowerCost)
+            {
+                m_model.SetSignalForDebug(RunModel.TowerCost);
+            }
+
+            if (m_model.TryActivateTower())
+            {
+                m_world.ActivateTower(m_threats.SapperPulseInterval);
+                m_towerActivationSweep.Play();
+                _showFeedback("DEBUG — CENTRAL TOWER ACTIVATED");
+            }
+        }
+
+        public void DebugActivateRelayTower()
+        {
+            DebugActivateTower();
+            if (m_model.RelayTowerOnline)
+            {
+                return;
+            }
+
+            m_model.SetSignalForDebug(Mathf.Max(m_model.Signal, RunModel.RelayTowerCost + 1f));
+            if (m_model.TryActivateRelayTower())
+            {
+                m_world.ActivateRelayTower();
+                m_overclockChoice.NotifyRelayActivated();
+                _showFeedback("DEBUG — RELAY TOWER ACTIVATED");
+            }
+        }
+
+        public void DebugOpenShortcut()
+        {
+            DebugActivateTower();
+            m_model.SetSignalForDebug(Mathf.Max(m_model.Signal, RunModel.ShortcutCost + 1f));
+            if (m_model.TryOpenShortcut())
+            {
+                m_world.OpenShortcut();
+            }
+        }
+
+        public void DebugTeleport(DebugLocation location)
+        {
+            if (m_world?.Player == null)
+            {
+                return;
+            }
+
+            m_world.Player.position = location switch
+            {
+                DebugLocation.Extraction => m_world.ExtractionPosition,
+                DebugLocation.CentralTower => m_world.TowerPosition,
+                DebugLocation.Shortcut => m_world.ShortcutPosition,
+                DebugLocation.RelayTower => m_world.RelayTowerPosition,
+                DebugLocation.CacheOne => m_world.GetSalvagePosition(0),
+                DebugLocation.CacheTwo => m_world.GetSalvagePosition(1),
+                DebugLocation.CacheThree => m_world.GetSalvagePosition(2),
+                DebugLocation.CacheFour => m_world.GetSalvagePosition(3),
+                _ => m_world.ExtractionPosition
+            };
+            m_playerMovement = new PlayerDroneMovement();
+        }
+
+        public void DebugCollectNextCache()
+        {
+            if (m_model == null || m_model.Outcome != RunOutcome.Running)
+            {
+                return;
+            }
+
+            foreach (var pickup in m_world.SalvagePickups)
+            {
+                if (!pickup.activeSelf)
+                {
+                    continue;
+                }
+
+                m_world.Player.position = pickup.transform.position;
+                m_salvage.Tick(0f);
+                return;
+            }
+        }
+
+        public void DebugMakeExtractionReady()
+        {
+            DebugActivateTower();
+            while (!m_model.CanExtract)
+            {
+                DebugCollectNextCache();
+                if (m_model.Salvage >= RunModel.SalvageRequired)
+                {
+                    break;
+                }
+            }
+        }
+
+        public void DebugSpawnThreat(SecurityReinforcement reinforcement)
+        {
+            DebugActivateTower();
+            m_threats.SpawnForDebug(reinforcement);
+        }
+
+        public void DebugPurgeThreat(SecurityReinforcement reinforcement) => m_threats?.PurgeForDebug(reinforcement);
+
+        public void DebugSelectOverclock(SignalOverclock overclock)
+        {
+            m_overclockChoice.NotifySalvageCollected(1);
+            m_overclockChoice.TrySelect(overclock);
+        }
+
+        public void DebugSelectAuxiliary(SignalAuxiliaryOverclock overclock)
+        {
+            if (m_overclockChoice.Selected == SignalOverclock.None)
+            {
+                DebugSelectOverclock(SignalOverclock.ChainArc);
+            }
+            m_overclockChoice.NotifySalvageCollected(2);
+            m_overclockChoice.TrySelect(overclock);
+        }
+
+        public void DebugSelectWeapon(SignalWeaponOverclock overclock)
+        {
+            m_overclockChoice.NotifyRelayActivated();
+            m_overclockChoice.TrySelect(overclock);
+        }
+
+        public void DebugBeginExtraction(ExtractionUplinkMode mode)
+        {
+            DebugMakeExtractionReady();
+            if (mode == ExtractionUplinkMode.Overdrive)
+            {
+                m_model.SetSignalForDebug(Mathf.Max(m_model.Signal, m_extractionUplink.OverdriveSignalCost + 1f));
+                m_model.TrySpend(m_extractionUplink.OverdriveSignalCost);
+            }
+            _beginExtractionUplink(mode, $"DEBUG — {mode.ToString().ToUpperInvariant()} UPLINK");
+        }
+
+        public void DebugCompleteExtraction()
+        {
+            DebugMakeExtractionReady();
+            if (!m_extractionUplink.IsActive && !m_extractionUplink.IsComplete)
+            {
+                DebugBeginExtraction(ExtractionUplinkMode.Stable);
+            }
+            m_extractionUplink.Tick(999f);
+            _completeExtraction();
+        }
+
+        public void DebugPlayTowerSweep() => m_towerActivationSweep?.Play();
+        public void DebugPlaySignalImpact() => m_combatFeedback?.PlaySignalImpact(m_world.Player.position + Vector3.forward, false);
+        public void DebugPlaySignalRecovery() => m_combatFeedback?.PlaySignalRecovery(m_world.Player.position + Vector3.forward);
+        public void DebugPlaySalvageChain() => m_combatFeedback?.PlaySalvageChain(m_world.Player.position + Vector3.forward, 3);
+
+        public void DebugToggleCameraImpulse() => m_comfortSettings?.ToggleCameraImpulse();
+        public void DebugToggleReducedFlashes() => m_comfortSettings?.ToggleReducedFlashes();
+        public void DebugToggleHighContrast()
+        {
+            m_comfortSettings?.ToggleHighContrast();
+            m_world?.ApplyHighContrast(m_comfortSettings?.HighContrastEnabled ?? false);
+        }
+        public void DebugToggleAudio() => m_comfortSettings?.ToggleAudio();
+
+        public void DebugApplyScenario(DebugScenario scenario)
+        {
+            if (scenario == DebugScenario.FreshRun)
+            {
+                SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+                return;
+            }
+
+            switch (scenario)
+            {
+                case DebugScenario.TowerActivation: DebugTeleport(DebugLocation.CentralTower); DebugActivateTower(); break;
+                case DebugScenario.FirstOverclock: DebugActivateTower(); DebugCollectNextCache(); break;
+                case DebugScenario.ActiveSalvageChain: DebugActivateTower(); DebugCollectNextCache(); DebugCollectNextCache(); break;
+                case DebugScenario.SapperPulse: DebugSpawnThreat(SecurityReinforcement.Sapper); DebugTeleport(DebugLocation.CentralTower); break;
+                case DebugScenario.InterceptorCharge: DebugSpawnThreat(SecurityReinforcement.Interceptor); break;
+                case DebugScenario.SuppressorExtraction: DebugBeginExtraction(ExtractionUplinkMode.Stable); DebugSpawnThreat(SecurityReinforcement.Suppressor); break;
+                case DebugScenario.CriticalRecovery: m_model.SetSignalForDebug(0f); break;
+                case DebugScenario.OptionalCache: DebugMakeExtractionReady(); break;
+                case DebugScenario.StableExtraction: DebugBeginExtraction(ExtractionUplinkMode.Stable); DebugTeleport(DebugLocation.Extraction); break;
+                case DebugScenario.OverdriveExtraction: DebugBeginExtraction(ExtractionUplinkMode.Overdrive); DebugTeleport(DebugLocation.Extraction); break;
+                case DebugScenario.Victory: DebugCompleteExtraction(); break;
+                case DebugScenario.Failure: m_model.SetSignalForDebug(0f); m_model.Advance(RunModel.CriticalRecoveryDuration, false, false); break;
+            }
+        }
 
         public void BeginFireKeyboardRebind()
         {
@@ -419,8 +648,10 @@ namespace DeadSignal.Application
                 return;
             }
 
-            var movement = _updatePlayer(dt);
-            var aimDirection = _applyAimAssist(m_input.ReadAimDirection(m_world.Camera, m_world.Player));
+            var movement = m_debugMenuOpen ? Vector3.zero : _updatePlayer(dt);
+            var aimDirection = m_debugMenuOpen
+                ? m_world.Player.forward
+                : _applyAimAssist(m_input.ReadAimDirection(m_world.Camera, m_world.Player));
             m_world.TickPlayerPresentation(
                 dt,
                 m_playerPresentationAcceleration,
@@ -454,6 +685,12 @@ namespace DeadSignal.Application
                 m_lastPoweredState = powered;
             }
 
+            if (m_debugMenuOpen)
+            {
+                _tickRunSystems(dt, powered);
+                return;
+            }
+
             if (m_overclockChoice.IsPending)
             {
                 _handleOverclockChoice();
@@ -476,15 +713,7 @@ namespace DeadSignal.Application
                 }
             }
 
-            m_world.TickTower(dt, m_model.TowerOnline);
-            m_threats.Tick(dt, powered);
-            _tryTriggerEmergencyCapacitor();
-            m_salvage.Tick(dt);
-            m_world.TickExtraction(dt, m_model.CanExtract);
-            if (m_extractionUplink.Tick(dt))
-            {
-                _completeExtraction();
-            }
+            _tickRunSystems(dt, powered);
         }
 
         private void OnDestroy()
@@ -937,6 +1166,19 @@ namespace DeadSignal.Application
         {
             m_hud.ShowFeedback(message);
             m_missionClarityHud?.NotifySignalEvent(message);
+        }
+
+        private void _tickRunSystems(float dt, bool powered)
+        {
+            m_world.TickTower(dt, m_model.TowerOnline);
+            m_threats.Tick(dt, powered);
+            _tryTriggerEmergencyCapacitor();
+            m_salvage.Tick(dt);
+            m_world.TickExtraction(dt, m_model.CanExtract);
+            if (m_extractionUplink.Tick(dt))
+            {
+                _completeExtraction();
+            }
         }
 
         private void _setPaused(bool paused)
