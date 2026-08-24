@@ -1,5 +1,15 @@
 # DEAD SIGNAL — Product Backlog
 
+## P0 — Relay lockdown security composition (Run 87)
+
+- [x] Promote the existing final Suppressor response when the optional Relay tower comes online
+- [x] Consume that bounded response once so extraction cannot add a fifth deployment
+- [x] Commit the lockdown to one of the Relay Foundry's safe authored entrances and preserve its full warning
+- [x] Lock an avoidable suppression sweep to the Relay activation position without changing enemy stats or field tuning
+- [x] Mark both Foundry reinforcement gates with an original text-free amber/red lockdown decal
+- [x] Prove one-tower versus two-tower response order, safe deployment, packaging, and complete-run regression
+- [ ] Compare Relay-first greed against a direct three-cache return; record live roles, sweep escape, purges, Signal, and extraction pressure
+
 ## P0 — Relay Foundry second-region slice (Run 85)
 
 - [x] Add a scene-authored Relay Foundry region with protected north and south turbine approaches through the east vault

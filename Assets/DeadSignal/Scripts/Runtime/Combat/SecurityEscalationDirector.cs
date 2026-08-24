@@ -31,7 +31,8 @@ namespace DeadSignal.Combat
         private bool m_deadZoneTraceCooling;
         private bool m_entryBlocked;
         private bool m_extractionPressure;
-        private bool m_extractionResponseDeployed;
+        private bool m_relayPressure;
+        private bool m_suppressorResponseDeployed;
         private SecurityReinforcement m_firstCoreResponse;
         private SecurityReinforcement m_firstSalvageResponse;
         private SecurityReinforcement m_pendingReinforcement;
@@ -55,7 +56,7 @@ namespace DeadSignal.Combat
         public int EscalationTier => m_observedSalvage;
         public int ReinforcementsRemaining =>
             Math.Max(0, _salvageReinforcementBudget() - m_nextSalvageReinforcement) +
-            (m_extractionPressure && !m_extractionResponseDeployed ? 1 : 0);
+            ((m_relayPressure || m_extractionPressure) && !m_suppressorResponseDeployed ? 1 : 0);
         public float EntryCountdown => m_entryCountdown;
         public bool IsEntryBlocked => m_pendingReinforcement != SecurityReinforcement.None && m_entryBlocked;
         public bool IsDeadZoneTraceActive => !m_deadZoneTraceCompleted && m_observedSalvage == 0 && m_deadZoneTraceProgress > 0f;
@@ -78,7 +79,8 @@ namespace DeadSignal.Combat
             float interceptorEntryDistance,
             float wardenEntryDistance,
             float sapperEntryDistance,
-            float suppressorEntryDistance)
+            float suppressorEntryDistance,
+            bool relayTowerOnline = false)
         {
             return Tick(
                 seconds,
@@ -93,7 +95,8 @@ namespace DeadSignal.Combat
                 interceptorEntryDistance,
                 wardenEntryDistance,
                 sapperEntryDistance,
-                suppressorEntryDistance);
+                suppressorEntryDistance,
+                relayTowerOnline);
         }
 
         public SecurityReinforcement Tick(
@@ -109,7 +112,8 @@ namespace DeadSignal.Combat
             float interceptorEntryDistance,
             float wardenEntryDistance,
             float sapperEntryDistance,
-            float suppressorEntryDistance)
+            float suppressorEntryDistance,
+            bool relayTowerOnline = false)
         {
             if (!towerOnline)
             {
@@ -120,6 +124,7 @@ namespace DeadSignal.Combat
 
             m_observedSalvage = Math.Min(RunModel.SalvageRequired, Math.Max(m_observedSalvage, salvage));
             _updateDeadZoneTrace(seconds, playerPowered);
+            m_relayPressure |= relayTowerOnline;
             m_extractionPressure |= extractionPressure && m_observedSalvage >= RunModel.SalvageRequired;
             _chooseFirstSalvageResponse(wardenAlive, sapperAlive);
             _chooseCoreResponse(wardenAlive, sapperAlive);
@@ -182,7 +187,7 @@ namespace DeadSignal.Combat
 
             if (reinforcement == SecurityReinforcement.Suppressor)
             {
-                m_extractionResponseDeployed = true;
+                m_suppressorResponseDeployed = true;
             }
             else
             {
@@ -281,7 +286,7 @@ namespace DeadSignal.Combat
 
         private SecurityReinforcement _getNextReinforcement()
         {
-            if (m_extractionPressure && !m_extractionResponseDeployed)
+            if ((m_relayPressure || m_extractionPressure) && !m_suppressorResponseDeployed)
             {
                 return SecurityReinforcement.Suppressor;
             }

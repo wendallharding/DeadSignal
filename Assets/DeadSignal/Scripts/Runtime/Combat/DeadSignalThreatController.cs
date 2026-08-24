@@ -212,7 +212,8 @@ namespace DeadSignal.Combat
                 dualGateEntryDistance,
                 DeadSignalWorld.FlatDistance(m_world.Player.position, m_world.Warden.position),
                 DeadSignalWorld.FlatDistance(m_world.Player.position, m_world.Sapper.position),
-                dualGateEntryDistance);
+                dualGateEntryDistance,
+                m_model.RelayTowerOnline);
             var pending = m_director.PendingReinforcement;
             if (reinforcement == SecurityReinforcement.None && pending != previousPending)
             {
@@ -264,25 +265,30 @@ namespace DeadSignal.Combat
             }
             else if (reinforcement == SecurityReinforcement.Suppressor)
             {
+                var isRelayLockdown = !m_extractionPressure;
                 m_suppressorHealth = m_tuning.SuppressorHealth;
                 m_suppressorFieldCountdown = 0f;
                 m_suppressorFieldCooldown = 0f;
                 m_suppressorPulseCountdown = 0f;
                 m_world.DeploySuppressorReinforcement(m_pendingEntryIndex);
                 m_showFeedback("FLANK GATES OPEN — SUPPRESSOR INBOUND");
-                var openingCenter = InterceptorTactics.CalculateOpeningSuppressionCenter(
-                    m_world.Player.position,
-                    m_world.ExtractionPosition,
-                    m_extractionUplinkMode,
-                    m_tuning.OverdriveSuppressionLeadDistance);
-                if (m_extractionUplinkMode == ExtractionUplinkMode.Overdrive)
+                var openingCenter = isRelayLockdown
+                    ? m_world.Player.position
+                    : InterceptorTactics.CalculateOpeningSuppressionCenter(
+                        m_world.Player.position,
+                        m_world.ExtractionPosition,
+                        m_extractionUplinkMode,
+                        m_tuning.OverdriveSuppressionLeadDistance);
+                if (!isRelayLockdown && m_extractionUplinkMode == ExtractionUplinkMode.Overdrive)
                 {
                     openingCenter = m_world.ClampToArena(openingCenter, m_tuning.SuppressorFieldRadius);
                 }
 
-                var warning = m_extractionUplinkMode == ExtractionUplinkMode.Overdrive
-                    ? "PREDICTIVE SUPPRESSION SWEEP — BREAK COURSE"
-                    : "SUPPRESSION SWEEP LOCKED — LEAVE THE RING";
+                var warning = isRelayLockdown
+                    ? "RELAY LOCKDOWN SWEEP — LEAVE THE RING"
+                    : m_extractionUplinkMode == ExtractionUplinkMode.Overdrive
+                        ? "PREDICTIVE SUPPRESSION SWEEP — BREAK COURSE"
+                        : "SUPPRESSION SWEEP LOCKED — LEAVE THE RING";
                 _beginSuppressorWarning(openingCenter, warning);
             }
 

@@ -51,6 +51,12 @@ namespace DeadSignal.Diagnostics
                 Resources.Load<Material>("Materials/RelayFoundry/RelayFoundryWeaponCalibrationDecal") != null;
             var weaponDecalReady = game != null &&
                                    game.transform.Find("Relay Foundry Region/Relay Weapon Calibration Decal") != null;
+            var lockdownTextureReady = Resources.Load<Texture2D>("Environment/RelayFoundryLockdownDecal") != null;
+            var lockdownMaterialReady =
+                Resources.Load<Material>("Materials/RelayFoundry/RelayFoundryLockdownDecal") != null;
+            var lockdownDecalsReady = game != null &&
+                                      game.transform.Find("Relay Foundry Region/Foundry North Lockdown Decal") != null &&
+                                      game.transform.Find("Relay Foundry Region/Foundry South Lockdown Decal") != null;
             Debug.Log($"[DEAD SIGNAL STANDALONE SMOKE] RELAY WEAPON | " +
                       $"decal={weaponDecalReady} texture={weaponTextureReady} material={weaponMaterialReady} " +
                       $"obstacles={game?.AuthoredMapObstacleCount ?? -1}");
@@ -121,6 +127,9 @@ namespace DeadSignal.Diagnostics
                                 weaponDecalReady &&
                                 weaponTextureReady &&
                                 weaponMaterialReady &&
+                                lockdownTextureReady &&
+                                lockdownMaterialReady &&
+                                lockdownDecalsReady &&
                                 Resources.Load<GameObject>("Environment/DepartureCapacitor") != null &&
                                 Resources.Load<GameObject>("Environment/ExtractionDepartureChannel") != null &&
                                 Resources.Load<Texture2D>("Environment/DepartureCapacitorAlbedo") != null &&

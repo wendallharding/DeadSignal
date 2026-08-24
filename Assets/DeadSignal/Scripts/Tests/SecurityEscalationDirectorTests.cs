@@ -248,6 +248,43 @@ namespace DeadSignal.Tests
         }
 
         [Test]
+        public void Tick_RelayActivationPromotesFinalSuppressorWithoutAddingAResponse()
+        {
+            var director = new SecurityEscalationDirector(2f, 6f);
+
+            director.Tick(0f, true, true, 1, false, false, true, true, false, 8f, 8f, 8f, 8f);
+            Assert.That(director.PendingReinforcement, Is.EqualTo(SecurityReinforcement.Interceptor));
+            Assert.That(director.ReinforcementsRemaining, Is.EqualTo(1));
+
+            director.Tick(0f, true, true, 1, false, false, true, true, false, 8f, 8f, 8f, 8f, true);
+            Assert.That(director.PendingReinforcement, Is.EqualTo(SecurityReinforcement.Suppressor));
+            Assert.That(director.EntryCountdown, Is.EqualTo(2f));
+            Assert.That(director.ReinforcementsRemaining, Is.EqualTo(2),
+                "Relay lockdown promotes the existing final response while preserving the unresolved salvage slot.");
+
+            Assert.That(director.Tick(2f, true, true, 1, false, false, true, true, false, 8f, 8f, 8f, 8f, true),
+                Is.EqualTo(SecurityReinforcement.Suppressor));
+            Assert.That(director.ReinforcementsRemaining, Is.EqualTo(1));
+        }
+
+        [Test]
+        public void Tick_RelaySuppressorConsumesExtractionResponseSlot()
+        {
+            var director = new SecurityEscalationDirector(1f, 0f);
+
+            director.Tick(0f, true, true, 0, false, false, true, true, false, 8f, 8f, 8f, 8f, true);
+            Assert.That(director.Tick(1f, true, true, 0, false, false, true, true, false, 8f, 8f, 8f, 8f, true),
+                Is.EqualTo(SecurityReinforcement.Suppressor));
+            Assert.That(director.ReinforcementsRemaining, Is.Zero);
+
+            Assert.That(director.Tick(5f, true, true, 3, true, false, false, false, false, 8f, 8f, 8f, 8f, true),
+                Is.EqualTo(SecurityReinforcement.None));
+            Assert.That(director.PendingReinforcement, Is.Not.EqualTo(SecurityReinforcement.Suppressor));
+            Assert.That(director.ReinforcementsRemaining, Is.EqualTo(3),
+                "Extraction must not add a fifth response after Relay lockdown consumed the Suppressor slot.");
+        }
+
+        [Test]
         public void Tick_ExtractionPromotesSuppressorAheadOfUnresolvedSalvageResponses()
         {
             var director = new SecurityEscalationDirector(2f, 6f);

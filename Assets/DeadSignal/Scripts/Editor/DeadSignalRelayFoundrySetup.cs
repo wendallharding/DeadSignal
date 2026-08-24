@@ -17,6 +17,8 @@ namespace DeadSignal.Editor
         private const string ROUTE_DECAL_PATH = "Assets/DeadSignal/Resources/Environment/RelayFoundryRouteDecal.png";
         private const string WEAPON_DECAL_PATH =
             "Assets/DeadSignal/Resources/Environment/RelayFoundryWeaponCalibrationDecal.png";
+        private const string LOCKDOWN_DECAL_PATH =
+            "Assets/DeadSignal/Resources/Environment/RelayFoundryLockdownDecal.png";
         private const string EAST_VAULT_PATH = "Assets/DeadSignal/Resources/Environment/EastSalvageVault.prefab";
         private const string TOWER_PATH = "Assets/DeadSignal/Resources/Environment/SignalTowerAssembly.prefab";
         private const string MATERIAL_DIRECTORY = "Assets/DeadSignal/Resources/Materials/RelayFoundry";
@@ -31,11 +33,14 @@ namespace DeadSignal.Editor
                 return AssetDatabase.LoadAssetAtPath<Texture2D>(TEXTURE_PATH) != null &&
                        AssetDatabase.LoadAssetAtPath<Texture2D>(ROUTE_DECAL_PATH) != null &&
                        AssetDatabase.LoadAssetAtPath<Texture2D>(WEAPON_DECAL_PATH) != null &&
+                       AssetDatabase.LoadAssetAtPath<Texture2D>(LOCKDOWN_DECAL_PATH) != null &&
                        AssetDatabase.LoadAssetAtPath<GameObject>(MODEL_PATH) != null && prefab != null &&
                        prefab.GetComponentsInChildren<AuthoredMapObstacle>().Length == 6 &&
                        prefab.GetComponentsInChildren<AuthoredInterceptorEntrance>().Length == 2 &&
                        prefab.transform.Find("Foundry Route Split Decal") != null &&
                        prefab.transform.Find("Relay Weapon Calibration Decal") != null &&
+                       prefab.transform.Find("Foundry North Lockdown Decal") != null &&
+                       prefab.transform.Find("Foundry South Lockdown Decal") != null &&
                        prefab.transform.Find("Relay Tower Assembly") != null &&
                        prefab.transform.Find("Relay Return Bulkhead") != null;
             }
@@ -63,8 +68,9 @@ namespace DeadSignal.Editor
             var texture = AssetImporter.GetAtPath(TEXTURE_PATH) as TextureImporter;
             var routeDecal = AssetImporter.GetAtPath(ROUTE_DECAL_PATH) as TextureImporter;
             var weaponDecal = AssetImporter.GetAtPath(WEAPON_DECAL_PATH) as TextureImporter;
+            var lockdownDecal = AssetImporter.GetAtPath(LOCKDOWN_DECAL_PATH) as TextureImporter;
             var model = AssetImporter.GetAtPath(MODEL_PATH) as ModelImporter;
-            if (texture == null || routeDecal == null || weaponDecal == null || model == null)
+            if (texture == null || routeDecal == null || weaponDecal == null || lockdownDecal == null || model == null)
             {
                 throw new InvalidOperationException("Relay Foundry source texture or FBX is missing.");
             }
@@ -86,6 +92,12 @@ namespace DeadSignal.Editor
             weaponDecal.wrapMode = TextureWrapMode.Clamp;
             weaponDecal.textureCompression = TextureImporterCompression.CompressedHQ;
             weaponDecal.SaveAndReimport();
+            lockdownDecal.alphaIsTransparency = true;
+            lockdownDecal.mipmapEnabled = true;
+            lockdownDecal.maxTextureSize = 2048;
+            lockdownDecal.wrapMode = TextureWrapMode.Clamp;
+            lockdownDecal.textureCompression = TextureImporterCompression.CompressedHQ;
+            lockdownDecal.SaveAndReimport();
             model.addCollider = false;
             model.importAnimation = false;
             model.importCameras = false;
@@ -113,7 +125,8 @@ namespace DeadSignal.Editor
                 Amber = _material("RelayFoundryAmber", new Color(1f, 0.4f, 0.035f), new Color(2.2f, 0.42f, 0f), null),
                 Dormant = _material("RelayFoundryDormant", new Color(0.16f, 0.025f, 0.03f), new Color(0.14f, 0f, 0f), null),
                 RouteDecal = _decalMaterial("RelayFoundryRouteDecal", ROUTE_DECAL_PATH),
-                WeaponDecal = _decalMaterial("RelayFoundryWeaponCalibrationDecal", WEAPON_DECAL_PATH)
+                WeaponDecal = _decalMaterial("RelayFoundryWeaponCalibrationDecal", WEAPON_DECAL_PATH),
+                LockdownDecal = _decalMaterial("RelayFoundryLockdownDecal", LOCKDOWN_DECAL_PATH)
             };
         }
 
@@ -207,21 +220,36 @@ namespace DeadSignal.Editor
                 try
                 {
                     var existingDecal = existingRoot.transform.Find("Relay Weapon Calibration Decal");
-                    if (existingDecal != null &&
-                        AssetDatabase.GetAssetPath(existingDecal.GetComponent<Renderer>()?.sharedMaterial) ==
-                        AssetDatabase.GetAssetPath(materials.WeaponDecal) &&
-                        existingDecal.localPosition == new Vector3(3.75f, -0.12f, -3.25f) &&
-                        existingDecal.localScale == Vector3.one * 3.8f)
+                    var northLockdown = existingRoot.transform.Find("Foundry North Lockdown Decal");
+                    var southLockdown = existingRoot.transform.Find("Foundry South Lockdown Decal");
+                    var weaponDecalReady = existingDecal != null &&
+                                           AssetDatabase.GetAssetPath(existingDecal.GetComponent<Renderer>()?.sharedMaterial) ==
+                                           AssetDatabase.GetAssetPath(materials.WeaponDecal) &&
+                                           existingDecal.localPosition == new Vector3(3.75f, -0.12f, -3.25f) &&
+                                           existingDecal.localScale == Vector3.one * 3.8f;
+                    if (weaponDecalReady &&
+                        _isLockdownDecalReady(northLockdown, new Vector3(6.1f, -0.12f, 4.7f), materials.LockdownDecal) &&
+                        _isLockdownDecalReady(southLockdown, new Vector3(6.1f, -0.12f, -4.7f), materials.LockdownDecal))
                     {
                         return;
                     }
 
-                    if (existingDecal != null)
+                    if (!weaponDecalReady && existingDecal != null)
                     {
                         UnityEngine.Object.DestroyImmediate(existingDecal.gameObject);
                     }
 
-                    _createWeaponDecal(existingRoot.transform, materials.WeaponDecal);
+                    if (northLockdown != null) UnityEngine.Object.DestroyImmediate(northLockdown.gameObject);
+                    if (southLockdown != null) UnityEngine.Object.DestroyImmediate(southLockdown.gameObject);
+
+                    if (!weaponDecalReady)
+                    {
+                        _createWeaponDecal(existingRoot.transform, materials.WeaponDecal);
+                    }
+                    _createLockdownDecal(existingRoot.transform, "Foundry North Lockdown Decal",
+                        new Vector3(6.1f, -0.12f, 4.7f), materials.LockdownDecal);
+                    _createLockdownDecal(existingRoot.transform, "Foundry South Lockdown Decal",
+                        new Vector3(6.1f, -0.12f, -4.7f), materials.LockdownDecal);
                     PrefabUtility.SaveAsPrefabAsset(existingRoot, PREFAB_PATH);
                 }
                 finally
@@ -252,6 +280,10 @@ namespace DeadSignal.Editor
                 UnityEngine.Object.DestroyImmediate(routeDecal.GetComponent<Collider>());
 
                 _createWeaponDecal(root.transform, materials.WeaponDecal);
+                _createLockdownDecal(root.transform, "Foundry North Lockdown Decal",
+                    new Vector3(6.1f, -0.12f, 4.7f), materials.LockdownDecal);
+                _createLockdownDecal(root.transform, "Foundry South Lockdown Decal",
+                    new Vector3(6.1f, -0.12f, -4.7f), materials.LockdownDecal);
 
                 var turbineModel = AssetDatabase.LoadAssetAtPath<GameObject>(MODEL_PATH);
                 var turbine = (GameObject)PrefabUtility.InstantiatePrefab(turbineModel, root.transform);
@@ -339,6 +371,25 @@ namespace DeadSignal.Editor
             UnityEngine.Object.DestroyImmediate(weaponDecal.GetComponent<Collider>());
         }
 
+        private static bool _isLockdownDecalReady(Transform decal, Vector3 position, Material material)
+        {
+            return decal != null && decal.localPosition == position && decal.localScale == Vector3.one * 2.6f &&
+                   AssetDatabase.GetAssetPath(decal.GetComponent<Renderer>()?.sharedMaterial) ==
+                   AssetDatabase.GetAssetPath(material);
+        }
+
+        private static void _createLockdownDecal(Transform parent, string name, Vector3 position, Material material)
+        {
+            var decal = GameObject.CreatePrimitive(PrimitiveType.Quad);
+            decal.name = name;
+            decal.transform.SetParent(parent, false);
+            decal.transform.localPosition = position;
+            decal.transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
+            decal.transform.localScale = Vector3.one * 2.6f;
+            decal.GetComponent<Renderer>().sharedMaterial = material;
+            UnityEngine.Object.DestroyImmediate(decal.GetComponent<Collider>());
+        }
+
         private static GameObject _wall(Transform parent, string name, Vector3 position, Vector3 scale, Material material, bool obstacle)
         {
             var result = GameObject.CreatePrimitive(PrimitiveType.Cube);
@@ -378,6 +429,7 @@ namespace DeadSignal.Editor
             public Material Dormant;
             public Material RouteDecal;
             public Material WeaponDecal;
+            public Material LockdownDecal;
         }
     }
 }

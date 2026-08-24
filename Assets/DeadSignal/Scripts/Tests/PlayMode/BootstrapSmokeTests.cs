@@ -37,9 +37,13 @@ namespace DeadSignal.Tests
                     "The region junction should carry its authored protected-versus-exposed route marking.");
                 Assert.That(foundry.Find("Relay Weapon Calibration Decal"), Is.Not.Null,
                     "The Relay tower should carry a scene-authored, text-free weapon choice marking.");
+                Assert.That(foundry.Find("Foundry North Lockdown Decal"), Is.Not.Null);
+                Assert.That(foundry.Find("Foundry South Lockdown Decal"), Is.Not.Null);
                 Assert.That(Resources.Load<Texture2D>("Environment/RelayFoundryWeaponCalibrationDecal"), Is.Not.Null);
                 Assert.That(
                     Resources.Load<Material>("Materials/RelayFoundry/RelayFoundryWeaponCalibrationDecal"), Is.Not.Null);
+                Assert.That(Resources.Load<Texture2D>("Environment/RelayFoundryLockdownDecal"), Is.Not.Null);
+                Assert.That(Resources.Load<Material>("Materials/RelayFoundry/RelayFoundryLockdownDecal"), Is.Not.Null);
                 Assert.That(foundry.Find("Foundry North Reinforcement Gate"), Is.Not.Null);
                 Assert.That(foundry.Find("Foundry South Reinforcement Gate"), Is.Not.Null);
                 Assert.That(game.AuthoredInterceptorEntranceCount, Is.EqualTo(4));
@@ -82,6 +86,10 @@ namespace DeadSignal.Tests
                     "The second tower should make its authored region a real Signal-safe foothold.");
                 Assert.That(game.IsWeaponOverclockChoicePending, Is.True,
                     "Relay activation should award one meaningful weapon calibration choice.");
+                Assert.That(game.PendingSecurityReinforcement, Is.EqualTo(SecurityReinforcement.Suppressor),
+                    "The second powered territory should promote the existing final response into a Relay lockdown.");
+                Assert.That(game.SecurityReinforcementsRemaining, Is.EqualTo(2),
+                    "The route's existing trace response and the promoted final Suppressor should remain separately readable.");
                 var shotsBeforeCalibration = game.ShotsFired;
                 InputSystem.QueueStateEvent(gamepad,
                     new GamepadState().WithButton(GamepadButton.RightShoulder));
@@ -92,7 +100,20 @@ namespace DeadSignal.Tests
                 Assert.That(game.ShotsFired, Is.EqualTo(shotsBeforeCalibration),
                     "Fire should select Piercing Pulse without also spending Signal on a bolt.");
 
-                yield return new WaitForSeconds(0.45f);
+                var relayLockdownDeadline = Time.time + 2.7f;
+                while (!game.IsSuppressorFieldWarningActive && Time.time < relayLockdownDeadline)
+                {
+                    yield return null;
+                }
+
+                Assert.That(game.IsSuppressorFieldWarningActive, Is.True,
+                    "The committed Foundry entrance should lead to a readable Relay suppression sweep.");
+                Assert.That(Vector2.Distance(
+                        new Vector2(game.SuppressorFieldCenter.x, game.SuppressorFieldCenter.z),
+                        new Vector2(player.position.x, player.position.z)), Is.LessThan(0.1f),
+                    "The Relay sweep should lock to the activation position and preserve an avoidable response window.");
+                Assert.That(game.SecurityReinforcementsRemaining, Is.EqualTo(1),
+                    "Deploying the Relay Suppressor should leave only the already banked trace response.");
                 player.position = new Vector3(18.5f, 0f, 0f);
                 InputSystem.QueueStateEvent(gamepad,
                     new GamepadState { rightStick = Vector2.right }.WithButton(GamepadButton.RightShoulder));
