@@ -55,6 +55,12 @@ namespace DeadSignal.Application
         private float m_blockedFeedbackCooldown;
 
         public float CurrentSignal => m_model?.Signal ?? 0f;
+        public bool IsRelayTowerOnline => m_model?.RelayTowerOnline ?? false;
+        public Vector3 RelayTowerPosition => m_world?.RelayTowerPosition ?? Vector3.zero;
+        public Vector3 SafestReinforcementEntryPosition => m_world == null
+            ? Vector3.zero
+            : m_world.GetReinforcementEntryPosition(
+                SecurityReinforcement.Interceptor, m_world.GetSafestInterceptorEntryIndex(m_world.Player.position));
         public bool IsSapperLatched => m_threats?.IsSapperLatched ?? false;
         public bool IsWardenScreeningSapper => m_threats?.IsWardenScreeningSapper ?? false;
         public Vector3 WardenTacticalTarget => m_threats?.WardenTacticalTarget ?? Vector3.zero;
@@ -363,7 +369,7 @@ namespace DeadSignal.Application
             m_missionClarityHud = gameObject.AddComponent<MissionClarityHud>();
             m_missionClarityHud.Configure(m_model, m_metrics, m_world, m_overclockChoice);
             m_objectiveBeacon.Configure(m_model, m_world);
-            m_lastPoweredState = m_world.IsPowered(m_world.Player.position, m_model.TowerOnline);
+            m_lastPoweredState = m_world.IsPowered(m_world.Player.position, m_model.TowerOnline, m_model.RelayTowerOnline);
             m_signalDust.Configure();
             m_signalDust.Tick(m_lastPoweredState, m_model.TowerOnline, m_model.Signal / RunModel.MaximumSignal);
             m_lowSignalWarning.Configure(m_model);
@@ -582,7 +588,7 @@ namespace DeadSignal.Application
 
         private bool _isPlayerPowered()
         {
-            return m_world.IsPowered(m_world.Player.position, m_model.TowerOnline) ||
+            return m_world.IsPowered(m_world.Player.position, m_model.TowerOnline, m_model.RelayTowerOnline) ||
                    (m_salvage.IsRecoveryFieldActive && DeadSignalWorld.FlatDistance(
                        m_world.Player.position, m_salvage.RecoveryFieldPosition) <= m_salvage.RecoveryFieldRadius);
         }
@@ -699,6 +705,27 @@ namespace DeadSignal.Application
 
         private void _handleInteraction()
         {
+            if (!m_model.RelayTowerOnline &&
+                DeadSignalWorld.FlatDistance(m_world.Player.position, m_world.RelayTowerPosition) < 1.8f)
+            {
+                if (m_model.TryActivateRelayTower())
+                {
+                    m_world.ActivateRelayTower();
+                    m_audio.Play(DeadSignalAudioCue.TowerOnline);
+                    _showFeedback("RELAY FOUNDRY ONLINE — RETURN BULKHEAD OPEN");
+                }
+                else if (!m_model.TowerOnline)
+                {
+                    _showFeedback("RELAY LOCKED — RESTORE CENTRAL TOWER");
+                }
+                else
+                {
+                    _showFeedback($"KEEP 1 SIGNAL AFTER {RunModel.RelayTowerCost:0} COST");
+                }
+
+                return;
+            }
+
             if (!m_model.TowerOnline && DeadSignalWorld.FlatDistance(m_world.Player.position, m_world.TowerPosition) < 1.8f)
             {
                 if (m_model.TryActivateTower())

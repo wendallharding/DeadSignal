@@ -239,7 +239,7 @@ namespace DeadSignal.Presentation
                 : $"  //  {_overclockSynergyName()}";
             var optionalText = m_model.OptionalSalvageSecured ? "  //  OPTIONAL CACHE SECURED" : string.Empty;
             m_salvageText.text = $"SALVAGE  {m_model.Salvage}/{RunModel.SalvageRequired}{chainText}{overclockText}{auxiliaryText}{synergyText}{optionalText}";
-            var powered = m_world.IsPowered(m_world.Player.position, m_model.TowerOnline);
+            var powered = m_world.IsPowered(m_world.Player.position, m_model.TowerOnline, m_model.RelayTowerOnline);
             m_zoneText.text = powered ? "● POWERED TERRITORY" : "▲ DEAD ZONE — ACTIVE DRAIN";
             m_zoneText.color = powered ? new Color(0.05f, 0.95f, 1f) : new Color(1f, 0.22f, 0.18f);
             var guidance = MissionGuidance.Evaluate(m_model, m_threats.IsSapperAlive, m_threats.IsSapperLatched,
@@ -442,6 +442,11 @@ namespace DeadSignal.Presentation
             if (_isExtractionUplinkChoiceAvailable())
                 return $"CHOOSE LINK  —  {_binding("FIRE: OVERDRIVE", "RB: OVERDRIVE")}  |  " +
                        $"{_binding("USE: STABLE", "X: STABLE")}";
+            if (!m_model.RelayTowerOnline &&
+                DeadSignalWorld.FlatDistance(m_world.Player.position, m_world.RelayTowerPosition) < 1.8f)
+                return m_model.TowerOnline
+                    ? $"[{_binding("E", "GAMEPAD X")}]  ACTIVATE RELAY FOUNDRY  —  COST {RunModel.RelayTowerCost:0}"
+                    : "RELAY LOCKED - ACTIVATE CENTRAL TOWER FIRST";
             if (!m_model.ShortcutOpen && DeadSignalWorld.FlatDistance(m_world.Player.position, m_world.ShortcutPosition) < 1.9f)
                 return m_model.TowerOnline ? $"[{_binding("E", "GAMEPAD X")}]  BURN {RunModel.ShortcutCost:0} SIGNAL FOR SHORTCUT"
                     : "SHORTCUT OFFLINE - ACTIVATE TOWER FIRST";

@@ -72,6 +72,33 @@ namespace DeadSignal.Tests
         }
 
         [Test]
+        public void RelayTower_RequiresCentralTowerAndPreservesLastSignal()
+        {
+            var run = new RunModel();
+
+            Assert.That(run.TryActivateRelayTower(), Is.False);
+            Assert.That(run.TryActivateTower(), Is.True);
+            Assert.That(run.TrySpend(run.Signal - RunModel.RelayTowerCost), Is.True);
+            Assert.That(run.TryActivateRelayTower(), Is.False);
+            Assert.That(run.RelayTowerOnline, Is.False);
+        }
+
+        [Test]
+        public void RelayTower_ExpandsNetworkOnceAndRestoresSignal()
+        {
+            var run = new RunModel();
+            run.TryActivateTower();
+            var before = run.Signal;
+
+            Assert.That(run.TryActivateRelayTower(), Is.True);
+            Assert.That(run.RelayTowerOnline, Is.True);
+            Assert.That(run.Signal,
+                Is.EqualTo(System.Math.Min(RunModel.MaximumSignal,
+                    before - RunModel.RelayTowerCost + RunModel.RelayTowerRefill)).Within(0.001f));
+            Assert.That(run.TryActivateRelayTower(), Is.False);
+        }
+
+        [Test]
         public void Shortcut_RequiresOnlineTowerAndPreservesLastSignal()
         {
             var run = new RunModel();

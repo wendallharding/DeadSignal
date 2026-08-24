@@ -170,7 +170,8 @@ namespace DeadSignal.Presentation
         {
             var scale = 1f + Mathf.Sin(Time.unscaledTime * 8f) * 0.05f;
             var width = 480f * scale;
-            var safety = m_world.GetNearestPoweredTarget(m_world.Player.position, m_model.TowerOnline);
+            var safety = m_world.GetNearestPoweredTarget(
+                m_world.Player.position, m_model.TowerOnline, m_model.RelayTowerOnline);
             var waypoint = m_world.GetNavigationWaypoint(m_world.Player.position, safety, 0.48f, m_model.ShortcutOpen);
             var point = m_camera.WorldToScreenPoint(waypoint + Vector3.up * 1.2f);
             GUI.Label(new Rect((Screen.width - width) * 0.5f, Screen.height * 0.34f, width, 100f),
@@ -223,6 +224,8 @@ namespace DeadSignal.Presentation
                 "TACTICAL MAP  //  CYAN SAFE  AMBER OBJECTIVE  RED THREAT", m_smallStyle);
             _drawMapPoint(map, m_world.ExtractionPosition, new Color(0.2f, 0.95f, 1f), 18f, "EXTRACT");
             _drawMapPoint(map, m_world.TowerPosition, new Color(0.2f, 0.95f, 1f), 18f, "TOWER");
+            _drawMapPoint(map, m_world.RelayTowerPosition,
+                m_model.RelayTowerOnline ? new Color(0.2f, 0.95f, 1f) : new Color(0.35f, 0.48f, 0.52f), 16f, "RELAY");
             foreach (var cache in m_world.SalvagePickups)
             {
                 if (cache.activeSelf)

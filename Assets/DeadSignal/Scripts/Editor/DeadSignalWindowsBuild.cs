@@ -44,6 +44,7 @@ namespace DeadSignal.Editor
             DeadSignalSapperCradleSetup.EnsureAssets();
             DeadSignalCameraSetup.EnsureAssets();
             DeadSignalEastVaultSetup.EnsureAssets();
+            DeadSignalRelayFoundrySetup.EnsureAssets();
             DeadSignalSignalSpineSetup.EnsureAssets();
             DeadSignalBoundaryThresholdSetup.EnsureAssets();
             DeadSignalHudSetup.EnsureAssets();
@@ -167,6 +168,11 @@ namespace DeadSignal.Editor
             if (!DeadSignalProjectSetup.HasPlayerDroneAssets)
             {
                 throw new BuildFailedException("The authored maintenance-drone assets are missing.");
+            }
+
+            if (!DeadSignalRelayFoundrySetup.HasAssets)
+            {
+                throw new BuildFailedException("The scene-authored Relay Foundry region is missing or incomplete.");
             }
 
             if (!DeadSignalActorSetup.HasSecurityWardenAssets)

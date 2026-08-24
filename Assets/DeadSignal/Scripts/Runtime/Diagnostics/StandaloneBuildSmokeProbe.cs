@@ -18,7 +18,7 @@ namespace DeadSignal.Diagnostics
         public const string COMMAND_LINE_ARGUMENT = "-deadSignalBuildSmoke";
         public const string PASS_MARKER = "[DEAD SIGNAL STANDALONE SMOKE] PASS";
 
-        private const int EXPECTED_AUTHORED_OBSTACLE_COUNT = 25;
+        private const int EXPECTED_AUTHORED_OBSTACLE_COUNT = 32;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         private static void _startWhenRequested()
@@ -88,7 +88,7 @@ namespace DeadSignal.Diagnostics
                                 Resources.Load<WardenThreatTelegraphTuning>("Tuning/WardenThreatTelegraphTuning") != null &&
                                 game.HasSecurityInterceptorAssets &&
                                 game.SecurityInterceptorPartCount == 4 &&
-                                game.AuthoredInterceptorEntranceCount == 2 &&
+                                game.AuthoredInterceptorEntranceCount == 4 &&
                                 Resources.Load<GameObject>("Actors/SecurityInterceptorAssembly") != null &&
                                 game.HasSecuritySuppressorAssets &&
                                 game.SecuritySuppressorPartCount == 4 &&
@@ -104,6 +104,12 @@ namespace DeadSignal.Diagnostics
                                 Resources.Load<GameObject>("Environment/EastSalvageVaultModel") != null &&
                                 Resources.Load<GameObject>("Environment/EastSalvageVault") != null &&
                                 Resources.Load<Texture2D>("Environment/EastSalvageVaultAlbedo") != null &&
+                                game.transform.Find("Relay Foundry Region/Relay Tower Assembly") != null &&
+                                game.transform.Find("Relay Foundry Region/Relay Induction Turbine") != null &&
+                                Resources.Load<GameObject>("Environment/RelayFoundryRegion") != null &&
+                                Resources.Load<GameObject>("Environment/RelayFoundryTurbineModel") != null &&
+                                Resources.Load<Texture2D>("Environment/RelayFoundryTurbineAlbedo") != null &&
+                                Resources.Load<Texture2D>("Environment/RelayFoundryRouteDecal") != null &&
                                 Resources.Load<GameObject>("Environment/DepartureCapacitor") != null &&
                                 Resources.Load<GameObject>("Environment/ExtractionDepartureChannel") != null &&
                                 Resources.Load<Texture2D>("Environment/DepartureCapacitorAlbedo") != null &&

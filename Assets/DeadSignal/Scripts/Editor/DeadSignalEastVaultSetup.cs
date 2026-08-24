@@ -364,14 +364,15 @@ namespace DeadSignal.Editor
         private static bool _hasValidPrefab()
         {
             var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(PREFAB_PATH);
-            if (prefab == null || prefab.GetComponentsInChildren<AuthoredMapObstacle>().Length != 6 ||
+            var obstacleCount = prefab != null ? prefab.GetComponentsInChildren<AuthoredMapObstacle>().Length : 0;
+            if (prefab == null || obstacleCount < 6 || obstacleCount > 7 ||
                 prefab.GetComponentsInChildren<AuthoredSalvageSocket>().Length != 1)
             {
                 return false;
             }
 
             var meshes = prefab.GetComponentsInChildren<MeshFilter>();
-            return meshes.Length == 8 && meshes.All(filter => filter.sharedMesh != null) &&
+            return meshes.Length is 8 or 9 && meshes.All(filter => filter.sharedMesh != null) &&
                    prefab.GetComponentsInChildren<Collider>().Length == 0;
         }
 

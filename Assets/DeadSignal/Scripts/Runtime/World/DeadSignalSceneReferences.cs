@@ -12,7 +12,9 @@ namespace DeadSignal.World
         [SerializeField] private Transform m_extractionAnchor;
         [SerializeField] private Transform m_towerAnchor;
         [SerializeField] private Transform m_shortcutAnchor;
-        [SerializeField] private Vector2 m_arenaHalfExtents = new(20f, 8.8f);
+        [SerializeField] private Transform m_relayTowerAnchor;
+        [SerializeField] private Transform m_relayShortcutAnchor;
+        [SerializeField] private Vector2 m_arenaHalfExtents = new(36f, 8.8f);
 
         [Header("Environment")]
         [SerializeField] private GameObject m_maintenanceDeck;
@@ -22,6 +24,10 @@ namespace DeadSignal.World
         [SerializeField] private GameObject m_signalRouting;
         [SerializeField] private GameObject m_shortcutGate;
         [SerializeField] private GameObject m_stationMachines;
+        [SerializeField] private GameObject m_relayFoundry;
+        [SerializeField] private GameObject m_relayTower;
+        [SerializeField] private GameObject m_relaySignalRouting;
+        [SerializeField] private GameObject m_relayShortcutGate;
 
         [Header("Presentation")]
         [SerializeField] private Camera m_playerCamera;
@@ -38,6 +44,8 @@ namespace DeadSignal.World
         public Vector3 ExtractionPosition => m_extractionAnchor.position;
         public Vector3 TowerPosition => m_towerAnchor.position;
         public Vector3 ShortcutPosition => m_shortcutAnchor.position;
+        public Vector3 RelayTowerPosition => m_relayTowerAnchor.position;
+        public Vector3 RelayShortcutPosition => m_relayShortcutAnchor.position;
         public Vector2 ArenaHalfExtents => m_arenaHalfExtents;
         public GameObject MaintenanceDeck => m_maintenanceDeck;
         public GameObject MaintenanceRoomShell => m_maintenanceRoomShell;
@@ -46,6 +54,10 @@ namespace DeadSignal.World
         public GameObject SignalRouting => m_signalRouting;
         public GameObject ShortcutGate => m_shortcutGate;
         public GameObject StationMachines => m_stationMachines;
+        public GameObject RelayFoundry => m_relayFoundry;
+        public GameObject RelayTower => m_relayTower;
+        public GameObject RelaySignalRouting => m_relaySignalRouting;
+        public GameObject RelayShortcutGate => m_relayShortcutGate;
         public Camera PlayerCamera => m_playerCamera;
         public Transform CameraRig => m_cameraRig;
         public Light KeyLight => m_keyLight;
@@ -57,8 +69,10 @@ namespace DeadSignal.World
 
         public bool IsComplete =>
             m_extractionAnchor != null && m_towerAnchor != null && m_shortcutAnchor != null &&
+            m_relayTowerAnchor != null && m_relayShortcutAnchor != null &&
             m_maintenanceDeck != null && m_maintenanceRoomShell != null && m_extractionPad != null &&
             m_signalTower != null && m_signalRouting != null && m_shortcutGate != null && m_stationMachines != null &&
+            m_relayFoundry != null && m_relayTower != null && m_relaySignalRouting != null && m_relayShortcutGate != null &&
             m_playerCamera != null && m_cameraRig != null && m_keyLight != null && m_player != null &&
             m_warden != null && m_sapper != null && m_interceptor != null && m_suppressor != null;
 
@@ -67,6 +81,8 @@ namespace DeadSignal.World
             m_extractionAnchor == null ? nameof(m_extractionAnchor) : null,
             m_towerAnchor == null ? nameof(m_towerAnchor) : null,
             m_shortcutAnchor == null ? nameof(m_shortcutAnchor) : null,
+            m_relayTowerAnchor == null ? nameof(m_relayTowerAnchor) : null,
+            m_relayShortcutAnchor == null ? nameof(m_relayShortcutAnchor) : null,
             m_maintenanceDeck == null ? nameof(m_maintenanceDeck) : null,
             m_maintenanceRoomShell == null ? nameof(m_maintenanceRoomShell) : null,
             m_extractionPad == null ? nameof(m_extractionPad) : null,
@@ -74,6 +90,10 @@ namespace DeadSignal.World
             m_signalRouting == null ? nameof(m_signalRouting) : null,
             m_shortcutGate == null ? nameof(m_shortcutGate) : null,
             m_stationMachines == null ? nameof(m_stationMachines) : null,
+            m_relayFoundry == null ? nameof(m_relayFoundry) : null,
+            m_relayTower == null ? nameof(m_relayTower) : null,
+            m_relaySignalRouting == null ? nameof(m_relaySignalRouting) : null,
+            m_relayShortcutGate == null ? nameof(m_relayShortcutGate) : null,
             m_playerCamera == null ? nameof(m_playerCamera) : null,
             m_cameraRig == null ? nameof(m_cameraRig) : null,
             m_keyLight == null ? nameof(m_keyLight) : null,

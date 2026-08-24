@@ -15,7 +15,7 @@ namespace DeadSignal.World
     /// </summary>
     internal sealed class DeadSignalWorld
     {
-        public const float ARENA_HALF_WIDTH = 20f;
+        public const float ARENA_HALF_WIDTH = 36f;
         public const float ARENA_HALF_HEIGHT = 8.8f;
         public const float STARTING_POWER_RADIUS = 3.6f;
         public const float TOWER_POWER_RADIUS = 7.2f;
@@ -23,6 +23,7 @@ namespace DeadSignal.World
         public Vector3 ExtractionPosition => m_scene.ExtractionPosition;
         public Vector3 TowerPosition => m_scene.TowerPosition;
         public Vector3 ShortcutPosition => m_scene.ShortcutPosition;
+        public Vector3 RelayTowerPosition => m_scene.RelayTowerPosition;
 
         public Camera Camera { get; private set; }
         public Transform Player { get; private set; }
@@ -43,6 +44,7 @@ namespace DeadSignal.World
         public Transform Suppressor { get; private set; }
         public Transform SuppressorCore { get; private set; }
         public Transform TowerCore { get; private set; }
+        public Transform RelayTowerCore { get; private set; }
         public SignalSapperTelegraph SapperTelegraph { get; private set; }
         public IReadOnlyList<GameObject> SalvagePickups => m_salvagePickups;
         public bool HasMaintenanceDeckAssets { get; private set; }
@@ -110,14 +112,15 @@ namespace DeadSignal.World
             ApplyHighContrast(comfortSettings.HighContrastEnabled);
         }
 
-        public bool IsPowered(Vector3 position, bool towerOnline)
+        public bool IsPowered(Vector3 position, bool towerOnline, bool relayTowerOnline = false)
         {
             if (FlatDistance(position, ExtractionPosition) <= STARTING_POWER_RADIUS)
             {
                 return true;
             }
 
-            return towerOnline && FlatDistance(position, TowerPosition) <= TOWER_POWER_RADIUS;
+            return towerOnline && FlatDistance(position, TowerPosition) <= TOWER_POWER_RADIUS ||
+                   relayTowerOnline && FlatDistance(position, RelayTowerPosition) <= TOWER_POWER_RADIUS;
         }
 
         public Vector3 ClampToArena(Vector3 position, float radius)
@@ -138,7 +141,7 @@ namespace DeadSignal.World
                 var nearestNormal = Vector2.zero;
                 foreach (var blocker in m_movementBlockers)
                 {
-                    if ((blocker.IsShortcutGate && shortcutOpen) ||
+                    if ((blocker.IsShortcutGate && shortcutOpen) || (blocker.IsRelayShortcutGate && m_relayShortcutOpen) ||
                         !blocker.TryGetSweepHit(position, target, radius, out var hitFraction, out var hitNormal) ||
                         hitFraction >= nearestFraction)
                     {
@@ -215,7 +218,7 @@ namespace DeadSignal.World
             return GetNavigationWaypoint(Player.position, _currentObjectiveTarget(model), radius, model.ShortcutOpen);
         }
 
-        public Vector3 GetNearestPoweredTarget(Vector3 position, bool towerOnline)
+        public Vector3 GetNearestPoweredTarget(Vector3 position, bool towerOnline, bool relayTowerOnline = false)
         {
             if (!towerOnline)
             {
@@ -224,9 +227,10 @@ namespace DeadSignal.World
                     : ExtractionPosition;
             }
 
-            return FlatDistance(position, TowerPosition) <= FlatDistance(position, ExtractionPosition)
-                ? TowerPosition
-                : ExtractionPosition;
+            var nearest = FlatDistance(position, TowerPosition) <= FlatDistance(position, ExtractionPosition)
+                ? TowerPosition : ExtractionPosition;
+            return relayTowerOnline && FlatDistance(position, RelayTowerPosition) < FlatDistance(position, nearest)
+                ? RelayTowerPosition : nearest;
         }
 
         public bool TryGetProjectileObstacleHit(
@@ -240,7 +244,7 @@ namespace DeadSignal.World
             var didHit = false;
             foreach (var blocker in m_movementBlockers)
             {
-                if (blocker.IsShortcutGate && shortcutOpen)
+                if ((blocker.IsShortcutGate && shortcutOpen) || (blocker.IsRelayShortcutGate && m_relayShortcutOpen))
                 {
                     continue;
                 }
@@ -270,6 +274,19 @@ namespace DeadSignal.World
             Warden.gameObject.SetActive(true);
             Sapper.gameObject.SetActive(true);
             SapperTelegraph.SetThreatState(true, false, 0f, sapperPulseInterval);
+        }
+
+        public void ActivateRelayTower()
+        {
+            m_relayTerritory.GetComponent<Renderer>().sharedMaterial = m_palette.PoweredTerritory;
+            foreach (var marker in m_relayTerritoryMarkers)
+            {
+                marker.GetComponent<Renderer>().sharedMaterial = m_palette.Cyan;
+            }
+            RelayTowerCore.GetComponent<Renderer>().sharedMaterial = m_palette.Cyan;
+            m_relaySignalLines.SetActive(true);
+            m_relayShortcutGate.SetActive(false);
+            m_relayShortcutOpen = true;
         }
 
         public void ApplyHighContrast(bool enabled)
@@ -359,10 +376,13 @@ namespace DeadSignal.World
 
         public int GetSafestInterceptorEntryIndex(Vector3 playerPosition)
         {
-            return InterceptorTactics.SelectSafestEntrance(
+            var pairStart = m_interceptorEntrances.Count >= 4 && playerPosition.x > m_scene.RelayShortcutPosition.x
+                ? 2
+                : 0;
+            return pairStart + InterceptorTactics.SelectSafestEntrance(
                 playerPosition,
-                m_interceptorEntrances[0],
-                m_interceptorEntrances[1]);
+                m_interceptorEntrances[pairStart],
+                m_interceptorEntrances[pairStart + 1]);
         }
 
         public float GetInterceptorEntryDistance(int index, Vector3 playerPosition)
@@ -499,8 +519,10 @@ namespace DeadSignal.World
         public void TickTower(float dt, bool towerOnline)
         {
             TowerCore.Rotate(Vector3.up, (towerOnline ? 110f : 22f) * dt, Space.World);
+            RelayTowerCore.Rotate(Vector3.up, (m_relayShortcutOpen ? 110f : 22f) * dt, Space.World);
             var pulse = 1f + Mathf.Sin(Time.time * (towerOnline ? 5f : 2f)) * 0.08f;
             TowerCore.localScale = new Vector3(1.35f * pulse, 0.22f, 1.35f * pulse);
+            RelayTowerCore.localScale = new Vector3(1.35f * pulse, 0.22f, 1.35f * pulse);
         }
 
         public void TickEnvironmentPresentation(float dt, bool towerOnline, bool powered)
@@ -596,7 +618,7 @@ namespace DeadSignal.World
 
             if (model.Signal / RunModel.MaximumSignal <= 0.25f)
             {
-                var poweredTarget = GetNearestPoweredTarget(Player.position, model.TowerOnline);
+                var poweredTarget = GetNearestPoweredTarget(Player.position, model.TowerOnline, model.RelayTowerOnline);
                 poweredTarget = GetNavigationWaypoint(Player.position, poweredTarget, 0.48f, model.ShortcutOpen);
                 _updateGuideLine(m_emergencyGuide, Player.position, poweredTarget, m_palette.Cyan, 0.1f);
                 m_emergencyGuide.enabled = true;
@@ -690,6 +712,9 @@ namespace DeadSignal.World
             m_towerTerritory = _createTerritory("Tower Power Territory", TowerPosition, TOWER_POWER_RADIUS, m_palette.Dark);
             _createTerritoryMarkers("Tower Power Boundary", TowerPosition, TOWER_POWER_RADIUS, m_palette.Dark,
                 m_towerTerritoryMarkers);
+            m_relayTerritory = _createTerritory("Relay Power Territory", RelayTowerPosition, TOWER_POWER_RADIUS, m_palette.Dark);
+            _createTerritoryMarkers("Relay Power Boundary", RelayTowerPosition, TOWER_POWER_RADIUS, m_palette.Dark,
+                m_relayTerritoryMarkers);
 
             _buildRouteDetails();
             _buildLocalizedLighting();
@@ -707,6 +732,7 @@ namespace DeadSignal.World
             m_scene.SignalRouting.transform.SetParent(m_root, true);
             m_scene.ShortcutGate.transform.SetParent(m_root, true);
             m_scene.StationMachines.transform.SetParent(m_root, true);
+            m_scene.RelayFoundry.transform.SetParent(m_root, true);
             foreach (var renderer in m_scene.MaintenanceDeck.GetComponentsInChildren<Renderer>())
             {
                 MaintenanceDeckModuleCount++;
@@ -748,6 +774,18 @@ namespace DeadSignal.World
             }
             HasSignalRoutingAssets = SignalRoutingPartCount == 3 && m_palette.HasSignalRoutingTexture;
             m_towerSignalLines.SetActive(false);
+
+            var relayTower = m_scene.RelayTower.transform;
+            RelayTowerCore = relayTower.Find("Tower Core");
+            m_environmentAnimators.Add(RelayTowerCore);
+            m_relaySignalLines = m_scene.RelaySignalRouting;
+            m_relaySignalLines.SetActive(false);
+            m_relayShortcutGate = m_scene.RelayShortcutGate;
+            m_movementBlockers.Add(new MovementBlocker(
+                new Vector2(m_scene.RelayShortcutPosition.x, m_scene.RelayShortcutPosition.z),
+                new Vector2(0.22f, 0.75f), false, true));
+            m_movementBlockers.Add(new MovementBlocker(
+                new Vector2(RelayTowerPosition.x, RelayTowerPosition.z), Vector2.one * TOWER_BLOCKER_HALF_SIZE, false));
 
             foreach (Transform machine in m_scene.StationMachines.transform)
             {
@@ -997,7 +1035,7 @@ namespace DeadSignal.World
         {
             foreach (var blocker in m_movementBlockers)
             {
-                if (blocker.IsShortcutGate && shortcutOpen)
+                if ((blocker.IsShortcutGate && shortcutOpen) || (blocker.IsRelayShortcutGate && m_relayShortcutOpen))
                 {
                     continue;
                 }
@@ -1027,7 +1065,7 @@ namespace DeadSignal.World
             var nearestFraction = float.PositiveInfinity;
             foreach (var blocker in m_movementBlockers)
             {
-                if ((blocker.IsShortcutGate && shortcutOpen) ||
+                if ((blocker.IsShortcutGate && shortcutOpen) || (blocker.IsRelayShortcutGate && m_relayShortcutOpen) ||
                     blocker.Overlaps(end, 0f) ||
                     !blocker.TryGetSweepHit(start, end, radius, out var hitFraction, out _) ||
                     hitFraction >= nearestFraction)
@@ -1319,6 +1357,7 @@ namespace DeadSignal.World
         private readonly List<MovementBlocker> m_movementBlockers = new();
         private readonly List<GameObject> m_salvagePickups = new();
         private readonly List<GameObject> m_towerTerritoryMarkers = new();
+        private readonly List<GameObject> m_relayTerritoryMarkers = new();
         private readonly List<Transform> m_environmentAnimators = new();
         private readonly List<Light> m_landmarkLights = new();
         private readonly List<Vector3> m_machineSockets = new();
@@ -1334,6 +1373,10 @@ namespace DeadSignal.World
 
         private GameObject m_towerTerritory;
         private GameObject m_towerSignalLines;
+        private GameObject m_relayTerritory;
+        private GameObject m_relaySignalLines;
+        private GameObject m_relayShortcutGate;
+        private bool m_relayShortcutOpen;
         private GameObject m_extractionBeacon;
         private GameObject m_shortcutGate;
         private Transform m_cameraRig;
@@ -1343,8 +1386,8 @@ namespace DeadSignal.World
         {
             public const int DETOUR_WAYPOINT_COUNT = 4;
 
-            public MovementBlocker(Vector2 center, Vector2 halfSize, bool isShortcutGate)
-                : this(center, halfSize, Vector2.right, Vector2.up, isShortcutGate)
+            public MovementBlocker(Vector2 center, Vector2 halfSize, bool isShortcutGate, bool isRelayShortcutGate = false)
+                : this(center, halfSize, Vector2.right, Vector2.up, isShortcutGate, isRelayShortcutGate)
             {
             }
 
@@ -1353,13 +1396,15 @@ namespace DeadSignal.World
                 Vector2 halfSize,
                 Vector2 rightAxis,
                 Vector2 forwardAxis,
-                bool isShortcutGate)
+                bool isShortcutGate,
+                bool isRelayShortcutGate = false)
             {
                 Center = center;
                 HalfSize = halfSize;
                 RightAxis = rightAxis;
                 ForwardAxis = forwardAxis;
                 IsShortcutGate = isShortcutGate;
+                IsRelayShortcutGate = isRelayShortcutGate;
             }
 
             public Vector2 Center { get; }
@@ -1367,6 +1412,7 @@ namespace DeadSignal.World
             public Vector2 RightAxis { get; }
             public Vector2 ForwardAxis { get; }
             public bool IsShortcutGate { get; }
+            public bool IsRelayShortcutGate { get; }
 
             public bool Overlaps(Vector3 position, float radius)
             {

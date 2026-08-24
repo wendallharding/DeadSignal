@@ -20,6 +20,79 @@ namespace DeadSignal.Tests
     public sealed class BootstrapSmokeTests
     {
         [UnityTest]
+        public IEnumerator RelayFoundry_ActivatesSecondFootholdAndReturnShortcut()
+        {
+            yield return SceneManager.LoadSceneAsync("SampleScene");
+            yield return null;
+
+            var gamepad = InputSystem.AddDevice<Gamepad>();
+            try
+            {
+                var game = Object.FindFirstObjectByType<DeadSignalGame>();
+                var player = game.transform.Find("Maintenance Drone");
+                var foundry = game.transform.Find("Relay Foundry Region");
+                Assert.That(foundry, Is.Not.Null);
+                Assert.That(foundry.Find("Relay Induction Turbine"), Is.Not.Null);
+                Assert.That(foundry.Find("Foundry Route Split Decal"), Is.Not.Null,
+                    "The region junction should carry its authored protected-versus-exposed route marking.");
+                Assert.That(foundry.Find("Foundry North Reinforcement Gate"), Is.Not.Null);
+                Assert.That(foundry.Find("Foundry South Reinforcement Gate"), Is.Not.Null);
+                Assert.That(game.AuthoredInterceptorEntranceCount, Is.EqualTo(4));
+
+                player.position = new Vector3(-0.6f, 0f, 0.4f);
+                InputSystem.QueueStateEvent(gamepad, new GamepadState().WithButton(GamepadButton.West));
+                yield return null;
+                InputSystem.QueueStateEvent(gamepad, new GamepadState());
+                yield return null;
+
+                player.position = new Vector3(18.5f, 0f, 0f);
+                InputSystem.QueueStateEvent(gamepad,
+                    new GamepadState { rightStick = Vector2.right }.WithButton(GamepadButton.RightShoulder));
+                yield return null;
+                InputSystem.QueueStateEvent(gamepad, new GamepadState { rightStick = Vector2.right });
+                yield return new WaitForSeconds(0.18f);
+                Assert.That(game.LastSignalBoltBlockedByEnvironment, Is.True,
+                    "The closed return bulkhead should block projectiles as well as movement.");
+
+                player.position = game.RelayTowerPosition;
+                Assert.That(game.SafestReinforcementEntryPosition.x, Is.GreaterThan(34f),
+                    "Pressure inside the Relay Foundry should select one of its own far-edge safe entrances.");
+                InputSystem.QueueStateEvent(gamepad, new GamepadState().WithButton(GamepadButton.West));
+                yield return null;
+                InputSystem.QueueStateEvent(gamepad, new GamepadState());
+                yield return null;
+                if (!game.IsRelayTowerOnline)
+                {
+                    InputSystem.QueueStateEvent(gamepad, new GamepadState().WithButton(GamepadButton.West));
+                    yield return null;
+                    InputSystem.QueueStateEvent(gamepad, new GamepadState());
+                    yield return null;
+                }
+
+                Assert.That(game.IsRelayTowerOnline, Is.True,
+                    $"Relay activation failed at player {player.position}, tower {game.RelayTowerPosition}, Signal {game.CurrentSignal:0.##}.");
+                Assert.That(foundry.Find("Relay Signal Lines").gameObject.activeSelf, Is.True);
+                Assert.That(foundry.Find("Relay Return Bulkhead").gameObject.activeSelf, Is.False);
+                Assert.That(game.IsSignalDustPowered, Is.True,
+                    "The second tower should make its authored region a real Signal-safe foothold.");
+
+                yield return new WaitForSeconds(0.3f);
+                player.position = new Vector3(18.5f, 0f, 0f);
+                InputSystem.QueueStateEvent(gamepad,
+                    new GamepadState { rightStick = Vector2.right }.WithButton(GamepadButton.RightShoulder));
+                yield return null;
+                InputSystem.QueueStateEvent(gamepad, new GamepadState { rightStick = Vector2.right });
+                yield return new WaitForSeconds(0.12f);
+                Assert.That(game.LastSignalBoltBlockedByEnvironment, Is.False,
+                    "The activated return shortcut should reopen the same combat sightline.");
+            }
+            finally
+            {
+                InputSystem.RemoveDevice(gamepad);
+            }
+        }
+
+        [UnityTest]
         public IEnumerator SceneLoad_UsesAuthoredCanvasUi()
         {
             yield return SceneManager.LoadSceneAsync("SampleScene");
@@ -846,7 +919,7 @@ namespace DeadSignal.Tests
                 "The tower approach should be placed as scene-authored prefab content rather than runtime layout code.");
             var authoredObstacles = towerJunction.GetComponentsInChildren<AuthoredMapObstacle>();
             Assert.That(authoredObstacles.Length, Is.EqualTo(3));
-            Assert.That(game.AuthoredMapObstacleCount, Is.EqualTo(25),
+            Assert.That(game.AuthoredMapObstacleCount, Is.EqualTo(32),
                 "Every authored junction, salvage area, departure channel, and threat-bay obstacle should participate " +
                 "in movement resolution.");
             Assert.That(authoredObstacles.Sum(obstacle => obstacle.GetComponentsInChildren<Renderer>().Length), Is.EqualTo(6));
@@ -888,7 +961,7 @@ namespace DeadSignal.Tests
                 "The imported vault must face its split doorway toward the original arena.");
             var eastVaultObstacles = eastVault.GetComponentsInChildren<AuthoredMapObstacle>();
             var eastVaultSocket = eastVault.GetComponentInChildren<AuthoredSalvageSocket>();
-            Assert.That(eastVaultObstacles.Length, Is.EqualTo(6));
+            Assert.That(eastVaultObstacles.Length, Is.EqualTo(7));
             Assert.That(eastVaultObstacles.All(obstacle =>
                     obstacle.RightAxis.sqrMagnitude > 0.99f && obstacle.ForwardAxis.sqrMagnitude > 0.99f), Is.True,
                 "Imported render transforms must not own navigation bounds because FBX basis rotation can make an axis vertical.");
@@ -903,7 +976,7 @@ namespace DeadSignal.Tests
             var eastVaultMeshes = eastVault.GetComponentsInChildren<MeshFilter>()
                 .Select(filter => filter.sharedMesh)
                 .ToArray();
-            Assert.That(eastVaultMeshes.Length, Is.EqualTo(8));
+            Assert.That(eastVaultMeshes.Length, Is.EqualTo(9));
             Assert.That(eastVaultMeshes.All(mesh => mesh != null && mesh.vertexCount >= 24), Is.True,
                 "Every east-vault part should use authored beveled geometry instead of a primitive placeholder.");
             Assert.That(eastVaultMeshes.All(mesh =>
@@ -1186,8 +1259,8 @@ namespace DeadSignal.Tests
             Assert.That(game.HasSecurityInterceptorAssets, Is.True,
                 "The Interceptor should use its authored assembly rather than fallback primitives.");
             Assert.That(game.SecurityInterceptorPartCount, Is.EqualTo(4));
-            Assert.That(game.AuthoredInterceptorEntranceCount, Is.EqualTo(2),
-                "Two scene-authored flank gates should give the director a safe route choice.");
+            Assert.That(game.AuthoredInterceptorEntranceCount, Is.EqualTo(4),
+                "The original and Relay Foundry flank gates should give the director safe route choices.");
             Assert.That(interceptor.gameObject.activeSelf, Is.False);
             Assert.That(game.transform.Find("Interceptor Charge Telegraph"), Is.Not.Null);
             var suppressor = game.transform.Find("Security Suppressor");

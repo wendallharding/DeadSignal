@@ -1,5 +1,15 @@
 # DEAD SIGNAL — Product Backlog
 
+## P0 — Relay Foundry second-region slice (Run 85)
+
+- [x] Add a scene-authored Relay Foundry region with protected north and south turbine approaches through the east vault
+- [x] Place an original turbine landmark, second Signal tower, modular deck, readable boundaries, and oriented collision
+- [x] Require the first tower before activating the foundry tower; create a second powered foothold without changing base drains
+- [x] Retract a scene-authored return bulkhead on activation so the journey home gains a meaningful shortcut
+- [x] Keep reinforcement entrances safe and preserve existing enemy stats, rewards, role caps, and telegraphs
+- [x] Prove activation order, powered-territory routing, collision/projectile blocking, camera bounds, and complete-run regression
+- [ ] Manually compare the protected lane, exposed bypass, and unlocked return shortcut at 16:9 and ultrawide
+
 - [x] Migrate the fixed world envelope, landmarks, camera/light rig, and persistent actors from `DeadSignalWorld` into `SampleScene` behind a validated scene-reference contract
 - [x] Persist the world palette as authored material assets, serialize fixed renderer assignments in `SampleScene`, and remove obsolete material/build references from `DeadSignalWorld`
 
