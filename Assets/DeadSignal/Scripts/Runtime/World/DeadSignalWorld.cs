@@ -15,7 +15,7 @@ namespace DeadSignal.World
     /// </summary>
     internal sealed class DeadSignalWorld
     {
-        public const float ARENA_HALF_WIDTH = 36f;
+        public const float ARENA_HALF_WIDTH = 50.5f;
         public const float ARENA_HALF_HEIGHT = 8.8f;
         public const float STARTING_POWER_RADIUS = 3.6f;
         public const float TOWER_POWER_RADIUS = 7.2f;

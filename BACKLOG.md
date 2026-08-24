@@ -1,5 +1,15 @@
 # DEAD SIGNAL — Product Backlog
 
+## P0 — Capacitor Spine expedition (Run 88)
+
+- [x] Extend the Relay Foundry through two scene-authored east approaches without removing its safe reinforcement pair
+- [x] Add a compact modular Capacitor Spine with a central projectile-blocking landmark, protected north lane, and exposed south lane
+- [x] Relocate the one optional greed cache from the transit vault to the far end of the new route without changing its reward or extraction requirement
+- [x] Place a dormant third-tower berth that establishes the next region goal without presenting a false interaction
+- [x] Expand movement, camera, and tactical-map bounds while preserving enemy stats, response cap, Signal drains, and required salvage count
+- [x] Integrate an original text-free route decal and reuse the purpose-built UV-mapped capacitor art pipeline
+- [ ] Compare protected north, exposed south, and cache-abandonment returns; record route time, damage, Signal, and extraction reserve
+
 ## P0 — AutoUI feature laboratory
 
 - [x] Add an Editor/development-build-only AutoUI debug menu opened with F5

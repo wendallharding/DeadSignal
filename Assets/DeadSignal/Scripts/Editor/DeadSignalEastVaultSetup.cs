@@ -172,20 +172,10 @@ namespace DeadSignal.Editor
                 _ensureObstacle(prefabRoot.transform, "Vault Route Splitter Bounds", new Vector3(-0.45f, 0f, 0f),
                     new Vector2(0.55f, 1.25f));
 
-                var socket = prefabRoot.transform.Find("Optional Salvage Socket");
-                if (socket == null)
+                var legacySocket = prefabRoot.transform.Find("Optional Salvage Socket");
+                if (legacySocket != null)
                 {
-                    var socketObject = new GameObject("Optional Salvage Socket");
-                    socketObject.transform.SetParent(prefabRoot.transform, false);
-                    socket = socketObject.transform;
-                }
-
-                // The imported FBX basis mirrors Blender X; scene placement rotates the module so its doorway faces west.
-                socket.localPosition = new Vector3(-2f, 0f, 0f);
-                socket.localRotation = Quaternion.identity;
-                if (!socket.TryGetComponent<AuthoredSalvageSocket>(out _))
-                {
-                    socket.gameObject.AddComponent<AuthoredSalvageSocket>();
+                    UnityEngine.Object.DestroyImmediate(legacySocket.gameObject);
                 }
 
                 PrefabUtility.SaveAsPrefabAsset(prefabRoot, PREFAB_PATH);
@@ -321,9 +311,9 @@ namespace DeadSignal.Editor
             EditorSceneManager.SaveScene(scene);
 
             if (existing.GetComponentsInChildren<AuthoredMapObstacle>().Length != 6 ||
-                existing.GetComponentsInChildren<AuthoredSalvageSocket>().Length != 1)
+                existing.GetComponentsInChildren<AuthoredSalvageSocket>().Length != 0)
             {
-                throw new InvalidOperationException("The scene-authored east vault is missing blockers or its salvage socket.");
+                throw new InvalidOperationException("The scene-authored east transfer vault has invalid blockers or a legacy cache socket.");
             }
         }
 
@@ -366,7 +356,7 @@ namespace DeadSignal.Editor
             var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(PREFAB_PATH);
             var obstacleCount = prefab != null ? prefab.GetComponentsInChildren<AuthoredMapObstacle>().Length : 0;
             if (prefab == null || obstacleCount < 6 || obstacleCount > 7 ||
-                prefab.GetComponentsInChildren<AuthoredSalvageSocket>().Length != 1)
+                prefab.GetComponentsInChildren<AuthoredSalvageSocket>().Length != 0)
             {
                 return false;
             }

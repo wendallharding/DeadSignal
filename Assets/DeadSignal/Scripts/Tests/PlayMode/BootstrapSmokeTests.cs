@@ -88,8 +88,8 @@ namespace DeadSignal.Tests
                     "Relay activation should award one meaningful weapon calibration choice.");
                 Assert.That(game.PendingSecurityReinforcement, Is.EqualTo(SecurityReinforcement.Suppressor),
                     "The second powered territory should promote the existing final response into a Relay lockdown.");
-                Assert.That(game.SecurityReinforcementsRemaining, Is.EqualTo(2),
-                    "The route's existing trace response and the promoted final Suppressor should remain separately readable.");
+                Assert.That(game.SecurityReinforcementsRemaining, Is.EqualTo(1),
+                    "A direct Relay expedition should promote only the bounded final Suppressor before salvage is secured.");
                 var shotsBeforeCalibration = game.ShotsFired;
                 InputSystem.QueueStateEvent(gamepad,
                     new GamepadState().WithButton(GamepadButton.RightShoulder));
@@ -112,8 +112,8 @@ namespace DeadSignal.Tests
                         new Vector2(game.SuppressorFieldCenter.x, game.SuppressorFieldCenter.z),
                         new Vector2(player.position.x, player.position.z)), Is.LessThan(0.1f),
                     "The Relay sweep should lock to the activation position and preserve an avoidable response window.");
-                Assert.That(game.SecurityReinforcementsRemaining, Is.EqualTo(1),
-                    "Deploying the Relay Suppressor should leave only the already banked trace response.");
+                Assert.That(game.SecurityReinforcementsRemaining, Is.Zero,
+                    "Deploying the Relay Suppressor should consume the direct expedition's only banked response.");
                 player.position = new Vector3(18.5f, 0f, 0f);
                 InputSystem.QueueStateEvent(gamepad,
                     new GamepadState { rightStick = Vector2.right }.WithButton(GamepadButton.RightShoulder));
@@ -1060,7 +1060,7 @@ namespace DeadSignal.Tests
                 "The tower approach should be placed as scene-authored prefab content rather than runtime layout code.");
             var authoredObstacles = towerJunction.GetComponentsInChildren<AuthoredMapObstacle>();
             Assert.That(authoredObstacles.Length, Is.EqualTo(3));
-            Assert.That(game.AuthoredMapObstacleCount, Is.EqualTo(32),
+            Assert.That(game.AuthoredMapObstacleCount, Is.EqualTo(42),
                 "Every authored junction, salvage area, departure channel, and threat-bay obstacle should participate " +
                 "in movement resolution.");
             Assert.That(authoredObstacles.Sum(obstacle => obstacle.GetComponentsInChildren<Renderer>().Length), Is.EqualTo(6));
@@ -1109,8 +1109,8 @@ namespace DeadSignal.Tests
             Assert.That(eastVaultObstacles.All(obstacle =>
                     obstacle.GetComponent<Renderer>() == null && obstacle.transform.localRotation == Quaternion.identity), Is.True,
                 "East-vault collision authoring should remain on identity-oriented, presentation-free transforms.");
-            Assert.That(eastVaultSocket, Is.Not.Null);
-            Assert.That(Vector3.Distance(eastVaultSocket.Position, new Vector3(18.7f, 0f, 0f)), Is.LessThan(0.001f));
+            Assert.That(eastVaultSocket, Is.Null,
+                "The former fourth cache should move deeper into the Capacitor Spine instead of remaining in transit space.");
             Assert.That(game.AuthoredSalvageSocketCount, Is.EqualTo(1));
             Assert.That(eastVault.GetComponentsInChildren<Collider>().Length, Is.Zero,
                 "The optional room should use serialized object-aligned blockers without duplicate physics colliders.");

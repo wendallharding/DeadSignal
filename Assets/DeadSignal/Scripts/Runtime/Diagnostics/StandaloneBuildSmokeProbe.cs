@@ -18,7 +18,7 @@ namespace DeadSignal.Diagnostics
         public const string COMMAND_LINE_ARGUMENT = "-deadSignalBuildSmoke";
         public const string PASS_MARKER = "[DEAD SIGNAL STANDALONE SMOKE] PASS";
 
-        private const int EXPECTED_AUTHORED_OBSTACLE_COUNT = 32;
+        private const int EXPECTED_AUTHORED_OBSTACLE_COUNT = 42;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         private static void _startWhenRequested()
@@ -124,6 +124,12 @@ namespace DeadSignal.Diagnostics
                                 Resources.Load<GameObject>("Environment/RelayFoundryTurbineModel") != null &&
                                 Resources.Load<Texture2D>("Environment/RelayFoundryTurbineAlbedo") != null &&
                                 Resources.Load<Texture2D>("Environment/RelayFoundryRouteDecal") != null &&
+                                GameObject.Find("Capacitor Spine Region/Capacitor Transfer Bank") != null &&
+                                GameObject.Find("Capacitor Spine Region/Third Tower Berth") != null &&
+                                GameObject.Find("Capacitor Spine Region/Capacitor Spine Route Decal") != null &&
+                                Resources.Load<GameObject>("Environment/CapacitorSpineRegion") != null &&
+                                Resources.Load<Texture2D>("Environment/CapacitorSpineRouteDecal") != null &&
+                                Resources.Load<Material>("Materials/CapacitorSpine/CapacitorSpineRouteDecal") != null &&
                                 weaponDecalReady &&
                                 weaponTextureReady &&
                                 weaponMaterialReady &&

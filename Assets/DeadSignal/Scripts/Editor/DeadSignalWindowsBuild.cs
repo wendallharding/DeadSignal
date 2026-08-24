@@ -45,6 +45,7 @@ namespace DeadSignal.Editor
             DeadSignalCameraSetup.EnsureAssets();
             DeadSignalEastVaultSetup.EnsureAssets();
             DeadSignalRelayFoundrySetup.EnsureAssets();
+            DeadSignalCapacitorSpineSetup.EnsureAssets();
             DeadSignalSignalSpineSetup.EnsureAssets();
             DeadSignalBoundaryThresholdSetup.EnsureAssets();
             DeadSignalHudSetup.EnsureAssets();
@@ -173,6 +174,11 @@ namespace DeadSignal.Editor
             if (!DeadSignalRelayFoundrySetup.HasAssets)
             {
                 throw new BuildFailedException("The scene-authored Relay Foundry region is missing or incomplete.");
+            }
+
+            if (!DeadSignalCapacitorSpineSetup.HasAssets)
+            {
+                throw new BuildFailedException("The scene-authored Capacitor Spine region is missing or incomplete.");
             }
 
             if (!DeadSignalActorSetup.HasSecurityWardenAssets)
