@@ -16,7 +16,7 @@ namespace DeadSignal.Editor
         private const string CONDUIT_MATERIAL_PATH = "Assets/DeadSignal/Resources/Materials/CoolantManifoldConduit.mat";
         private const string OBSTACLE_PREFAB_PATH = "Assets/DeadSignal/Resources/Environment/CoolantManifoldAssembly.prefab";
         private const string JUNCTION_PREFAB_PATH = "Assets/DeadSignal/Resources/Environment/TowerApproachJunction.prefab";
-        private const string SCENE_PATH = "Assets/Scenes/SampleScene.unity";
+        private const string SCENE_PATH = "Assets/DeadSignal/Scenes/SampleScene.unity";
 
         private static readonly Vector3 s_towerPosition = new(-0.6f, 0f, 0.4f);
 

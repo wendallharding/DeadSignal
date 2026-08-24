@@ -17,7 +17,7 @@ namespace DeadSignal.Editor
         private const string CONDUIT_MATERIAL_PATH = "Assets/DeadSignal/Resources/Materials/SalvageAnnexConduit.mat";
         private const string BARRIER_PREFAB_PATH = "Assets/DeadSignal/Resources/Environment/SalvageAnnexBarrier.prefab";
         private const string ANNEX_PREFAB_PATH = "Assets/DeadSignal/Resources/Environment/SalvageAnnex.prefab";
-        private const string SCENE_PATH = "Assets/Scenes/SampleScene.unity";
+        private const string SCENE_PATH = "Assets/DeadSignal/Scenes/SampleScene.unity";
 
         private static readonly Vector3 s_salvagePosition = new(9.7f, 0f, 6.3f);
 

@@ -31,6 +31,8 @@ namespace DeadSignal.World
         public Transform PlayerBody { get; private set; }
         public Transform PlayerTurret { get; private set; }
         public PlayerDroneSignalWake PlayerSignalWake { get; private set; }
+        public PlayerCombatPresentation PlayerCombatPresentation { get; private set; }
+        public ForegroundOcclusionController ForegroundOcclusion { get; private set; }
         public Transform Warden { get; private set; }
         public WardenThreatTelegraph WardenTelegraph { get; private set; }
         public Transform Sapper { get; private set; }
@@ -73,6 +75,7 @@ namespace DeadSignal.World
         public bool HasSecuritySuppressorAssets { get; private set; }
         public int SecuritySuppressorPartCount { get; private set; }
         public int AuthoredInterceptorEntranceCount { get; private set; }
+        public ReinforcementEntryTelegraph ReinforcementEntryTelegraph { get; private set; }
         public int AuthoredMapObstacleCount { get; private set; }
         public int AuthoredSalvageSocketCount { get; private set; }
         public bool HasPlayerCameraTuning { get; private set; }
@@ -93,6 +96,7 @@ namespace DeadSignal.World
 
             m_palette = new DeadSignalPalette(comfortSettings.HighContrastEnabled);
             m_signalBoltPrefab = Resources.Load<GameObject>(SIGNAL_BOLT_PREFAB_RESOURCE);
+            m_signalBoltTuning = Resources.Load<SignalBoltPresentationTuning>("Tuning/SignalBoltPresentationTuning");
             HasSignalBoltAssets = m_signalBoltPrefab != null &&
                                   m_signalBoltPrefab.transform.Find("Bolt Shell") != null &&
                                   m_signalBoltPrefab.transform.Find("Bolt Energy") != null;
@@ -101,6 +105,8 @@ namespace DeadSignal.World
             _registerAuthoredMapObstacles();
             _buildActors(comfortSettings);
             _configurePlayerCamera();
+            _configurePlayerCombatPresentation(comfortSettings);
+            _configureForegroundOcclusion();
             ApplyHighContrast(comfortSettings.HighContrastEnabled);
         }
 
@@ -348,31 +354,56 @@ namespace DeadSignal.World
 
         public float GetSafestInterceptorEntryDistance(Vector3 playerPosition)
         {
-            var first = m_interceptorEntrances[0];
-            var second = m_interceptorEntrances[1];
-            var index = InterceptorTactics.SelectSafestEntrance(playerPosition, first, second);
-            return FlatDistance(playerPosition, index == 0 ? first : second);
+            return GetInterceptorEntryDistance(GetSafestInterceptorEntryIndex(playerPosition), playerPosition);
         }
 
-        public void DeployInterceptorReinforcement()
+        public int GetSafestInterceptorEntryIndex(Vector3 playerPosition)
         {
-            var index = InterceptorTactics.SelectSafestEntrance(
-                Player.position,
+            return InterceptorTactics.SelectSafestEntrance(
+                playerPosition,
                 m_interceptorEntrances[0],
                 m_interceptorEntrances[1]);
+        }
+
+        public float GetInterceptorEntryDistance(int index, Vector3 playerPosition)
+        {
+            return FlatDistance(playerPosition, m_interceptorEntrances[Mathf.Clamp(index, 0, m_interceptorEntrances.Count - 1)]);
+        }
+
+        public void DeployInterceptorReinforcement(int entranceIndex = -1)
+        {
+            var index = entranceIndex >= 0 ? entranceIndex : GetSafestInterceptorEntryIndex(Player.position);
             Interceptor.position = m_interceptorEntrances[index];
             Interceptor.gameObject.SetActive(true);
         }
 
-        public void DeploySuppressorReinforcement()
+        public void DeploySuppressorReinforcement(int entranceIndex = -1)
         {
-            var index = InterceptorTactics.SelectSafestEntrance(
-                Player.position,
-                m_interceptorEntrances[0],
-                m_interceptorEntrances[1]);
+            var index = entranceIndex >= 0 ? entranceIndex : GetSafestInterceptorEntryIndex(Player.position);
             Suppressor.position = m_interceptorEntrances[index];
             Suppressor.gameObject.SetActive(true);
             SetSuppressorField(false, false, 1f);
+        }
+
+        public Vector3 GetReinforcementEntryPosition(SecurityReinforcement reinforcement, int entranceIndex)
+        {
+            return reinforcement switch
+            {
+                SecurityReinforcement.Warden => s_securityWardenSpawn,
+                SecurityReinforcement.Sapper => s_signalSapperSpawn,
+                _ => m_interceptorEntrances[Mathf.Clamp(entranceIndex, 0, m_interceptorEntrances.Count - 1)]
+            };
+        }
+
+        public void SetReinforcementEntryWarning(
+            SecurityReinforcement reinforcement,
+            int entranceIndex,
+            bool blocked,
+            float warningProgress)
+        {
+            var visible = reinforcement != SecurityReinforcement.None;
+            var position = visible ? GetReinforcementEntryPosition(reinforcement, entranceIndex) : Vector3.zero;
+            ReinforcementEntryTelegraph.SetState(visible, position, blocked, warningProgress);
         }
 
         public void SetSuppressorField(bool visible, bool active, float radius)
@@ -436,7 +467,33 @@ namespace DeadSignal.World
             }
 
             bolt.transform.rotation = Quaternion.LookRotation(direction, Vector3.up);
+            var trail = bolt.GetComponent<TrailRenderer>();
+            if (trail != null && m_signalBoltTuning != null)
+            {
+                trail.time = m_signalBoltTuning.TrailDuration;
+                trail.startWidth = m_signalBoltTuning.StartingWidth;
+                trail.endWidth = m_signalBoltTuning.EndingWidth;
+                trail.minVertexDistance = m_signalBoltTuning.MinimumVertexDistance;
+                trail.startColor = new Color(0.72f, 1f, 1f, m_signalBoltTuning.MaximumAlpha);
+                trail.endColor = new Color(0.05f, 0.75f, 1f, 0f);
+            }
+
+            var energy = bolt.transform.Find("Bolt Energy");
+            if (energy != null)
+            {
+                energy.localScale *= 1.22f;
+            }
             return bolt;
+        }
+
+        public void PlayPlayerShot(Vector3 direction)
+        {
+            PlayerCombatPresentation?.PlayShot(direction);
+        }
+
+        public void PlayPlayerDash(Vector3 start, Vector3 end)
+        {
+            PlayerCombatPresentation?.PlayDash(start, end);
         }
 
         public void TickTower(float dt, bool towerOnline)
@@ -726,6 +783,7 @@ namespace DeadSignal.World
             var authoredObstacles = Object.FindObjectsByType<AuthoredMapObstacle>(FindObjectsSortMode.None);
             foreach (var obstacle in authoredObstacles)
             {
+                m_authoredMapObstacles.Add(obstacle);
                 m_movementBlockers.Add(new MovementBlocker(
                     obstacle.Center,
                     obstacle.ScaledHalfSize,
@@ -738,10 +796,30 @@ namespace DeadSignal.World
             AuthoredMapObstacleCount = authoredObstacles.Length;
         }
 
+        private void _configurePlayerCombatPresentation(IComfortSettings comfortSettings)
+        {
+            PlayerCombatPresentation = Player.gameObject.AddComponent<PlayerCombatPresentation>();
+            PlayerCombatPresentation.Configure(
+                PlayerTurret,
+                PlayerNose,
+                Resources.Load<Material>("Materials/SignalBoltTrail"),
+                comfortSettings);
+        }
+
+        private void _configureForegroundOcclusion()
+        {
+            ForegroundOcclusion = m_root.gameObject.AddComponent<ForegroundOcclusionController>();
+            ForegroundOcclusion.Configure(Camera, Player, m_authoredMapObstacles);
+        }
+
         private void _buildActors(IComfortSettings comfortSettings)
         {
             _bindAuthoredActors();
             _registerInterceptorEntrances();
+            var entryTelegraphRoot = new GameObject("Reinforcement Entry Telegraph");
+            entryTelegraphRoot.transform.SetParent(m_root);
+            ReinforcementEntryTelegraph = entryTelegraphRoot.AddComponent<ReinforcementEntryTelegraph>();
+            ReinforcementEntryTelegraph.Configure(m_palette.Amber, m_palette.Red);
             Interceptor.position = m_interceptorEntrances[0];
             Suppressor.position = m_interceptorEntrances[0];
 
@@ -1236,6 +1314,8 @@ namespace DeadSignal.World
         private readonly DeadSignalSceneReferences m_scene;
         private readonly DeadSignalPalette m_palette;
         private readonly GameObject m_signalBoltPrefab;
+        private readonly SignalBoltPresentationTuning m_signalBoltTuning;
+        private readonly List<AuthoredMapObstacle> m_authoredMapObstacles = new();
         private readonly List<MovementBlocker> m_movementBlockers = new();
         private readonly List<GameObject> m_salvagePickups = new();
         private readonly List<GameObject> m_towerTerritoryMarkers = new();

@@ -6,11 +6,11 @@ namespace DeadSignal.Combat
     public sealed class SignalBoltPresentationTuning : ScriptableObject
     {
         [Header("Authored Trail")]
-        [SerializeField] private float m_trailDuration = 0.12f;
-        [SerializeField] private float m_startingWidth = 0.18f;
-        [SerializeField] private float m_endingWidth = 0.015f;
+        [SerializeField] private float m_trailDuration = 0.16f;
+        [SerializeField] private float m_startingWidth = 0.24f;
+        [SerializeField] private float m_endingWidth = 0.01f;
         [SerializeField] private float m_minimumVertexDistance = 0.03f;
-        [SerializeField] private float m_maximumAlpha = 0.62f;
+        [SerializeField] private float m_maximumAlpha = 0.86f;
 
         [Header("Projectile Rules")]
         [SerializeField] private float m_speed = 13.5f;

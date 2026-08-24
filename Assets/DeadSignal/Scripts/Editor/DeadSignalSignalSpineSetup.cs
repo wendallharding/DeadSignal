@@ -15,7 +15,7 @@ namespace DeadSignal.Editor
         private const string MATERIAL_PATH = "Assets/DeadSignal/Resources/Materials/SignalSpineInlay.mat";
         private const string INLAY_PREFAB_PATH = "Assets/DeadSignal/Resources/Environment/SignalSpineInlay.prefab";
         private const string ROUTE_PREFAB_PATH = "Assets/DeadSignal/Resources/Environment/OpeningSignalSpine.prefab";
-        private const string SCENE_PATH = "Assets/Scenes/SampleScene.unity";
+        private const string SCENE_PATH = "Assets/DeadSignal/Scenes/SampleScene.unity";
 
         private static readonly Vector3[] s_routePositions =
         {

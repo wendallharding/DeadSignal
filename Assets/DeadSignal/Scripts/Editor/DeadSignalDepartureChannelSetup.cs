@@ -18,7 +18,7 @@ namespace DeadSignal.Editor
         private const string CAPACITOR_PREFAB_PATH = "Assets/DeadSignal/Resources/Environment/DepartureCapacitor.prefab";
         private const string CHANNEL_PREFAB_PATH = "Assets/DeadSignal/Resources/Environment/ExtractionDepartureChannel.prefab";
         private const string OBSTACLE_TEMPLATE_PATH = "Assets/DeadSignal/Resources/Environment/CoolantManifoldAssembly.prefab";
-        private const string SCENE_PATH = "Assets/Scenes/SampleScene.unity";
+        private const string SCENE_PATH = "Assets/DeadSignal/Scenes/SampleScene.unity";
 
         private static readonly Vector3 s_channelPosition = new(-7.2f, 0f, -4.2f);
 

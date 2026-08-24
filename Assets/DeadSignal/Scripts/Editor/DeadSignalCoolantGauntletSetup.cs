@@ -18,7 +18,7 @@ namespace DeadSignal.Editor
         private const string LIGHT_MATERIAL_PATH = "Assets/DeadSignal/Resources/Materials/CoolantBaffleLights.mat";
         private const string BAFFLE_PREFAB_PATH = "Assets/DeadSignal/Resources/Environment/CoolantBaffle.prefab";
         private const string GAUNTLET_PREFAB_PATH = "Assets/DeadSignal/Resources/Environment/SoutheastCoolantGauntlet.prefab";
-        private const string SCENE_PATH = "Assets/Scenes/SampleScene.unity";
+        private const string SCENE_PATH = "Assets/DeadSignal/Scenes/SampleScene.unity";
 
         private static readonly Vector3 s_salvagePosition = new(10.4f, 0f, -6.4f);
 

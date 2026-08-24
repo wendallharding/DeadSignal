@@ -108,7 +108,7 @@ namespace DeadSignal.Presentation
             var total = (passive + movement) * DrainMultiplier;
             var source = IsPowered ? (IsMoving ? "POWERED MOVEMENT" : "POWERED SAFE ZONE") :
                 IsMoving ? "DEAD ZONE + MOVEMENT" : "DEAD ZONE EXPOSURE";
-            GUI.Label(new Rect(18f, 102f, 310f, 48f),
+            GUI.Label(new Rect(18f, 198f, 310f, 48f),
                 total > 0f ? $"SIGNAL  −{total:0.0}/s\n{source}" : "SIGNAL  STABLE\nPOWERED SAFE ZONE", m_smallStyle);
         }
 
@@ -206,7 +206,7 @@ namespace DeadSignal.Presentation
             var index = 0;
             foreach (var signalEvent in m_signalEvents)
             {
-                GUI.Label(new Rect(18f, 154f + index * 22f, 440f, 24f), signalEvent.Message, m_smallStyle);
+                GUI.Label(new Rect(18f, 250f + index * 22f, 440f, 24f), signalEvent.Message, m_smallStyle);
                 index++;
             }
         }

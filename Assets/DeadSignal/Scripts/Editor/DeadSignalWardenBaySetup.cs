@@ -22,7 +22,7 @@ namespace DeadSignal.Editor
         private const string ROUTE_MARKER_PREFAB_PATH =
             "Assets/DeadSignal/Resources/Environment/SecurityBayRouteMarker.prefab";
         private const string BAY_PREFAB_PATH = "Assets/DeadSignal/Resources/Environment/WardenStagingBay.prefab";
-        private const string SCENE_PATH = "Assets/Scenes/SampleScene.unity";
+        private const string SCENE_PATH = "Assets/DeadSignal/Scenes/SampleScene.unity";
 
         private static readonly Vector3 s_wardenPosition = new(6.8f, 0f, 4.7f);
 

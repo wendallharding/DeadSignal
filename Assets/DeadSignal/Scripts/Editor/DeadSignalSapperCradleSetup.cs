@@ -17,7 +17,7 @@ namespace DeadSignal.Editor
         private const string ENERGY_MATERIAL_PATH = "Assets/DeadSignal/Resources/Materials/SapperCradleEnergy.mat";
         private const string PYLON_PREFAB_PATH = "Assets/DeadSignal/Resources/Environment/SapperSiphonPylon.prefab";
         private const string CRADLE_PREFAB_PATH = "Assets/DeadSignal/Resources/Environment/SignalSapperCradle.prefab";
-        private const string SCENE_PATH = "Assets/Scenes/SampleScene.unity";
+        private const string SCENE_PATH = "Assets/DeadSignal/Scenes/SampleScene.unity";
 
         private static readonly Vector3 s_sapperPosition = new(-10.8f, 0f, 5.7f);
 

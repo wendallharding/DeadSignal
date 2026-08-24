@@ -18,7 +18,7 @@ namespace DeadSignal.Editor
         private const string SIGNAL_MATERIAL_PATH = "Assets/DeadSignal/Resources/Materials/RelayBankSignals.mat";
         private const string BANK_PREFAB_PATH = "Assets/DeadSignal/Resources/Environment/RelayBank.prefab";
         private const string FORK_PREFAB_PATH = "Assets/DeadSignal/Resources/Environment/NorthwestRelayFork.prefab";
-        private const string SCENE_PATH = "Assets/Scenes/SampleScene.unity";
+        private const string SCENE_PATH = "Assets/DeadSignal/Scenes/SampleScene.unity";
 
         private static readonly Vector3 s_salvagePosition = new(-5.8f, 0f, 7.2f);
 

@@ -17,6 +17,17 @@
 
 ## P1 — Prove the loop
 
+### Combat VFX and foreground readability
+
+- [x] Add a directional muzzle burst, short-lived muzzle light, and visible drone recoil
+- [x] Increase projectile-core presence and author a brighter tapered trail
+- [x] Differentiate metallic environment impacts, ordinary threat hits, shield absorption, and decisive purges
+- [x] Add threat hit punch, stronger purge rupture, and accessibility-aware effect intensity
+- [x] Add a dash afterimage ribbon and particle wake
+- [x] Cut away tall authored foreground blockers when they cover the player
+- [x] Move supplemental Signal economy copy below the authored upper-left status panel
+- [ ] Compare reduced-flash and full-effect combat in the eastern room and tune particle counts from capture footage
+
 ### Run 83 persistent reinforcement-entry ideas
 
 - [x] Preserve a started reinforcement warning when the player crosses into its authored safe-entry exclusion

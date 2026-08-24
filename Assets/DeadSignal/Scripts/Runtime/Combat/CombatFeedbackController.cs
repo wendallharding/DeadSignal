@@ -16,6 +16,8 @@ namespace DeadSignal.Combat
 
         void Configure(Camera targetCamera);
         void PlaySignalImpact(Vector3 position, bool decisive);
+        void PlayThreatReaction(Transform target);
+        void PlayShieldImpact(Vector3 position);
         void PlaySecurityImpact(Vector3 position);
         void PlaySapperImpact(Vector3 position);
         void PlayEnvironmentImpact(Vector3 position);
@@ -49,6 +51,7 @@ namespace DeadSignal.Combat
 
         private readonly List<ImpactVisual> m_impacts = new();
         private readonly List<ChainArcVisual> m_chainArcs = new();
+        private readonly List<ThreatReaction> m_threatReactions = new();
 
         private IComfortSettings m_comfortSettings;
         private Camera m_targetCamera;
@@ -94,6 +97,13 @@ namespace DeadSignal.Combat
         {
             public GameObject Root;
             public LineRenderer Renderer;
+            public float Age;
+        }
+
+        private sealed class ThreatReaction
+        {
+            public Transform Target;
+            public Vector3 RestScale;
             public float Age;
         }
 
@@ -176,6 +186,26 @@ namespace DeadSignal.Combat
         {
             _playImpact(position, s_signalTint, decisive ? 1.28f : 0.86f, decisive ? 0.2f : 0.11f,
                 decisive ? HEAVY_HIT_STOP : LIGHT_HIT_STOP);
+            if (decisive)
+            {
+                _playImpact(position, new Color(0.2f, 0.95f, 1f), 1.9f, 0f, 0f);
+            }
+        }
+
+        public void PlayThreatReaction(Transform target)
+        {
+            if (target == null || m_isPaused)
+            {
+                return;
+            }
+
+            m_threatReactions.Add(new ThreatReaction { Target = target, RestScale = target.localScale });
+        }
+
+        public void PlayShieldImpact(Vector3 position)
+        {
+            _playImpact(position, new Color(0.18f, 0.72f, 1f), 1.65f, 0.16f, LIGHT_HIT_STOP);
+            _playImpact(position, Color.white, 0.72f, 0f, 0f);
         }
 
         public void PlaySecurityImpact(Vector3 position)
@@ -190,8 +220,10 @@ namespace DeadSignal.Combat
 
         public void PlayEnvironmentImpact(Vector3 position)
         {
-            _playImpact(position, Color.white, 0.72f, 0f, 0f, m_environmentImpactSprite, m_environmentImpactMaterial,
+            _playImpact(position, new Color(1f, 0.58f, 0.16f), 0.82f, 0f, 0f,
+                m_environmentImpactSprite, m_environmentImpactMaterial,
                 "Bulkhead Signal Impact");
+            _playImpact(position + Vector3.up * 0.03f, Color.white, 0.38f, 0f, 0f);
         }
 
         public void PlaySignalRecovery(Vector3 position)
@@ -259,6 +291,7 @@ namespace DeadSignal.Combat
             float dt = Time.deltaTime;
             _updateImpacts(dt);
             _updateChainArcs(dt);
+            _updateThreatReactions(dt);
             _updateCameraShake(dt);
         }
 
@@ -473,6 +506,31 @@ namespace DeadSignal.Combat
 
                 Destroy(chainArc.Root);
                 m_chainArcs.RemoveAt(index);
+            }
+        }
+
+        private void _updateThreatReactions(float dt)
+        {
+            for (var index = m_threatReactions.Count - 1; index >= 0; index--)
+            {
+                var reaction = m_threatReactions[index];
+                if (reaction.Target == null || !reaction.Target.gameObject.activeInHierarchy)
+                {
+                    m_threatReactions.RemoveAt(index);
+                    continue;
+                }
+
+                reaction.Age += dt;
+                var progress = Mathf.Clamp01(reaction.Age / 0.16f);
+                var punch = Mathf.Sin(progress * Mathf.PI) * 0.12f;
+                reaction.Target.localScale = reaction.RestScale * (1f + punch);
+                if (progress < 1f)
+                {
+                    continue;
+                }
+
+                reaction.Target.localScale = reaction.RestScale;
+                m_threatReactions.RemoveAt(index);
             }
         }
 

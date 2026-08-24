@@ -13,7 +13,7 @@ namespace DeadSignal.Editor
         private const string ACTOR_PREFAB_PATH = "Assets/DeadSignal/Resources/Actors/SecurityInterceptorAssembly.prefab";
         private const string SUPPRESSOR_PREFAB_PATH = "Assets/DeadSignal/Resources/Actors/SecuritySuppressorAssembly.prefab";
         private const string ENTRANCE_PREFAB_PATH = "Assets/DeadSignal/Resources/Environment/InterceptorEntryGate.prefab";
-        private const string SCENE_PATH = "Assets/Scenes/SampleScene.unity";
+        private const string SCENE_PATH = "Assets/DeadSignal/Scenes/SampleScene.unity";
         private const string ARMOR_MATERIAL_PATH = "Assets/DeadSignal/Resources/Materials/SecurityWardenArmor.mat";
         private const string RED_MATERIAL_PATH = "Assets/DeadSignal/Resources/Materials/SecurityWardenEye.mat";
         private const string AMBER_MATERIAL_PATH = "Assets/DeadSignal/Resources/Materials/EastVaultEnergy.mat";

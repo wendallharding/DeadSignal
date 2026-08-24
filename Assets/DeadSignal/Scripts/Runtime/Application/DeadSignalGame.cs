@@ -168,6 +168,8 @@ namespace DeadSignal.Application
         public bool HasSalvagePresentationTuning => m_salvageTuning != null;
         public bool HasPlayerMovementTuning => m_playerMovementTuning != null;
         public bool HasPlayerSignalWake => m_world?.PlayerSignalWake?.HasTexture ?? false;
+        public bool HasPlayerCombatPresentation => m_world?.PlayerCombatPresentation != null;
+        public bool HasForegroundOcclusion => m_world?.ForegroundOcclusion != null;
         public bool HasSignalBoltBulkheadImpact => m_combatFeedback?.HasEnvironmentImpactTexture ?? false;
         public bool HasSignalRecoveryBurst => m_combatFeedback?.HasSignalRecoveryTexture ?? false;
         public bool HasSalvageChainBurst => m_combatFeedback?.HasSalvageChainTexture ?? false;
@@ -561,6 +563,10 @@ namespace DeadSignal.Application
                 }
                 m_dashCooldown = 0.4f;
                 _showFeedback("DASH BLOCKED — SIGNAL REFUNDED  //  FOLLOW AMBER TURN");
+            }
+            else if (dashRequested)
+            {
+                m_world.PlayPlayerDash(previousPosition + Vector3.up * 0.16f, m_world.Player.position + Vector3.up * 0.16f);
             }
             else if (m_world.LastMovementBlocked && moveInput.sqrMagnitude > 0.1f && m_blockedFeedbackCooldown <= 0f)
             {

@@ -20,7 +20,7 @@ namespace DeadSignal.Editor
         private const string COPPER_MATERIAL_PATH = "Assets/DeadSignal/Resources/Materials/EastVaultCopper.mat";
         private const string ENERGY_MATERIAL_PATH = "Assets/DeadSignal/Resources/Materials/EastVaultEnergy.mat";
         private const string TUNING_PATH = "Assets/DeadSignal/Resources/Tuning/SalvagePresentationTuning.asset";
-        private const string SCENE_PATH = "Assets/Scenes/SampleScene.unity";
+        private const string SCENE_PATH = "Assets/DeadSignal/Scenes/SampleScene.unity";
 
         private static readonly Vector3 s_roomPosition = new(16.7f, 0f, 0f);
 

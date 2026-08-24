@@ -63,6 +63,7 @@ namespace DeadSignal.Combat
         private float m_suppressorFieldCooldown;
         private float m_suppressorPulseCountdown;
         private Vector3 m_suppressorFieldCenter;
+        private int m_pendingEntryIndex = -1;
 
         public DeadSignalThreatController(
             RunModel model,
@@ -181,12 +182,17 @@ namespace DeadSignal.Combat
             m_audio.Play(DeadSignalAudioCue.Fire);
             LastShotBlockedByEnvironment = false;
             var shot = m_world.CreateSignalBolt(direction);
+            m_world.PlayPlayerShot(direction);
             m_projectiles.Add(new Projectile(shot, direction.normalized, m_projectileTuning.Lifetime));
         }
 
         private void _tickDirector(float dt, bool playerPowered)
         {
             var traceWasCompleted = m_director.IsDeadZoneTraceCompleted;
+            var previousPending = m_director.PendingReinforcement;
+            var safestEntryIndex = m_world.GetSafestInterceptorEntryIndex(m_world.Player.position);
+            var dualGateEntryIndex = m_pendingEntryIndex >= 0 ? m_pendingEntryIndex : safestEntryIndex;
+            var dualGateEntryDistance = m_world.GetInterceptorEntryDistance(dualGateEntryIndex, m_world.Player.position);
             var reinforcement = m_director.Tick(
                 dt,
                 m_model.TowerOnline,
@@ -197,10 +203,29 @@ namespace DeadSignal.Combat
                 IsWardenAlive,
                 IsSapperAlive,
                 IsSuppressorAlive,
-                m_world.GetSafestInterceptorEntryDistance(m_world.Player.position),
+                dualGateEntryDistance,
                 DeadSignalWorld.FlatDistance(m_world.Player.position, m_world.Warden.position),
                 DeadSignalWorld.FlatDistance(m_world.Player.position, m_world.Sapper.position),
-                m_world.GetSafestInterceptorEntryDistance(m_world.Player.position));
+                dualGateEntryDistance);
+            var pending = m_director.PendingReinforcement;
+            if (reinforcement == SecurityReinforcement.None && pending != previousPending)
+            {
+                m_pendingEntryIndex = pending is SecurityReinforcement.Interceptor or SecurityReinforcement.Suppressor
+                    ? safestEntryIndex
+                    : -1;
+            }
+
+            if (pending != SecurityReinforcement.None)
+            {
+                var warningProgress = m_tuning.ReinforcementEntryDelay <= 0f
+                    ? 1f
+                    : 1f - m_director.EntryCountdown / m_tuning.ReinforcementEntryDelay;
+                m_world.SetReinforcementEntryWarning(pending, m_pendingEntryIndex, m_director.IsEntryBlocked, warningProgress);
+            }
+            else
+            {
+                m_world.SetReinforcementEntryWarning(SecurityReinforcement.None, -1, false, 0f);
+            }
             if (!traceWasCompleted && m_director.IsDeadZoneTraceCompleted)
             {
                 m_showFeedback("SECURITY TRACE COMPLETE — INTERCEPTOR DISPATCHED");
@@ -213,7 +238,7 @@ namespace DeadSignal.Combat
                 m_interceptorDashRemaining = 0f;
                 m_interceptorRecoveryCountdown = 0f;
                 m_interceptorHitCooldown = 0f;
-                m_world.DeployInterceptorReinforcement();
+                m_world.DeployInterceptorReinforcement(m_pendingEntryIndex);
                 m_showFeedback("FLANK GATES OPEN — INTERCEPTOR INBOUND");
             }
             else if (reinforcement == SecurityReinforcement.Warden)
@@ -237,7 +262,7 @@ namespace DeadSignal.Combat
                 m_suppressorFieldCountdown = 0f;
                 m_suppressorFieldCooldown = 0f;
                 m_suppressorPulseCountdown = 0f;
-                m_world.DeploySuppressorReinforcement();
+                m_world.DeploySuppressorReinforcement(m_pendingEntryIndex);
                 m_showFeedback("FLANK GATES OPEN — SUPPRESSOR INBOUND");
                 var openingCenter = InterceptorTactics.CalculateOpeningSuppressionCenter(
                     m_world.Player.position,
@@ -253,6 +278,12 @@ namespace DeadSignal.Combat
                     ? "PREDICTIVE SUPPRESSION SWEEP — BREAK COURSE"
                     : "SUPPRESSION SWEEP LOCKED — LEAVE THE RING";
                 _beginSuppressorWarning(openingCenter, warning);
+            }
+
+            if (reinforcement != SecurityReinforcement.None)
+            {
+                m_pendingEntryIndex = -1;
+                m_world.SetReinforcementEntryWarning(SecurityReinforcement.None, -1, false, 0f);
             }
         }
 
@@ -922,6 +953,10 @@ namespace DeadSignal.Combat
         {
             m_wardenHealth -= 1f;
             m_combatFeedback.PlaySignalImpact(m_world.Warden.position + Vector3.up * 0.65f, m_wardenHealth <= 0f);
+            if (m_wardenHealth > 0f)
+            {
+                m_combatFeedback.PlayThreatReaction(m_world.Warden);
+            }
             m_audio.Play(DeadSignalAudioCue.SignalImpact);
             if (m_wardenHealth <= 0f)
             {
@@ -945,6 +980,10 @@ namespace DeadSignal.Combat
                 m_world.SapperTelegraph.SetThreatState(true, true, m_sapperPulseCooldown, m_tuning.SapperPulseInterval);
             }
             m_combatFeedback.PlaySignalImpact(m_world.Sapper.position + Vector3.up * 0.58f, m_sapperHealth <= 0f);
+            if (m_sapperHealth > 0f)
+            {
+                m_combatFeedback.PlayThreatReaction(m_world.Sapper);
+            }
             m_audio.Play(DeadSignalAudioCue.SignalImpact);
             if (m_sapperHealth <= 0f)
             {
@@ -965,6 +1004,10 @@ namespace DeadSignal.Combat
         {
             m_interceptorHealth -= 1f;
             m_combatFeedback.PlaySignalImpact(m_world.Interceptor.position + Vector3.up * 0.5f, m_interceptorHealth <= 0f);
+            if (m_interceptorHealth > 0f)
+            {
+                m_combatFeedback.PlayThreatReaction(m_world.Interceptor);
+            }
             m_audio.Play(DeadSignalAudioCue.SignalImpact);
             if (m_interceptorHealth <= 0f)
             {
@@ -983,6 +1026,10 @@ namespace DeadSignal.Combat
         {
             m_suppressorHealth -= 1f;
             m_combatFeedback.PlaySignalImpact(m_world.Suppressor.position + Vector3.up * 0.5f, m_suppressorHealth <= 0f);
+            if (m_suppressorHealth > 0f)
+            {
+                m_combatFeedback.PlayThreatReaction(m_world.Suppressor);
+            }
             m_audio.Play(DeadSignalAudioCue.SignalImpact);
             if (m_suppressorHealth <= 0f)
             {
@@ -1004,7 +1051,7 @@ namespace DeadSignal.Combat
                 return false;
             }
 
-            m_combatFeedback.PlaySignalRecovery(m_world.Player.position + Vector3.up * 0.58f);
+            m_combatFeedback.PlayShieldImpact(m_world.Player.position + Vector3.up * 0.58f);
             m_audio.Play(DeadSignalAudioCue.SignalImpact);
             var synergyText = m_overclockChoice.Synergy switch
             {

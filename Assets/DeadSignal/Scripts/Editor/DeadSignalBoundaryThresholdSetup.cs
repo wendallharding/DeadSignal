@@ -12,7 +12,7 @@ namespace DeadSignal.Editor
         private const string TEXTURE_PATH = "Assets/DeadSignal/Resources/Environment/SignalBoundaryThreshold.png";
         private const string MATERIAL_PATH = "Assets/DeadSignal/Resources/Materials/SignalBoundaryThreshold.mat";
         private const string PREFAB_PATH = "Assets/DeadSignal/Resources/Environment/SignalBoundaryThreshold.prefab";
-        private const string SCENE_PATH = "Assets/Scenes/SampleScene.unity";
+        private const string SCENE_PATH = "Assets/DeadSignal/Scenes/SampleScene.unity";
 
         private static readonly Vector3 s_thresholdPosition = new(-6.25f, 0.038f, -3.54f);
 
