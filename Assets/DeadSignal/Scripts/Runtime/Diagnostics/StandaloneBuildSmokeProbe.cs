@@ -128,12 +128,15 @@ namespace DeadSignal.Diagnostics
                                 game.transform.Find("Capacitor Spine Region/Third Tower Berth") != null &&
                                 game.transform.Find("Capacitor Spine Region/Capacitor Spine Route Decal") != null &&
                                 game.transform.Find("Capacitor Spine Region/Capacitor Spine Activation Decal") != null &&
+                                game.transform.Find("Capacitor Spine Region/Capacitor Spine Return Decal") != null &&
                                 game.transform.Find("Capacitor Spine Region/Spine Signal Lines") != null &&
                                 Resources.Load<GameObject>("Environment/CapacitorSpineRegion") != null &&
                                 Resources.Load<Texture2D>("Environment/CapacitorSpineRouteDecal") != null &&
                                 Resources.Load<Material>("Materials/CapacitorSpine/CapacitorSpineRouteDecal") != null &&
                                 Resources.Load<Texture2D>("Environment/CapacitorSpineActivationDecal") != null &&
                                 Resources.Load<Material>("Materials/CapacitorSpine/CapacitorSpineActivationDecal") != null &&
+                                Resources.Load<Texture2D>("Environment/CapacitorSpineReturnDecal") != null &&
+                                Resources.Load<Material>("Materials/CapacitorSpine/CapacitorSpineReturnDecal") != null &&
                                 weaponDecalReady &&
                                 weaponTextureReady &&
                                 weaponMaterialReady &&

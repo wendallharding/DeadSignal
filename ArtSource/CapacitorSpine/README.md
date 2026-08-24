@@ -37,3 +37,21 @@ Color palette: cyan and white-ceramic highlights, restrained amber, tiny dark-al
 Materials/textures: painted deck stencil, etched metal wear, emissive circuitry; clean alpha edges
 Constraints: no text, no letters, no numerals, no logos, no watermark, no characters, no weapons, no perspective, no background plate, no franchise motifs; actual alpha transparency; commercially safe original design
 ```
+
+`CapacitorSpineReturnDecal.png` is the editable production copy of the built-in image-generation asset placed beneath the transfer bank. It shows two amber outward approaches converging through a barred capacitor aperture into one cyan return direction. The 1254-by-1254 RGBA PNG has fully transparent corners and SHA-256 `B726CB80E27A3FC17552C934539ECE5B7C60EB51B486B6FD0D1CC642066F9AFF`. The Unity copy is imported with alpha, mipmaps, clamped wrapping, and high-quality compression; its generated material remains transparent and collision-free.
+
+Final return-decal prompt:
+
+```text
+Use case: stylized-concept
+Asset type: transparent top-down Unity floor decal for DEAD SIGNAL's Capacitor Spine return gate
+Primary request: create an original industrial navigation sigil showing two restrained amber approach lanes splitting around a central barred capacitor block, then converging into one strong cyan return arrow passing straight through an opened discharge aperture
+Scene/backdrop: genuinely transparent background with fully transparent corners and generous clear padding
+Style/medium: crisp hand-authored sci-fi maintenance stencil and emissive circuit decal, production game texture, readable from a high-angle perspective camera
+Composition/framing: square, centered, top-down orthographic symbol; symmetrical split at one side, central mechanical aperture, single decisive return direction on the opposite side
+Lighting/mood: flat emissive graphic, no cast shadows, no perspective
+Color palette: dark alloy accents, cyan powered return path, amber outward approach paths, tiny restrained red lock marks
+Materials/textures: lightly distressed station paint and fine circuit interruptions, clean silhouette
+Constraints: actual alpha transparency; no text, letters, numbers, logos, watermark, characters, weapons, UI frame, gradients into an opaque background, or existing franchise motifs; preserve high gameplay readability at small scale
+Avoid: photorealistic scene, floor mockup, perspective, excessive ornament, noisy grunge, magenta dominance
+```

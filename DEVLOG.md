@@ -4798,3 +4798,32 @@ No human playtest, 16:9/ultrawide capture, camera-framing review, route-time mea
 Manual comparison: after activating the Relay and choosing each weapon on separate runs, first take the protected north lane, activate the Spine, abandon the optional cache, and return north. Then take the exposed south lane, collect the optional cache, activate the Spine, and return through the north cover. Finally approach the berth with insufficient reserve and turn back. Record Spine arrival Signal, activation/abandon decision, chosen weapon, third-hit or second-bank attempts/successes, live roles, shots, hits, cache Signal, time back to Relay power, extraction mode/threats, total run time, and final reserve.
 
 Next highest-impact step: use those matched routes to decide whether the next region should add another modular room/alternate return toward the 15–25-minute target or whether the Spine transaction/cover must be corrected first. Do not add the station guardian until this three-tower journey is readable and completable.
+
+## 2026-08-24 — Autonomous Run 90: Capacitor Spine discharge return
+
+### Milestone, player benefit, and acceptance
+
+The deepest tower now changes the trip home instead of only changing reserve and weapon capability. The central transfer bank blocks the direct line and Signal bolts on the outward journey, preserving the protected north and exposed south approaches; powering the Spine retracts the complete nested assembly and opens a direct center return. Acceptance required one scene-authored progress gate, an original readable floor cue, shared movement/navigation/projectile authority, unchanged north/south approaches, unchanged map bounds and economy, 42 authored obstacles, four safe entrances, focused closed/open proof, full regression, and packaged validation.
+
+### Gameplay, authored content, art, and files
+
+- `DeadSignalWorld.cs` recognizes every authored blocker nested beneath the transfer-bank assembly as one Spine return gate. Movement, AI navigation, spawn safety, and projectiles ignore those cached bounds only after `ActivateSpineTower` retracts the authored bank.
+- `CapacitorSpineRegion.prefab` adds one collision-free `Capacitor Spine Return Decal` beneath the existing landmark, rotated so its cyan arrow points west toward Relay power and extraction. No floor area, wall, cache, entrance, tower, cover, or object-aligned bounds moved.
+- `DeadSignalCapacitorSpineSetup.cs` imports the decal, creates its transparent material, places it reproducibly, and now preserves existing signal-line and activation-decal object IDs instead of recreating them on every setup pass.
+- `CapacitorSpinePlayModeTests.cs` proves both established approaches, pre-activation movement and projectile blocking, real-input tower activation, authored bank retraction, direct center return traversal, Resources loading, and evolved Piercing Pulse behavior. `StandaloneBuildSmokeProbe.cs` gates the new texture, material, and prefab child in the packaged player.
+- Built-in image generation produced `CapacitorSpineReturnDecal.png` under `ArtSource/CapacitorSpine` and `Assets/DeadSignal/Resources/Environment`. The original 1254-by-1254 RGBA asset has four fully transparent corner pixels and SHA-256 `B726CB80E27A3FC17552C934539ECE5B7C60EB51B486B6FD0D1CC642066F9AFF`; `ArtSource/CapacitorSpine/README.md` records the final prompt and import contract.
+- `GAME_VISION.md` records the return-transformation decision and `BACKLOG.md` records acceptance plus the open matched-route playtest.
+
+No package, project-setting, scene, camera bound, enemy health/speed/damage/count, reinforcement entrance/order/cap, Signal drain, tower cost/refill/radius, cache count/reward, required salvage, weapon behavior, extraction profile, save data, or existing asset GUID changed. Pre-existing WorldPalette edits, `CustomPackages`, and historical test results remain untouched.
+
+### Exact validation, fixes, evidence, and limitations
+
+Unity `6000.3.11f1` final setup/import exited `0`. The final focused Capacitor Spine PlayMode test passed `1/1` in `7.6815152s`. Full EditMode passed `114/114` in `0.15682s`; full PlayMode passed `19/19` in `57.0750768s`. The final Windows x64 development build passed at `253,751,497` bytes in Unity's reported `9.57s`. Packaged null-device smoke exited `0`, reported `obstacles=42`, loaded the return texture/material/hierarchy, and emitted `[DEAD SIGNAL STANDALONE SMOKE] PASS`. Final task-owned `git diff --check` passed. Critical scans found no compiler error, missing/null reference, unhandled exception, failed assertion, or runtime failure; Unity's transient licensing handshake/access-token errors resolved to the installed license before every authoritative operation.
+
+The first two focused runs failed `0/1` because the purpose-built capacitor prefab contributes a nested blocker in addition to the region-level transfer-bank bounds. Retracting the model while flagging only the outer bounds left an invisible collision. The corrected runtime treats the complete authored hierarchy as one gate and the final focused test passes. The setup generator was also made idempotent so adding this decal does not rewrite the established Spine routing and activation objects.
+
+No human playtest, 16:9/ultrawide capture, camera-framing review, route-time measurement, or subjective balance judgment ran. Automation proves state-dependent traversal and projectile authority, not that the decal's direction is immediately understood or that the center return is always preferable under live mixed-role pressure.
+
+Manual comparison: activate the central tower and Relay, then reach the Spine through the protected north lane without powering it and verify the center bank still forces a lane choice. On a matched run take the exposed south lane, collect the optional cache, power the Spine, and return directly through the retracted bank. Finally power the Spine from the north and deliberately retrace north instead of taking the center. Record Spine arrival Signal, outward lane, cache decision, bank/decal recognition, return route, return time to Relay power, live roles, shots, hits, Signal spent/reclaimed, extraction mode/threats, total run time, and final reserve.
+
+Next highest-impact step: use the matched return evidence to decide whether the three-tower journey needs another modular room toward the 15–25-minute target or whether the Spine shortcut and transaction need correction. Do not add the station guardian until the full journey is readable and completable.

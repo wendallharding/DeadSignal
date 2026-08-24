@@ -250,3 +250,7 @@ The former east-vault cache now terminates a deeper Capacitor Spine route beyond
 ### Run 89 product decision — Capacitor Spine tower evolution
 
 The far Spine berth is now a real third Signal tower after the Relay is online. Its 18-Signal transaction preserves the drone's final point, restores 34, and creates a smaller 6.2-metre powered foothold around the deepest authored landmark. Instead of opening a fourth choice prompt, activation evolves the Relay calibration already chosen: Piercing Pulse gains a third different aligned target, while Controlled Ricochet gains a second legal cover bank. This was selected over another random reward or generic damage scaling because the third region should test and then strengthen the player's established build, while its costly outward commitment changes the optional-cache return without adding enemies, responses, or stat inflation.
+
+### Run 90 product decision — Capacitor Spine discharge return
+
+The Spine transfer bank now acts as a progress-gated return gate. It remains collision- and projectile-authoritative while the player chooses the protected north or exposed south approach, then retracts with the third tower to reveal a direct central route home. This was selected over more corridor area or another combat modifier because the deepest objective should transform the return journey immediately; the same landmark now creates different outward and inward navigation without changing Signal economy, enemy stats, reinforcement count, safe entrances, or the existing weapon evolution.

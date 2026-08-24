@@ -1,5 +1,15 @@
 # DEAD SIGNAL — Product Backlog
 
+## P0 — Capacitor Spine discharge return (Run 90)
+
+- [x] Keep the transfer bank collision- and projectile-authoritative during the outward journey
+- [x] Retract the complete nested transfer-bank assembly when the third tower comes online
+- [x] Open one direct central return while preserving the protected north and exposed south approaches
+- [x] Add an original text-free floor cue showing two amber approaches converging into one cyan return
+- [x] Preserve the 42 authored obstacles, four entrances, cache economy, tower transaction, weapon evolution, and threat budget
+- [x] Prove closed/open movement, projectile blocking, Resources packaging, full regression, and the Windows player
+- [ ] Compare north retrace, south-cache retrace, and direct discharge return; record route time, live roles, Signal, and extraction reserve
+
 ## P0 — Capacitor Spine third tower (Run 89)
 
 - [x] Convert the dormant scene-authored berth into a Relay-gated third Signal tower transaction

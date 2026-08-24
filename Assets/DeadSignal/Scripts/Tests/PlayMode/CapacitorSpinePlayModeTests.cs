@@ -37,6 +37,7 @@ namespace DeadSignal.Tests
                 Assert.That(spine.Find("Third Tower Berth"), Is.Not.Null);
                 Assert.That(spine.Find("Spine Signal Lines"), Is.Not.Null);
                 Assert.That(spine.Find("Capacitor Spine Activation Decal"), Is.Not.Null);
+                Assert.That(spine.Find("Capacitor Spine Return Decal"), Is.Not.Null);
                 Assert.That(spine.Find("Capacitor Spine Route Decal"), Is.Not.Null);
                 Assert.That(socket, Is.Not.Null);
                 Assert.That(socket.Position, Is.EqualTo(new Vector3(47.15f, 0f, -3.35f)));
@@ -44,6 +45,8 @@ namespace DeadSignal.Tests
                 Assert.That(Resources.Load<Material>("Materials/CapacitorSpine/CapacitorSpineRouteDecal"), Is.Not.Null);
                 Assert.That(Resources.Load<Texture2D>("Environment/CapacitorSpineActivationDecal"), Is.Not.Null);
                 Assert.That(Resources.Load<Material>("Materials/CapacitorSpine/CapacitorSpineActivationDecal"), Is.Not.Null);
+                Assert.That(Resources.Load<Texture2D>("Environment/CapacitorSpineReturnDecal"), Is.Not.Null);
+                Assert.That(Resources.Load<Material>("Materials/CapacitorSpine/CapacitorSpineReturnDecal"), Is.Not.Null);
                 Assert.That(game.AuthoredMapObstacleCount, Is.EqualTo(42));
                 Assert.That(game.AuthoredSalvageSocketCount, Is.EqualTo(1));
                 Assert.That(game.AuthoredInterceptorEntranceCount, Is.EqualTo(4),
@@ -72,6 +75,11 @@ namespace DeadSignal.Tests
                 Assert.That(game.LastSignalBoltBlockedByEnvironment, Is.True,
                     "The central transfer landmark should shape both movement and projectile positioning.");
 
+                player.position = new Vector3(39f, 0f, 0f);
+                yield return _moveRight(gamepad, player, 43f);
+                Assert.That(player.position.x, Is.LessThan(41f),
+                    "The discharge bank should keep the direct center return closed on the outward journey.");
+
                 game.DebugActivateTower();
                 game.DebugActivateRelayTower();
                 game.DebugSelectWeapon(DeadSignal.Missions.SignalWeaponOverclock.PiercingPulse);
@@ -84,7 +92,14 @@ namespace DeadSignal.Tests
                 Assert.That(game.IsSpineTowerOnline, Is.True);
                 Assert.That(game.IsWeaponEvolved, Is.True);
                 Assert.That(spine.Find("Spine Signal Lines").gameObject.activeSelf, Is.True);
+                Assert.That(spine.Find("Capacitor Transfer Bank").gameObject.activeSelf, Is.False,
+                    "Powering the Spine should retract the transfer bank and reveal the direct return.");
                 Assert.That(game.CurrentSignal, Is.GreaterThan(RunModel.SpineTowerRefill));
+
+                player.position = new Vector3(44f, 0f, 0f);
+                yield return _moveLeft(gamepad, player, 40f);
+                Assert.That(player.position.x, Is.LessThan(40f),
+                    "The activated tower should open a direct central return instead of forcing either outward lane.");
 
                 game.DebugSpawnThreat(SecurityReinforcement.Interceptor);
                 var warden = game.transform.Find("Security Warden");
@@ -121,6 +136,19 @@ namespace DeadSignal.Tests
             while (player.position.x <= targetX && Time.time < deadline)
             {
                 InputSystem.QueueStateEvent(gamepad, new GamepadState { leftStick = Vector2.right });
+                yield return null;
+            }
+
+            InputSystem.QueueStateEvent(gamepad, new GamepadState());
+            yield return null;
+        }
+
+        private static IEnumerator _moveLeft(Gamepad gamepad, Transform player, float targetX)
+        {
+            var deadline = Time.time + 2f;
+            while (player.position.x >= targetX && Time.time < deadline)
+            {
+                InputSystem.QueueStateEvent(gamepad, new GamepadState { leftStick = Vector2.left });
                 yield return null;
             }
 

@@ -156,6 +156,7 @@ namespace DeadSignal.World
                 foreach (var blocker in m_movementBlockers)
                 {
                     if ((blocker.IsShortcutGate && shortcutOpen) || (blocker.IsRelayShortcutGate && m_relayShortcutOpen) ||
+                        (blocker.IsSpineReturnGate && m_spineReturnOpen) ||
                         !blocker.TryGetSweepHit(position, target, radius, out var hitFraction, out var hitNormal) ||
                         hitFraction >= nearestFraction)
                     {
@@ -267,7 +268,8 @@ namespace DeadSignal.World
             var didHit = false;
             foreach (var blocker in m_movementBlockers)
             {
-                if ((blocker.IsShortcutGate && shortcutOpen) || (blocker.IsRelayShortcutGate && m_relayShortcutOpen))
+                if ((blocker.IsShortcutGate && shortcutOpen) || (blocker.IsRelayShortcutGate && m_relayShortcutOpen) ||
+                    (blocker.IsSpineReturnGate && m_spineReturnOpen))
                 {
                     continue;
                 }
@@ -321,6 +323,8 @@ namespace DeadSignal.World
             }
             SpineTowerCore.GetComponent<Renderer>().sharedMaterial = m_palette.Cyan;
             m_spineSignalLines.SetActive(true);
+            m_spineReturnGate.SetActive(false);
+            m_spineReturnOpen = true;
         }
 
         public void ApplyHighContrast(bool enabled)
@@ -832,6 +836,7 @@ namespace DeadSignal.World
             m_environmentAnimators.Add(SpineTowerCore);
             m_spineSignalLines = m_scene.SpineSignalRouting;
             m_spineSignalLines.SetActive(false);
+            m_spineReturnGate = m_scene.CapacitorSpine.transform.Find("Capacitor Transfer Bank").gameObject;
             m_movementBlockers.Add(new MovementBlocker(
                 new Vector2(SpineTowerPosition.x, SpineTowerPosition.z), Vector2.one * TOWER_BLOCKER_HALF_SIZE, false));
 
@@ -870,12 +875,16 @@ namespace DeadSignal.World
             foreach (var obstacle in authoredObstacles)
             {
                 m_authoredMapObstacles.Add(obstacle);
+                var opensWithSpineTower = obstacle.transform == m_spineReturnGate.transform ||
+                                          obstacle.transform.IsChildOf(m_spineReturnGate.transform);
                 m_movementBlockers.Add(new MovementBlocker(
                     obstacle.Center,
                     obstacle.ScaledHalfSize,
                     obstacle.RightAxis,
                     obstacle.ForwardAxis,
-                    false));
+                    false,
+                    false,
+                    opensWithSpineTower));
                 _createObstacleTrim(obstacle);
             }
 
@@ -1083,7 +1092,8 @@ namespace DeadSignal.World
         {
             foreach (var blocker in m_movementBlockers)
             {
-                if ((blocker.IsShortcutGate && shortcutOpen) || (blocker.IsRelayShortcutGate && m_relayShortcutOpen))
+                if ((blocker.IsShortcutGate && shortcutOpen) || (blocker.IsRelayShortcutGate && m_relayShortcutOpen) ||
+                    (blocker.IsSpineReturnGate && m_spineReturnOpen))
                 {
                     continue;
                 }
@@ -1114,6 +1124,7 @@ namespace DeadSignal.World
             foreach (var blocker in m_movementBlockers)
             {
                 if ((blocker.IsShortcutGate && shortcutOpen) || (blocker.IsRelayShortcutGate && m_relayShortcutOpen) ||
+                    (blocker.IsSpineReturnGate && m_spineReturnOpen) ||
                     blocker.Overlaps(end, 0f) ||
                     !blocker.TryGetSweepHit(start, end, radius, out var hitFraction, out _) ||
                     hitFraction >= nearestFraction)
@@ -1426,6 +1437,8 @@ namespace DeadSignal.World
         private GameObject m_spineTerritory;
         private GameObject m_relaySignalLines;
         private GameObject m_spineSignalLines;
+        private GameObject m_spineReturnGate;
+        private bool m_spineReturnOpen;
         private GameObject m_relayShortcutGate;
         private bool m_relayShortcutOpen;
         private GameObject m_extractionBeacon;
@@ -1437,8 +1450,14 @@ namespace DeadSignal.World
         {
             public const int DETOUR_WAYPOINT_COUNT = 4;
 
-            public MovementBlocker(Vector2 center, Vector2 halfSize, bool isShortcutGate, bool isRelayShortcutGate = false)
-                : this(center, halfSize, Vector2.right, Vector2.up, isShortcutGate, isRelayShortcutGate)
+            public MovementBlocker(
+                Vector2 center,
+                Vector2 halfSize,
+                bool isShortcutGate,
+                bool isRelayShortcutGate = false,
+                bool isSpineReturnGate = false)
+                : this(center, halfSize, Vector2.right, Vector2.up, isShortcutGate, isRelayShortcutGate,
+                    isSpineReturnGate)
             {
             }
 
@@ -1448,7 +1467,8 @@ namespace DeadSignal.World
                 Vector2 rightAxis,
                 Vector2 forwardAxis,
                 bool isShortcutGate,
-                bool isRelayShortcutGate = false)
+                bool isRelayShortcutGate = false,
+                bool isSpineReturnGate = false)
             {
                 Center = center;
                 HalfSize = halfSize;
@@ -1456,6 +1476,7 @@ namespace DeadSignal.World
                 ForwardAxis = forwardAxis;
                 IsShortcutGate = isShortcutGate;
                 IsRelayShortcutGate = isRelayShortcutGate;
+                IsSpineReturnGate = isSpineReturnGate;
             }
 
             public Vector2 Center { get; }
@@ -1464,6 +1485,7 @@ namespace DeadSignal.World
             public Vector2 ForwardAxis { get; }
             public bool IsShortcutGate { get; }
             public bool IsRelayShortcutGate { get; }
+            public bool IsSpineReturnGate { get; }
 
             public bool Overlaps(Vector3 position, float radius)
             {
