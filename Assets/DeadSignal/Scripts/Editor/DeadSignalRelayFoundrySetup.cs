@@ -15,6 +15,8 @@ namespace DeadSignal.Editor
         private const string MODEL_PATH = "Assets/DeadSignal/Resources/Environment/RelayFoundryTurbineModel.fbx";
         private const string TEXTURE_PATH = "Assets/DeadSignal/Resources/Environment/RelayFoundryTurbineAlbedo.png";
         private const string ROUTE_DECAL_PATH = "Assets/DeadSignal/Resources/Environment/RelayFoundryRouteDecal.png";
+        private const string WEAPON_DECAL_PATH =
+            "Assets/DeadSignal/Resources/Environment/RelayFoundryWeaponCalibrationDecal.png";
         private const string EAST_VAULT_PATH = "Assets/DeadSignal/Resources/Environment/EastSalvageVault.prefab";
         private const string TOWER_PATH = "Assets/DeadSignal/Resources/Environment/SignalTowerAssembly.prefab";
         private const string MATERIAL_DIRECTORY = "Assets/DeadSignal/Resources/Materials/RelayFoundry";
@@ -28,10 +30,12 @@ namespace DeadSignal.Editor
                 var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(PREFAB_PATH);
                 return AssetDatabase.LoadAssetAtPath<Texture2D>(TEXTURE_PATH) != null &&
                        AssetDatabase.LoadAssetAtPath<Texture2D>(ROUTE_DECAL_PATH) != null &&
+                       AssetDatabase.LoadAssetAtPath<Texture2D>(WEAPON_DECAL_PATH) != null &&
                        AssetDatabase.LoadAssetAtPath<GameObject>(MODEL_PATH) != null && prefab != null &&
                        prefab.GetComponentsInChildren<AuthoredMapObstacle>().Length == 6 &&
                        prefab.GetComponentsInChildren<AuthoredInterceptorEntrance>().Length == 2 &&
                        prefab.transform.Find("Foundry Route Split Decal") != null &&
+                       prefab.transform.Find("Relay Weapon Calibration Decal") != null &&
                        prefab.transform.Find("Relay Tower Assembly") != null &&
                        prefab.transform.Find("Relay Return Bulkhead") != null;
             }
@@ -58,8 +62,9 @@ namespace DeadSignal.Editor
         {
             var texture = AssetImporter.GetAtPath(TEXTURE_PATH) as TextureImporter;
             var routeDecal = AssetImporter.GetAtPath(ROUTE_DECAL_PATH) as TextureImporter;
+            var weaponDecal = AssetImporter.GetAtPath(WEAPON_DECAL_PATH) as TextureImporter;
             var model = AssetImporter.GetAtPath(MODEL_PATH) as ModelImporter;
-            if (texture == null || routeDecal == null || model == null)
+            if (texture == null || routeDecal == null || weaponDecal == null || model == null)
             {
                 throw new InvalidOperationException("Relay Foundry source texture or FBX is missing.");
             }
@@ -75,6 +80,12 @@ namespace DeadSignal.Editor
             routeDecal.wrapMode = TextureWrapMode.Clamp;
             routeDecal.textureCompression = TextureImporterCompression.CompressedHQ;
             routeDecal.SaveAndReimport();
+            weaponDecal.alphaIsTransparency = true;
+            weaponDecal.mipmapEnabled = true;
+            weaponDecal.maxTextureSize = 2048;
+            weaponDecal.wrapMode = TextureWrapMode.Clamp;
+            weaponDecal.textureCompression = TextureImporterCompression.CompressedHQ;
+            weaponDecal.SaveAndReimport();
             model.addCollider = false;
             model.importAnimation = false;
             model.importCameras = false;
@@ -101,21 +112,22 @@ namespace DeadSignal.Editor
                 Cyan = _material("RelayFoundryCyan", new Color(0.02f, 0.86f, 1f), new Color(0f, 2.2f, 2.8f), null),
                 Amber = _material("RelayFoundryAmber", new Color(1f, 0.4f, 0.035f), new Color(2.2f, 0.42f, 0f), null),
                 Dormant = _material("RelayFoundryDormant", new Color(0.16f, 0.025f, 0.03f), new Color(0.14f, 0f, 0f), null),
-                RouteDecal = _decalMaterial()
+                RouteDecal = _decalMaterial("RelayFoundryRouteDecal", ROUTE_DECAL_PATH),
+                WeaponDecal = _decalMaterial("RelayFoundryWeaponCalibrationDecal", WEAPON_DECAL_PATH)
             };
         }
 
-        private static Material _decalMaterial()
+        private static Material _decalMaterial(string name, string texturePath)
         {
-            var path = $"{MATERIAL_DIRECTORY}/RelayFoundryRouteDecal.mat";
+            var path = $"{MATERIAL_DIRECTORY}/{name}.mat";
             var result = AssetDatabase.LoadAssetAtPath<Material>(path);
             if (result == null)
             {
-                result = new Material(Shader.Find("Universal Render Pipeline/Unlit")) { name = "RelayFoundryRouteDecal" };
+                result = new Material(Shader.Find("Universal Render Pipeline/Unlit")) { name = name };
                 AssetDatabase.CreateAsset(result, path);
             }
 
-            var texture = AssetDatabase.LoadAssetAtPath<Texture2D>(ROUTE_DECAL_PATH);
+            var texture = AssetDatabase.LoadAssetAtPath<Texture2D>(texturePath);
             result.SetTexture("_BaseMap", texture);
             result.SetColor("_BaseColor", Color.white);
             result.SetFloat("_Surface", 1f);
@@ -154,6 +166,14 @@ namespace DeadSignal.Editor
             try
             {
                 var visual = root.transform.Find("Vault East Wall");
+                if (visual != null && !visual.gameObject.activeSelf &&
+                    root.transform.Find("Vault East Wall Bounds") == null &&
+                    root.transform.Find("Vault East Exit North Bounds") != null &&
+                    root.transform.Find("Vault East Exit South Bounds") != null)
+                {
+                    return;
+                }
+
                 var wallMaterial = visual != null ? visual.GetComponent<Renderer>()?.sharedMaterial : null;
                 if (visual != null) visual.gameObject.SetActive(false);
                 var oldBounds = root.transform.Find("Vault East Wall Bounds");
@@ -181,6 +201,37 @@ namespace DeadSignal.Editor
 
         private static void _ensurePrefab(Materials materials)
         {
+            if (AssetDatabase.LoadAssetAtPath<GameObject>(PREFAB_PATH) != null)
+            {
+                var existingRoot = PrefabUtility.LoadPrefabContents(PREFAB_PATH);
+                try
+                {
+                    var existingDecal = existingRoot.transform.Find("Relay Weapon Calibration Decal");
+                    if (existingDecal != null &&
+                        AssetDatabase.GetAssetPath(existingDecal.GetComponent<Renderer>()?.sharedMaterial) ==
+                        AssetDatabase.GetAssetPath(materials.WeaponDecal) &&
+                        existingDecal.localPosition == new Vector3(3.75f, -0.12f, -3.25f) &&
+                        existingDecal.localScale == Vector3.one * 3.8f)
+                    {
+                        return;
+                    }
+
+                    if (existingDecal != null)
+                    {
+                        UnityEngine.Object.DestroyImmediate(existingDecal.gameObject);
+                    }
+
+                    _createWeaponDecal(existingRoot.transform, materials.WeaponDecal);
+                    PrefabUtility.SaveAsPrefabAsset(existingRoot, PREFAB_PATH);
+                }
+                finally
+                {
+                    PrefabUtility.UnloadPrefabContents(existingRoot);
+                }
+
+                return;
+            }
+
             var root = new GameObject("Relay Foundry Region");
             try
             {
@@ -199,6 +250,8 @@ namespace DeadSignal.Editor
                 routeDecal.transform.localScale = Vector3.one * 4.8f;
                 routeDecal.GetComponent<Renderer>().sharedMaterial = materials.RouteDecal;
                 UnityEngine.Object.DestroyImmediate(routeDecal.GetComponent<Collider>());
+
+                _createWeaponDecal(root.transform, materials.WeaponDecal);
 
                 var turbineModel = AssetDatabase.LoadAssetAtPath<GameObject>(MODEL_PATH);
                 var turbine = (GameObject)PrefabUtility.InstantiatePrefab(turbineModel, root.transform);
@@ -248,13 +301,20 @@ namespace DeadSignal.Editor
         {
             var scene = EditorSceneManager.OpenScene(SCENE_PATH, OpenSceneMode.Single);
             var existing = scene.GetRootGameObjects().FirstOrDefault(item => item.name == "Relay Foundry Region");
+            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(PREFAB_PATH);
+            var references = UnityEngine.Object.FindFirstObjectByType<DeadSignalSceneReferences>(FindObjectsInactive.Include);
+            var serialized = new SerializedObject(references);
+            if (existing != null && PrefabUtility.GetCorrespondingObjectFromSource(existing) == prefab &&
+                serialized.FindProperty("m_relayFoundry").objectReferenceValue == existing)
+            {
+                return;
+            }
+
             if (existing != null) UnityEngine.Object.DestroyImmediate(existing);
-            existing = (GameObject)PrefabUtility.InstantiatePrefab(AssetDatabase.LoadAssetAtPath<GameObject>(PREFAB_PATH), scene);
+            existing = (GameObject)PrefabUtility.InstantiatePrefab(prefab, scene);
             existing.name = "Relay Foundry Region";
             existing.transform.position = s_regionPosition;
 
-            var references = UnityEngine.Object.FindFirstObjectByType<DeadSignalSceneReferences>(FindObjectsInactive.Include);
-            var serialized = new SerializedObject(references);
             serialized.FindProperty("m_relayTowerAnchor").objectReferenceValue = existing.transform.Find("Relay Tower Anchor");
             serialized.FindProperty("m_relayShortcutAnchor").objectReferenceValue = existing.transform.Find("Relay Shortcut Anchor");
             serialized.FindProperty("m_arenaHalfExtents").vector2Value = new Vector2(36f, 8.8f);
@@ -265,6 +325,18 @@ namespace DeadSignal.Editor
             serialized.ApplyModifiedPropertiesWithoutUndo();
             EditorUtility.SetDirty(references);
             EditorSceneManager.SaveScene(scene);
+        }
+
+        private static void _createWeaponDecal(Transform parent, Material material)
+        {
+            var weaponDecal = GameObject.CreatePrimitive(PrimitiveType.Quad);
+            weaponDecal.name = "Relay Weapon Calibration Decal";
+            weaponDecal.transform.SetParent(parent, false);
+            weaponDecal.transform.localPosition = new Vector3(3.75f, -0.12f, -3.25f);
+            weaponDecal.transform.localRotation = Quaternion.Euler(90f, 0f, 90f);
+            weaponDecal.transform.localScale = Vector3.one * 3.8f;
+            weaponDecal.GetComponent<Renderer>().sharedMaterial = material;
+            UnityEngine.Object.DestroyImmediate(weaponDecal.GetComponent<Collider>());
         }
 
         private static GameObject _wall(Transform parent, string name, Vector3 position, Vector3 scale, Material material, bool obstacle)
@@ -305,6 +377,7 @@ namespace DeadSignal.Editor
             public Material Amber;
             public Material Dormant;
             public Material RouteDecal;
+            public Material WeaponDecal;
         }
     }
 }

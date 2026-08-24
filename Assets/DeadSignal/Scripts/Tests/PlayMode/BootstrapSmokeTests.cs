@@ -35,6 +35,11 @@ namespace DeadSignal.Tests
                 Assert.That(foundry.Find("Relay Induction Turbine"), Is.Not.Null);
                 Assert.That(foundry.Find("Foundry Route Split Decal"), Is.Not.Null,
                     "The region junction should carry its authored protected-versus-exposed route marking.");
+                Assert.That(foundry.Find("Relay Weapon Calibration Decal"), Is.Not.Null,
+                    "The Relay tower should carry a scene-authored, text-free weapon choice marking.");
+                Assert.That(Resources.Load<Texture2D>("Environment/RelayFoundryWeaponCalibrationDecal"), Is.Not.Null);
+                Assert.That(
+                    Resources.Load<Material>("Materials/RelayFoundry/RelayFoundryWeaponCalibrationDecal"), Is.Not.Null);
                 Assert.That(foundry.Find("Foundry North Reinforcement Gate"), Is.Not.Null);
                 Assert.That(foundry.Find("Foundry South Reinforcement Gate"), Is.Not.Null);
                 Assert.That(game.AuthoredInterceptorEntranceCount, Is.EqualTo(4));
@@ -75,8 +80,19 @@ namespace DeadSignal.Tests
                 Assert.That(foundry.Find("Relay Return Bulkhead").gameObject.activeSelf, Is.False);
                 Assert.That(game.IsSignalDustPowered, Is.True,
                     "The second tower should make its authored region a real Signal-safe foothold.");
+                Assert.That(game.IsWeaponOverclockChoicePending, Is.True,
+                    "Relay activation should award one meaningful weapon calibration choice.");
+                var shotsBeforeCalibration = game.ShotsFired;
+                InputSystem.QueueStateEvent(gamepad,
+                    new GamepadState().WithButton(GamepadButton.RightShoulder));
+                yield return null;
+                InputSystem.QueueStateEvent(gamepad, new GamepadState());
+                yield return null;
+                Assert.That(game.SelectedWeaponOverclock, Is.EqualTo(SignalWeaponOverclock.PiercingPulse));
+                Assert.That(game.ShotsFired, Is.EqualTo(shotsBeforeCalibration),
+                    "Fire should select Piercing Pulse without also spending Signal on a bolt.");
 
-                yield return new WaitForSeconds(0.3f);
+                yield return new WaitForSeconds(0.45f);
                 player.position = new Vector3(18.5f, 0f, 0f);
                 InputSystem.QueueStateEvent(gamepad,
                     new GamepadState { rightStick = Vector2.right }.WithButton(GamepadButton.RightShoulder));
@@ -85,6 +101,110 @@ namespace DeadSignal.Tests
                 yield return new WaitForSeconds(0.12f);
                 Assert.That(game.LastSignalBoltBlockedByEnvironment, Is.False,
                     "The activated return shortcut should reopen the same combat sightline.");
+            }
+            finally
+            {
+                InputSystem.RemoveDevice(gamepad);
+            }
+        }
+
+        [UnityTest]
+        public IEnumerator RelayWeaponCalibration_PiercingPulseStrikesTwoAlignedThreats()
+        {
+            yield return SceneManager.LoadSceneAsync("SampleScene");
+            yield return null;
+
+            var gamepad = InputSystem.AddDevice<Gamepad>();
+            try
+            {
+                var game = Object.FindFirstObjectByType<DeadSignalGame>();
+                var player = game.transform.Find("Maintenance Drone");
+                var warden = game.transform.Find("Security Warden");
+                var sapper = game.transform.Find("Signal Sapper");
+                player.position = new Vector3(-0.6f, 0f, 0.4f);
+                InputSystem.QueueStateEvent(gamepad, new GamepadState().WithButton(GamepadButton.West));
+                yield return null;
+                InputSystem.QueueStateEvent(gamepad, new GamepadState());
+                yield return null;
+                player.position = game.RelayTowerPosition;
+                InputSystem.QueueStateEvent(gamepad, new GamepadState().WithButton(GamepadButton.West));
+                yield return null;
+                InputSystem.QueueStateEvent(gamepad, new GamepadState());
+                yield return null;
+                InputSystem.QueueStateEvent(gamepad, new GamepadState().WithButton(GamepadButton.RightShoulder));
+                yield return null;
+                InputSystem.QueueStateEvent(gamepad, new GamepadState());
+                yield return null;
+
+                Assert.That(game.SelectedWeaponOverclock, Is.EqualTo(SignalWeaponOverclock.PiercingPulse));
+                player.position = new Vector3(22f, 0f, 5f);
+                warden.position = new Vector3(24f, 0f, 5f);
+                sapper.position = new Vector3(26f, 0f, 5f);
+                var wardenHealth = game.WardenHealth;
+                var sapperHealth = game.SapperHealth;
+                InputSystem.QueueStateEvent(gamepad,
+                    new GamepadState { rightStick = Vector2.right }.WithButton(GamepadButton.RightShoulder));
+                yield return null;
+                InputSystem.QueueStateEvent(gamepad, new GamepadState { rightStick = Vector2.right });
+                yield return new WaitForSeconds(0.35f);
+
+                Assert.That(game.WardenHealth, Is.EqualTo(wardenHealth - 1f),
+                    "The first aligned threat should take the normal one-hit pulse damage.");
+                Assert.That(game.SapperHealth, Is.EqualTo(sapperHealth - 1f),
+                    "Piercing Pulse should continue into one different aligned threat.");
+                Assert.That(game.PiercingPulseFollowThroughs, Is.EqualTo(1));
+            }
+            finally
+            {
+                InputSystem.RemoveDevice(gamepad);
+            }
+        }
+
+        [UnityTest]
+        public IEnumerator RelayWeaponCalibration_ControlledRicochetRedirectsOnceFromAuthoredCover()
+        {
+            yield return SceneManager.LoadSceneAsync("SampleScene");
+            yield return null;
+
+            var gamepad = InputSystem.AddDevice<Gamepad>();
+            try
+            {
+                var game = Object.FindFirstObjectByType<DeadSignalGame>();
+                var player = game.transform.Find("Maintenance Drone");
+                var warden = game.transform.Find("Security Warden");
+                var sapper = game.transform.Find("Signal Sapper");
+                player.position = new Vector3(-0.6f, 0f, 0.4f);
+                InputSystem.QueueStateEvent(gamepad, new GamepadState().WithButton(GamepadButton.West));
+                yield return null;
+                InputSystem.QueueStateEvent(gamepad, new GamepadState());
+                yield return null;
+                player.position = game.RelayTowerPosition;
+                InputSystem.QueueStateEvent(gamepad, new GamepadState().WithButton(GamepadButton.West));
+                yield return null;
+                InputSystem.QueueStateEvent(gamepad, new GamepadState());
+                yield return null;
+                InputSystem.QueueStateEvent(gamepad, new GamepadState().WithButton(GamepadButton.West));
+                yield return null;
+                InputSystem.QueueStateEvent(gamepad, new GamepadState());
+                yield return null;
+
+                Assert.That(game.SelectedWeaponOverclock, Is.EqualTo(SignalWeaponOverclock.ControlledRicochet));
+                player.position = new Vector3(27.5f, 0f, 5f);
+                warden.position = new Vector3(31.5f, 0f, 5f);
+                sapper.position = new Vector3(35f, 0f, -5f);
+                var wardenHealth = game.WardenHealth;
+                InputSystem.QueueStateEvent(gamepad,
+                    new GamepadState { rightStick = Vector2.up }.WithButton(GamepadButton.RightShoulder));
+                yield return null;
+                InputSystem.QueueStateEvent(gamepad, new GamepadState { rightStick = Vector2.up });
+                yield return new WaitForSeconds(0.5f);
+
+                Assert.That(game.ControlledRicochets, Is.EqualTo(1),
+                    "The north-bulkhead impact should redirect the bolt once toward the nearest unobstructed role.");
+                Assert.That(game.WardenHealth, Is.EqualTo(wardenHealth - 1f),
+                    "The redirected bolt should retain normal one-hit damage.");
+                Assert.That(game.ActiveSignalBoltCount, Is.Zero,
+                    "A Controlled Ricochet must still end after one threat hit instead of chaining indefinitely.");
             }
             finally
             {

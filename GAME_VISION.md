@@ -60,6 +60,7 @@ This autonomous run is accepted when a fresh Play session provides all of the fo
 - The maintenance drone leaves a short twin cyan Signal wake whose intensity follows actual flight speed, making acceleration and coasting readable without changing movement rules.
 - Player shots use a reusable two-part, UV-mapped maintenance-pulse prefab with original white-ceramic/cyan Signal art while cost, speed, lifetime, and hit rules remain unchanged.
 - Each maintenance pulse leaves a brief authored cyan circuit afterimage, making shot direction and speed readable without obscuring enemies or changing projectile rules.
+- Activating the Relay Foundry offers one run-long weapon calibration: Piercing Pulse continues through one threat into a second aligned role, while Controlled Ricochet redirects once from authored cover toward a nearby unobstructed role. Both retain the five-Signal shot cost and terminate at cover or after their bounded hit budget.
 - The pursuing Security Warden uses three purpose-built, UV-mapped low-poly meshes with original graphite/crimson armor art while threat rules remain unchanged.
 - The tower-draining Signal Sapper uses four purpose-built, UV-mapped low-poly meshes with original black-violet/magenta siphon art while drain rules remain unchanged.
 - Dead zones are visually distinct, show a warning, and drain Signal quickly.
@@ -230,3 +231,7 @@ The promoted Suppressor now counters the extraction plan the player chose. Stabl
 ### Run 81 product decision — Interceptor crash recovery
 
 A committed Interceptor dash now stops when it hits authored cover and exposes a designer-tuned 1.5-second counterattack window; a cleanly avoided dash retains a shorter 0.7-second recovery. Both states block an immediate follow-up lock and are disclosed through combat feedback and live threat status. This was selected over additional health, speed, reinforcements, or a second region because the existing authored obstacles should support a deliberate bait-and-punish decision: flee across open floor, spend route distance to line up a crash, or turn the resulting opening into Signal-expensive counterfire.
+
+### Run 86 product decision — Relay weapon calibration
+
+Relay activation now awards a third, independent build layer. Piercing Pulse rewards lining up mixed roles in open lanes by allowing one bolt to strike two different threats; Controlled Ricochet rewards deliberate use of authored cover by redirecting one impact toward a nearby unobstructed role. Both keep the established five-Signal cost, normal one-hit damage, finite lifetime, and hard cover rules. This was selected over a generic damage percentage because the new region should change how the player reads its turbine lanes and return bulkheads, and over a random drop because meaningful region progress should produce a legible build decision.

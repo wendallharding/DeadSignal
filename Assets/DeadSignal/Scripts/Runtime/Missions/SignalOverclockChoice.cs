@@ -14,6 +14,13 @@ namespace DeadSignal.Missions
         FeedbackShield
     }
 
+    public enum SignalWeaponOverclock
+    {
+        None,
+        PiercingPulse,
+        ControlledRicochet
+    }
+
     public enum SignalOverclockSynergy
     {
         None,
@@ -28,11 +35,13 @@ namespace DeadSignal.Missions
     /// </summary>
     public sealed class SignalOverclockChoice
     {
-        public bool IsPending => m_pendingStage != ChoiceStage.None;
+        public bool IsPending => m_pendingStage != ChoiceStage.None || m_weaponPending;
         public bool IsPrimaryPending => m_pendingStage == ChoiceStage.Primary;
         public bool IsAuxiliaryPending => m_pendingStage == ChoiceStage.Auxiliary;
+        public bool IsWeaponPending => m_weaponPending;
         public SignalOverclock Selected { get; private set; }
         public SignalAuxiliaryOverclock SelectedAuxiliary { get; private set; }
+        public SignalWeaponOverclock SelectedWeapon { get; private set; }
         public bool IsEmergencyCapacitorAvailable { get; private set; }
         public bool IsFeedbackShieldCharged { get; private set; }
         public bool IsChainArcOverloadReady { get; private set; }
@@ -66,6 +75,14 @@ namespace DeadSignal.Missions
             }
         }
 
+        public void NotifyRelayActivated()
+        {
+            if (SelectedWeapon == SignalWeaponOverclock.None)
+            {
+                m_weaponPending = true;
+            }
+        }
+
         public bool TrySelect(SignalOverclock overclock)
         {
             if (!IsPrimaryPending || overclock == SignalOverclock.None)
@@ -89,6 +106,18 @@ namespace DeadSignal.Missions
             IsEmergencyCapacitorAvailable = overclock == SignalAuxiliaryOverclock.EmergencyCapacitor;
             IsFeedbackShieldCharged = overclock == SignalAuxiliaryOverclock.FeedbackShield;
             m_pendingStage = ChoiceStage.None;
+            return true;
+        }
+
+        public bool TrySelect(SignalWeaponOverclock overclock)
+        {
+            if (!IsWeaponPending || overclock == SignalWeaponOverclock.None)
+            {
+                return false;
+            }
+
+            SelectedWeapon = overclock;
+            m_weaponPending = false;
             return true;
         }
 
@@ -167,6 +196,7 @@ namespace DeadSignal.Missions
         }
 
         private ChoiceStage m_pendingStage;
+        private bool m_weaponPending;
         private int m_salvageCollected;
         private float m_overdriveSurgeRemaining;
     }

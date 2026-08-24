@@ -20,6 +20,10 @@ namespace DeadSignal.Missions
         [SerializeField] private float m_overdriveSynergySurgeDuration = 2f;
         [SerializeField] private float m_overdriveSynergySpeedMultiplier = 1.2f;
 
+        [Header("Relay Weapon Calibration")]
+        [SerializeField] private int m_piercingPulseThreatHits = 2;
+        [SerializeField] private float m_controlledRicochetTargetRadius = 7f;
+
         public float ChainArcRadius => m_chainArcRadius;
         public float ThrusterSpeedMultiplier => m_thrusterSpeedMultiplier;
         public float ThrusterAccelerationMultiplier => m_thrusterAccelerationMultiplier;
@@ -27,6 +31,8 @@ namespace DeadSignal.Missions
         public float EmergencyCapacitorRestore => m_emergencyCapacitorRestore;
         public float OverdriveSynergySurgeDuration => m_overdriveSynergySurgeDuration;
         public float OverdriveSynergySpeedMultiplier => m_overdriveSynergySpeedMultiplier;
+        public int PiercingPulseThreatHits => m_piercingPulseThreatHits;
+        public float ControlledRicochetTargetRadius => m_controlledRicochetTargetRadius;
 
         private void OnValidate()
         {
@@ -37,6 +43,8 @@ namespace DeadSignal.Missions
             m_emergencyCapacitorRestore = Mathf.Clamp(m_emergencyCapacitorRestore, 1f, RunModel.MaximumSignal);
             m_overdriveSynergySurgeDuration = Mathf.Clamp(m_overdriveSynergySurgeDuration, 0.5f, 5f);
             m_overdriveSynergySpeedMultiplier = Mathf.Clamp(m_overdriveSynergySpeedMultiplier, 1.05f, 1.4f);
+            m_piercingPulseThreatHits = Mathf.Clamp(m_piercingPulseThreatHits, 2, 3);
+            m_controlledRicochetTargetRadius = Mathf.Clamp(m_controlledRicochetTargetRadius, 2f, 10f);
         }
     }
 }

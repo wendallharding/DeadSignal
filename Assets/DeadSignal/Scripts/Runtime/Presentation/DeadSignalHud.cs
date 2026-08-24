@@ -237,15 +237,23 @@ namespace DeadSignal.Presentation
             var synergyText = m_overclockChoice.Synergy == SignalOverclockSynergy.None
                 ? string.Empty
                 : $"  //  {_overclockSynergyName()}";
+            var weaponText = m_overclockChoice.SelectedWeapon == SignalWeaponOverclock.None
+                ? string.Empty
+                : $"  //  {_weaponOverclockName(m_overclockChoice.SelectedWeapon)}";
             var optionalText = m_model.OptionalSalvageSecured ? "  //  OPTIONAL CACHE SECURED" : string.Empty;
-            m_salvageText.text = $"SALVAGE  {m_model.Salvage}/{RunModel.SalvageRequired}{chainText}{overclockText}{auxiliaryText}{synergyText}{optionalText}";
+            m_salvageText.text =
+                $"SALVAGE  {m_model.Salvage}/{RunModel.SalvageRequired}{chainText}{overclockText}{auxiliaryText}" +
+                $"{synergyText}{weaponText}{optionalText}";
             var powered = m_world.IsPowered(m_world.Player.position, m_model.TowerOnline, m_model.RelayTowerOnline);
             m_zoneText.text = powered ? "● POWERED TERRITORY" : "▲ DEAD ZONE — ACTIVE DRAIN";
             m_zoneText.color = powered ? new Color(0.05f, 0.95f, 1f) : new Color(1f, 0.22f, 0.18f);
             var guidance = MissionGuidance.Evaluate(m_model, m_threats.IsSapperAlive, m_threats.IsSapperLatched,
                 m_threats.SapperPulseCooldown);
             CurrentMissionPhase = guidance.Phase;
-            m_objectiveText.text = m_overclockChoice.IsPrimaryPending
+            m_objectiveText.text = m_overclockChoice.IsWeaponPending
+                ? $"RELAY WEAPON CALIBRATION\nFIRE [{m_input.FireKeyboardBinding}]  PIERCING PULSE — STRIKE TWO THREATS\n" +
+                  $"USE [{m_input.InteractKeyboardBinding}]  CONTROLLED RICOCHET — REDIRECT FROM COVER"
+                : m_overclockChoice.IsPrimaryPending
                 ? $"SIGNAL OVERCLOCK AVAILABLE\nFIRE [{m_input.FireKeyboardBinding}]  CHAIN ARC — BOLTS JUMP\n" +
                   $"USE [{m_input.InteractKeyboardBinding}]  OVERDRIVE — MOVE FASTER"
                 : m_overclockChoice.IsAuxiliaryPending
@@ -483,6 +491,13 @@ namespace DeadSignal.Presentation
         {
             SignalOverclock.ChainArc => "OVERCLOCK: CHAIN ARC",
             SignalOverclock.OverdriveThrusters => "OVERCLOCK: OVERDRIVE",
+            _ => string.Empty
+        };
+
+        private static string _weaponOverclockName(SignalWeaponOverclock overclock) => overclock switch
+        {
+            SignalWeaponOverclock.PiercingPulse => "WEAPON: PIERCING PULSE",
+            SignalWeaponOverclock.ControlledRicochet => "WEAPON: CONTROLLED RICOCHET",
             _ => string.Empty
         };
 

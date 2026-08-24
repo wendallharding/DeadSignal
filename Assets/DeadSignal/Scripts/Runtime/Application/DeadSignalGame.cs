@@ -189,6 +189,9 @@ namespace DeadSignal.Application
         public SignalOverclock SelectedOverclock => m_overclockChoice?.Selected ?? SignalOverclock.None;
         public SignalAuxiliaryOverclock SelectedAuxiliaryOverclock =>
             m_overclockChoice?.SelectedAuxiliary ?? SignalAuxiliaryOverclock.None;
+        public bool IsWeaponOverclockChoicePending => m_overclockChoice?.IsWeaponPending ?? false;
+        public SignalWeaponOverclock SelectedWeaponOverclock =>
+            m_overclockChoice?.SelectedWeapon ?? SignalWeaponOverclock.None;
         public bool IsEmergencyCapacitorAvailable => m_overclockChoice?.IsEmergencyCapacitorAvailable ?? false;
         public bool IsFeedbackShieldCharged => m_overclockChoice?.IsFeedbackShieldCharged ?? false;
         public bool IsChainArcOverloadReady => m_overclockChoice?.IsChainArcOverloadReady ?? false;
@@ -206,6 +209,8 @@ namespace DeadSignal.Application
         public float SignalRecovered => m_metrics?.SignalRecovered ?? 0f;
         public int ShotsFired => m_metrics?.ShotsFired ?? 0;
         public int ActiveSignalBoltCount => transform.Cast<Transform>().Count(child => child.name == "Signal Bolt");
+        public int PiercingPulseFollowThroughs => m_threats?.PiercingPulseFollowThroughs ?? 0;
+        public int ControlledRicochets => m_threats?.ControlledRicochets ?? 0;
 
         public void BeginFireKeyboardRebind()
         {
@@ -711,8 +716,9 @@ namespace DeadSignal.Application
                 if (m_model.TryActivateRelayTower())
                 {
                     m_world.ActivateRelayTower();
+                    m_overclockChoice.NotifyRelayActivated();
                     m_audio.Play(DeadSignalAudioCue.TowerOnline);
-                    _showFeedback("RELAY FOUNDRY ONLINE — RETURN BULKHEAD OPEN");
+                    _showFeedback("RELAY ONLINE — RETURN BULKHEAD OPEN  //  WEAPON CALIBRATION READY");
                 }
                 else if (!m_model.TowerOnline)
                 {
@@ -827,6 +833,12 @@ namespace DeadSignal.Application
                 return;
             }
 
+            if (m_overclockChoice.IsWeaponPending)
+            {
+                _handleWeaponOverclockChoice();
+                return;
+            }
+
             if (m_fireBuffered || m_input.PressedFire())
             {
                 m_fireBuffered = false;
@@ -841,6 +853,25 @@ namespace DeadSignal.Application
             if (m_input.PressedInteract() && m_overclockChoice.TrySelect(SignalOverclock.OverdriveThrusters))
             {
                 _showFeedback("OVERDRIVE THRUSTERS ONLINE — SPEED AND RESPONSE BOOSTED");
+            }
+        }
+
+        private void _handleWeaponOverclockChoice()
+        {
+            if (m_fireBuffered || m_input.PressedFire())
+            {
+                m_fireBuffered = false;
+                if (m_overclockChoice.TrySelect(SignalWeaponOverclock.PiercingPulse))
+                {
+                    _showFeedback("PIERCING PULSE ONLINE — EACH BOLT CAN STRIKE TWO THREATS");
+                }
+
+                return;
+            }
+
+            if (m_input.PressedInteract() && m_overclockChoice.TrySelect(SignalWeaponOverclock.ControlledRicochet))
+            {
+                _showFeedback("CONTROLLED RICOCHET ONLINE — COVER CAN REDIRECT ONE BOLT");
             }
         }
 

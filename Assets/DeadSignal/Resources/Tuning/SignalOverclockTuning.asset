@@ -19,3 +19,5 @@ MonoBehaviour:
   m_emergencyCapacitorRestore: 22
   m_overdriveSynergySurgeDuration: 2
   m_overdriveSynergySpeedMultiplier: 1.2
+  m_piercingPulseThreatHits: 2
+  m_controlledRicochetTargetRadius: 7

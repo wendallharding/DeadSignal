@@ -46,6 +46,14 @@ namespace DeadSignal.Diagnostics
             yield return null;
 
             var game = FindFirstObjectByType<DeadSignalGame>();
+            var weaponTextureReady = Resources.Load<Texture2D>("Environment/RelayFoundryWeaponCalibrationDecal") != null;
+            var weaponMaterialReady =
+                Resources.Load<Material>("Materials/RelayFoundry/RelayFoundryWeaponCalibrationDecal") != null;
+            var weaponDecalReady = game != null &&
+                                   game.transform.Find("Relay Foundry Region/Relay Weapon Calibration Decal") != null;
+            Debug.Log($"[DEAD SIGNAL STANDALONE SMOKE] RELAY WEAPON | " +
+                      $"decal={weaponDecalReady} texture={weaponTextureReady} material={weaponMaterialReady} " +
+                      $"obstacles={game?.AuthoredMapObstacleCount ?? -1}");
             var runtimeReady = game != null &&
                                 game.transform.Find("Maintenance Drone") != null &&
                                 game.transform.Find("Shortcut Gate Assembly/Signal Shortcut Gate") != null &&
@@ -110,6 +118,9 @@ namespace DeadSignal.Diagnostics
                                 Resources.Load<GameObject>("Environment/RelayFoundryTurbineModel") != null &&
                                 Resources.Load<Texture2D>("Environment/RelayFoundryTurbineAlbedo") != null &&
                                 Resources.Load<Texture2D>("Environment/RelayFoundryRouteDecal") != null &&
+                                weaponDecalReady &&
+                                weaponTextureReady &&
+                                weaponMaterialReady &&
                                 Resources.Load<GameObject>("Environment/DepartureCapacitor") != null &&
                                 Resources.Load<GameObject>("Environment/ExtractionDepartureChannel") != null &&
                                 Resources.Load<Texture2D>("Environment/DepartureCapacitorAlbedo") != null &&

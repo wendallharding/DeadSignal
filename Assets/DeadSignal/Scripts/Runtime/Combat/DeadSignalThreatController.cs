@@ -142,6 +142,8 @@ namespace DeadSignal.Combat
         public bool IsDeadZoneTraceCooling => m_director.IsDeadZoneTraceCooling;
         public float DeadZoneTraceSecondsRemaining => m_director.DeadZoneTraceSecondsRemaining;
         public SecurityReinforcement PendingReinforcement => m_director.PendingReinforcement;
+        public int PiercingPulseFollowThroughs { get; private set; }
+        public int ControlledRicochets { get; private set; }
 
         public void BeginExtractionPressure(ExtractionUplinkMode mode)
         {
@@ -183,7 +185,11 @@ namespace DeadSignal.Combat
             LastShotBlockedByEnvironment = false;
             var shot = m_world.CreateSignalBolt(direction);
             m_world.PlayPlayerShot(direction);
-            m_projectiles.Add(new Projectile(shot, direction.normalized, m_projectileTuning.Lifetime));
+            var weaponOverclock = m_overclockChoice.SelectedWeapon;
+            var threatHits = weaponOverclock == SignalWeaponOverclock.PiercingPulse
+                ? m_overclockTuning.PiercingPulseThreatHits
+                : 1;
+            m_projectiles.Add(new Projectile(shot, direction.normalized, m_projectileTuning.Lifetime, weaponOverclock, threatHits));
         }
 
         private void _tickDirector(float dt, bool playerPowered)
@@ -695,24 +701,28 @@ namespace DeadSignal.Combat
                 shot.Life -= dt;
                 var start = shot.Visual.transform.position;
                 var end = start + shot.Direction * (m_projectileTuning.Speed * dt);
-                var hitWarden = _tryGetThreatHitFraction(
-                    start, end, m_world.Warden, m_wardenHealth, s_wardenProjectileHitRadius, out var wardenHitFraction);
-                var hitSapper = _tryGetThreatHitFraction(
-                    start, end, m_world.Sapper, m_sapperHealth, s_sapperProjectileHitRadius, out var sapperHitFraction);
-                var hitInterceptor = _tryGetThreatHitFraction(
+                var wardenHitFraction = float.PositiveInfinity;
+                var sapperHitFraction = float.PositiveInfinity;
+                var interceptorHitFraction = float.PositiveInfinity;
+                var suppressorHitFraction = float.PositiveInfinity;
+                var hitWarden = !shot.HasHit(ThreatTarget.Warden) && _tryGetThreatHitFraction(
+                    start, end, m_world.Warden, m_wardenHealth, s_wardenProjectileHitRadius, out wardenHitFraction);
+                var hitSapper = !shot.HasHit(ThreatTarget.Sapper) && _tryGetThreatHitFraction(
+                    start, end, m_world.Sapper, m_sapperHealth, s_sapperProjectileHitRadius, out sapperHitFraction);
+                var hitInterceptor = !shot.HasHit(ThreatTarget.Interceptor) && _tryGetThreatHitFraction(
                     start,
                     end,
                     m_world.Interceptor,
                     m_interceptorHealth,
                     s_interceptorProjectileHitRadius,
-                    out var interceptorHitFraction);
-                var hitSuppressor = _tryGetThreatHitFraction(
+                    out interceptorHitFraction);
+                var hitSuppressor = !shot.HasHit(ThreatTarget.Suppressor) && _tryGetThreatHitFraction(
                     start,
                     end,
                     m_world.Suppressor,
                     m_suppressorHealth,
                     s_suppressorProjectileHitRadius,
-                    out var suppressorHitFraction);
+                    out suppressorHitFraction);
                 var hitObstacle = m_world.TryGetProjectileObstacleHit(
                     start,
                     end,
@@ -729,46 +739,159 @@ namespace DeadSignal.Combat
                 if (hitObstacle && obstacleHitFraction < nearestThreatFraction)
                 {
                     LastShotBlockedByEnvironment = true;
-                    shot.Visual.transform.position = Vector3.Lerp(start, end, obstacleHitFraction);
-                    m_combatFeedback.PlayEnvironmentImpact(shot.Visual.transform.position + Vector3.up * 0.03f);
+                    var impactPosition = Vector3.Lerp(start, end, obstacleHitFraction);
+                    shot.Visual.transform.position = impactPosition;
+                    m_combatFeedback.PlayEnvironmentImpact(impactPosition + Vector3.up * 0.03f);
+                    if (shot.Weapon == SignalWeaponOverclock.ControlledRicochet && !shot.HasRicocheted &&
+                        _tryRedirectRicochet(shot, impactPosition))
+                    {
+                        ControlledRicochets++;
+                        continue;
+                    }
+
                     UnityEngine.Object.Destroy(shot.Visual);
                     m_projectiles.RemoveAt(index);
                     continue;
                 }
 
-                shot.Visual.transform.position = end;
+                var hitTarget = ThreatTarget.None;
+                var hitFraction = float.PositiveInfinity;
                 if (hitWarden && wardenHitFraction <= sapperHitFraction && wardenHitFraction <= interceptorHitFraction &&
                     wardenHitFraction <= suppressorHitFraction)
                 {
                     var hitPosition = m_world.Warden.position + Vector3.up * 0.55f;
                     _hitWarden();
                     _tryChainArc(ThreatTarget.Warden, hitPosition);
+                    hitTarget = ThreatTarget.Warden;
+                    hitFraction = wardenHitFraction;
                 }
                 else if (hitSapper && sapperHitFraction <= interceptorHitFraction && sapperHitFraction <= suppressorHitFraction)
                 {
                     var hitPosition = m_world.Sapper.position + Vector3.up * 0.5f;
                     _hitSapper();
                     _tryChainArc(ThreatTarget.Sapper, hitPosition);
+                    hitTarget = ThreatTarget.Sapper;
+                    hitFraction = sapperHitFraction;
                 }
                 else if (hitInterceptor && interceptorHitFraction <= suppressorHitFraction)
                 {
                     var hitPosition = m_world.Interceptor.position + Vector3.up * 0.5f;
                     _hitInterceptor();
                     _tryChainArc(ThreatTarget.Interceptor, hitPosition);
+                    hitTarget = ThreatTarget.Interceptor;
+                    hitFraction = interceptorHitFraction;
                 }
                 else if (hitSuppressor)
                 {
                     var hitPosition = m_world.Suppressor.position + Vector3.up * 0.5f;
                     _hitSuppressor();
                     _tryChainArc(ThreatTarget.Suppressor, hitPosition);
+                    hitTarget = ThreatTarget.Suppressor;
+                    hitFraction = suppressorHitFraction;
                 }
 
-                if (hitWarden || hitSapper || hitInterceptor || hitSuppressor || shot.Life <= 0f)
+                if (hitTarget != ThreatTarget.None)
+                {
+                    shot.MarkHit(hitTarget);
+                    if (shot.RemainingThreatHits > 0 && shot.Life > 0f)
+                    {
+                        PiercingPulseFollowThroughs++;
+                        shot.Visual.transform.position = Vector3.Lerp(start, end, hitFraction) + shot.Direction * 0.08f;
+                        continue;
+                    }
+                }
+                else
+                {
+                    shot.Visual.transform.position = end;
+                }
+
+                if (hitTarget != ThreatTarget.None || shot.Life <= 0f)
                 {
                     UnityEngine.Object.Destroy(shot.Visual);
                     m_projectiles.RemoveAt(index);
                 }
             }
+        }
+
+        private bool _tryRedirectRicochet(Projectile shot, Vector3 impactPosition)
+        {
+            var target = ThreatTarget.None;
+            var nearestDistance = m_overclockTuning.ControlledRicochetTargetRadius;
+            _considerRicochetTarget(ThreatTarget.Warden, m_world.Warden, m_wardenHealth, impactPosition, ref target, ref nearestDistance);
+            _considerRicochetTarget(ThreatTarget.Sapper, m_world.Sapper, m_sapperHealth, impactPosition, ref target, ref nearestDistance);
+            _considerRicochetTarget(
+                ThreatTarget.Interceptor, m_world.Interceptor, m_interceptorHealth, impactPosition, ref target, ref nearestDistance);
+            _considerRicochetTarget(
+                ThreatTarget.Suppressor, m_world.Suppressor, m_suppressorHealth, impactPosition, ref target, ref nearestDistance);
+            if (target == ThreatTarget.None)
+            {
+                return false;
+            }
+
+            var targetPosition = _getThreatPosition(target) + Vector3.up * 0.25f;
+            var direction = targetPosition - impactPosition;
+            direction.y = 0f;
+            if (direction.sqrMagnitude < 0.01f)
+            {
+                return false;
+            }
+
+            direction.Normalize();
+            var redirectedStart = impactPosition + direction * 0.12f;
+            if (m_world.TryGetProjectileObstacleHit(
+                    redirectedStart,
+                    targetPosition,
+                    m_projectileTuning.CollisionRadius,
+                    m_model.ShortcutOpen,
+                    out var obstacleFraction) && obstacleFraction < 0.98f)
+            {
+                return false;
+            }
+
+            shot.Redirect(direction, redirectedStart);
+            return true;
+        }
+
+        private void _considerRicochetTarget(
+            ThreatTarget candidate,
+            Transform transform,
+            float health,
+            Vector3 start,
+            ref ThreatTarget target,
+            ref float nearestDistance)
+        {
+            if (health <= 0f || !transform.gameObject.activeSelf)
+            {
+                return;
+            }
+
+            var distance = DeadSignalWorld.FlatDistance(start, transform.position);
+            if (distance > nearestDistance)
+            {
+                return;
+            }
+
+            var targetPosition = transform.position + Vector3.up * 0.25f;
+            var direction = targetPosition - start;
+            direction.y = 0f;
+            if (direction.sqrMagnitude < 0.01f)
+            {
+                return;
+            }
+
+            var redirectedStart = start + direction.normalized * 0.12f;
+            if (m_world.TryGetProjectileObstacleHit(
+                    redirectedStart,
+                    targetPosition,
+                    m_projectileTuning.CollisionRadius,
+                    m_model.ShortcutOpen,
+                    out var obstacleFraction) && obstacleFraction < 0.98f)
+            {
+                return;
+            }
+
+            nearestDistance = distance;
+            target = candidate;
         }
 
         private void _tryChainArc(ThreatTarget source, Vector3 start)
@@ -1074,16 +1197,44 @@ namespace DeadSignal.Combat
 
         private sealed class Projectile
         {
-            public Projectile(GameObject visual, Vector3 direction, float lifetime)
+            public Projectile(
+                GameObject visual,
+                Vector3 direction,
+                float lifetime,
+                SignalWeaponOverclock weapon,
+                int remainingThreatHits)
             {
                 Visual = visual;
                 Direction = direction;
                 Life = lifetime;
+                Weapon = weapon;
+                RemainingThreatHits = remainingThreatHits;
             }
 
             public GameObject Visual { get; }
-            public Vector3 Direction { get; }
+            public Vector3 Direction { get; private set; }
             public float Life { get; set; }
+            public SignalWeaponOverclock Weapon { get; }
+            public int RemainingThreatHits { get; private set; }
+            public bool HasRicocheted { get; private set; }
+
+            public bool HasHit(ThreatTarget target) => (m_hitMask & (1 << (int)target)) != 0;
+
+            public void MarkHit(ThreatTarget target)
+            {
+                m_hitMask |= 1 << (int)target;
+                RemainingThreatHits--;
+            }
+
+            public void Redirect(Vector3 direction, Vector3 position)
+            {
+                Direction = direction;
+                HasRicocheted = true;
+                Visual.transform.position = position;
+                Visual.transform.rotation = Quaternion.LookRotation(direction, Vector3.up);
+            }
+
+            private int m_hitMask;
         }
 
         private enum ThreatTarget

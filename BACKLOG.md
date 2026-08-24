@@ -10,6 +10,16 @@
 - [x] Prove activation order, powered-territory routing, collision/projectile blocking, camera bounds, and complete-run regression
 - [ ] Manually compare the protected lane, exposed bypass, and unlocked return shortcut at 16:9 and ultrawide
 
+## P0 — Relay weapon calibration (Run 86)
+
+- [x] Award one independent weapon choice when the Relay tower comes online, without discarding unresolved cache choices
+- [x] Add Piercing Pulse: one five-Signal bolt can strike two different aligned threats but never pass authored cover
+- [x] Add Controlled Ricochet: one authored-cover impact can redirect toward one nearby unobstructed threat
+- [x] Place an original text-free cyan/amber calibration decal beside the scene-authored Relay tower
+- [x] Preserve enemy health, damage, movement, rewards, role order, response cap, shot cost, and Signal drains
+- [x] Prove input consumption, two-target piercing, one-bounce termination, Resources packaging, and full-run regression
+- [ ] Compare both calibrations on the north approach, south approach, and opened return; record hits per shot, cover rebounds, Signal spent, damage, and extraction reserve
+
 - [x] Migrate the fixed world envelope, landmarks, camera/light rig, and persistent actors from `DeadSignalWorld` into `SampleScene` behind a validated scene-reference contract
 - [x] Persist the world palette as authored material assets, serialize fixed renderer assignments in `SampleScene`, and remove obsolete material/build references from `DeadSignalWorld`
 

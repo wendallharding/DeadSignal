@@ -120,9 +120,12 @@ namespace DeadSignal.Presentation
             var auxiliary = m_overclocks.SelectedAuxiliary == SignalAuxiliaryOverclock.None
                 ? "AUXILIARY  LOCKED — CACHE 2"
                 : $"AUXILIARY  {m_overclocks.SelectedAuxiliary.ToString().ToUpperInvariant()}";
+            var weapon = m_overclocks.SelectedWeapon == SignalWeaponOverclock.None
+                ? "WEAPON  LOCKED — RELAY"
+                : $"WEAPON  {m_overclocks.SelectedWeapon.ToString().ToUpperInvariant()}";
             var dash = DashCooldown <= 0f ? "DASH  READY  [SHIFT / A]" : $"DASH  {DashCooldown:0.0}s";
-            GUI.Label(new Rect(Screen.width - 326f, Screen.height - 112f, 308f, 94f),
-                $"{primary}\n{auxiliary}\n{dash}", m_smallStyle);
+            GUI.Label(new Rect(Screen.width - 326f, Screen.height - 132f, 308f, 114f),
+                $"{primary}\n{auxiliary}\n{weapon}\n{dash}", m_smallStyle);
         }
 
         private void _drawObjectiveMarker()

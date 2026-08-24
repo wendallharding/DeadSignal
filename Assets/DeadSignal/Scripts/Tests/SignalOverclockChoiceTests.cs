@@ -42,6 +42,25 @@ namespace DeadSignal.Tests
         }
 
         [Test]
+        public void RelayActivation_QueuesOneWeaponChoiceAlongsideUnresolvedCacheChoice()
+        {
+            var choice = new SignalOverclockChoice();
+            choice.NotifySalvageCollected(1);
+
+            choice.NotifyRelayActivated();
+
+            Assert.That(choice.IsPrimaryPending, Is.True);
+            Assert.That(choice.IsWeaponPending, Is.True);
+            Assert.That(choice.TrySelect(SignalWeaponOverclock.PiercingPulse), Is.True);
+            Assert.That(choice.SelectedWeapon, Is.EqualTo(SignalWeaponOverclock.PiercingPulse));
+            Assert.That(choice.IsPrimaryPending, Is.True,
+                "Resolving the Relay weapon layer must not discard an unresolved cache choice.");
+            choice.NotifyRelayActivated();
+            Assert.That(choice.IsWeaponPending, Is.False,
+                "The one-time Relay reward must not be offered again after selection.");
+        }
+
+        [Test]
         public void EmergencyCapacitor_TriggersOnceAtTunedLowSignalThreshold()
         {
             var choice = new SignalOverclockChoice();
@@ -182,6 +201,7 @@ namespace DeadSignal.Tests
 
             Assert.That(choice.TrySelect(SignalOverclock.OverdriveThrusters), Is.False);
             Assert.That(choice.TrySelect(SignalAuxiliaryOverclock.FeedbackShield), Is.False);
+            Assert.That(choice.TrySelect(SignalWeaponOverclock.ControlledRicochet), Is.False);
             choice.NotifySalvageCollected(1);
             Assert.That(choice.TrySelect(SignalOverclock.None), Is.False);
             Assert.That(choice.IsPrimaryPending, Is.True);
