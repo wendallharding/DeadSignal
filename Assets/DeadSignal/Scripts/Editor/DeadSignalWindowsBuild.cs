@@ -47,6 +47,7 @@ namespace DeadSignal.Editor
             DeadSignalRelayFoundrySetup.EnsureAssets();
             DeadSignalCapacitorSpineSetup.EnsureAssets();
             DeadSignalSpineInductionGallerySetup.EnsureAssets();
+            DeadSignalConvergenceChamberSetup.EnsureAssets();
             DeadSignalSignalSpineSetup.EnsureAssets();
             DeadSignalBoundaryThresholdSetup.EnsureAssets();
             DeadSignalHudSetup.EnsureAssets();
@@ -185,6 +186,11 @@ namespace DeadSignal.Editor
             if (!DeadSignalSpineInductionGallerySetup.HasAssets)
             {
                 throw new BuildFailedException("The scene-authored Spine Induction Gallery is missing or incomplete.");
+            }
+
+            if (!DeadSignalConvergenceChamberSetup.HasAssets)
+            {
+                throw new BuildFailedException("The scene-authored Convergence Chamber is missing or incomplete.");
             }
 
             if (!DeadSignalActorSetup.HasSecurityWardenAssets)

@@ -15,8 +15,6 @@ namespace DeadSignal.World
     /// </summary>
     internal sealed class DeadSignalWorld
     {
-        public const float ARENA_HALF_WIDTH = 50.5f;
-        public const float ARENA_HALF_HEIGHT = 12.4f;
         public const float STARTING_POWER_RADIUS = 3.6f;
         public const float TOWER_POWER_RADIUS = 7.2f;
         public const float SPINE_POWER_RADIUS = 6.2f;
@@ -26,6 +24,7 @@ namespace DeadSignal.World
         public Vector3 ShortcutPosition => m_scene.ShortcutPosition;
         public Vector3 RelayTowerPosition => m_scene.RelayTowerPosition;
         public Vector3 SpineTowerPosition => m_scene.SpineTowerPosition;
+        public Vector2 ArenaHalfExtents => m_scene.ArenaHalfExtents;
 
         public Vector3 GetSalvagePosition(int index)
         {
@@ -154,8 +153,8 @@ namespace DeadSignal.World
 
         public Vector3 ClampToArena(Vector3 position, float radius)
         {
-            position.x = Mathf.Clamp(position.x, -ARENA_HALF_WIDTH + radius, ARENA_HALF_WIDTH - radius);
-            position.z = Mathf.Clamp(position.z, -ARENA_HALF_HEIGHT + radius, ARENA_HALF_HEIGHT - radius);
+            position.x = Mathf.Clamp(position.x, -ArenaHalfExtents.x + radius, ArenaHalfExtents.x - radius);
+            position.z = Mathf.Clamp(position.z, -ArenaHalfExtents.y + radius, ArenaHalfExtents.y - radius);
             return position;
         }
 
@@ -432,6 +431,11 @@ namespace DeadSignal.World
 
         public int GetSafestInterceptorEntryIndex(Vector3 playerPosition)
         {
+            if (m_deepRouteEntranceIndex >= 0 && playerPosition.z > 12.5f)
+            {
+                return m_deepRouteEntranceIndex;
+            }
+
             var pairStart = m_interceptorEntrances.Count >= 4 && playerPosition.x > m_scene.RelayShortcutPosition.x
                 ? 2
                 : 0;
@@ -758,7 +762,7 @@ namespace DeadSignal.World
                 Camera,
                 Player,
                 tuning,
-                new Vector2(ARENA_HALF_WIDTH, ARENA_HALF_HEIGHT));
+                ArenaHalfExtents);
         }
 
         private void _buildArena()
@@ -1066,6 +1070,10 @@ namespace DeadSignal.World
             foreach (var entrance in authoredEntrances)
             {
                 m_interceptorEntrances.Add(entrance.Position);
+                if (entrance.Position.z > 12.5f)
+                {
+                    m_deepRouteEntranceIndex = m_interceptorEntrances.Count - 1;
+                }
             }
 
             if (m_interceptorEntrances.Count < 2)
@@ -1477,6 +1485,7 @@ namespace DeadSignal.World
         private readonly List<Light> m_landmarkLights = new();
         private readonly List<Vector3> m_machineSockets = new();
         private readonly List<Vector3> m_interceptorEntrances = new();
+        private int m_deepRouteEntranceIndex = -1;
         private GameObject m_suppressorField;
         private Vignette m_deadZoneVignette;
         private float m_environmentTime;

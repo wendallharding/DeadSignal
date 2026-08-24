@@ -18,7 +18,7 @@ namespace DeadSignal.Diagnostics
         public const string COMMAND_LINE_ARGUMENT = "-deadSignalBuildSmoke";
         public const string PASS_MARKER = "[DEAD SIGNAL STANDALONE SMOKE] PASS";
 
-        private const int EXPECTED_AUTHORED_OBSTACLE_COUNT = 50;
+        private const int EXPECTED_AUTHORED_OBSTACLE_COUNT = 61;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         private static void _startWhenRequested()
@@ -102,7 +102,7 @@ namespace DeadSignal.Diagnostics
                                 Resources.Load<WardenThreatTelegraphTuning>("Tuning/WardenThreatTelegraphTuning") != null &&
                                 game.HasSecurityInterceptorAssets &&
                                 game.SecurityInterceptorPartCount == 4 &&
-                                game.AuthoredInterceptorEntranceCount == 4 &&
+                                game.AuthoredInterceptorEntranceCount == 5 &&
                                 Resources.Load<GameObject>("Actors/SecurityInterceptorAssembly") != null &&
                                 game.HasSecuritySuppressorAssets &&
                                 game.SecuritySuppressorPartCount == 4 &&
@@ -144,6 +144,17 @@ namespace DeadSignal.Diagnostics
                                 Resources.Load<Texture2D>("Environment/SpineInductionGalleryRouteDecal") != null &&
                                 Resources.Load<Material>(
                                     "Materials/SpineInductionGallery/SpineInductionGalleryRouteDecal") != null &&
+                                game.transform.Find(
+                                    "Spine Induction Gallery Region/Convergence Chamber Region/" +
+                                    "Convergence Busbar Assembly") != null &&
+                                game.transform.Find(
+                                    "Spine Induction Gallery Region/Convergence Chamber Region/" +
+                                    "Convergence Reinforcement Gate") != null &&
+                                Resources.Load<GameObject>("Environment/ConvergenceChamberRegion") != null &&
+                                Resources.Load<GameObject>("Environment/ConvergenceBusbar") != null &&
+                                Resources.Load<Texture2D>("Environment/ConvergenceChamberRouteDecal") != null &&
+                                Resources.Load<Material>(
+                                    "Materials/ConvergenceChamber/ConvergenceChamberRouteDecal") != null &&
                                 weaponDecalReady &&
                                 weaponTextureReady &&
                                 weaponMaterialReady &&

@@ -35,7 +35,7 @@ namespace DeadSignal.Editor
                 return prefab != null &&
                        AssetDatabase.LoadAssetAtPath<Texture2D>(DECAL_PATH) != null &&
                        AssetDatabase.LoadAssetAtPath<Material>(DECAL_MATERIAL_PATH) != null &&
-                       prefab.GetComponentsInChildren<AuthoredMapObstacle>().Length == 6 &&
+                       prefab.GetComponentsInChildren<AuthoredMapObstacle>().Length == 17 &&
                        prefab.GetComponent<AuthoredPoweredTerritory>() != null &&
                        prefab.transform.Find("Induction Gallery Signal Lines") != null &&
                        prefab.transform.Find("Induction Gallery Route Decal") != null &&

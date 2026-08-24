@@ -47,9 +47,9 @@ namespace DeadSignal.Tests
                 Assert.That(Resources.Load<Material>("Materials/CapacitorSpine/CapacitorSpineActivationDecal"), Is.Not.Null);
                 Assert.That(Resources.Load<Texture2D>("Environment/CapacitorSpineReturnDecal"), Is.Not.Null);
                 Assert.That(Resources.Load<Material>("Materials/CapacitorSpine/CapacitorSpineReturnDecal"), Is.Not.Null);
-                Assert.That(game.AuthoredMapObstacleCount, Is.EqualTo(50));
+                Assert.That(game.AuthoredMapObstacleCount, Is.EqualTo(61));
                 Assert.That(game.AuthoredSalvageSocketCount, Is.EqualTo(1));
-                Assert.That(game.AuthoredInterceptorEntranceCount, Is.EqualTo(4),
+                Assert.That(game.AuthoredInterceptorEntranceCount, Is.EqualTo(5),
                     "The extension must preserve the Foundry's established safe reinforcement pair.");
                 Assert.That(foundry.Find("Foundry East Bulkhead"), Is.Null);
                 Assert.That(foundry.Find("Foundry East North"), Is.Not.Null);

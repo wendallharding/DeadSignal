@@ -1,5 +1,17 @@
 # DEAD SIGNAL — Product Backlog
 
+## P0 — Convergence Chamber deep-route pressure (Run 92)
+
+- [x] Extend the Induction Gallery through two independently traversable authored doorways
+- [x] Add a separate 14-by-8-metre chamber with a purpose-built UV-mapped busbar landmark and rotated cover
+- [x] Add one far-side authored security entrance that serves deep-route pressure without increasing the response cap
+- [x] Preserve the six-metre safe-entry exclusion so pressure waits while the player occupies the chamber
+- [x] Keep the chamber dead-zone outbound and power it with the Spine tower for the return journey
+- [x] Make movement clamps and the tactical map consume the scene-authored bounds instead of stale code constants
+- [x] Package an original transparent convergence/return decal and preserve all enemy stats, economy, and objectives
+- [x] Prove both doorways, projectile cover, entrance direction, safety distance, power state, packaging, and full regression
+- [ ] Compare direct Gallery transit against both chamber loops; record route time, gate warning, cover use, Signal, and extraction reserve
+
 ## P0 — Spine Induction Gallery (Run 91)
 
 - [x] Add a separate scene-authored modular gallery beyond the Spine's protected north lane

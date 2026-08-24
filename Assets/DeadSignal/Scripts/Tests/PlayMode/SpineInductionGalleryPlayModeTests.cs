@@ -29,7 +29,7 @@ namespace DeadSignal.Tests
                 var routing = gallery.Find("Induction Gallery Signal Lines").gameObject;
 
                 Assert.That(gallery.position, Is.EqualTo(new Vector3(42.5f, 0f, 8.5f)));
-                Assert.That(gallery.GetComponentsInChildren<AuthoredMapObstacle>().Length, Is.EqualTo(6));
+                Assert.That(gallery.GetComponentsInChildren<AuthoredMapObstacle>().Length, Is.EqualTo(17));
                 Assert.That(gallery.GetComponentsInChildren<Collider>().Length, Is.Zero);
                 Assert.That(gallery.Find("Induction Coil"), Is.Not.Null);
                 Assert.That(gallery.Find("West Deflection Baffle"), Is.Not.Null);
@@ -41,8 +41,8 @@ namespace DeadSignal.Tests
                 Assert.That(Resources.Load<Texture2D>("Environment/SpineInductionGalleryRouteDecal"), Is.Not.Null);
                 Assert.That(Resources.Load<Material>(
                     "Materials/SpineInductionGallery/SpineInductionGalleryRouteDecal"), Is.Not.Null);
-                Assert.That(game.AuthoredMapObstacleCount, Is.EqualTo(50));
-                Assert.That(game.AuthoredInterceptorEntranceCount, Is.EqualTo(4));
+                Assert.That(game.AuthoredMapObstacleCount, Is.EqualTo(61));
+                Assert.That(game.AuthoredInterceptorEntranceCount, Is.EqualTo(5));
                 Assert.That(spine.Find("Capacitor Spine North Bulkhead"), Is.Null);
                 Assert.That(spine.Find("Capacitor Spine North West"), Is.Not.Null);
                 Assert.That(spine.Find("Capacitor Spine North Center"), Is.Not.Null);

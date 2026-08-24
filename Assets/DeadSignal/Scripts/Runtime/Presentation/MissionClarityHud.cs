@@ -245,8 +245,8 @@ namespace DeadSignal.Presentation
 
         private void _drawMapPoint(Rect map, Vector3 position, Color color, float size, string label)
         {
-            var x = map.x + (position.x / (DeadSignalWorld.ARENA_HALF_WIDTH * 2f) + 0.5f) * map.width;
-            var y = map.y + (0.5f - position.z / (DeadSignalWorld.ARENA_HALF_HEIGHT * 2f)) * map.height;
+            var x = map.x + (position.x / (m_world.ArenaHalfExtents.x * 2f) + 0.5f) * map.width;
+            var y = map.y + (0.5f - position.z / (m_world.ArenaHalfExtents.y * 2f)) * map.height;
             var oldColor = GUI.color;
             GUI.color = color;
             GUI.DrawTexture(new Rect(x - size * 0.5f, y - size * 0.5f, size, size), Texture2D.whiteTexture);
