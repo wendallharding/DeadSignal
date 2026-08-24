@@ -28,6 +28,15 @@
 - [x] Move supplemental Signal economy copy below the authored upper-left status panel
 - [ ] Compare reduced-flash and full-effect combat in the eastern room and tune particle counts from capture footage
 
+### Run 84 committed reinforcement-gate ideas
+
+- [x] Lock an announced Interceptor or Suppressor response to the safest authored flank gate when its warning begins
+- [x] Mark the committed entrance with a visible amber world-space warning throughout the countdown
+- [x] Turn the same marker red while the player blocks its six-metre safe-entry exclusion
+- [x] Deploy from the announced gate even if later movement makes the other entrance safer
+- [x] Preserve warning timing, role order, enemy balance, Signal rewards, and the four-response cap
+- [ ] Playtest immediate retreat, arena crossing, and deliberate gate blocking for marker recognition and route commitment
+
 ### Run 83 persistent reinforcement-entry ideas
 
 - [x] Preserve a started reinforcement warning when the player crosses into its authored safe-entry exclusion

@@ -79,6 +79,25 @@ namespace DeadSignal.Tests
                 Assert.That(game.PendingSecurityReinforcement, Is.EqualTo(SecurityReinforcement.Interceptor));
                 Assert.That(game.SecurityReinforcementsRemaining, Is.EqualTo(1),
                     "A completed trace should bank the existing first Interceptor before salvage is secured.");
+                var entryTelegraph = Object.FindFirstObjectByType<ReinforcementEntryTelegraph>();
+                Assert.That(entryTelegraph.IsVisible, Is.True,
+                    "The announced response should mark its committed authored gate in the world.");
+                var announcedEntry = entryTelegraph.EntryPosition;
+                player.position = new Vector3(14f, 0f, 0f);
+                yield return null;
+                Assert.That(entryTelegraph.EntryPosition, Is.EqualTo(announcedEntry),
+                    "Crossing the arena after the warning begins must not silently switch the announced gate.");
+                var interceptor = game.transform.Find("Security Interceptor");
+                var entryDeadline = Time.time + 3.2f;
+                while (!interceptor.gameObject.activeSelf && Time.time < entryDeadline)
+                {
+                    yield return null;
+                }
+
+                Assert.That(interceptor.gameObject.activeSelf, Is.True);
+                Assert.That(Vector3.Distance(interceptor.position, announcedEntry), Is.LessThan(0.1f),
+                    "The Interceptor must emerge from the gate shown throughout its warning before beginning its approach.");
+                Assert.That(entryTelegraph.IsVisible, Is.False);
             }
             finally
             {
@@ -137,6 +156,10 @@ namespace DeadSignal.Tests
                 var blockedEntryCountdown = game.ReinforcementEntryCountdown;
                 Assert.That(game.IsReinforcementEntryBlocked, Is.True,
                     "Entering the authored exclusion should pause the warned response instead of spawning beside the drone.");
+                var blockedEntryTelegraph = Object.FindFirstObjectByType<ReinforcementEntryTelegraph>();
+                Assert.That(blockedEntryTelegraph.IsVisible, Is.True);
+                Assert.That(blockedEntryTelegraph.IsBlocked, Is.True,
+                    "The committed gate marker should turn into an explicit blocked-state warning.");
                 yield return new WaitForSeconds(0.2f);
                 Assert.That(game.ReinforcementEntryCountdown, Is.EqualTo(blockedEntryCountdown).Within(0.03f),
                     "A gate feint must not erase or advance the banked warning while entry remains unsafe.");

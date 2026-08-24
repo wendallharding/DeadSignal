@@ -4585,3 +4585,31 @@ Moved all first-party runtime scripts out of the `Assets/DeadSignal/Runtime` roo
 Updated serialized class identifiers in the affected environment and UI prefabs and tuning assets so they name the new runtime types. No scene layout, prefab content, tuning values, packages, project settings, save formats, or gameplay behavior changed.
 
 Validation with Unity `6000.3.11f1`: full EditMode passed `103/103` in `0.1949934s` (`TestResults-SourceStructure-EditMode.xml`, `Logs/SourceStructure-EditMode.log`); full PlayMode passed `13/13` in `42.4418843s` (`TestResults-SourceStructure-PlayMode.xml`, `Logs/SourceStructure-PlayMode.log`). Final compiler/log scans found no C# errors, compilation failures, unhandled exceptions, or missing script references, and `git diff --check` was clean. No standalone build or interactive visual playtest was run because this refactor changes source organization and type namespaces without changing presentation or runtime behavior.
+
+## 2026-08-23 — Autonomous Run 84 — Committed reinforcement gates
+
+### Milestone, player benefit, and acceptance
+
+Reinforcement warnings now communicate an actionable spatial commitment. When an Interceptor or extraction Suppressor is announced, the director locks it to the safest authored flank gate at warning start and displays an amber world-space gate marker. Entering the six-metre exclusion turns that same marker red and pauses the retained countdown; crossing the arena cannot silently switch the response to the other gate. Acceptance required one committed entrance, visible countdown and blocked states, deployment from the marked gate, unchanged safe-entry rules, and no enemy-stat or response-budget changes.
+
+### Files and systems changed
+
+- `ReinforcementEntryTelegraph.cs` creates the reusable static ring-and-bar entrance marker and exposes narrow state for runtime validation. Unity generated its `.meta` during the first import.
+- `DeadSignalWorld.cs` owns authored gate selection, indexed gate distance/deployment, fixed Warden/Sapper entrance positions, and telegraph composition.
+- `DeadSignalThreatController.cs` retains the selected dual-gate index from announcement through deployment and drives warning progress and blocked state.
+- `BootstrapSmokeTests.cs` proves that an arena crossing cannot move the announced gate, the Interceptor emerges within 0.1 metres of that marker before approaching, and a blocked Sapper entrance retains a visible blocked marker.
+- `GAME_VISION.md` records the player-facing entrance commitment and `BACKLOG.md` records acceptance plus the matched manual playtest.
+
+No scene, prefab, tuning asset, enemy health, speed, damage, Signal bounty, response count/order, entry delay, safe distance, extraction profile, overclock, audio, input, package, project setting, serialized data, generated source, or existing asset GUID changed for this milestone. The user committed the implementation with concurrent presentation work as `36a5c79`; this run retains only follow-up validation, documentation, and the Unity-generated telegraph `.meta` for its final task-owned commit.
+
+### Exact validation, bugs, limitations, and next step
+
+- Unity `6000.3.11f1` corrected compile/import exited `0` (`run84-compile-final.log`). The first compile correctly rejected a test-only unavailable vector comparer; the assertion now uses planar-independent `Vector3.Distance`, and that failed compile is excluded.
+- Focused EditMode director suite passed `18/18` in `0.0409798s` (`TestResults-Run84-Focused-EditMode.xml`).
+- Corrected focused committed-gate PlayMode passed `1/1` in `11.2715047s` (`TestResults-Run84-Focused-PlayMode-Final.xml`). The first attempt observed the Interceptor 0.026 metres beyond the gate because movement begins in its activation frame; the test now accepts less than 0.1 metres and that failed attempt is excluded.
+- Focused blocked-gate PlayMode passed `1/1` in `4.3203668s` (`TestResults-Run84-Blocked-PlayMode.xml`).
+- Full EditMode passed `104/104` in `0.1392129s` (`TestResults-Run84-Full-EditMode.xml`); full PlayMode passed `13/13` in `44.7123786s` (`TestResults-Run84-Full-PlayMode.xml`). Final critical scans found no compiler errors or warnings, missing/null references, unhandled exceptions, failed assertions, or failed tests. Transient licensing handshake messages resolved to the installed valid license, and `git diff --check` was clean after restoring test-generated material keyword and pulse churn.
+- Windows x64 development build passed at `241,479,676` bytes in `12.38s` (`run84-windows-build.log`). Build-generated East Vault component-ID and material-keyword churn was restored exactly.
+- Packaged null-device smoke passed with exit `0` and loaded the complete runtime composition and core Resources (`run84-standalone-smoke.log`).
+
+Automated evidence proves a late arena crossing does not change the marker, the spawned Interceptor emerges from the marked entrance, the Sapper marker turns blocked while the countdown is frozen, and response budgets remain bounded. No human playtest or visual capture has judged marker scale, perspective visibility, amber/red distinction, or whether the fixed commitment produces an interesting route feint. Next step: compare immediate retreat, a full arena crossing after announcement, and a deliberate gate block; record recognition time, chosen route, blocked duration, deployment distance, peak live roles, shots, hits, Signal economy, abandoned cache, extraction mode, and final reserve.
