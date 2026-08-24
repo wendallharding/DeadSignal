@@ -167,6 +167,10 @@ Salvage progress now raises a deterministic three-tier security alert instead of
 
 The first salvage escalation now introduces an Interceptor before the existing Warden and Sapper reserves. It selects the farther of two scene-authored edge gates, advances toward a point between the drone and extraction, locks a visible line for 0.8 seconds, and then commits to a short collision-bounded dash. This was selected over increasing enemy health, speed, or count because the return leg needed a threat that changes route and dodge decisions while combining cleanly with direct pursuit and tower denial. Three health and a 14-Signal purge bounty keep fighting economically competitive without making a clean purge profitable after its minimum shot cost.
 
+### Run 83 product decision — persistent reinforcement entry
+
+Once a reinforcement's readable entry warning begins, crossing into its six-metre authored gate exclusion pauses the remaining countdown instead of erasing it. The held role never deploys while the entrance is unsafe, but leaving the gate resumes the same warning rather than granting another full delay. This was selected over another enemy or higher stats because a repeatable gate-feint exploit removed route pressure from the existing bounded encounter budget; persistent locks preserve safe counterplay while making a banked response an enduring route constraint.
+
 ### Run 63 product decision — extraction pursuit uplink
 
 Extraction now begins a six-second mobile uplink instead of granting instant victory. The player keeps full movement and combat control while one additional bounded security response enters the existing queue, retaining role uniqueness, authored entrances, safe-entry distance, and warning time. This was selected over a stationary capture circle because the climax should reward fighting, fleeing, and route use rather than trap the drone at one point, and over raw stat escalation because one readable tactical response creates pressure without invalidating learned counterplay.

@@ -1,5 +1,41 @@
 # DEAD SIGNAL — Development Log
 
+## 2026-08-23 — Autonomous Run 83: Persistent reinforcement entry
+
+### Milestone, player benefit, and acceptance
+
+Closed a route-pressure exploit in the bounded security director. Once a reinforcement's 2.5-second warning begins, crossing into its six-metre authored gate exclusion now pauses the remaining countdown instead of deleting the warning. The enemy still cannot deploy beside the player, but leaving the gate resumes the same lock. This turns gate camping into a temporary positioning choice rather than an indefinite way to erase a banked encounter.
+
+Acceptance criteria were recorded before implementation: preserve a started response and its remaining warning time; freeze rather than advance it while entry is unsafe; keep an unannounced response dormant until a safe entrance exists; resume and deploy only after the player clears the gate; disclose the held state as `ENTRY BLOCKED — CLEAR GATE`; preserve enemy stats, entrances, role uniqueness, and the four-response cap; and prove the rule in deterministic plus live-runtime tests.
+
+### Changed files and systems
+
+- `Assets/DeadSignal/Scripts/Runtime/Combat/SecurityEscalationDirector.cs` owns the persistent blocked-entry state and resumable countdown.
+- `Assets/DeadSignal/Scripts/Runtime/Combat/DeadSignalThreatController.cs` and `Assets/DeadSignal/Scripts/Runtime/Application/DeadSignalGame.cs` expose the narrow live state.
+- `Assets/DeadSignal/Scripts/Runtime/Presentation/DeadSignalHud.cs` distinguishes a counting entry from a safely blocked gate.
+- `Assets/DeadSignal/Scripts/Tests/SecurityEscalationDirectorTests.cs` proves partial countdown, a four-second unsafe hold, exact persistence, and safe deployment after resume.
+- `Assets/DeadSignal/Scripts/Tests/PlayMode/BootstrapSmokeTests.cs` proves the real Sapper replacement warning freezes at its authored cradle, remains inactive, resumes after retreat, and spends exactly one bounded response.
+- `BACKLOG.md` records the acceptance criteria and matched manual playtest; `GAME_VISION.md` records the material route-pressure decision.
+
+No enemy health, speed, damage, rewards, entrances, warning duration, safe distance, response count, Signal tuning, overclocks, scenes, prefabs, materials, audio, input, packages, project settings, serialized data, generated source, or asset GUIDs changed for this milestone. Concurrent user-owned scene/material migration work remained outside this run.
+
+### Exact validation and bugs found
+
+- Unity `6000.3.11f1` focused EditMode: `18/18` passed in `0.0424255s` (`TestResults-Run83-Focused-EditMode.xml`, `Logs/Run83-Focused-EditMode.log`).
+- Focused live PlayMode: `1/1` passed in `4.3613865s` (`TestResults-Run83-Focused-PlayMode.xml`, `Logs/Run83-Focused-PlayMode.log`).
+- Full EditMode: `104/104` passed in `0.1396901s` (`TestResults-Run83-Full-EditMode.xml`, `Logs/Run83-Full-EditMode.log`).
+- Full PlayMode against the same updated workspace: `13/13` passed in `42.3996099s` (`TestResults-SceneMaterials-PlayMode.xml`, `scene-materials-playmode.log`). This suite was launched by the concurrent scene-material task after the Run 83 source and live assertion were present.
+- Task-owned `git diff --check` passed. Final authoritative logs contain no compiler errors, compilation failures, failed tests, missing/null references, unhandled exceptions, or assertion failures.
+- Two attempted Unity launches were excluded because the concurrent scene-material migration correctly held the project lock; neither ran tests or changed production behavior. No implementation or fixture defect was found by the authoritative runs.
+
+### Playtest evidence, limitations, and next step
+
+Deterministic evidence proves a warning can count down from `2.0s` to `1.25s`, remain exactly `1.25s` through four unsafe seconds, then deploy after precisely the retained safe time. The live route proves the Sapper stays inactive while the player occupies its authored entrance, the countdown remains stable for the observed `0.2s`, and the replacement enters only after the drone retreats. The bounded response count remains unchanged.
+
+No interactive feel test, standalone build, or visual HUD inspection ran. Human recognition of `ENTRY BLOCKED`, whether gate camping is still tactically worthwhile, and whether a resumed mixed encounter feels fair remain manual risks.
+
+Next highest-impact step: compare three first-response routes—retreat immediately after the warning, cross the exclusion once and leave, and repeatedly feint the gate while the opening Warden remains alive. Record blocked-state recognition, total gate occupation, actual deployment time, route abandonment, live role mix, shots, hits, Signal spent/reclaimed, cache split, extraction mode, and final reserve before changing the warning or exclusion tuning.
+
 ## 2026-08-23 — Scene-authored world migration
 
 Moved the fixed playable composition out of the active `DeadSignalWorld` construction path and into `Assets/DeadSignal/Scenes/SampleScene.unity`. The scene now owns a visible `DEAD SIGNAL — Authored World` hierarchy containing 35 maintenance-deck prefab instances, the room shell, extraction pad, signal tower and routing, shortcut gate, six station machines, spatial anchors, camera/light rig, and the player plus four persistent threat prefab instances.

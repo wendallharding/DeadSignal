@@ -192,6 +192,31 @@ namespace DeadSignal.Tests
         }
 
         [Test]
+        public void Tick_StartedEntryPausesInsideSafeRadiusAndResumesWithoutResetting()
+        {
+            var director = new SecurityEscalationDirector(2f, 6f);
+
+            director.Tick(0f, true, 1, false, false, true, true, false, 8f, 8f, 8f, 8f);
+            Assert.That(director.PendingReinforcement, Is.EqualTo(SecurityReinforcement.Interceptor));
+            Assert.That(director.EntryCountdown, Is.EqualTo(2f));
+
+            director.Tick(0.75f, true, 1, false, false, true, true, false, 8f, 8f, 8f, 8f);
+            Assert.That(director.EntryCountdown, Is.EqualTo(1.25f));
+
+            Assert.That(director.Tick(4f, true, 1, false, false, true, true, false, 3f, 8f, 8f, 8f),
+                Is.EqualTo(SecurityReinforcement.None));
+            Assert.That(director.PendingReinforcement, Is.EqualTo(SecurityReinforcement.Interceptor));
+            Assert.That(director.IsEntryBlocked, Is.True);
+            Assert.That(director.EntryCountdown, Is.EqualTo(1.25f),
+                "Camping the gate may prevent an unsafe spawn, but must not erase elapsed warning time.");
+
+            Assert.That(director.Tick(1.25f, true, 1, false, false, true, true, false, 8f, 8f, 8f, 8f),
+                Is.EqualTo(SecurityReinforcement.Interceptor));
+            Assert.That(director.IsEntryBlocked, Is.False);
+            Assert.That(director.ReinforcementsRemaining, Is.Zero);
+        }
+
+        [Test]
         public void Tick_IgnoresProgressUntilTowerIsOnlineAndCapsAtObjective()
         {
             var director = new SecurityEscalationDirector(1f, 0f);

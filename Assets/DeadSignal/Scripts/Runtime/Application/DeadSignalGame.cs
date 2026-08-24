@@ -78,6 +78,7 @@ namespace DeadSignal.Application
         public SecurityReinforcement PendingSecurityReinforcement =>
             m_threats?.PendingReinforcement ?? SecurityReinforcement.None;
         public float ReinforcementEntryCountdown => m_threats?.ReinforcementEntryCountdown ?? 0f;
+        public bool IsReinforcementEntryBlocked => m_threats?.IsReinforcementEntryBlocked ?? false;
         public bool IsExtractionUplinkActive => m_extractionUplink?.IsActive ?? false;
         public float ExtractionUplinkSecondsRemaining => m_extractionUplink?.SecondsRemaining ?? 0f;
         public ExtractionUplinkMode CurrentExtractionUplinkMode => m_extractionUplink?.Mode ?? ExtractionUplinkMode.None;

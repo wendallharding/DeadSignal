@@ -1,6 +1,7 @@
 # DEAD SIGNAL — Product Backlog
 
 - [x] Migrate the fixed world envelope, landmarks, camera/light rig, and persistent actors from `DeadSignalWorld` into `SampleScene` behind a validated scene-reference contract
+- [x] Persist the world palette as authored material assets, serialize fixed renderer assignments in `SampleScene`, and remove obsolete material/build references from `DeadSignalWorld`
 
 ## P0 — First playable (this run)
 
@@ -15,6 +16,15 @@
 - [x] Deterministic EditMode tests and Unity batch validation
 
 ## P1 — Prove the loop
+
+### Run 83 persistent reinforcement-entry ideas
+
+- [x] Preserve a started reinforcement warning when the player crosses into its authored safe-entry exclusion
+- [x] Pause the remaining entry countdown while the gate is unsafe and resume it when the player clears the gate
+- [x] Keep unannounced responses dormant until a safe entrance exists and never deploy an enemy beside the player
+- [x] Disclose the held response as `ENTRY BLOCKED — CLEAR GATE` without changing enemy stats, entrances, or budgets
+- [x] Prove warning persistence, countdown freeze, safe resume, and live runtime behavior in Unity tests
+- [ ] Playtest repeated gate feints versus an immediate retreat for route commitment, warning recognition, and mixed-role pressure
 
 ### Run 82 persistent dead-zone trace ideas
 

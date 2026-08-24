@@ -136,6 +136,7 @@ namespace DeadSignal.Combat
         public int EscalationTier => m_director.EscalationTier;
         public int ReinforcementsRemaining => m_director.ReinforcementsRemaining;
         public float ReinforcementEntryCountdown => m_director.EntryCountdown;
+        public bool IsReinforcementEntryBlocked => m_director.IsEntryBlocked;
         public bool IsDeadZoneTraceActive => m_director.IsDeadZoneTraceActive;
         public bool IsDeadZoneTraceCooling => m_director.IsDeadZoneTraceCooling;
         public float DeadZoneTraceSecondsRemaining => m_director.DeadZoneTraceSecondsRemaining;

@@ -29,6 +29,7 @@ namespace DeadSignal.Combat
         private float m_deadZoneTraceProgress;
         private bool m_deadZoneTraceCompleted;
         private bool m_deadZoneTraceCooling;
+        private bool m_entryBlocked;
         private bool m_extractionPressure;
         private bool m_extractionResponseDeployed;
         private SecurityReinforcement m_firstCoreResponse;
@@ -56,6 +57,7 @@ namespace DeadSignal.Combat
             Math.Max(0, _salvageReinforcementBudget() - m_nextSalvageReinforcement) +
             (m_extractionPressure && !m_extractionResponseDeployed ? 1 : 0);
         public float EntryCountdown => m_entryCountdown;
+        public bool IsEntryBlocked => m_pendingReinforcement != SecurityReinforcement.None && m_entryBlocked;
         public bool IsDeadZoneTraceActive => !m_deadZoneTraceCompleted && m_observedSalvage == 0 && m_deadZoneTraceProgress > 0f;
         public bool IsDeadZoneTraceCompleted => m_deadZoneTraceCompleted;
         public bool IsDeadZoneTraceCooling => IsDeadZoneTraceActive && m_deadZoneTraceCooling;
@@ -142,9 +144,21 @@ namespace DeadSignal.Combat
                 SecurityReinforcement.Sapper => sapperEntryDistance,
                 _ => suppressorEntryDistance
             };
-            if (roleAlive || entryDistance < m_safeEntryDistance)
+            if (roleAlive)
             {
                 _clearPendingEntry();
+                return SecurityReinforcement.None;
+            }
+
+            if (entryDistance < m_safeEntryDistance)
+            {
+                if (m_pendingReinforcement != reinforcement)
+                {
+                    _clearPendingEntry();
+                    return SecurityReinforcement.None;
+                }
+
+                m_entryBlocked = true;
                 return SecurityReinforcement.None;
             }
 
@@ -152,12 +166,14 @@ namespace DeadSignal.Combat
             {
                 m_pendingReinforcement = reinforcement;
                 m_entryCountdown = m_entryDelay;
+                m_entryBlocked = false;
                 if (m_entryCountdown > 0f)
                 {
                     return SecurityReinforcement.None;
                 }
             }
 
+            m_entryBlocked = false;
             m_entryCountdown = Math.Max(0f, m_entryCountdown - Math.Max(0f, seconds));
             if (m_entryCountdown > 0f)
             {
@@ -304,6 +320,7 @@ namespace DeadSignal.Combat
         private void _clearPendingEntry()
         {
             m_entryCountdown = 0f;
+            m_entryBlocked = false;
             m_pendingReinforcement = SecurityReinforcement.None;
         }
     }

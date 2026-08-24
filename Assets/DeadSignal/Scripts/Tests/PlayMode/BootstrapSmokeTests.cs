@@ -132,6 +132,17 @@ namespace DeadSignal.Tests
                 Assert.That(game.PendingSecurityReinforcement, Is.EqualTo(SecurityReinforcement.Sapper),
                     "An early Sapper purge should provoke its readable replacement before the Interceptor cutoff.");
                 Assert.That(game.ReinforcementEntryCountdown, Is.InRange(2.3f, 2.5f));
+                player.position = sapper.position;
+                yield return null;
+                var blockedEntryCountdown = game.ReinforcementEntryCountdown;
+                Assert.That(game.IsReinforcementEntryBlocked, Is.True,
+                    "Entering the authored exclusion should pause the warned response instead of spawning beside the drone.");
+                yield return new WaitForSeconds(0.2f);
+                Assert.That(game.ReinforcementEntryCountdown, Is.EqualTo(blockedEntryCountdown).Within(0.03f),
+                    "A gate feint must not erase or advance the banked warning while entry remains unsafe.");
+                player.position = new Vector3(-4f, 0f, 0f);
+                yield return null;
+                Assert.That(game.IsReinforcementEntryBlocked, Is.False);
                 var sapperEntryDeadline = Time.time + 3.2f;
                 while (!sapper.gameObject.activeSelf && Time.time < sapperEntryDeadline)
                 {

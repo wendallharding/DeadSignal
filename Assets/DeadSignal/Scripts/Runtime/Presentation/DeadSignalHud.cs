@@ -406,7 +406,9 @@ namespace DeadSignal.Presentation
                     : $"SUPPRESSOR {m_threats.SuppressorHealth:0}/{m_threats.SuppressorMaximumHealth:0} POSITIONING (+{m_threats.SuppressorSignalReward:0})";
             var entry = m_threats.PendingReinforcement == SecurityReinforcement.None
                 ? string.Empty
-                : $"  {m_threats.PendingReinforcement.ToString().ToUpperInvariant()} ENTRY {m_threats.ReinforcementEntryCountdown:0.0}s";
+                : m_threats.IsReinforcementEntryBlocked
+                    ? $"  {m_threats.PendingReinforcement.ToString().ToUpperInvariant()} ENTRY BLOCKED — CLEAR GATE"
+                    : $"  {m_threats.PendingReinforcement.ToString().ToUpperInvariant()} ENTRY {m_threats.ReinforcementEntryCountdown:0.0}s";
             var trace = m_threats.IsDeadZoneTraceActive
                 ? m_threats.IsDeadZoneTraceCooling
                     ? "  TRACE COOLING"
