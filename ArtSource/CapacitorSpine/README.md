@@ -19,3 +19,21 @@ Materials/textures: subtle scratched paint and metal stencil wear inside the gra
 Constraints: actual alpha transparency; no text, letters, numbers, logos, watermark, border, mockup floor, shadows, or background; one incoming path, exactly two alternate lanes, one central obstacle, one amber endpoint; strong gameplay readability at small scale
 Avoid: photorealistic scene, perspective, UI panel, excessive detail, magenta dominance
 ```
+
+`CapacitorSpineActivationDecal.png` is the editable production copy of the built-in image-generation asset used at the third tower berth. It is a 1254-by-1254 RGBA PNG with transparent corners and SHA-256 `7741C3A23C9E12D76E3A7AA0C36C518FE8BBB2F6721E4313DD296B08EDBB39F4`. The Unity copy is imported with alpha, mipmaps, clamped wrapping, and high-quality compression. The generated design is original, text-free, and contains no logos or franchise motifs.
+
+Final activation-decal prompt:
+
+```text
+Use case: stylized-concept
+Asset type: top-down transparent floor decal for a Unity science-fiction action game
+Primary request: create an original industrial capacitor-network activation sigil for the far third Signal tower berth, communicating a cyan power node that amplifies an already-chosen weapon route
+Scene/backdrop: genuinely transparent background with transparent corners; isolated floor marking only
+Subject: concentric broken cyan capacitor rings around a compact central hexagonal node, two branching circuit paths that each intensify into a brighter outer pulse, restrained amber transaction chevrons at the perimeter
+Style/medium: crisp hand-authored game decal, slightly worn industrial stencil and emissive circuit inlay, readable beneath a perspective top-down camera
+Composition/framing: centered square, orthographic top-down, strong simple silhouette, generous transparent margin
+Lighting/mood: self-luminous cyan with subtle amber accents, no cast shadow
+Color palette: cyan and white-ceramic highlights, restrained amber, tiny dark-alloy wear; no dominant red or magenta
+Materials/textures: painted deck stencil, etched metal wear, emissive circuitry; clean alpha edges
+Constraints: no text, no letters, no numerals, no logos, no watermark, no characters, no weapons, no perspective, no background plate, no franchise motifs; actual alpha transparency; commercially safe original design
+```

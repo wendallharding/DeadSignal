@@ -16,14 +16,19 @@ namespace DeadSignal.Editor
         private const string CAPACITOR_PATH = "Assets/DeadSignal/Resources/Environment/DepartureCapacitor.prefab";
         private const string TOWER_PATH = "Assets/DeadSignal/Resources/Environment/SignalTowerAssembly.prefab";
         private const string DECAL_PATH = "Assets/DeadSignal/Resources/Environment/CapacitorSpineRouteDecal.png";
+        private const string ACTIVATION_DECAL_PATH =
+            "Assets/DeadSignal/Resources/Environment/CapacitorSpineActivationDecal.png";
         private const string MATERIAL_DIRECTORY = "Assets/DeadSignal/Resources/Materials/CapacitorSpine";
         private const string DECAL_MATERIAL_PATH = MATERIAL_DIRECTORY + "/CapacitorSpineRouteDecal.mat";
+        private const string ACTIVATION_DECAL_MATERIAL_PATH = MATERIAL_DIRECTORY + "/CapacitorSpineActivationDecal.mat";
         private const string ARMOR_MATERIAL_PATH =
             "Assets/DeadSignal/Resources/Materials/RelayFoundry/RelayFoundryArmor.mat";
         private const string DECK_MATERIAL_PATH =
             "Assets/DeadSignal/Resources/Materials/RelayFoundry/RelayFoundryDeck.mat";
         private const string DORMANT_MATERIAL_PATH =
             "Assets/DeadSignal/Resources/Materials/RelayFoundry/RelayFoundryDormant.mat";
+        private const string CYAN_MATERIAL_PATH =
+            "Assets/DeadSignal/Resources/Materials/WorldPalette/SignalCyan.mat";
 
         private static readonly Vector3 s_regionPosition = new(42.5f, 0f, 0f);
 
@@ -35,11 +40,15 @@ namespace DeadSignal.Editor
                 var foundry = AssetDatabase.LoadAssetAtPath<GameObject>(RELAY_FOUNDRY_PATH);
                 return prefab != null && foundry != null &&
                        AssetDatabase.LoadAssetAtPath<Texture2D>(DECAL_PATH) != null &&
+                       AssetDatabase.LoadAssetAtPath<Texture2D>(ACTIVATION_DECAL_PATH) != null &&
                        AssetDatabase.LoadAssetAtPath<Material>(DECAL_MATERIAL_PATH) != null &&
+                       AssetDatabase.LoadAssetAtPath<Material>(ACTIVATION_DECAL_MATERIAL_PATH) != null &&
                        prefab.GetComponentsInChildren<AuthoredMapObstacle>().Length == 8 &&
                        prefab.GetComponentsInChildren<AuthoredSalvageSocket>().Length == 1 &&
                        prefab.transform.Find("Capacitor Transfer Bank") != null &&
                        prefab.transform.Find("Third Tower Berth") != null &&
+                       prefab.transform.Find("Spine Signal Lines") != null &&
+                       prefab.transform.Find("Capacitor Spine Activation Decal") != null &&
                        prefab.transform.Find("Capacitor Spine Route Decal") != null &&
                        foundry.transform.Find("Foundry East Bulkhead") == null &&
                        foundry.transform.Find("Foundry East North") != null &&
@@ -79,10 +88,16 @@ namespace DeadSignal.Editor
 
         private static void _configureDecalImport()
         {
-            var importer = AssetImporter.GetAtPath(DECAL_PATH) as TextureImporter;
+            _configureDecalImport(DECAL_PATH);
+            _configureDecalImport(ACTIVATION_DECAL_PATH);
+        }
+
+        private static void _configureDecalImport(string path)
+        {
+            var importer = AssetImporter.GetAtPath(path) as TextureImporter;
             if (importer == null)
             {
-                throw new InvalidOperationException($"Could not find the Capacitor Spine decal at {DECAL_PATH}.");
+                throw new InvalidOperationException($"Could not find the Capacitor Spine decal at {path}.");
             }
 
             importer.alphaIsTransparency = true;
@@ -123,12 +138,34 @@ namespace DeadSignal.Editor
             decalMaterial.renderQueue = (int)UnityEngine.Rendering.RenderQueue.Transparent;
             EditorUtility.SetDirty(decalMaterial);
 
+            var activationDecalMaterial = AssetDatabase.LoadAssetAtPath<Material>(ACTIVATION_DECAL_MATERIAL_PATH);
+            if (activationDecalMaterial == null)
+            {
+                activationDecalMaterial = new Material(Shader.Find("Universal Render Pipeline/Unlit"))
+                {
+                    name = "CapacitorSpineActivationDecal"
+                };
+                AssetDatabase.CreateAsset(activationDecalMaterial, ACTIVATION_DECAL_MATERIAL_PATH);
+            }
+
+            activationDecalMaterial.SetTexture("_BaseMap", AssetDatabase.LoadAssetAtPath<Texture2D>(ACTIVATION_DECAL_PATH));
+            activationDecalMaterial.SetColor("_BaseColor", Color.white);
+            activationDecalMaterial.SetFloat("_Surface", 1f);
+            activationDecalMaterial.SetFloat("_SrcBlend", (float)UnityEngine.Rendering.BlendMode.SrcAlpha);
+            activationDecalMaterial.SetFloat("_DstBlend", (float)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+            activationDecalMaterial.SetFloat("_ZWrite", 0f);
+            activationDecalMaterial.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
+            activationDecalMaterial.renderQueue = (int)UnityEngine.Rendering.RenderQueue.Transparent;
+            EditorUtility.SetDirty(activationDecalMaterial);
+
             return new Materials
             {
                 Armor = AssetDatabase.LoadAssetAtPath<Material>(ARMOR_MATERIAL_PATH),
                 Deck = AssetDatabase.LoadAssetAtPath<Material>(DECK_MATERIAL_PATH),
                 Dormant = AssetDatabase.LoadAssetAtPath<Material>(DORMANT_MATERIAL_PATH),
-                Decal = decalMaterial
+                Cyan = AssetDatabase.LoadAssetAtPath<Material>(CYAN_MATERIAL_PATH),
+                Decal = decalMaterial,
+                ActivationDecal = activationDecalMaterial
             };
         }
 
@@ -167,6 +204,7 @@ namespace DeadSignal.Editor
         {
             if (AssetDatabase.LoadAssetAtPath<GameObject>(PREFAB_PATH) != null)
             {
+                _upgradePrefab(materials);
                 return;
             }
 
@@ -219,6 +257,52 @@ namespace DeadSignal.Editor
             {
                 UnityEngine.Object.DestroyImmediate(root);
             }
+
+            _upgradePrefab(materials);
+        }
+
+        private static void _upgradePrefab(Materials materials)
+        {
+            var root = PrefabUtility.LoadPrefabContents(PREFAB_PATH);
+            try
+            {
+                var oldLines = root.transform.Find("Spine Signal Lines");
+                if (oldLines != null)
+                {
+                    UnityEngine.Object.DestroyImmediate(oldLines.gameObject);
+                }
+
+                var signalLines = new GameObject("Spine Signal Lines");
+                signalLines.transform.SetParent(root.transform, false);
+                _wall(signalLines.transform, "North Feed", new Vector3(2.25f, -0.1f, 1.5f),
+                    new Vector3(4.6f, 0.04f, 0.12f), materials.Cyan, false);
+                _wall(signalLines.transform, "South Feed", new Vector3(2.25f, -0.1f, -1.5f),
+                    new Vector3(4.6f, 0.04f, 0.12f), materials.Cyan, false);
+                _wall(signalLines.transform, "Tower Feed", new Vector3(4.5f, -0.1f, 0f),
+                    new Vector3(0.12f, 0.04f, 3f), materials.Cyan, false);
+                signalLines.SetActive(false);
+
+                var oldDecal = root.transform.Find("Capacitor Spine Activation Decal");
+                if (oldDecal != null)
+                {
+                    UnityEngine.Object.DestroyImmediate(oldDecal.gameObject);
+                }
+
+                var decal = GameObject.CreatePrimitive(PrimitiveType.Quad);
+                decal.name = "Capacitor Spine Activation Decal";
+                decal.transform.SetParent(root.transform, false);
+                decal.transform.localPosition = new Vector3(5f, -0.105f, -2.05f);
+                decal.transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
+                decal.transform.localScale = Vector3.one * 2.8f;
+                decal.GetComponent<Renderer>().sharedMaterial = materials.ActivationDecal;
+                UnityEngine.Object.DestroyImmediate(decal.GetComponent<Collider>());
+
+                PrefabUtility.SaveAsPrefabAsset(root, PREFAB_PATH);
+            }
+            finally
+            {
+                PrefabUtility.UnloadPrefabContents(root);
+            }
         }
 
         private static void _addCapacitor(
@@ -259,6 +343,10 @@ namespace DeadSignal.Editor
             var references = UnityEngine.Object.FindFirstObjectByType<DeadSignalSceneReferences>(FindObjectsInactive.Include);
             var serialized = new SerializedObject(references);
             serialized.FindProperty("m_arenaHalfExtents").vector2Value = new Vector2(50.5f, 8.8f);
+            serialized.FindProperty("m_spineTowerAnchor").objectReferenceValue = existing.transform.Find("Third Tower Berth");
+            serialized.FindProperty("m_capacitorSpine").objectReferenceValue = existing;
+            serialized.FindProperty("m_spineTower").objectReferenceValue = existing.transform.Find("Third Tower Berth").gameObject;
+            serialized.FindProperty("m_spineSignalRouting").objectReferenceValue = existing.transform.Find("Spine Signal Lines").gameObject;
             serialized.ApplyModifiedPropertiesWithoutUndo();
             EditorUtility.SetDirty(references);
             EditorSceneManager.SaveScene(scene);
@@ -300,7 +388,9 @@ namespace DeadSignal.Editor
             public Material Armor;
             public Material Deck;
             public Material Dormant;
+            public Material Cyan;
             public Material Decal;
+            public Material ActivationDecal;
         }
     }
 }

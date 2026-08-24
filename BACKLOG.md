@@ -1,5 +1,15 @@
 # DEAD SIGNAL — Product Backlog
 
+## P0 — Capacitor Spine third tower (Run 89)
+
+- [x] Convert the dormant scene-authored berth into a Relay-gated third Signal tower transaction
+- [x] Spend 18 Signal while preserving one, restore 34, and power a distinct 6.2-metre Spine foothold
+- [x] Evolve the chosen Relay calibration: three-target Piercing Pulse or two-bank Controlled Ricochet
+- [x] Add authored dormant/active routing and an original text-free activation decal without changing collision
+- [x] Preserve four caches, three required salvage, four safe entrances, the four-response cap, and all enemy stats
+- [x] Prove both Spine approaches, projectile blocking, activation, powered territory, weapon evolution, and packaging
+- [ ] Compare north-return, south-cache-return, and tower-abandonment runs; record activation reserve and evolved-weapon use
+
 ## P0 — Capacitor Spine expedition (Run 88)
 
 - [x] Extend the Relay Foundry through two scene-authored east approaches without removing its safe reinforcement pair

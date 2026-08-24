@@ -95,6 +95,8 @@ namespace DeadSignal.Missions
         public const float TowerRefill = 62f;
         public const float RelayTowerCost = 14f;
         public const float RelayTowerRefill = 44f;
+        public const float SpineTowerCost = 18f;
+        public const float SpineTowerRefill = 34f;
         public const float ShortcutCost = 16f;
         public const float SecurityHitCost = 18f;
         public const float SapperPulseCost = 8f;
@@ -105,6 +107,7 @@ namespace DeadSignal.Missions
         public int Salvage { get; private set; }
         public bool TowerOnline { get; private set; }
         public bool RelayTowerOnline { get; private set; }
+        public bool SpineTowerOnline { get; private set; }
         public bool ShortcutOpen { get; private set; }
         public bool OptionalSalvageSecured { get; private set; }
         public RunOutcome Outcome { get; private set; } = RunOutcome.Running;
@@ -181,6 +184,19 @@ namespace DeadSignal.Missions
 
             Signal = Math.Min(MaximumSignal, Signal - RelayTowerCost + RelayTowerRefill);
             RelayTowerOnline = true;
+            CriticalRecoveryRemaining = 0f;
+            return true;
+        }
+
+        public bool TryActivateSpineTower()
+        {
+            if (!RelayTowerOnline || SpineTowerOnline || Outcome != RunOutcome.Running || Signal <= SpineTowerCost)
+            {
+                return false;
+            }
+
+            Signal = Math.Min(MaximumSignal, Signal - SpineTowerCost + SpineTowerRefill);
+            SpineTowerOnline = true;
             CriticalRecoveryRemaining = 0f;
             return true;
         }

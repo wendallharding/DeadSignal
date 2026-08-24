@@ -19,11 +19,13 @@ namespace DeadSignal.World
         public const float ARENA_HALF_HEIGHT = 8.8f;
         public const float STARTING_POWER_RADIUS = 3.6f;
         public const float TOWER_POWER_RADIUS = 7.2f;
+        public const float SPINE_POWER_RADIUS = 6.2f;
 
         public Vector3 ExtractionPosition => m_scene.ExtractionPosition;
         public Vector3 TowerPosition => m_scene.TowerPosition;
         public Vector3 ShortcutPosition => m_scene.ShortcutPosition;
         public Vector3 RelayTowerPosition => m_scene.RelayTowerPosition;
+        public Vector3 SpineTowerPosition => m_scene.SpineTowerPosition;
 
         public Vector3 GetSalvagePosition(int index)
         {
@@ -55,6 +57,7 @@ namespace DeadSignal.World
         public Transform SuppressorCore { get; private set; }
         public Transform TowerCore { get; private set; }
         public Transform RelayTowerCore { get; private set; }
+        public Transform SpineTowerCore { get; private set; }
         public SignalSapperTelegraph SapperTelegraph { get; private set; }
         public IReadOnlyList<GameObject> SalvagePickups => m_salvagePickups;
         public bool HasMaintenanceDeckAssets { get; private set; }
@@ -122,7 +125,7 @@ namespace DeadSignal.World
             ApplyHighContrast(comfortSettings.HighContrastEnabled);
         }
 
-        public bool IsPowered(Vector3 position, bool towerOnline, bool relayTowerOnline = false)
+        public bool IsPowered(Vector3 position, bool towerOnline, bool relayTowerOnline = false, bool spineTowerOnline = false)
         {
             if (FlatDistance(position, ExtractionPosition) <= STARTING_POWER_RADIUS)
             {
@@ -130,7 +133,8 @@ namespace DeadSignal.World
             }
 
             return towerOnline && FlatDistance(position, TowerPosition) <= TOWER_POWER_RADIUS ||
-                   relayTowerOnline && FlatDistance(position, RelayTowerPosition) <= TOWER_POWER_RADIUS;
+                   relayTowerOnline && FlatDistance(position, RelayTowerPosition) <= TOWER_POWER_RADIUS ||
+                   spineTowerOnline && FlatDistance(position, SpineTowerPosition) <= SPINE_POWER_RADIUS;
         }
 
         public Vector3 ClampToArena(Vector3 position, float radius)
@@ -228,7 +232,11 @@ namespace DeadSignal.World
             return GetNavigationWaypoint(Player.position, _currentObjectiveTarget(model), radius, model.ShortcutOpen);
         }
 
-        public Vector3 GetNearestPoweredTarget(Vector3 position, bool towerOnline, bool relayTowerOnline = false)
+        public Vector3 GetNearestPoweredTarget(
+            Vector3 position,
+            bool towerOnline,
+            bool relayTowerOnline = false,
+            bool spineTowerOnline = false)
         {
             if (!towerOnline)
             {
@@ -239,8 +247,13 @@ namespace DeadSignal.World
 
             var nearest = FlatDistance(position, TowerPosition) <= FlatDistance(position, ExtractionPosition)
                 ? TowerPosition : ExtractionPosition;
-            return relayTowerOnline && FlatDistance(position, RelayTowerPosition) < FlatDistance(position, nearest)
-                ? RelayTowerPosition : nearest;
+            if (relayTowerOnline && FlatDistance(position, RelayTowerPosition) < FlatDistance(position, nearest))
+            {
+                nearest = RelayTowerPosition;
+            }
+
+            return spineTowerOnline && FlatDistance(position, SpineTowerPosition) < FlatDistance(position, nearest)
+                ? SpineTowerPosition : nearest;
         }
 
         public bool TryGetProjectileObstacleHit(
@@ -297,6 +310,17 @@ namespace DeadSignal.World
             m_relaySignalLines.SetActive(true);
             m_relayShortcutGate.SetActive(false);
             m_relayShortcutOpen = true;
+        }
+
+        public void ActivateSpineTower()
+        {
+            m_spineTerritory.GetComponent<Renderer>().sharedMaterial = m_palette.PoweredTerritory;
+            foreach (var marker in m_spineTerritoryMarkers)
+            {
+                marker.GetComponent<Renderer>().sharedMaterial = m_palette.Cyan;
+            }
+            SpineTowerCore.GetComponent<Renderer>().sharedMaterial = m_palette.Cyan;
+            m_spineSignalLines.SetActive(true);
         }
 
         public void ApplyHighContrast(bool enabled)
@@ -530,6 +554,7 @@ namespace DeadSignal.World
         {
             TowerCore.Rotate(Vector3.up, (towerOnline ? 110f : 22f) * dt, Space.World);
             RelayTowerCore.Rotate(Vector3.up, (m_relayShortcutOpen ? 110f : 22f) * dt, Space.World);
+            SpineTowerCore.Rotate(Vector3.up, 26f * dt, Space.World);
             var pulse = 1f + Mathf.Sin(Time.time * (towerOnline ? 5f : 2f)) * 0.08f;
             TowerCore.localScale = new Vector3(1.35f * pulse, 0.22f, 1.35f * pulse);
             RelayTowerCore.localScale = new Vector3(1.35f * pulse, 0.22f, 1.35f * pulse);
@@ -628,7 +653,8 @@ namespace DeadSignal.World
 
             if (model.Signal / RunModel.MaximumSignal <= 0.25f)
             {
-                var poweredTarget = GetNearestPoweredTarget(Player.position, model.TowerOnline, model.RelayTowerOnline);
+                var poweredTarget = GetNearestPoweredTarget(
+                    Player.position, model.TowerOnline, model.RelayTowerOnline, model.SpineTowerOnline);
                 poweredTarget = GetNavigationWaypoint(Player.position, poweredTarget, 0.48f, model.ShortcutOpen);
                 _updateGuideLine(m_emergencyGuide, Player.position, poweredTarget, m_palette.Cyan, 0.1f);
                 m_emergencyGuide.enabled = true;
@@ -725,6 +751,9 @@ namespace DeadSignal.World
             m_relayTerritory = _createTerritory("Relay Power Territory", RelayTowerPosition, TOWER_POWER_RADIUS, m_palette.Dark);
             _createTerritoryMarkers("Relay Power Boundary", RelayTowerPosition, TOWER_POWER_RADIUS, m_palette.Dark,
                 m_relayTerritoryMarkers);
+            m_spineTerritory = _createTerritory("Spine Power Territory", SpineTowerPosition, SPINE_POWER_RADIUS, m_palette.Dark);
+            _createTerritoryMarkers("Spine Power Boundary", SpineTowerPosition, SPINE_POWER_RADIUS, m_palette.Dark,
+                m_spineTerritoryMarkers);
 
             _buildRouteDetails();
             _buildLocalizedLighting();
@@ -743,6 +772,7 @@ namespace DeadSignal.World
             m_scene.ShortcutGate.transform.SetParent(m_root, true);
             m_scene.StationMachines.transform.SetParent(m_root, true);
             m_scene.RelayFoundry.transform.SetParent(m_root, true);
+            m_scene.CapacitorSpine.transform.SetParent(m_root, true);
             foreach (var renderer in m_scene.MaintenanceDeck.GetComponentsInChildren<Renderer>())
             {
                 MaintenanceDeckModuleCount++;
@@ -796,6 +826,14 @@ namespace DeadSignal.World
                 new Vector2(0.22f, 0.75f), false, true));
             m_movementBlockers.Add(new MovementBlocker(
                 new Vector2(RelayTowerPosition.x, RelayTowerPosition.z), Vector2.one * TOWER_BLOCKER_HALF_SIZE, false));
+
+            var spineTower = m_scene.SpineTower.transform;
+            SpineTowerCore = spineTower.Find("Tower Core");
+            m_environmentAnimators.Add(SpineTowerCore);
+            m_spineSignalLines = m_scene.SpineSignalRouting;
+            m_spineSignalLines.SetActive(false);
+            m_movementBlockers.Add(new MovementBlocker(
+                new Vector2(SpineTowerPosition.x, SpineTowerPosition.z), Vector2.one * TOWER_BLOCKER_HALF_SIZE, false));
 
             foreach (Transform machine in m_scene.StationMachines.transform)
             {
@@ -1368,6 +1406,7 @@ namespace DeadSignal.World
         private readonly List<GameObject> m_salvagePickups = new();
         private readonly List<GameObject> m_towerTerritoryMarkers = new();
         private readonly List<GameObject> m_relayTerritoryMarkers = new();
+        private readonly List<GameObject> m_spineTerritoryMarkers = new();
         private readonly List<Transform> m_environmentAnimators = new();
         private readonly List<Light> m_landmarkLights = new();
         private readonly List<Vector3> m_machineSockets = new();
@@ -1384,7 +1423,9 @@ namespace DeadSignal.World
         private GameObject m_towerTerritory;
         private GameObject m_towerSignalLines;
         private GameObject m_relayTerritory;
+        private GameObject m_spineTerritory;
         private GameObject m_relaySignalLines;
+        private GameObject m_spineSignalLines;
         private GameObject m_relayShortcutGate;
         private bool m_relayShortcutOpen;
         private GameObject m_extractionBeacon;

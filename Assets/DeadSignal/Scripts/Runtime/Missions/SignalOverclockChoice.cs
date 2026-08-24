@@ -42,6 +42,7 @@ namespace DeadSignal.Missions
         public SignalOverclock Selected { get; private set; }
         public SignalAuxiliaryOverclock SelectedAuxiliary { get; private set; }
         public SignalWeaponOverclock SelectedWeapon { get; private set; }
+        public bool IsWeaponEvolved { get; private set; }
         public bool IsEmergencyCapacitorAvailable { get; private set; }
         public bool IsFeedbackShieldCharged { get; private set; }
         public bool IsChainArcOverloadReady { get; private set; }
@@ -81,6 +82,17 @@ namespace DeadSignal.Missions
             {
                 m_weaponPending = true;
             }
+        }
+
+        public bool NotifySpineActivated()
+        {
+            if (SelectedWeapon == SignalWeaponOverclock.None || IsWeaponEvolved)
+            {
+                return false;
+            }
+
+            IsWeaponEvolved = true;
+            return true;
         }
 
         public bool TrySelect(SignalOverclock overclock)

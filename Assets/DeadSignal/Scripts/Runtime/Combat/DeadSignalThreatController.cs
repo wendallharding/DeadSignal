@@ -243,9 +243,15 @@ namespace DeadSignal.Combat
             m_world.PlayPlayerShot(direction);
             var weaponOverclock = m_overclockChoice.SelectedWeapon;
             var threatHits = weaponOverclock == SignalWeaponOverclock.PiercingPulse
-                ? m_overclockTuning.PiercingPulseThreatHits
+                ? m_overclockChoice.IsWeaponEvolved
+                    ? m_overclockTuning.EvolvedPiercingPulseThreatHits
+                    : m_overclockTuning.PiercingPulseThreatHits
                 : 1;
-            m_projectiles.Add(new Projectile(shot, direction.normalized, m_projectileTuning.Lifetime, weaponOverclock, threatHits));
+            var ricochetBanks = weaponOverclock == SignalWeaponOverclock.ControlledRicochet
+                ? m_overclockChoice.IsWeaponEvolved ? m_overclockTuning.EvolvedControlledRicochetBanks : 1
+                : 0;
+            m_projectiles.Add(new Projectile(
+                shot, direction.normalized, m_projectileTuning.Lifetime, weaponOverclock, threatHits, ricochetBanks));
         }
 
         private void _tickDirector(float dt, bool playerPowered)
@@ -804,7 +810,7 @@ namespace DeadSignal.Combat
                     var impactPosition = Vector3.Lerp(start, end, obstacleHitFraction);
                     shot.Visual.transform.position = impactPosition;
                     m_combatFeedback.PlayEnvironmentImpact(impactPosition + Vector3.up * 0.03f);
-                    if (shot.Weapon == SignalWeaponOverclock.ControlledRicochet && !shot.HasRicocheted &&
+                    if (shot.Weapon == SignalWeaponOverclock.ControlledRicochet && shot.CanRicochet &&
                         _tryRedirectRicochet(shot, impactPosition))
                     {
                         ControlledRicochets++;
@@ -1264,13 +1270,15 @@ namespace DeadSignal.Combat
                 Vector3 direction,
                 float lifetime,
                 SignalWeaponOverclock weapon,
-                int remainingThreatHits)
+                int remainingThreatHits,
+                int ricochetBanks)
             {
                 Visual = visual;
                 Direction = direction;
                 Life = lifetime;
                 Weapon = weapon;
                 RemainingThreatHits = remainingThreatHits;
+                RemainingRicochetBanks = ricochetBanks;
             }
 
             public GameObject Visual { get; }
@@ -1278,7 +1286,8 @@ namespace DeadSignal.Combat
             public float Life { get; set; }
             public SignalWeaponOverclock Weapon { get; }
             public int RemainingThreatHits { get; private set; }
-            public bool HasRicocheted { get; private set; }
+            public int RemainingRicochetBanks { get; private set; }
+            public bool CanRicochet => RemainingRicochetBanks > 0;
 
             public bool HasHit(ThreatTarget target) => (m_hitMask & (1 << (int)target)) != 0;
 
@@ -1291,7 +1300,7 @@ namespace DeadSignal.Combat
             public void Redirect(Vector3 direction, Vector3 position)
             {
                 Direction = direction;
-                HasRicocheted = true;
+                RemainingRicochetBanks--;
                 Visual.transform.position = position;
                 Visual.transform.rotation = Quaternion.LookRotation(direction, Vector3.up);
             }

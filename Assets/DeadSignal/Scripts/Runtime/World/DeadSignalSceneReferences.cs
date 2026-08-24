@@ -14,6 +14,7 @@ namespace DeadSignal.World
         [SerializeField] private Transform m_shortcutAnchor;
         [SerializeField] private Transform m_relayTowerAnchor;
         [SerializeField] private Transform m_relayShortcutAnchor;
+        [SerializeField] private Transform m_spineTowerAnchor;
         [SerializeField] private Vector2 m_arenaHalfExtents = new(36f, 8.8f);
 
         [Header("Environment")]
@@ -28,6 +29,9 @@ namespace DeadSignal.World
         [SerializeField] private GameObject m_relayTower;
         [SerializeField] private GameObject m_relaySignalRouting;
         [SerializeField] private GameObject m_relayShortcutGate;
+        [SerializeField] private GameObject m_capacitorSpine;
+        [SerializeField] private GameObject m_spineTower;
+        [SerializeField] private GameObject m_spineSignalRouting;
 
         [Header("Presentation")]
         [SerializeField] private Camera m_playerCamera;
@@ -46,6 +50,7 @@ namespace DeadSignal.World
         public Vector3 ShortcutPosition => m_shortcutAnchor.position;
         public Vector3 RelayTowerPosition => m_relayTowerAnchor.position;
         public Vector3 RelayShortcutPosition => m_relayShortcutAnchor.position;
+        public Vector3 SpineTowerPosition => m_spineTowerAnchor.position;
         public Vector2 ArenaHalfExtents => m_arenaHalfExtents;
         public GameObject MaintenanceDeck => m_maintenanceDeck;
         public GameObject MaintenanceRoomShell => m_maintenanceRoomShell;
@@ -58,6 +63,9 @@ namespace DeadSignal.World
         public GameObject RelayTower => m_relayTower;
         public GameObject RelaySignalRouting => m_relaySignalRouting;
         public GameObject RelayShortcutGate => m_relayShortcutGate;
+        public GameObject CapacitorSpine => m_capacitorSpine;
+        public GameObject SpineTower => m_spineTower;
+        public GameObject SpineSignalRouting => m_spineSignalRouting;
         public Camera PlayerCamera => m_playerCamera;
         public Transform CameraRig => m_cameraRig;
         public Light KeyLight => m_keyLight;
@@ -70,9 +78,11 @@ namespace DeadSignal.World
         public bool IsComplete =>
             m_extractionAnchor != null && m_towerAnchor != null && m_shortcutAnchor != null &&
             m_relayTowerAnchor != null && m_relayShortcutAnchor != null &&
+            m_spineTowerAnchor != null &&
             m_maintenanceDeck != null && m_maintenanceRoomShell != null && m_extractionPad != null &&
             m_signalTower != null && m_signalRouting != null && m_shortcutGate != null && m_stationMachines != null &&
             m_relayFoundry != null && m_relayTower != null && m_relaySignalRouting != null && m_relayShortcutGate != null &&
+            m_capacitorSpine != null && m_spineTower != null && m_spineSignalRouting != null &&
             m_playerCamera != null && m_cameraRig != null && m_keyLight != null && m_player != null &&
             m_warden != null && m_sapper != null && m_interceptor != null && m_suppressor != null;
 
@@ -83,6 +93,7 @@ namespace DeadSignal.World
             m_shortcutAnchor == null ? nameof(m_shortcutAnchor) : null,
             m_relayTowerAnchor == null ? nameof(m_relayTowerAnchor) : null,
             m_relayShortcutAnchor == null ? nameof(m_relayShortcutAnchor) : null,
+            m_spineTowerAnchor == null ? nameof(m_spineTowerAnchor) : null,
             m_maintenanceDeck == null ? nameof(m_maintenanceDeck) : null,
             m_maintenanceRoomShell == null ? nameof(m_maintenanceRoomShell) : null,
             m_extractionPad == null ? nameof(m_extractionPad) : null,
@@ -94,6 +105,9 @@ namespace DeadSignal.World
             m_relayTower == null ? nameof(m_relayTower) : null,
             m_relaySignalRouting == null ? nameof(m_relaySignalRouting) : null,
             m_relayShortcutGate == null ? nameof(m_relayShortcutGate) : null,
+            m_capacitorSpine == null ? nameof(m_capacitorSpine) : null,
+            m_spineTower == null ? nameof(m_spineTower) : null,
+            m_spineSignalRouting == null ? nameof(m_spineSignalRouting) : null,
             m_playerCamera == null ? nameof(m_playerCamera) : null,
             m_cameraRig == null ? nameof(m_cameraRig) : null,
             m_keyLight == null ? nameof(m_keyLight) : null,

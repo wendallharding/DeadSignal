@@ -6,6 +6,8 @@ using UnityEngine.InputSystem.LowLevel;
 using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
 using DeadSignal.Application;
+using DeadSignal.Combat;
+using DeadSignal.Missions;
 using DeadSignal.World;
 
 namespace DeadSignal.Tests
@@ -33,11 +35,15 @@ namespace DeadSignal.Tests
                 Assert.That(spine.Find("Capacitor Transfer Bank"), Is.Not.Null);
                 Assert.That(spine.Find("North Capacitor Shield"), Is.Not.Null);
                 Assert.That(spine.Find("Third Tower Berth"), Is.Not.Null);
+                Assert.That(spine.Find("Spine Signal Lines"), Is.Not.Null);
+                Assert.That(spine.Find("Capacitor Spine Activation Decal"), Is.Not.Null);
                 Assert.That(spine.Find("Capacitor Spine Route Decal"), Is.Not.Null);
                 Assert.That(socket, Is.Not.Null);
                 Assert.That(socket.Position, Is.EqualTo(new Vector3(47.15f, 0f, -3.35f)));
                 Assert.That(Resources.Load<Texture2D>("Environment/CapacitorSpineRouteDecal"), Is.Not.Null);
                 Assert.That(Resources.Load<Material>("Materials/CapacitorSpine/CapacitorSpineRouteDecal"), Is.Not.Null);
+                Assert.That(Resources.Load<Texture2D>("Environment/CapacitorSpineActivationDecal"), Is.Not.Null);
+                Assert.That(Resources.Load<Material>("Materials/CapacitorSpine/CapacitorSpineActivationDecal"), Is.Not.Null);
                 Assert.That(game.AuthoredMapObstacleCount, Is.EqualTo(42));
                 Assert.That(game.AuthoredSalvageSocketCount, Is.EqualTo(1));
                 Assert.That(game.AuthoredInterceptorEntranceCount, Is.EqualTo(4),
@@ -65,6 +71,43 @@ namespace DeadSignal.Tests
                 yield return new WaitForSeconds(0.25f);
                 Assert.That(game.LastSignalBoltBlockedByEnvironment, Is.True,
                     "The central transfer landmark should shape both movement and projectile positioning.");
+
+                game.DebugActivateTower();
+                game.DebugActivateRelayTower();
+                game.DebugSelectWeapon(DeadSignal.Missions.SignalWeaponOverclock.PiercingPulse);
+                player.position = game.SpineTowerPosition;
+                InputSystem.QueueStateEvent(gamepad, new GamepadState().WithButton(GamepadButton.West));
+                yield return null;
+                InputSystem.QueueStateEvent(gamepad, new GamepadState());
+                yield return null;
+
+                Assert.That(game.IsSpineTowerOnline, Is.True);
+                Assert.That(game.IsWeaponEvolved, Is.True);
+                Assert.That(spine.Find("Spine Signal Lines").gameObject.activeSelf, Is.True);
+                Assert.That(game.CurrentSignal, Is.GreaterThan(RunModel.SpineTowerRefill));
+
+                game.DebugSpawnThreat(SecurityReinforcement.Interceptor);
+                var warden = game.transform.Find("Security Warden");
+                var sapper = game.transform.Find("Signal Sapper");
+                var interceptor = game.transform.Find("Security Interceptor");
+                player.position = new Vector3(22f, 0f, 5f);
+                warden.position = new Vector3(24f, 0f, 5f);
+                sapper.position = new Vector3(26f, 0f, 5f);
+                interceptor.position = new Vector3(28f, 0f, 5f);
+                var wardenHealth = game.WardenHealth;
+                var sapperHealth = game.SapperHealth;
+                var interceptorHealth = game.InterceptorHealth;
+                InputSystem.QueueStateEvent(gamepad,
+                    new GamepadState { rightStick = Vector2.right }.WithButton(GamepadButton.RightShoulder));
+                yield return null;
+                InputSystem.QueueStateEvent(gamepad, new GamepadState { rightStick = Vector2.right });
+                yield return new WaitForSeconds(0.45f);
+
+                Assert.That(game.WardenHealth, Is.EqualTo(wardenHealth - 1f));
+                Assert.That(game.SapperHealth, Is.EqualTo(sapperHealth - 1f));
+                Assert.That(game.InterceptorHealth, Is.EqualTo(interceptorHealth - 1f),
+                    "The evolved Piercing Pulse should reward the third-region commitment with a third aligned hit.");
+                Assert.That(game.PiercingPulseFollowThroughs, Is.EqualTo(2));
             }
             finally
             {

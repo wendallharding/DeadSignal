@@ -99,6 +99,27 @@ namespace DeadSignal.Tests
         }
 
         [Test]
+        public void SpineTower_RequiresRelayPreservesLastSignalAndRestoresOnce()
+        {
+            var run = new RunModel();
+
+            Assert.That(run.TryActivateSpineTower(), Is.False);
+            Assert.That(run.TryActivateTower(), Is.True);
+            Assert.That(run.TryActivateSpineTower(), Is.False);
+            Assert.That(run.TryActivateRelayTower(), Is.True);
+            Assert.That(run.TrySpend(run.Signal - RunModel.SpineTowerCost), Is.True);
+            Assert.That(run.TryActivateSpineTower(), Is.False);
+            Assert.That(run.SpineTowerOnline, Is.False);
+
+            Assert.That(run.RestoreSignal(1f), Is.EqualTo(1f));
+            var before = run.Signal;
+            Assert.That(run.TryActivateSpineTower(), Is.True);
+            Assert.That(run.SpineTowerOnline, Is.True);
+            Assert.That(run.Signal, Is.EqualTo(before - RunModel.SpineTowerCost + RunModel.SpineTowerRefill));
+            Assert.That(run.TryActivateSpineTower(), Is.False);
+        }
+
+        [Test]
         public void Shortcut_RequiresOnlineTowerAndPreservesLastSignal()
         {
             var run = new RunModel();

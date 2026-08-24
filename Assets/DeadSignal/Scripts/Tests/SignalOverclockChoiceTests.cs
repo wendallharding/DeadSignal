@@ -60,6 +60,20 @@ namespace DeadSignal.Tests
                 "The one-time Relay reward must not be offered again after selection.");
         }
 
+        [TestCase(SignalWeaponOverclock.PiercingPulse)]
+        [TestCase(SignalWeaponOverclock.ControlledRicochet)]
+        public void SpineActivation_EvolvesTheChosenWeaponExactlyOnce(SignalWeaponOverclock weapon)
+        {
+            var choice = new SignalOverclockChoice();
+
+            Assert.That(choice.NotifySpineActivated(), Is.False);
+            choice.NotifyRelayActivated();
+            Assert.That(choice.TrySelect(weapon), Is.True);
+            Assert.That(choice.NotifySpineActivated(), Is.True);
+            Assert.That(choice.IsWeaponEvolved, Is.True);
+            Assert.That(choice.NotifySpineActivated(), Is.False);
+        }
+
         [Test]
         public void EmergencyCapacitor_TriggersOnceAtTunedLowSignalThreshold()
         {

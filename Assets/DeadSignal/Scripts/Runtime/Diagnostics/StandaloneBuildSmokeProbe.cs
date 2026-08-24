@@ -124,12 +124,16 @@ namespace DeadSignal.Diagnostics
                                 Resources.Load<GameObject>("Environment/RelayFoundryTurbineModel") != null &&
                                 Resources.Load<Texture2D>("Environment/RelayFoundryTurbineAlbedo") != null &&
                                 Resources.Load<Texture2D>("Environment/RelayFoundryRouteDecal") != null &&
-                                GameObject.Find("Capacitor Spine Region/Capacitor Transfer Bank") != null &&
-                                GameObject.Find("Capacitor Spine Region/Third Tower Berth") != null &&
-                                GameObject.Find("Capacitor Spine Region/Capacitor Spine Route Decal") != null &&
+                                game.transform.Find("Capacitor Spine Region/Capacitor Transfer Bank") != null &&
+                                game.transform.Find("Capacitor Spine Region/Third Tower Berth") != null &&
+                                game.transform.Find("Capacitor Spine Region/Capacitor Spine Route Decal") != null &&
+                                game.transform.Find("Capacitor Spine Region/Capacitor Spine Activation Decal") != null &&
+                                game.transform.Find("Capacitor Spine Region/Spine Signal Lines") != null &&
                                 Resources.Load<GameObject>("Environment/CapacitorSpineRegion") != null &&
                                 Resources.Load<Texture2D>("Environment/CapacitorSpineRouteDecal") != null &&
                                 Resources.Load<Material>("Materials/CapacitorSpine/CapacitorSpineRouteDecal") != null &&
+                                Resources.Load<Texture2D>("Environment/CapacitorSpineActivationDecal") != null &&
+                                Resources.Load<Material>("Materials/CapacitorSpine/CapacitorSpineActivationDecal") != null &&
                                 weaponDecalReady &&
                                 weaponTextureReady &&
                                 weaponMaterialReady &&

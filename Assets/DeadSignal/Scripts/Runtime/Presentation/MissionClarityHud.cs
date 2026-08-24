@@ -174,7 +174,7 @@ namespace DeadSignal.Presentation
             var scale = 1f + Mathf.Sin(Time.unscaledTime * 8f) * 0.05f;
             var width = 480f * scale;
             var safety = m_world.GetNearestPoweredTarget(
-                m_world.Player.position, m_model.TowerOnline, m_model.RelayTowerOnline);
+                m_world.Player.position, m_model.TowerOnline, m_model.RelayTowerOnline, m_model.SpineTowerOnline);
             var waypoint = m_world.GetNavigationWaypoint(m_world.Player.position, safety, 0.48f, m_model.ShortcutOpen);
             var point = m_camera.WorldToScreenPoint(waypoint + Vector3.up * 1.2f);
             GUI.Label(new Rect((Screen.width - width) * 0.5f, Screen.height * 0.34f, width, 100f),

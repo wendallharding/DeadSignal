@@ -239,12 +239,14 @@ namespace DeadSignal.Presentation
                 : $"  //  {_overclockSynergyName()}";
             var weaponText = m_overclockChoice.SelectedWeapon == SignalWeaponOverclock.None
                 ? string.Empty
-                : $"  //  {_weaponOverclockName(m_overclockChoice.SelectedWeapon)}";
+                : $"  //  {_weaponOverclockName(m_overclockChoice.SelectedWeapon)}" +
+                  (m_overclockChoice.IsWeaponEvolved ? " EVOLVED" : string.Empty);
             var optionalText = m_model.OptionalSalvageSecured ? "  //  OPTIONAL CACHE SECURED" : string.Empty;
             m_salvageText.text =
                 $"SALVAGE  {m_model.Salvage}/{RunModel.SalvageRequired}{chainText}{overclockText}{auxiliaryText}" +
                 $"{synergyText}{weaponText}{optionalText}";
-            var powered = m_world.IsPowered(m_world.Player.position, m_model.TowerOnline, m_model.RelayTowerOnline);
+            var powered = m_world.IsPowered(
+                m_world.Player.position, m_model.TowerOnline, m_model.RelayTowerOnline, m_model.SpineTowerOnline);
             m_zoneText.text = powered ? "● POWERED TERRITORY" : "▲ DEAD ZONE — ACTIVE DRAIN";
             m_zoneText.color = powered ? new Color(0.05f, 0.95f, 1f) : new Color(1f, 0.22f, 0.18f);
             var guidance = MissionGuidance.Evaluate(m_model, m_threats.IsSapperAlive, m_threats.IsSapperLatched,
@@ -450,6 +452,11 @@ namespace DeadSignal.Presentation
             if (_isExtractionUplinkChoiceAvailable())
                 return $"CHOOSE LINK  —  {_binding("FIRE: OVERDRIVE", "RB: OVERDRIVE")}  |  " +
                        $"{_binding("USE: STABLE", "X: STABLE")}";
+            if (!m_model.SpineTowerOnline &&
+                DeadSignalWorld.FlatDistance(m_world.Player.position, m_world.SpineTowerPosition) < 1.8f)
+                return m_model.RelayTowerOnline
+                    ? $"[{_binding("E", "GAMEPAD X")}]  ACTIVATE CAPACITOR SPINE  —  COST {RunModel.SpineTowerCost:0}"
+                    : "SPINE LOCKED - ACTIVATE RELAY FOUNDRY FIRST";
             if (!m_model.RelayTowerOnline &&
                 DeadSignalWorld.FlatDistance(m_world.Player.position, m_world.RelayTowerPosition) < 1.8f)
                 return m_model.TowerOnline

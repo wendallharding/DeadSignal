@@ -4289,6 +4289,26 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 6a4569b188778c34a93cb8ff308c7d19, type: 3}
+--- !u!1 &1591059655 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 6788129333788209175, guid: 6a4569b188778c34a93cb8ff308c7d19, type: 3}
+  m_PrefabInstance: {fileID: 1591059654}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &1591059656 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 3170224106215516205, guid: 6a4569b188778c34a93cb8ff308c7d19, type: 3}
+  m_PrefabInstance: {fileID: 1591059654}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &1591059657 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 2672588379129826939, guid: 6a4569b188778c34a93cb8ff308c7d19, type: 3}
+  m_PrefabInstance: {fileID: 1591059654}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &1591059658 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 2214520332262367289, guid: 6a4569b188778c34a93cb8ff308c7d19, type: 3}
+  m_PrefabInstance: {fileID: 1591059654}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &1674624652
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -5815,6 +5835,7 @@ MonoBehaviour:
   m_shortcutAnchor: {fileID: 116780037}
   m_relayTowerAnchor: {fileID: 1752854266}
   m_relayShortcutAnchor: {fileID: 1752854265}
+  m_spineTowerAnchor: {fileID: 1591059657}
   m_arenaHalfExtents: {x: 50.5, y: 8.8}
   m_maintenanceDeck: {fileID: 969288187}
   m_maintenanceRoomShell: {fileID: 1678895568}
@@ -5827,6 +5848,9 @@ MonoBehaviour:
   m_relayTower: {fileID: 1752854269}
   m_relaySignalRouting: {fileID: 1752854268}
   m_relayShortcutGate: {fileID: 1752854267}
+  m_capacitorSpine: {fileID: 1591059655}
+  m_spineTower: {fileID: 1591059658}
+  m_spineSignalRouting: {fileID: 1591059656}
   m_playerCamera: {fileID: 1744306765}
   m_cameraRig: {fileID: 12549029}
   m_keyLight: {fileID: 133007259}

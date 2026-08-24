@@ -62,6 +62,9 @@ namespace DeadSignal.Application
         public RunOutcome CurrentRunOutcome => m_model?.Outcome ?? RunOutcome.Destroyed;
         public bool IsRelayTowerOnline => m_model?.RelayTowerOnline ?? false;
         public Vector3 RelayTowerPosition => m_world?.RelayTowerPosition ?? Vector3.zero;
+        public bool IsSpineTowerOnline => m_model?.SpineTowerOnline ?? false;
+        public Vector3 SpineTowerPosition => m_world?.SpineTowerPosition ?? Vector3.zero;
+        public bool IsWeaponEvolved => m_overclockChoice?.IsWeaponEvolved ?? false;
         public Vector3 SafestReinforcementEntryPosition => m_world == null
             ? Vector3.zero
             : m_world.GetReinforcementEntryPosition(
@@ -282,6 +285,27 @@ namespace DeadSignal.Application
                 m_world.ActivateRelayTower();
                 m_overclockChoice.NotifyRelayActivated();
                 _showFeedback("DEBUG — RELAY TOWER ACTIVATED");
+            }
+        }
+
+        public void DebugActivateSpineTower()
+        {
+            DebugActivateRelayTower();
+            if (m_overclockChoice.SelectedWeapon == SignalWeaponOverclock.None)
+            {
+                DebugSelectWeapon(SignalWeaponOverclock.PiercingPulse);
+            }
+            if (m_model.SpineTowerOnline)
+            {
+                return;
+            }
+
+            m_model.SetSignalForDebug(Mathf.Max(m_model.Signal, RunModel.SpineTowerCost + 1f));
+            if (m_model.TryActivateSpineTower())
+            {
+                m_world.ActivateSpineTower();
+                m_overclockChoice.NotifySpineActivated();
+                _showFeedback("DEBUG — SPINE TOWER ACTIVATED");
             }
         }
 
@@ -603,7 +627,8 @@ namespace DeadSignal.Application
             m_missionClarityHud = gameObject.AddComponent<MissionClarityHud>();
             m_missionClarityHud.Configure(m_model, m_metrics, m_world, m_overclockChoice);
             m_objectiveBeacon.Configure(m_model, m_world);
-            m_lastPoweredState = m_world.IsPowered(m_world.Player.position, m_model.TowerOnline, m_model.RelayTowerOnline);
+            m_lastPoweredState = m_world.IsPowered(
+                m_world.Player.position, m_model.TowerOnline, m_model.RelayTowerOnline, m_model.SpineTowerOnline);
             m_signalDust.Configure();
             m_signalDust.Tick(m_lastPoweredState, m_model.TowerOnline, m_model.Signal / RunModel.MaximumSignal);
             m_lowSignalWarning.Configure(m_model);
@@ -822,7 +847,8 @@ namespace DeadSignal.Application
 
         private bool _isPlayerPowered()
         {
-            return m_world.IsPowered(m_world.Player.position, m_model.TowerOnline, m_model.RelayTowerOnline) ||
+            return m_world.IsPowered(
+                       m_world.Player.position, m_model.TowerOnline, m_model.RelayTowerOnline, m_model.SpineTowerOnline) ||
                    (m_salvage.IsRecoveryFieldActive && DeadSignalWorld.FlatDistance(
                        m_world.Player.position, m_salvage.RecoveryFieldPosition) <= m_salvage.RecoveryFieldRadius);
         }
@@ -939,6 +965,31 @@ namespace DeadSignal.Application
 
         private void _handleInteraction()
         {
+            if (!m_model.SpineTowerOnline &&
+                DeadSignalWorld.FlatDistance(m_world.Player.position, m_world.SpineTowerPosition) < 1.8f)
+            {
+                if (m_model.TryActivateSpineTower())
+                {
+                    m_world.ActivateSpineTower();
+                    m_overclockChoice.NotifySpineActivated();
+                    m_audio.Play(DeadSignalAudioCue.TowerOnline);
+                    var evolution = m_overclockChoice.SelectedWeapon == SignalWeaponOverclock.PiercingPulse
+                        ? "PIERCING PULSE EVOLVED — THREE TARGETS"
+                        : "CONTROLLED RICOCHET EVOLVED — TWO BANKS";
+                    _showFeedback($"SPINE ONLINE — {evolution}");
+                }
+                else if (!m_model.RelayTowerOnline)
+                {
+                    _showFeedback("SPINE LOCKED — RESTORE RELAY FOUNDRY");
+                }
+                else
+                {
+                    _showFeedback($"KEEP 1 SIGNAL AFTER {RunModel.SpineTowerCost:0} COST");
+                }
+
+                return;
+            }
+
             if (!m_model.RelayTowerOnline &&
                 DeadSignalWorld.FlatDistance(m_world.Player.position, m_world.RelayTowerPosition) < 1.8f)
             {
