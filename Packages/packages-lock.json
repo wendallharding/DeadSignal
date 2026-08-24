@@ -7,6 +7,19 @@
       "dependencies": {},
       "hash": "55423389e8d443f18090720891af52d9952d6e5e"
     },
+    "com.otherocean.autoui": {
+      "version": "file:../CustomPackages//com.otherocean.autoui",
+      "depth": 0,
+      "source": "local",
+      "dependencies": {}
+    },
+    "com.otherocean.packagedashboard": {
+      "version": "ssh://git@github.com/OtherOceanInteractive/com.otherocean.packagedashboard.git#master",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {},
+      "hash": "010c9bbd912ac215f649a831f8b07f94d4e3cffd"
+    },
     "com.unity.ai.navigation": {
       "version": "2.0.11",
       "depth": 0,
