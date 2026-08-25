@@ -1936,6 +1936,10 @@ namespace DeadSignal.Application
             {
                 m_world.OpenQuenchReturn();
             }
+            if (m_model.CanExtract)
+            {
+                m_world.OpenDepartureReturn();
+            }
             m_world.TickExtraction(dt, m_model.CanExtract);
             if (m_extractionUplink.Tick(dt))
             {

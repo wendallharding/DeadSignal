@@ -1,5 +1,16 @@
 # DEAD SIGNAL — Product Backlog
 
+## P0 — Departure cargo-release shortcut (Run 101)
+
+- [x] Add a scene-authored shutter between the extraction departure-channel capacitor banks
+- [x] Force the outward journey onto two independently traversable capacitor flanks
+- [x] Keep the closed shutter movement- and projectile-authoritative
+- [x] Retract the shutter only when all three required regional payloads make extraction ready
+- [x] Reveal an original text-free amber/cyan return decal when the direct uplink route opens
+- [x] Preserve regional rewards, tower costs, enemy stats, response budget, and extraction modes
+- [x] Prove both flanks, closed/open traversal, projectile blocking, Resources packaging, complete journey routing, and full Unity regression
+- [ ] Compare north-out/south-back, south-out/north-back, and direct-ready returns for recognition, time, hits, Signal, and uplink reserve
+
 ## P0 — Victory-finalized live journey evidence (Run 100)
 
 - [x] Defer successful Required Extraction and Full Extraction report persistence until the run reaches a terminal outcome

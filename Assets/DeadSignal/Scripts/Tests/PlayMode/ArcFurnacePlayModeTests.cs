@@ -44,7 +44,7 @@ namespace DeadSignal.Tests
                 Assert.That(Resources.Load<GameObject>("Environment/ArcFurnace"), Is.Not.Null);
                 Assert.That(Resources.Load<Texture2D>("Environment/ArcFurnaceRouteDecal"), Is.Not.Null);
                 Assert.That(Resources.Load<Material>("Materials/ArcFurnace/ArcFurnaceRouteDecal"), Is.Not.Null);
-                Assert.That(game.AuthoredMapObstacleCount, Is.EqualTo(95));
+                Assert.That(game.AuthoredMapObstacleCount, Is.EqualTo(96));
                 Assert.That(game.AuthoredSalvageSocketCount, Is.EqualTo(1));
                 Assert.That(game.AuthoredInterceptorEntranceCount, Is.EqualTo(6));
                 Assert.That(sceneReferences.ArenaHalfExtents, Is.EqualTo(new Vector2(57.5f, 30.4f)));

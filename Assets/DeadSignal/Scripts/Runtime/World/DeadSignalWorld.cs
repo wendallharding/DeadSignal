@@ -193,6 +193,7 @@ namespace DeadSignal.World
                     if ((blocker.IsShortcutGate && shortcutOpen) || (blocker.IsRelayShortcutGate && m_relayShortcutOpen) ||
                         (blocker.IsSpineReturnGate && m_spineReturnOpen) ||
                         (blocker.IsQuenchReturnGate && m_quenchReturnOpen) ||
+                        (blocker.IsDepartureReturnGate && m_departureReturnOpen) ||
                         !blocker.TryGetSweepHit(position, target, radius, out var hitFraction, out var hitNormal) ||
                         hitFraction >= nearestFraction)
                     {
@@ -322,7 +323,9 @@ namespace DeadSignal.World
             foreach (var blocker in m_movementBlockers)
             {
                 if ((blocker.IsShortcutGate && shortcutOpen) || (blocker.IsRelayShortcutGate && m_relayShortcutOpen) ||
-                    (blocker.IsSpineReturnGate && m_spineReturnOpen))
+                    (blocker.IsSpineReturnGate && m_spineReturnOpen) ||
+                    (blocker.IsQuenchReturnGate && m_quenchReturnOpen) ||
+                    (blocker.IsDepartureReturnGate && m_departureReturnOpen))
                 {
                     continue;
                 }
@@ -401,6 +404,22 @@ namespace DeadSignal.World
             _rebuildNavMesh();
         }
 
+        public void OpenDepartureReturn()
+        {
+            if (m_departureReturnOpen || m_departureReturnGate == null)
+            {
+                return;
+            }
+
+            m_departureReturnGate.SetActive(false);
+            if (m_departureReturnSignal != null)
+            {
+                m_departureReturnSignal.SetActive(true);
+            }
+            m_departureReturnOpen = true;
+            _rebuildNavMesh();
+        }
+
         public void ApplyHighContrast(bool enabled)
         {
             m_palette.ApplyHighContrast(enabled);
@@ -474,7 +493,8 @@ namespace DeadSignal.World
                 if (blocker.IsShortcutGate && m_shortcutOpen ||
                     blocker.IsRelayShortcutGate && m_relayShortcutOpen ||
                     blocker.IsSpineReturnGate && m_spineReturnOpen ||
-                    blocker.IsQuenchReturnGate && m_quenchReturnOpen)
+                    blocker.IsQuenchReturnGate && m_quenchReturnOpen ||
+                    blocker.IsDepartureReturnGate && m_departureReturnOpen)
                 {
                     continue;
                 }
@@ -950,6 +970,13 @@ namespace DeadSignal.World
             {
                 m_quenchReturnSignal.SetActive(false);
             }
+            var departureChannel = GameObject.Find("Extraction Departure Channel")?.transform;
+            m_departureReturnGate = departureChannel?.Find("Departure Cargo Shutter")?.gameObject;
+            m_departureReturnSignal = departureChannel?.Find("Departure Cargo Return Signal")?.gameObject;
+            if (m_departureReturnSignal != null)
+            {
+                m_departureReturnSignal.SetActive(false);
+            }
             m_movementBlockers.Add(new MovementBlocker(
                 new Vector2(SpineTowerPosition.x, SpineTowerPosition.z), Vector2.one * TOWER_BLOCKER_HALF_SIZE, false));
 
@@ -993,6 +1020,9 @@ namespace DeadSignal.World
                 var opensWithOptionalCache = m_quenchReturnGate != null &&
                                              (obstacle.transform == m_quenchReturnGate.transform ||
                                               obstacle.transform.IsChildOf(m_quenchReturnGate.transform));
+                var opensWithExtractionReadiness = m_departureReturnGate != null &&
+                                                   (obstacle.transform == m_departureReturnGate.transform ||
+                                                    obstacle.transform.IsChildOf(m_departureReturnGate.transform));
                 m_movementBlockers.Add(new MovementBlocker(
                     obstacle.Center,
                     obstacle.ScaledHalfSize,
@@ -1001,7 +1031,8 @@ namespace DeadSignal.World
                     false,
                     false,
                     opensWithSpineTower,
-                    opensWithOptionalCache));
+                    opensWithOptionalCache,
+                    opensWithExtractionReadiness));
                 _createObstacleTrim(obstacle);
             }
 
@@ -1261,7 +1292,8 @@ namespace DeadSignal.World
             {
                 if ((blocker.IsShortcutGate && shortcutOpen) || (blocker.IsRelayShortcutGate && m_relayShortcutOpen) ||
                     (blocker.IsSpineReturnGate && m_spineReturnOpen) ||
-                    (blocker.IsQuenchReturnGate && m_quenchReturnOpen))
+                    (blocker.IsQuenchReturnGate && m_quenchReturnOpen) ||
+                    (blocker.IsDepartureReturnGate && m_departureReturnOpen))
                 {
                     continue;
                 }
@@ -1294,6 +1326,7 @@ namespace DeadSignal.World
                 if ((blocker.IsShortcutGate && shortcutOpen) || (blocker.IsRelayShortcutGate && m_relayShortcutOpen) ||
                     (blocker.IsSpineReturnGate && m_spineReturnOpen) ||
                     (blocker.IsQuenchReturnGate && m_quenchReturnOpen) ||
+                    (blocker.IsDepartureReturnGate && m_departureReturnOpen) ||
                     blocker.Overlaps(end, 0f) ||
                     !blocker.TryGetSweepHit(start, end, radius, out var hitFraction, out _) ||
                     hitFraction >= nearestFraction)
@@ -1639,6 +1672,9 @@ namespace DeadSignal.World
         private GameObject m_quenchReturnGate;
         private GameObject m_quenchReturnSignal;
         private bool m_quenchReturnOpen;
+        private GameObject m_departureReturnGate;
+        private GameObject m_departureReturnSignal;
+        private bool m_departureReturnOpen;
         private GameObject m_relayShortcutGate;
         private bool m_relayShortcutOpen;
         private GameObject m_extractionBeacon;
@@ -1658,9 +1694,10 @@ namespace DeadSignal.World
                 bool isShortcutGate,
                 bool isRelayShortcutGate = false,
                 bool isSpineReturnGate = false,
-                bool isQuenchReturnGate = false)
+                bool isQuenchReturnGate = false,
+                bool isDepartureReturnGate = false)
                 : this(center, halfSize, Vector2.right, Vector2.up, isShortcutGate, isRelayShortcutGate,
-                    isSpineReturnGate, isQuenchReturnGate)
+                    isSpineReturnGate, isQuenchReturnGate, isDepartureReturnGate)
             {
             }
 
@@ -1672,7 +1709,8 @@ namespace DeadSignal.World
                 bool isShortcutGate,
                 bool isRelayShortcutGate = false,
                 bool isSpineReturnGate = false,
-                bool isQuenchReturnGate = false)
+                bool isQuenchReturnGate = false,
+                bool isDepartureReturnGate = false)
             {
                 Center = center;
                 HalfSize = halfSize;
@@ -1682,6 +1720,7 @@ namespace DeadSignal.World
                 IsRelayShortcutGate = isRelayShortcutGate;
                 IsSpineReturnGate = isSpineReturnGate;
                 IsQuenchReturnGate = isQuenchReturnGate;
+                IsDepartureReturnGate = isDepartureReturnGate;
             }
 
             public Vector2 Center { get; }
@@ -1692,6 +1731,7 @@ namespace DeadSignal.World
             public bool IsRelayShortcutGate { get; }
             public bool IsSpineReturnGate { get; }
             public bool IsQuenchReturnGate { get; }
+            public bool IsDepartureReturnGate { get; }
 
             public bool Overlaps(Vector3 position, float radius)
             {

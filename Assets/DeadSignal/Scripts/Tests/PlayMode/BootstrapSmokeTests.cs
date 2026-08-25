@@ -1041,7 +1041,7 @@ namespace DeadSignal.Tests
                 "The tower approach should be placed as scene-authored prefab content rather than runtime layout code.");
             var authoredObstacles = towerJunction.GetComponentsInChildren<AuthoredMapObstacle>();
             Assert.That(authoredObstacles.Length, Is.EqualTo(3));
-            Assert.That(game.AuthoredMapObstacleCount, Is.EqualTo(95),
+            Assert.That(game.AuthoredMapObstacleCount, Is.EqualTo(96),
                 "Every authored junction, salvage area, departure channel, and threat-bay obstacle should participate " +
                 "in movement resolution.");
             Assert.That(authoredObstacles.Sum(obstacle => obstacle.GetComponentsInChildren<Renderer>().Length), Is.EqualTo(6));
@@ -1143,8 +1143,8 @@ namespace DeadSignal.Tests
             Assert.That(departureChannel.transform.eulerAngles.y, Is.EqualTo(325f).Within(0.01f),
                 "The channel should align with the extraction-to-tower route.");
             var departureObstacles = departureChannel.GetComponentsInChildren<AuthoredMapObstacle>();
-            Assert.That(departureObstacles.Length, Is.EqualTo(2));
-            Assert.That(departureObstacles.Sum(obstacle => obstacle.GetComponentsInChildren<Renderer>().Length), Is.EqualTo(6));
+            Assert.That(departureObstacles.Length, Is.EqualTo(3));
+            Assert.That(departureObstacles.Sum(obstacle => obstacle.GetComponentsInChildren<Renderer>().Length), Is.EqualTo(9));
             Assert.That(departureObstacles.Sum(obstacle => obstacle.GetComponentsInChildren<Collider>().Length), Is.Zero);
             var departureTexture = Resources.Load<Texture2D>("Environment/DepartureCapacitorAlbedo");
             var departureArmor = Resources.Load<Material>("Materials/DepartureCapacitorArmor");

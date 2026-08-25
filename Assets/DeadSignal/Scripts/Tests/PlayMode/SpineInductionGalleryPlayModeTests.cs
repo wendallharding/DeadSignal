@@ -41,7 +41,7 @@ namespace DeadSignal.Tests
                 Assert.That(Resources.Load<Texture2D>("Environment/SpineInductionGalleryRouteDecal"), Is.Not.Null);
                 Assert.That(Resources.Load<Material>(
                     "Materials/SpineInductionGallery/SpineInductionGalleryRouteDecal"), Is.Not.Null);
-                Assert.That(game.AuthoredMapObstacleCount, Is.EqualTo(95));
+                Assert.That(game.AuthoredMapObstacleCount, Is.EqualTo(96));
                 Assert.That(game.AuthoredInterceptorEntranceCount, Is.EqualTo(6));
                 Assert.That(spine.Find("Capacitor Spine North Bulkhead"), Is.Null);
                 Assert.That(spine.Find("Capacitor Spine North West"), Is.Not.Null);

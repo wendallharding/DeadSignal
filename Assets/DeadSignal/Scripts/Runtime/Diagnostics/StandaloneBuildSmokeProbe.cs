@@ -18,7 +18,7 @@ namespace DeadSignal.Diagnostics
         public const string COMMAND_LINE_ARGUMENT = "-deadSignalBuildSmoke";
         public const string PASS_MARKER = "[DEAD SIGNAL STANDALONE SMOKE] PASS";
 
-        private const int EXPECTED_AUTHORED_OBSTACLE_COUNT = 95;
+        private const int EXPECTED_AUTHORED_OBSTACLE_COUNT = 96;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         private static void _startWhenRequested()
@@ -57,9 +57,19 @@ namespace DeadSignal.Diagnostics
             var lockdownDecalsReady = game != null &&
                                       game.transform.Find("Relay Foundry Region/Foundry North Lockdown Decal") != null &&
                                       game.transform.Find("Relay Foundry Region/Foundry South Lockdown Decal") != null;
+            var departureReturnTextureReady =
+                Resources.Load<Texture2D>("Environment/DepartureCargoReturnDecal") != null;
+            var departureReturnMaterialReady =
+                Resources.Load<Material>("Materials/DepartureCargoReturnDecal") != null;
+            var departureCapacitorReady = Resources.Load<GameObject>("Environment/DepartureCapacitor") != null;
+            var departureChannelReady = Resources.Load<GameObject>("Environment/ExtractionDepartureChannel") != null;
+            var departureAlbedoReady = Resources.Load<Texture2D>("Environment/DepartureCapacitorAlbedo") != null;
             Debug.Log($"[DEAD SIGNAL STANDALONE SMOKE] RELAY WEAPON | " +
                       $"decal={weaponDecalReady} texture={weaponTextureReady} material={weaponMaterialReady} " +
                       $"obstacles={game?.AuthoredMapObstacleCount ?? -1}");
+            Debug.Log($"[DEAD SIGNAL STANDALONE SMOKE] DEPARTURE RETURN | " +
+                      $"texture={departureReturnTextureReady} material={departureReturnMaterialReady} " +
+                      $"capacitor={departureCapacitorReady} channel={departureChannelReady} albedo={departureAlbedoReady}");
             var runtimeReady = game != null &&
                                 game.transform.Find("Maintenance Drone") != null &&
                                 game.transform.Find("Shortcut Gate Assembly/Signal Shortcut Gate") != null &&
@@ -190,9 +200,11 @@ namespace DeadSignal.Diagnostics
                                 lockdownTextureReady &&
                                 lockdownMaterialReady &&
                                 lockdownDecalsReady &&
-                                Resources.Load<GameObject>("Environment/DepartureCapacitor") != null &&
-                                Resources.Load<GameObject>("Environment/ExtractionDepartureChannel") != null &&
-                                Resources.Load<Texture2D>("Environment/DepartureCapacitorAlbedo") != null &&
+                                departureCapacitorReady &&
+                                departureChannelReady &&
+                                departureAlbedoReady &&
+                                departureReturnTextureReady &&
+                                departureReturnMaterialReady &&
                                 Resources.Load<GameObject>("Environment/SignalSpineInlay") != null &&
                                 Resources.Load<GameObject>("Environment/OpeningSignalSpine") != null &&
                                 Resources.Load<Texture2D>("Environment/SignalSpineInlay") != null &&

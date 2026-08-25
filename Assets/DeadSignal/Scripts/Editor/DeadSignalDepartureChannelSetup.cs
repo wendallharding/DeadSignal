@@ -11,10 +11,18 @@ namespace DeadSignal.Editor
     public static class DeadSignalDepartureChannelSetup
     {
         private const string TEXTURE_PATH = "Assets/DeadSignal/Resources/Environment/DepartureCapacitorAlbedo.png";
+        private const string RETURN_DECAL_PATH =
+            "Assets/DeadSignal/Resources/Environment/DepartureCargoReturnDecal.png";
         private const string MODEL_PATH = "Assets/DeadSignal/Resources/Environment/DepartureCapacitorModel.fbx";
         private const string ARMOR_MATERIAL_PATH = "Assets/DeadSignal/Resources/Materials/DepartureCapacitorArmor.mat";
         private const string CELL_MATERIAL_PATH = "Assets/DeadSignal/Resources/Materials/DepartureCapacitorCells.mat";
         private const string BEACON_MATERIAL_PATH = "Assets/DeadSignal/Resources/Materials/DepartureThresholdBeacons.mat";
+        private const string RETURN_DECAL_MATERIAL_PATH =
+            "Assets/DeadSignal/Resources/Materials/DepartureCargoReturnDecal.mat";
+        private const string ARMOR_MATERIAL_SOURCE_PATH =
+            "Assets/DeadSignal/Resources/Materials/WorldPalette/StationBlack.mat";
+        private const string AMBER_MATERIAL_SOURCE_PATH =
+            "Assets/DeadSignal/Resources/Materials/WorldPalette/SalvageAmber.mat";
         private const string CAPACITOR_PREFAB_PATH = "Assets/DeadSignal/Resources/Environment/DepartureCapacitor.prefab";
         private const string CHANNEL_PREFAB_PATH = "Assets/DeadSignal/Resources/Environment/ExtractionDepartureChannel.prefab";
         private const string OBSTACLE_TEMPLATE_PATH = "Assets/DeadSignal/Resources/Environment/CoolantManifoldAssembly.prefab";
@@ -29,19 +37,24 @@ namespace DeadSignal.Editor
                 var capacitor = AssetDatabase.LoadAssetAtPath<GameObject>(CAPACITOR_PREFAB_PATH);
                 var channel = AssetDatabase.LoadAssetAtPath<GameObject>(CHANNEL_PREFAB_PATH);
                 return AssetDatabase.LoadAssetAtPath<Texture2D>(TEXTURE_PATH) != null &&
+                       AssetDatabase.LoadAssetAtPath<Texture2D>(RETURN_DECAL_PATH) != null &&
                        AssetDatabase.LoadAssetAtPath<GameObject>(MODEL_PATH) != null &&
                        AssetDatabase.LoadAssetAtPath<Material>(ARMOR_MATERIAL_PATH) != null &&
                        AssetDatabase.LoadAssetAtPath<Material>(CELL_MATERIAL_PATH) != null &&
                        AssetDatabase.LoadAssetAtPath<Material>(BEACON_MATERIAL_PATH) != null &&
+                       AssetDatabase.LoadAssetAtPath<Material>(RETURN_DECAL_MATERIAL_PATH) != null &&
                        _hasValidCapacitor(capacitor) &&
                        channel != null &&
-                       channel.GetComponentsInChildren<AuthoredMapObstacle>().Length == 2;
+                       channel.GetComponentsInChildren<AuthoredMapObstacle>().Length == 3 &&
+                       channel.transform.Find("Departure Cargo Shutter") != null &&
+                       channel.transform.Find("Departure Cargo Return Signal") != null;
             }
         }
 
         public static void EnsureAssets()
         {
             _configureTextureImport();
+            _configureReturnDecalImport();
             _configureModelImport();
             _ensureMaterials();
             _ensureCapacitorPrefab();
@@ -67,6 +80,22 @@ namespace DeadSignal.Editor
             importer.mipmapEnabled = true;
             importer.maxTextureSize = 1024;
             importer.wrapMode = TextureWrapMode.Repeat;
+            importer.textureCompression = TextureImporterCompression.CompressedHQ;
+            importer.SaveAndReimport();
+        }
+
+        private static void _configureReturnDecalImport()
+        {
+            var importer = AssetImporter.GetAtPath(RETURN_DECAL_PATH) as TextureImporter;
+            if (importer == null)
+            {
+                throw new InvalidOperationException($"Could not find the departure return decal at {RETURN_DECAL_PATH}.");
+            }
+
+            importer.alphaIsTransparency = true;
+            importer.mipmapEnabled = true;
+            importer.maxTextureSize = 2048;
+            importer.wrapMode = TextureWrapMode.Clamp;
             importer.textureCompression = TextureImporterCompression.CompressedHQ;
             importer.SaveAndReimport();
         }
@@ -105,6 +134,18 @@ namespace DeadSignal.Editor
 
             var beacons = _loadOrCreateMaterial(BEACON_MATERIAL_PATH, "DepartureThresholdBeacons");
             _configureEmission(beacons, new Color(0.28f, 0.88f, 1f), 1.85f);
+
+            var returnDecal = _loadOrCreateMaterial(RETURN_DECAL_MATERIAL_PATH, "DepartureCargoReturnDecal",
+                "Universal Render Pipeline/Unlit");
+            returnDecal.SetTexture("_BaseMap", AssetDatabase.LoadAssetAtPath<Texture2D>(RETURN_DECAL_PATH));
+            returnDecal.SetColor("_BaseColor", Color.white);
+            returnDecal.SetFloat("_Surface", 1f);
+            returnDecal.SetFloat("_SrcBlend", (float)UnityEngine.Rendering.BlendMode.SrcAlpha);
+            returnDecal.SetFloat("_DstBlend", (float)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+            returnDecal.SetFloat("_ZWrite", 0f);
+            returnDecal.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
+            returnDecal.renderQueue = (int)UnityEngine.Rendering.RenderQueue.Transparent;
+            EditorUtility.SetDirty(returnDecal);
         }
 
         private static void _configureEmission(Material material, Color color, float intensity)
@@ -117,7 +158,10 @@ namespace DeadSignal.Editor
             EditorUtility.SetDirty(material);
         }
 
-        private static Material _loadOrCreateMaterial(string path, string materialName)
+        private static Material _loadOrCreateMaterial(
+            string path,
+            string materialName,
+            string shaderName = "Universal Render Pipeline/Lit")
         {
             var material = AssetDatabase.LoadAssetAtPath<Material>(path);
             if (material != null)
@@ -125,10 +169,10 @@ namespace DeadSignal.Editor
                 return material;
             }
 
-            var shader = Shader.Find("Universal Render Pipeline/Lit");
+            var shader = Shader.Find(shaderName);
             if (shader == null)
             {
-                throw new InvalidOperationException("Could not find the URP Lit shader for departure-channel materials.");
+                throw new InvalidOperationException($"Could not find {shaderName} for departure-channel materials.");
             }
 
             material = new Material(shader) { name = materialName };
@@ -189,23 +233,68 @@ namespace DeadSignal.Editor
 
         private static void _ensureChannelPrefab()
         {
-            if (AssetDatabase.LoadAssetAtPath<GameObject>(CHANNEL_PREFAB_PATH) != null)
-            {
-                return;
-            }
-
             var capacitorPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(CAPACITOR_PREFAB_PATH);
             var channel = new GameObject("ExtractionDepartureChannel");
             try
             {
                 _addCapacitor(channel.transform, capacitorPrefab, "North Departure Capacitor", new Vector3(0f, 0f, 1.25f), 180f);
                 _addCapacitor(channel.transform, capacitorPrefab, "South Departure Capacitor", new Vector3(0f, 0f, -1.25f), 0f);
+                _addCargoShutter(channel.transform);
+                _addReturnSignal(channel.transform);
                 PrefabUtility.SaveAsPrefabAsset(channel, CHANNEL_PREFAB_PATH);
             }
             finally
             {
                 UnityEngine.Object.DestroyImmediate(channel);
             }
+        }
+
+        private static void _addCargoShutter(Transform parent)
+        {
+            var armor = AssetDatabase.LoadAssetAtPath<Material>(ARMOR_MATERIAL_SOURCE_PATH);
+            var amber = AssetDatabase.LoadAssetAtPath<Material>(AMBER_MATERIAL_SOURCE_PATH);
+            if (armor == null || amber == null)
+            {
+                throw new InvalidOperationException("Could not load departure shutter palette materials.");
+            }
+
+            var shutter = new GameObject("Departure Cargo Shutter");
+            shutter.transform.SetParent(parent, false);
+            shutter.AddComponent<AuthoredMapObstacle>().Configure(new Vector2(0.24f, 0.92f));
+            _addCube(shutter.transform, "Cargo Shutter Housing", Vector3.zero, new Vector3(0.48f, 1f, 1.84f), armor);
+            _addCube(shutter.transform, "North Cargo Lock", new Vector3(-0.25f, 0.08f, 0.59f),
+                new Vector3(0.04f, 0.58f, 0.34f), amber);
+            _addCube(shutter.transform, "South Cargo Lock", new Vector3(-0.25f, 0.08f, -0.59f),
+                new Vector3(0.04f, 0.58f, 0.34f), amber);
+        }
+
+        private static void _addReturnSignal(Transform parent)
+        {
+            var signal = GameObject.CreatePrimitive(PrimitiveType.Quad);
+            signal.name = "Departure Cargo Return Signal";
+            signal.transform.SetParent(parent, false);
+            signal.transform.localPosition = new Vector3(-0.05f, -0.105f, 0f);
+            signal.transform.localRotation = Quaternion.Euler(90f, 90f, 0f);
+            signal.transform.localScale = Vector3.one * 2.65f;
+            signal.GetComponent<Renderer>().sharedMaterial =
+                AssetDatabase.LoadAssetAtPath<Material>(RETURN_DECAL_MATERIAL_PATH);
+            UnityEngine.Object.DestroyImmediate(signal.GetComponent<Collider>());
+        }
+
+        private static void _addCube(
+            Transform parent,
+            string objectName,
+            Vector3 localPosition,
+            Vector3 localScale,
+            Material material)
+        {
+            var cube = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            cube.name = objectName;
+            cube.transform.SetParent(parent, false);
+            cube.transform.localPosition = localPosition;
+            cube.transform.localScale = localScale;
+            cube.GetComponent<Renderer>().sharedMaterial = material;
+            UnityEngine.Object.DestroyImmediate(cube.GetComponent<Collider>());
         }
 
         private static void _addCapacitor(
@@ -246,9 +335,10 @@ namespace DeadSignal.Editor
                 EditorSceneManager.SaveScene(scene);
             }
 
-            if (existing.GetComponentsInChildren<AuthoredMapObstacle>().Length != 2)
+            if (existing.GetComponentsInChildren<AuthoredMapObstacle>().Length != 3)
             {
-                throw new InvalidOperationException("The SampleScene departure channel does not contain two authored capacitors.");
+                throw new InvalidOperationException(
+                    "The SampleScene departure channel does not contain two authored capacitors and the cargo shutter.");
             }
         }
 
