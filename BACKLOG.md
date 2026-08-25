@@ -1,5 +1,14 @@
 # DEAD SIGNAL — Product Backlog
 
+## P0 — Victory-finalized live journey evidence (Run 100)
+
+- [x] Defer successful Required Extraction and Full Extraction report persistence until the run reaches a terminal outcome
+- [x] Keep failed routes and completed non-extraction routes writing immediately for useful recovery evidence
+- [x] Refresh report summaries on repeated reads without duplicating or freezing metrics at uplink start
+- [x] Record the terminal outcome plus post-uplink elapsed time, combat, Signal, journey, shortcut, and final-position evidence
+- [x] Prove required and optional extraction reports through victory plus focused and complete Unity regression suites
+- [x] Run both assisted live-balance journeys and preserve their comparable reports; keep the human guardian gate explicit
+
 ## P0 — Required three-region mission journey
 
 - [x] Replace extraction readiness based on any three caches with one payload from Central, Relay, and Spine

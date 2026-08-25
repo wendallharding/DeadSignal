@@ -1,6 +1,7 @@
 using NUnit.Framework;
 using UnityEngine;
 using DeadSignal.Diagnostics;
+using DeadSignal.Missions;
 
 namespace DeadSignal.Tests
 {
@@ -132,13 +133,58 @@ namespace DeadSignal.Tests
             metrics.RecordSecurityHit();
             metrics.RecordThreatPurge(14f);
 
-            var report = sequencer.FinishReport(41f, metrics, false, true, new Vector3(2f, 0f, 3f));
+            var report = sequencer.FinishReport(
+                41f, metrics, false, true, new Vector3(2f, 0f, 3f), RunOutcome.Victory);
 
+            Assert.That(report, Does.Contain("Outcome Victory"));
             Assert.That(report, Does.Contain("Journey REQUIRED WITHDRAWAL"));
             Assert.That(report, Does.Contain("Time 12.00s"));
             Assert.That(report, Does.Contain("Hits 1"));
             Assert.That(report, Does.Contain("Shots 1"));
             Assert.That(report, Does.Contain("Recovered 14.0"));
+        }
+
+        [Test]
+        public void FinishReport_ReplacesSummaryWithFreshTerminalMetrics()
+        {
+            var sequencer = new DebugRouteSequencer();
+            var metrics = new RunMetrics();
+            sequencer.Start(DebugRoutePreset.RequiredExtraction, DebugAutomationMode.AssistedPlaythrough,
+                DebugAutomationProfile.LiveBalance, 72f);
+            metrics.Advance(12f, false);
+
+            var runningReport = sequencer.FinishReport(
+                41f, metrics, false, true, new Vector3(2f, 0f, 3f), RunOutcome.Running);
+            metrics.Advance(8f, true);
+            metrics.RecordSecurityHit();
+            var victoryReport = sequencer.FinishReport(
+                33f, metrics, false, true, new Vector3(-8f, 0f, -5f), RunOutcome.Victory);
+
+            Assert.That(runningReport, Does.Contain("Outcome Running"));
+            Assert.That(victoryReport, Does.Contain("Outcome Victory"));
+            Assert.That(victoryReport, Does.Contain("Time 20.00s"));
+            Assert.That(victoryReport, Does.Contain("Hits 1"));
+            Assert.That(victoryReport, Does.Contain("Position -8.00,-5.00"));
+            Assert.That(victoryReport.Split(new[] { "Final Signal" }, System.StringSplitOptions.None).Length - 1,
+                Is.EqualTo(1));
+        }
+
+        [TestCase(DebugRoutePreset.RequiredExtraction, true)]
+        [TestCase(DebugRoutePreset.FullExtraction, true)]
+        [TestCase(DebugRoutePreset.OpeningLoop, false)]
+        public void CompletedRoute_OnlyExtractionJourneysAwaitTerminalOutcome(
+            DebugRoutePreset preset, bool expected)
+        {
+            var sequencer = new DebugRouteSequencer();
+            sequencer.Start(preset, DebugAutomationMode.DeterministicValidation,
+                DebugAutomationProfile.SafeNavigation, 72f);
+            while (sequencer.CurrentStep != null)
+            {
+                _completeCurrentStep(sequencer);
+            }
+
+            Assert.That(sequencer.State, Is.EqualTo(DebugRouteRunState.Completed));
+            Assert.That(sequencer.AwaitsRunOutcomeReport, Is.EqualTo(expected));
         }
 
         private static void _completeCurrentStep(DebugRouteSequencer sequencer)

@@ -102,6 +102,7 @@ namespace DeadSignal.Diagnostics
         private readonly List<DebugRouteStep> m_steps = new();
         private readonly List<Vector3> m_recordedPositions = new();
         private readonly StringBuilder m_report = new();
+        private string m_finishedReport;
         private int m_stepIndex;
         private int m_recoveryCount;
         private float m_stepSeconds;
@@ -121,7 +122,12 @@ namespace DeadSignal.Diagnostics
         public int StepCount => m_steps.Count;
         public int RecoveryCount => m_recoveryCount;
         public float StepSeconds => m_stepSeconds;
-        public string Report => m_report.ToString();
+        public string Report => State is DebugRouteRunState.Completed or DebugRouteRunState.Failed &&
+                                !string.IsNullOrEmpty(m_finishedReport)
+            ? m_finishedReport
+            : m_report.ToString();
+        public bool AwaitsRunOutcomeReport => State == DebugRouteRunState.Completed &&
+                                              Preset is DebugRoutePreset.RequiredExtraction or DebugRoutePreset.FullExtraction;
         public bool PauseAfterEachStep { get; set; }
 
         public void Record(Vector3 position) => m_recordedPositions.Add(position);
@@ -138,6 +144,7 @@ namespace DeadSignal.Diagnostics
             m_steps.AddRange(_createSteps(preset));
             m_stepIndex = 0;
             m_report.Clear();
+            m_finishedReport = null;
             m_report.AppendLine($"DEAD SIGNAL PLAYTEST ROUTE — {preset} / {mode} / {profile}");
             m_report.AppendLine($"Started {DateTime.Now:O}  Signal {signal:0.0}");
             if (m_steps.Count == 0)
@@ -257,22 +264,22 @@ namespace DeadSignal.Diagnostics
         }
 
         public string FinishReport(float signal, RunMetrics metrics, bool optionalSalvageSecured, bool shortcutOpen,
-            Vector3 position)
+            Vector3 position, RunOutcome outcome = RunOutcome.Running)
         {
-            if (!m_report.ToString().Contains("Final Signal"))
-            {
-                m_report.AppendLine($"Final Signal {signal:0.0} (Δ {signal - m_startSignal:+0.0;-0.0;0.0})");
-                m_report.AppendLine($"Journey {(optionalSalvageSecured ? "OPTIONAL GREED" : "REQUIRED WITHDRAWAL")}  " +
-                                    $"Shortcut {(shortcutOpen ? "OPEN" : "CLOSED")}");
-                m_report.AppendLine($"Time {metrics.ElapsedSeconds:0.00}s  Dead zone {metrics.DeadZoneSeconds:0.00}s  " +
-                                    $"Hits {metrics.SecurityHits}  Sapper drains {metrics.SapperPulses}");
-                m_report.AppendLine($"Shots {metrics.ShotsFired}  Purges {metrics.ThreatsPurged}  " +
-                                    $"Travel spent {metrics.PassiveSignalSpent + metrics.MovementSignalSpent:0.0}  " +
-                                    $"Fire spent {metrics.WeaponSignalSpent:0.0}");
-                m_report.AppendLine($"Recovered {metrics.SignalRecovered + metrics.SalvageSignalRecovered:0.0}  " +
-                                    $"Position {position.x:0.00},{position.z:0.00}");
-            }
-            return m_report.ToString();
+            var finishedReport = new StringBuilder(m_report.ToString());
+            finishedReport.AppendLine($"Outcome {outcome}");
+            finishedReport.AppendLine($"Final Signal {signal:0.0} (Δ {signal - m_startSignal:+0.0;-0.0;0.0})");
+            finishedReport.AppendLine($"Journey {(optionalSalvageSecured ? "OPTIONAL GREED" : "REQUIRED WITHDRAWAL")}  " +
+                                      $"Shortcut {(shortcutOpen ? "OPEN" : "CLOSED")}");
+            finishedReport.AppendLine($"Time {metrics.ElapsedSeconds:0.00}s  Dead zone {metrics.DeadZoneSeconds:0.00}s  " +
+                                      $"Hits {metrics.SecurityHits}  Sapper drains {metrics.SapperPulses}");
+            finishedReport.AppendLine($"Shots {metrics.ShotsFired}  Purges {metrics.ThreatsPurged}  " +
+                                      $"Travel spent {metrics.PassiveSignalSpent + metrics.MovementSignalSpent:0.0}  " +
+                                      $"Fire spent {metrics.WeaponSignalSpent:0.0}");
+            finishedReport.AppendLine($"Recovered {metrics.SignalRecovered + metrics.SalvageSignalRecovered:0.0}  " +
+                                      $"Position {position.x:0.00},{position.z:0.00}");
+            m_finishedReport = finishedReport.ToString();
+            return m_finishedReport;
         }
 
         private IEnumerable<DebugRouteStep> _createSteps(DebugRoutePreset preset)

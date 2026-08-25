@@ -46,6 +46,20 @@ namespace DeadSignal.Tests.PlayMode
             Assert.That(game.CurrentSalvage, Is.EqualTo(RunModel.SalvageRequired));
             Assert.That(game.IsOptionalSalvageSecured, Is.True);
             Assert.That(game.IsExtractionUplinkActive, Is.True);
+
+            var victoryTimeout = Time.realtimeSinceStartup + 8f;
+            while (game.CurrentRunOutcome == RunOutcome.Running && Time.realtimeSinceStartup < victoryTimeout)
+            {
+                yield return null;
+            }
+
+            Assert.That(game.CurrentRunOutcome, Is.EqualTo(RunOutcome.Victory));
+            Assert.That(game.DebugRouteSequenceReport, Does.Contain("Outcome Victory"));
+            Assert.That(game.DebugRouteSequenceReport, Does.Contain("Journey OPTIONAL GREED"));
+            Assert.That(File.Exists(game.DebugLastCapturePath), Is.True, game.DebugLastCapturePath);
+            var report = File.ReadAllText(game.DebugLastCapturePath);
+            Assert.That(report, Does.Contain("Outcome Victory"));
+            Assert.That(report, Does.Contain("Journey OPTIONAL GREED"));
             game.DebugSetTimeScale(1f);
         }
 
@@ -81,10 +95,13 @@ namespace DeadSignal.Tests.PlayMode
             }
 
             Assert.That(game.CurrentRunOutcome, Is.EqualTo(RunOutcome.Victory));
+            Assert.That(game.DebugRouteSequenceReport, Does.Contain("Outcome Victory"));
             Assert.That(game.DebugRouteSequenceReport, Does.Contain("Journey REQUIRED WITHDRAWAL"));
             Assert.That(game.DebugRouteSequenceReport, Does.Contain("Final Signal"));
             Assert.That(File.Exists(game.DebugLastCapturePath), Is.True, game.DebugLastCapturePath);
-            Assert.That(File.ReadAllText(game.DebugLastCapturePath), Does.Contain("Journey REQUIRED WITHDRAWAL"));
+            var report = File.ReadAllText(game.DebugLastCapturePath);
+            Assert.That(report, Does.Contain("Outcome Victory"));
+            Assert.That(report, Does.Contain("Journey REQUIRED WITHDRAWAL"));
             game.DebugSetTimeScale(1f);
         }
     }

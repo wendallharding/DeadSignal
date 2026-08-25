@@ -1538,6 +1538,7 @@ namespace DeadSignal.Application
 
             m_audio.Play(DeadSignalAudioCue.Extraction);
             _showFeedback("EXTRACTION COMPLETE");
+            _finalizeDebugRouteAfterOutcome();
         }
 
         private void _handleAuxiliaryOverclockChoice()
@@ -1662,7 +1663,10 @@ namespace DeadSignal.Application
                 m_debugRouteSequencer.State == DebugRouteRunState.Failed)
             {
                 _showFeedback($"DEBUG ROUTE {m_debugRouteSequencer.State.ToString().ToUpperInvariant()}");
-                _writeDebugRouteReport();
+                if (!m_debugRouteSequencer.AwaitsRunOutcomeReport)
+                {
+                    _writeDebugRouteReport();
+                }
             }
         }
 
@@ -1761,7 +1765,8 @@ namespace DeadSignal.Application
         private string _finishDebugRouteReport()
         {
             return m_debugRouteSequencer?.FinishReport(CurrentSignal, m_metrics, m_model.OptionalSalvageSecured,
-                m_model.ShortcutOpen, m_world?.Player.position ?? Vector3.zero) ?? "No route report available.";
+                m_model.ShortcutOpen, m_world?.Player.position ?? Vector3.zero,
+                m_model?.Outcome ?? RunOutcome.Destroyed) ?? "No route report available.";
         }
 
         private void _writeDebugRouteReport()
