@@ -117,6 +117,8 @@ namespace DeadSignal.Combat
         public Vector3 WardenTacticalTarget => m_wardenTacticalTarget;
         public float SapperSignalReward => m_tuning.SapperSignalReward;
         public float SapperPulseInterval => m_tuning.SapperPulseInterval;
+        public float SapperSpeed => m_tuning.SapperSpeed;
+        public float SignalBoltSpeed => m_projectileTuning.Speed;
         public float SapperHealth => m_sapperHealth;
         public float InterceptorHealth => m_interceptorHealth;
         public float InterceptorMaximumHealth => m_tuning.InterceptorHealth;

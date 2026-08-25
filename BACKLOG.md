@@ -1,5 +1,16 @@
 # DEAD SIGNAL — Product Backlog
 
+## P0 — Matched live-balance combat routes (Run 104)
+
+- [x] Give assisted live routes conservative target selection, predictive Sapper aim, obstacle-aware intercept positions, and explicit Interceptor/Suppressor evasion
+- [x] Let a distant active Sapper force a temporary route abandonment, then resume the authored objective after entering a reliable bolt lane
+- [x] Route both required and optional withdrawals through the powered Spine, Relay, and Central footholds before extraction
+- [x] Match both live journeys on Overdrive Thrusters, Emergency Capacitor, Piercing Pulse, and the same authored payload route
+- [x] Record policy-directed shots and discrete evasion responses alongside existing combat, Signal, timing, exposure, and journey evidence
+- [x] Prove Required Extraction and Full Extraction victories under real Signal, movement, enemy, and damage rules
+- [x] Preserve SafeNavigation behavior, production combat/economy tuning, authored collision, entrances, response caps, and mission rules
+- [ ] Run the same matched pair as a watched human comparison before authoring the station guardian
+
 ## P0 — Eastern room combat laboratory (Run 103)
 
 - [x] Replace the arena-edge teleport with a scene-authored Arc Furnace player anchor, camera focus, four role staging points, and safe framing envelope

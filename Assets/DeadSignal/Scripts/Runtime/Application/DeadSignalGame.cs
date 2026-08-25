@@ -27,6 +27,12 @@ namespace DeadSignal.Application
         private const float DASH_COOLDOWN = 2.4f;
         private const float TOWER_INTERACTION_RADIUS = 2.2f;
         private const float DEPARTURE_SURGE_SIGNAL_RESTORE = 12f;
+        private static readonly Vector3[] s_liveBalanceInterceptDirections =
+        {
+            Vector3.forward, Vector3.right, Vector3.back, Vector3.left,
+            new Vector3(1f, 0f, 1f).normalized, new Vector3(1f, 0f, -1f).normalized,
+            new Vector3(-1f, 0f, -1f).normalized, new Vector3(-1f, 0f, 1f).normalized
+        };
 
         private RunModel m_model;
         private RunMetrics m_metrics;
@@ -82,6 +88,8 @@ namespace DeadSignal.Application
         private AuthoredCombatScenario m_debugCombatScenario;
         private float m_debugCombatScenarioSeconds;
         private bool m_debugCombatScenarioActive;
+        private readonly LiveBalanceCombatPolicy m_liveBalanceCombatPolicy = new();
+        private LiveBalanceCombatDecision m_liveBalanceCombatDecision;
 
         public float CurrentSignal => m_model?.Signal ?? 0f;
         public int CurrentSalvage => m_model?.Salvage ?? 0;
@@ -307,6 +315,8 @@ namespace DeadSignal.Application
               $"S:{_viewportState(m_world.Sapper)} I:{_viewportState(m_world.Interceptor)} " +
               $"X:{_viewportState(m_world.Suppressor)}";
         public bool IsDebugRouteDriving => m_debugRouteDriving;
+        public int DebugLiveBalanceEvasionResponses => m_liveBalanceCombatPolicy.EvasionResponses;
+        public int DebugLiveBalanceDirectedShots => m_liveBalanceCombatPolicy.DirectedShots;
         public bool IsDebugMenuOpen => m_debugMenuOpen;
         public bool HasRuntimeNavMesh => m_world?.HasRuntimeNavMesh ?? false;
         public string DebugNavMeshStatus => m_world?.NavMeshStatus ?? "Unavailable";
@@ -399,6 +409,8 @@ namespace DeadSignal.Application
         public void DebugStartRouteSequence(DebugRoutePreset preset, DebugAutomationMode mode, DebugAutomationProfile profile)
         {
             _resetDebugTransientState();
+            m_liveBalanceCombatPolicy.Reset();
+            m_liveBalanceCombatDecision = default;
             m_debugRouteReportWritten = false;
             m_debugRouteSequencer.Start(preset, mode, profile, CurrentSignal);
             m_debugObservedSequenceStep = -1;
@@ -1013,10 +1025,13 @@ namespace DeadSignal.Application
                 return;
             }
 
+            _updateLiveBalanceCombatDecision(dt);
             var movement = m_debugMenuOpen && !m_debugRouteDriving ? Vector3.zero : _updatePlayer(dt);
-            var aimDirection = m_debugMenuOpen
-                ? m_world.Player.forward
-                : _applyAimAssist(m_input.ReadAimDirection(m_world.Camera, m_world.Player));
+            var aimDirection = m_liveBalanceCombatDecision.AimDirection.sqrMagnitude > 0.01f
+                ? m_liveBalanceCombatDecision.AimDirection
+                : m_debugMenuOpen
+                    ? m_world.Player.forward
+                    : _applyAimAssist(m_input.ReadAimDirection(m_world.Camera, m_world.Player));
             m_world.TickPlayerPresentation(
                 dt,
                 m_playerPresentationAcceleration,
@@ -1072,6 +1087,10 @@ namespace DeadSignal.Application
                     m_fireBuffered = false;
                     m_threats.TryFire(aimDirection);
                 }
+                else if (m_liveBalanceCombatDecision.ShouldFire)
+                {
+                    m_threats.TryFire(aimDirection);
+                }
 
                 if (m_input.PressedInteract())
                 {
@@ -1121,6 +1140,11 @@ namespace DeadSignal.Application
             }
 
             var moveInput = m_debugRouteDriving ? _debugRouteInput() : m_input.ReadMovement();
+            if (_isLiveBalanceAutomationActive())
+            {
+                moveInput = LiveBalanceCombatPolicy.BlendMovement(
+                    moveInput, m_liveBalanceCombatDecision.EvasionDirection);
+            }
             if (moveInput.sqrMagnitude > 0.01f)
             {
                 m_lastDebugInputFrame = Time.frameCount;
@@ -1640,12 +1664,22 @@ namespace DeadSignal.Application
                 return Vector2.zero;
             }
 
+            var navigationDestination = destination;
+            if (_isLiveBalanceAutomationActive() &&
+                m_liveBalanceCombatDecision.Target == SecurityReinforcement.Sapper &&
+                m_threats.IsSapperAlive &&
+                CurrentSignal >= RunModel.ShotCost * 2f &&
+                DeadSignalWorld.FlatDistance(m_world.Player.position, m_world.Sapper.position) > 2.5f)
+            {
+                navigationDestination = _liveBalanceSapperInterceptPosition();
+            }
             var waypoint = m_world.GetNavMeshWaypoint(
-                m_world.Player, destination, PLAYER_COLLISION_RADIUS, m_model.ShortcutOpen);
+                m_world.Player, navigationDestination, PLAYER_COLLISION_RADIUS, m_model.ShortcutOpen);
             var delta = waypoint - m_world.Player.position;
             delta.y = 0f;
             delta.Normalize();
-            var remainingDistance = Mathf.Max(0f, targetDelta.magnitude - completionRadius);
+            var remainingDistance = Mathf.Max(
+                0f, DeadSignalWorld.FlatDistance(m_world.Player.position, navigationDestination) - completionRadius);
             var speed = Mathf.Clamp(remainingDistance / 2.5f, 0.2f, 1f);
             return new Vector2(delta.x, delta.z) * speed;
         }
@@ -1750,7 +1784,10 @@ namespace DeadSignal.Application
             m_world.Player.position = routePosition;
             if (m_overclockChoice.IsPending)
             {
-                DebugSelectOverclock(SignalOverclock.ChainArc);
+                var primary = m_debugRouteSequencer?.Profile == DebugAutomationProfile.LiveBalance
+                    ? SignalOverclock.OverdriveThrusters
+                    : SignalOverclock.ChainArc;
+                DebugSelectOverclock(primary);
             }
             if (m_overclockChoice.IsAuxiliaryPending)
             {
@@ -1776,6 +1813,118 @@ namespace DeadSignal.Application
             return true;
         }
 
+        private void _updateLiveBalanceCombatDecision(float dt)
+        {
+            if (!_isLiveBalanceAutomationActive())
+            {
+                m_liveBalanceCombatDecision = default;
+                return;
+            }
+
+            var sapperAimPosition = _liveBalanceSapperAimPosition();
+            var sapperLineBlocked = m_threats.IsSapperAlive && m_world.TryGetProjectileObstacleHit(
+                m_world.Player.position + Vector3.up * 0.18f,
+                sapperAimPosition + Vector3.up * 0.5f,
+                0.08f,
+                m_model.ShortcutOpen,
+                out _);
+            m_liveBalanceCombatDecision = m_liveBalanceCombatPolicy.Tick(
+                dt,
+                m_world.Player.position,
+                CurrentSignal,
+                m_model.TowerOnline,
+                m_threats.CanFire && !sapperLineBlocked &&
+                !m_overclockChoice.IsPending && !m_overclockChoice.IsAuxiliaryPending &&
+                !m_overclockChoice.IsWeaponPending && !_isExtractionUplinkChoiceAvailable(),
+                ActiveSignalBoltCount > 0,
+                m_threats.IsInterceptorCharging,
+                m_threats.IsSuppressorFieldWarningActive,
+                m_threats.IsPlayerSuppressed,
+                m_threats.SuppressorFieldCenter,
+                _liveBalanceThreat(SecurityReinforcement.Warden, m_threats.IsWardenAlive, m_world.Warden,
+                    m_world.WardenTelegraph?.IsWarningVisible ?? false),
+                new LiveBalanceThreatSnapshot(
+                    SecurityReinforcement.Sapper,
+                    m_threats.IsSapperAlive && m_world.Sapper.gameObject.activeInHierarchy,
+                    sapperAimPosition,
+                    m_threats.IsSapperAlive),
+                _liveBalanceThreat(SecurityReinforcement.Interceptor, m_threats.IsInterceptorAlive, m_world.Interceptor,
+                    m_threats.IsInterceptorCharging || m_threats.IsInterceptorRecovering),
+                _liveBalanceThreat(SecurityReinforcement.Suppressor, m_threats.IsSuppressorAlive, m_world.Suppressor,
+                    m_threats.IsSuppressorFieldWarningActive || m_threats.IsSuppressorFieldActive));
+        }
+
+        private static LiveBalanceThreatSnapshot _liveBalanceThreat(
+            SecurityReinforcement role, bool alive, Transform threat, bool urgent)
+        {
+            return new LiveBalanceThreatSnapshot(
+                role,
+                alive && threat != null && threat.gameObject.activeInHierarchy,
+                threat != null ? threat.position : Vector3.zero,
+                urgent);
+        }
+
+        private Vector3 _liveBalanceSapperAimPosition()
+        {
+            var position = m_world.Sapper.position;
+            if (m_threats.IsSapperLatched)
+            {
+                return position;
+            }
+
+            var toTower = m_world.TowerPosition - position;
+            toTower.y = 0f;
+            if (toTower.sqrMagnitude <= 0.01f || m_threats.SignalBoltSpeed <= 0f)
+            {
+                return position;
+            }
+
+            var flightSeconds = DeadSignalWorld.FlatDistance(m_world.Player.position, position) /
+                                m_threats.SignalBoltSpeed;
+            var leadDistance = Mathf.Min(toTower.magnitude, m_threats.SapperSpeed * flightSeconds);
+            return position + toTower.normalized * leadDistance;
+        }
+
+        private Vector3 _liveBalanceSapperInterceptPosition()
+        {
+            var target = m_world.Sapper.position;
+            var best = target;
+            var bestDistance = float.PositiveInfinity;
+            foreach (var direction in s_liveBalanceInterceptDirections)
+            {
+                var candidate = m_world.ClampToArena(target + direction * 3.2f, 0.6f);
+                if (m_world.TryGetProjectileObstacleHit(
+                        candidate + Vector3.up * 0.18f,
+                        target + Vector3.up * 0.5f,
+                        0.08f,
+                        m_model.ShortcutOpen,
+                        out _))
+                {
+                    continue;
+                }
+
+                var distance = DeadSignalWorld.FlatDistance(m_world.Player.position, candidate);
+                if (distance >= bestDistance)
+                {
+                    continue;
+                }
+
+                best = candidate;
+                bestDistance = distance;
+            }
+
+            return best;
+        }
+
+        private bool _isLiveBalanceAutomationActive()
+        {
+            return m_debugRouteSequencer != null &&
+                   m_debugRouteSequencer.Mode == DebugAutomationMode.AssistedPlaythrough &&
+                   m_debugRouteSequencer.Profile == DebugAutomationProfile.LiveBalance &&
+                   m_debugRouteSequencer.State is DebugRouteRunState.Navigating or
+                       DebugRouteRunState.Verifying or DebugRouteRunState.Completed;
+        }
+
         private void _applyDebugAutomationProfile(DebugAutomationProfile profile)
         {
             DebugSetInfiniteSignal(profile != DebugAutomationProfile.LiveBalance);
@@ -1789,7 +1938,9 @@ namespace DeadSignal.Application
         {
             return m_debugRouteSequencer?.FinishReport(CurrentSignal, m_metrics, m_model.OptionalSalvageSecured,
                 m_model.ShortcutOpen, m_world?.Player.position ?? Vector3.zero,
-                m_model?.Outcome ?? RunOutcome.Destroyed) ?? "No route report available.";
+                m_model?.Outcome ?? RunOutcome.Destroyed,
+                m_liveBalanceCombatPolicy.DirectedShots,
+                m_liveBalanceCombatPolicy.EvasionResponses) ?? "No route report available.";
         }
 
         private void _writeDebugRouteReport()

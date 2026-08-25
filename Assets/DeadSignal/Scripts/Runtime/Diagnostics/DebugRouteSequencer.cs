@@ -264,7 +264,7 @@ namespace DeadSignal.Diagnostics
         }
 
         public string FinishReport(float signal, RunMetrics metrics, bool optionalSalvageSecured, bool shortcutOpen,
-            Vector3 position, RunOutcome outcome = RunOutcome.Running)
+            Vector3 position, RunOutcome outcome = RunOutcome.Running, int directedShots = 0, int evasionResponses = 0)
         {
             var finishedReport = new StringBuilder(m_report.ToString());
             finishedReport.AppendLine($"Outcome {outcome}");
@@ -276,6 +276,7 @@ namespace DeadSignal.Diagnostics
             finishedReport.AppendLine($"Shots {metrics.ShotsFired}  Purges {metrics.ThreatsPurged}  " +
                                       $"Travel spent {metrics.PassiveSignalSpent + metrics.MovementSignalSpent:0.0}  " +
                                       $"Fire spent {metrics.WeaponSignalSpent:0.0}");
+            finishedReport.AppendLine($"Live policy shots {directedShots}  Evasion responses {evasionResponses}");
             finishedReport.AppendLine($"Recovered {metrics.SignalRecovered + metrics.SalvageSignalRecovered:0.0}  " +
                                       $"Position {position.x:0.00},{position.z:0.00}");
             m_finishedReport = finishedReport.ToString();
@@ -321,12 +322,18 @@ namespace DeadSignal.Diagnostics
                     {
                         yield return new DebugRouteStep("Optional Quench cache", DebugLocation.CacheFour, 2.3f,
                             DebugRouteAction.CollectCache);
+                        yield return new DebugRouteStep("Quench return to Spine", DebugLocation.SpineTower, 2f,
+                            DebugRouteAction.CaptureScreenshot);
                     }
                     else
                     {
                         yield return new DebugRouteStep("Spine discharge withdrawal", DebugLocation.SpineTower, 2f,
                             DebugRouteAction.CaptureScreenshot);
                     }
+                    yield return new DebugRouteStep("Relay powered foothold", DebugLocation.RelayTower, 2f,
+                        DebugRouteAction.None);
+                    yield return new DebugRouteStep("Central powered foothold", DebugLocation.CentralTower, 2f,
+                        DebugRouteAction.None);
                     yield return new DebugRouteStep("Extraction", DebugLocation.Extraction, 1.5f, DebugRouteAction.BeginStableExtraction,
                         DebugRouteAssertion.SignalAboveTwenty);
                     break;

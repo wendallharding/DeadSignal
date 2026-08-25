@@ -81,7 +81,7 @@ namespace DeadSignal.Tests
             sequencer.Start(DebugRoutePreset.FullExtraction, DebugAutomationMode.DeterministicValidation,
                 DebugAutomationProfile.SafeNavigation, 72f);
 
-            Assert.That(sequencer.StepCount, Is.EqualTo(9));
+            Assert.That(sequencer.StepCount, Is.EqualTo(12));
             Assert.That(sequencer.CurrentStep.Action, Is.EqualTo(DebugRouteAction.ActivateCentralTower));
             _completeCurrentStep(sequencer);
             Assert.That(sequencer.CurrentStep.Action, Is.EqualTo(DebugRouteAction.CollectCache));
@@ -98,6 +98,12 @@ namespace DeadSignal.Tests
             _completeCurrentStep(sequencer);
             Assert.That(sequencer.CurrentStep.Location, Is.EqualTo(DebugLocation.CacheFour));
             Assert.That(sequencer.CurrentStep.Action, Is.EqualTo(DebugRouteAction.CollectCache));
+            _completeCurrentStep(sequencer);
+            Assert.That(sequencer.CurrentStep.Location, Is.EqualTo(DebugLocation.SpineTower));
+            _completeCurrentStep(sequencer);
+            Assert.That(sequencer.CurrentStep.Location, Is.EqualTo(DebugLocation.RelayTower));
+            _completeCurrentStep(sequencer);
+            Assert.That(sequencer.CurrentStep.Location, Is.EqualTo(DebugLocation.CentralTower));
         }
 
         [Test]
@@ -107,7 +113,7 @@ namespace DeadSignal.Tests
             sequencer.Start(DebugRoutePreset.RequiredExtraction, DebugAutomationMode.DeterministicValidation,
                 DebugAutomationProfile.SafeNavigation, 72f);
 
-            Assert.That(sequencer.StepCount, Is.EqualTo(9));
+            Assert.That(sequencer.StepCount, Is.EqualTo(11));
             for (var step = 0; step < 7; step++)
             {
                 Assert.That(sequencer.CurrentStep.Location, Is.Not.EqualTo(DebugLocation.CacheFour));
@@ -116,6 +122,10 @@ namespace DeadSignal.Tests
 
             Assert.That(sequencer.CurrentStep.Location, Is.EqualTo(DebugLocation.SpineTower));
             Assert.That(sequencer.CurrentStep.Action, Is.EqualTo(DebugRouteAction.CaptureScreenshot));
+            _completeCurrentStep(sequencer);
+            Assert.That(sequencer.CurrentStep.Location, Is.EqualTo(DebugLocation.RelayTower));
+            _completeCurrentStep(sequencer);
+            Assert.That(sequencer.CurrentStep.Location, Is.EqualTo(DebugLocation.CentralTower));
             _completeCurrentStep(sequencer);
             Assert.That(sequencer.CurrentStep.Location, Is.EqualTo(DebugLocation.Extraction));
             Assert.That(sequencer.CurrentStep.Action, Is.EqualTo(DebugRouteAction.BeginStableExtraction));
@@ -134,13 +144,14 @@ namespace DeadSignal.Tests
             metrics.RecordThreatPurge(14f);
 
             var report = sequencer.FinishReport(
-                41f, metrics, false, true, new Vector3(2f, 0f, 3f), RunOutcome.Victory);
+                41f, metrics, false, true, new Vector3(2f, 0f, 3f), RunOutcome.Victory, 1, 2);
 
             Assert.That(report, Does.Contain("Outcome Victory"));
             Assert.That(report, Does.Contain("Journey REQUIRED WITHDRAWAL"));
             Assert.That(report, Does.Contain("Time 12.00s"));
             Assert.That(report, Does.Contain("Hits 1"));
             Assert.That(report, Does.Contain("Shots 1"));
+            Assert.That(report, Does.Contain("Live policy shots 1  Evasion responses 2"));
             Assert.That(report, Does.Contain("Recovered 14.0"));
         }
 

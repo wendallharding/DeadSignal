@@ -104,5 +104,67 @@ namespace DeadSignal.Tests.PlayMode
             Assert.That(report, Does.Contain("Journey REQUIRED WITHDRAWAL"));
             game.DebugSetTimeScale(1f);
         }
+
+        [UnityTest]
+        public IEnumerator LiveBalanceRequiredExtraction_FightsEvadesAndReachesTerminalOutcome()
+        {
+            SceneManager.LoadScene("SampleScene");
+            yield return null;
+            yield return null;
+
+            var game = Object.FindFirstObjectByType<DeadSignalGame>();
+            Assert.That(game, Is.Not.Null);
+            game.DebugSetTimeScale(4f);
+            game.DebugStartRouteSequence(DebugRoutePreset.RequiredExtraction,
+                DebugAutomationMode.AssistedPlaythrough, DebugAutomationProfile.LiveBalance);
+
+            var timeout = Time.realtimeSinceStartup + 55f;
+            while (game.CurrentRunOutcome == RunOutcome.Running && Time.realtimeSinceStartup < timeout)
+            {
+                yield return null;
+            }
+            yield return null;
+
+            Assert.That(game.CurrentRunOutcome, Is.EqualTo(RunOutcome.Victory),
+                $"{game.DebugRouteSequenceReport}\n{game.DebugRouteSequenceStatus}\n{game.DebugTelemetry}");
+            Assert.That(game.ShotsFired, Is.GreaterThan(0));
+            Assert.That(game.SelectedOverclock, Is.EqualTo(SignalOverclock.OverdriveThrusters));
+            Assert.That(game.DebugLiveBalanceDirectedShots, Is.EqualTo(game.ShotsFired));
+            Assert.That(game.DebugLiveBalanceEvasionResponses, Is.GreaterThan(0));
+            Assert.That(game.DebugRouteSequenceReport, Does.Contain("Live policy shots"));
+            Assert.That(game.DebugRouteSequenceReport, Does.Contain("Evasion responses"));
+            game.DebugSetTimeScale(1f);
+        }
+
+        [UnityTest]
+        public IEnumerator LiveBalanceFullExtraction_CommitsToGreedAndReachesTerminalOutcome()
+        {
+            SceneManager.LoadScene("SampleScene");
+            yield return null;
+            yield return null;
+
+            var game = Object.FindFirstObjectByType<DeadSignalGame>();
+            Assert.That(game, Is.Not.Null);
+            game.DebugSetTimeScale(4f);
+            game.DebugStartRouteSequence(DebugRoutePreset.FullExtraction,
+                DebugAutomationMode.AssistedPlaythrough, DebugAutomationProfile.LiveBalance);
+
+            var timeout = Time.realtimeSinceStartup + 70f;
+            while (game.CurrentRunOutcome == RunOutcome.Running && Time.realtimeSinceStartup < timeout)
+            {
+                yield return null;
+            }
+            yield return null;
+
+            Assert.That(game.CurrentRunOutcome, Is.EqualTo(RunOutcome.Victory),
+                $"{game.DebugRouteSequenceReport}\n{game.DebugRouteSequenceStatus}\n{game.DebugTelemetry}");
+            Assert.That(game.IsOptionalSalvageSecured, Is.True);
+            Assert.That(game.ShotsFired, Is.GreaterThan(0));
+            Assert.That(game.SelectedOverclock, Is.EqualTo(SignalOverclock.OverdriveThrusters));
+            Assert.That(game.ThreatsPurged, Is.GreaterThan(0));
+            Assert.That(game.DebugLiveBalanceDirectedShots, Is.EqualTo(game.ShotsFired));
+            Assert.That(game.DebugRouteSequenceReport, Does.Contain("Journey OPTIONAL GREED"));
+            game.DebugSetTimeScale(1f);
+        }
     }
 }
