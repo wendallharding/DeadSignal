@@ -39,6 +39,8 @@ namespace DeadSignal.Tests.PlayMode
             Assert.That(menu.IsOpen, Is.False);
             Assert.That(debugCanvas, Is.Not.Null);
             Assert.That(debugCanvas.gameObject.activeSelf, Is.False);
+            Assert.That(Cursor.lockState, Is.EqualTo(CursorLockMode.None));
+            Assert.That(Cursor.visible, Is.True);
             Assert.That(Resources.Load<GameObject>("UI/Debug/AutoUI"), Is.Not.Null);
             Assert.That(Resources.Load<GameObject>("UI/Debug/Canvas_DebugMenu"), Is.Not.Null);
         }
@@ -164,6 +166,8 @@ namespace DeadSignal.Tests.PlayMode
             Assert.That(hud.IsDebugMenuVisible, Is.True);
             Assert.That(hud.IsPauseOverlayVisible, Is.False, "The normal pause overlay must not compete with AutoUI.");
             Assert.That(menu.DebugCanvas.sortingOrder, Is.GreaterThanOrEqualTo(200));
+            Assert.That(Cursor.lockState, Is.EqualTo(CursorLockMode.None));
+            Assert.That(Cursor.visible, Is.True);
 
             var pages = new System.Collections.Generic.List<RectTransform>();
             foreach (var rect in menu.DebugCanvas.GetComponentsInChildren<RectTransform>(true))
@@ -192,6 +196,8 @@ namespace DeadSignal.Tests.PlayMode
             }
 
             menu.SendMessage("_setOpen", false);
+            Assert.That(Cursor.lockState, Is.EqualTo(CursorLockMode.None));
+            Assert.That(Cursor.visible, Is.True);
             Screen.SetResolution(originalWidth, originalHeight, false);
         }
 

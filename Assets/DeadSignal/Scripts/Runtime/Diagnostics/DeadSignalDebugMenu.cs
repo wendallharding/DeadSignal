@@ -140,11 +140,23 @@ namespace DeadSignal.Diagnostics
             }
         }
 
+        private void OnEnable()
+        {
+            _restoreGameplayCursor();
+        }
+
         private void OnDisable()
         {
             m_isOpen = false;
-            Cursor.visible = false;
-            Cursor.lockState = CursorLockMode.Locked;
+            _restoreGameplayCursor();
+        }
+
+        private void OnApplicationFocus(bool hasFocus)
+        {
+            if (hasFocus)
+            {
+                _restoreGameplayCursor();
+            }
         }
 
         private void OnGUI()
@@ -176,8 +188,13 @@ namespace DeadSignal.Diagnostics
             {
                 m_game.SetDebugMenuState(open, m_runWhileOpen);
             }
-            Cursor.visible = open;
-            Cursor.lockState = open ? CursorLockMode.None : CursorLockMode.Locked;
+            _restoreGameplayCursor();
+        }
+
+        private static void _restoreGameplayCursor()
+        {
+            Cursor.lockState = CursorLockMode.None;
+            Cursor.visible = true;
         }
 
         private void _addPage<T>() where T : DebugMenuPage
