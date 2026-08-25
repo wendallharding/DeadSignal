@@ -56,5 +56,36 @@ namespace DeadSignal.Tests
             Assert.That(sequencer.CurrentStep.UsesCustomPosition, Is.True);
             Assert.That(sequencer.CurrentStep.CustomPosition, Is.EqualTo(new Vector3(2f, 0f, 3f)));
         }
+
+        [Test]
+        public void FullExtractionRoute_CoversThreeTowersWeaponEvolutionAndOptionalCache()
+        {
+            var sequencer = new DebugRouteSequencer();
+            sequencer.Start(DebugRoutePreset.FullExtraction, DebugAutomationMode.DeterministicValidation,
+                DebugAutomationProfile.SafeNavigation, 72f);
+
+            Assert.That(sequencer.StepCount, Is.EqualTo(9));
+            Assert.That(sequencer.CurrentStep.Action, Is.EqualTo(DebugRouteAction.ActivateCentralTower));
+            _completeCurrentStep(sequencer);
+            Assert.That(sequencer.CurrentStep.Action, Is.EqualTo(DebugRouteAction.ActivateRelayTower));
+            _completeCurrentStep(sequencer);
+            Assert.That(sequencer.CurrentStep.Action, Is.EqualTo(DebugRouteAction.SelectWeaponOverclock));
+            _completeCurrentStep(sequencer);
+            Assert.That(sequencer.CurrentStep.Action, Is.EqualTo(DebugRouteAction.ActivateSpineTower));
+            _completeCurrentStep(sequencer);
+            Assert.That(sequencer.CurrentStep.Location, Is.EqualTo(DebugLocation.CurrentObjective));
+            _completeCurrentStep(sequencer);
+            _completeCurrentStep(sequencer);
+            _completeCurrentStep(sequencer);
+            Assert.That(sequencer.CurrentStep.Location, Is.EqualTo(DebugLocation.CacheFour));
+            Assert.That(sequencer.CurrentStep.Action, Is.EqualTo(DebugRouteAction.CollectCache));
+        }
+
+        private static void _completeCurrentStep(DebugRouteSequencer sequencer)
+        {
+            Assert.That(sequencer.TickNavigation(0f, 0.1f, false), Is.True);
+            Assert.That(sequencer.ShouldIssueAction(), Is.True);
+            sequencer.TickVerification(0.1f, true, true, "verified", 72f);
+        }
     }
 }

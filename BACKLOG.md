@@ -1,5 +1,15 @@
 # DEAD SIGNAL — Product Backlog
 
+## P0 — Commercial full-journey gate (Run 98)
+
+- [x] Make Full Extraction traverse Central, Relay, weapon calibration, and Spine progression in order
+- [x] Secure the three required caches before deliberately committing to the optional Quench cache
+- [x] Return to extraction with all three towers online and the Relay weapon evolved
+- [x] Add a strict PlayMode contract for tower state, weapon choice, required salvage, optional salvage, and extraction
+- [x] Prove the expanded route against runtime NavMesh and the complete EditMode/PlayMode regression suites
+- [ ] Compare a required-only withdrawal against optional-cache Furnace/Quench routes with live threats; record time, hits, Signal, weapon use, shortcut use, and final reserve
+- [ ] Author the station guardian only after the matched human comparison confirms the expanded run is readable, completable, and tactically varied
+
 ## P0 — Quench cache-release shortcut (Run 96)
 
 - [x] Add a scene-authored pressure shutter that forces the outbound Quench route onto its exposed east edge

@@ -287,9 +287,15 @@ namespace DeadSignal.Diagnostics
                     break;
                 case DebugRoutePreset.FullExtraction:
                     yield return new DebugRouteStep("Central tower", DebugLocation.CentralTower, 2f, DebugRouteAction.ActivateCentralTower);
+                    yield return new DebugRouteStep("Relay tower", DebugLocation.RelayTower, 2f, DebugRouteAction.ActivateRelayTower);
+                    yield return new DebugRouteStep("Piercing calibration", DebugLocation.RelayTower, 2f,
+                        DebugRouteAction.SelectWeaponOverclock);
+                    yield return new DebugRouteStep("Spine tower", DebugLocation.SpineTower, 2f, DebugRouteAction.ActivateSpineTower);
                     yield return new DebugRouteStep("Nearest cache one", DebugLocation.CurrentObjective, 2.3f, DebugRouteAction.CollectCache);
                     yield return new DebugRouteStep("Nearest cache two", DebugLocation.CurrentObjective, 2.3f, DebugRouteAction.CollectCache);
                     yield return new DebugRouteStep("Nearest cache three", DebugLocation.CurrentObjective, 2.3f, DebugRouteAction.CollectCache);
+                    yield return new DebugRouteStep("Optional Quench cache", DebugLocation.CacheFour, 2.3f,
+                        DebugRouteAction.CollectCache);
                     yield return new DebugRouteStep("Extraction", DebugLocation.Extraction, 1.5f, DebugRouteAction.BeginStableExtraction,
                         DebugRouteAssertion.SignalAboveTwenty);
                     break;
