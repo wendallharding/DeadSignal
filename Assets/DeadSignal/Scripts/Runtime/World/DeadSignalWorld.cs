@@ -59,6 +59,23 @@ namespace DeadSignal.World
         public Transform SpineTowerCore { get; private set; }
         public SignalSapperTelegraph SapperTelegraph { get; private set; }
         public IReadOnlyList<GameObject> SalvagePickups => m_salvagePickups;
+
+        public SignalRegion GetPayloadRegion(GameObject pickup) => m_salvageRegions.TryGetValue(pickup, out var region)
+            ? region
+            : SignalRegion.Central;
+
+        public bool IsOptionalCache(GameObject pickup) => m_optionalSalvagePickups.Contains(pickup);
+
+        public void RetirePayloadAlternatives(SignalRegion securedRegion, GameObject securedPickup)
+        {
+            foreach (var pickup in m_salvagePickups)
+            {
+                if (pickup != securedPickup && !IsOptionalCache(pickup) && GetPayloadRegion(pickup) == securedRegion)
+                {
+                    pickup.SetActive(false);
+                }
+            }
+        }
         public bool HasMaintenanceDeckAssets { get; private set; }
         public int MaintenanceDeckModuleCount { get; private set; }
         public bool HasMaintenanceRoomShellAssets { get; private set; }
@@ -1071,14 +1088,20 @@ namespace DeadSignal.World
             var routeVariant = PlayerPrefs.GetInt("DeadSignal.RouteVariant", 0) % 3;
             var northCache = routeVariant == 1 ? new Vector3(8.7f, 0f, 6.5f) : new Vector3(9.7f, 0f, 6.3f);
             var southCache = routeVariant == 2 ? new Vector3(9.2f, 0f, -6.5f) : new Vector3(10.4f, 0f, -6.4f);
-            var relayCache = routeVariant == 0 ? new Vector3(-5.8f, 0f, 7.2f) : new Vector3(-7f, 0f, 6.9f);
-            _createSalvage(northCache);
-            _createSalvage(southCache);
-            _createSalvage(relayCache);
+            var relayNorthCache = RelayTowerPosition + new Vector3(3f, 0f, 4.8f);
+            var relaySouthCache = RelayTowerPosition + new Vector3(3f, 0f, -4.8f);
+            var spineNorthCache = new Vector3(39f, 0f, 3f);
+            var spineSouthCache = new Vector3(39f, 0f, -3f);
+            _createSalvage(northCache, SignalRegion.Central);
+            _createSalvage(southCache, SignalRegion.Central);
+            _createSalvage(relayNorthCache, SignalRegion.Relay);
+            _createSalvage(relaySouthCache, SignalRegion.Relay);
+            _createSalvage(spineNorthCache, SignalRegion.Spine);
+            _createSalvage(spineSouthCache, SignalRegion.Spine);
             var authoredSockets = Object.FindObjectsByType<AuthoredSalvageSocket>(FindObjectsSortMode.None);
             foreach (var socket in authoredSockets)
             {
-                _createSalvage(socket.Position);
+                _createSalvage(socket.Position, SignalRegion.Spine, true);
             }
 
             AuthoredSalvageSocketCount = authoredSockets.Length;
@@ -1187,7 +1210,7 @@ namespace DeadSignal.World
             }
         }
 
-        private void _createSalvage(Vector3 position)
+        private void _createSalvage(Vector3 position, SignalRegion region, bool isOptional = false)
         {
             var salvagePrefab = Resources.Load<GameObject>(SALVAGE_CACHE_PREFAB_RESOURCE);
             var hasValidPrefab = salvagePrefab != null &&
@@ -1221,6 +1244,11 @@ namespace DeadSignal.World
                 new Vector3(0.1f, 1.3f, 0.1f), m_palette.Amber, root.transform);
 
             m_salvagePickups.Add(root);
+            m_salvageRegions.Add(root, region);
+            if (isOptional)
+            {
+                m_optionalSalvagePickups.Add(root);
+            }
             SalvageCacheInstanceCount++;
             SalvageCachePartCount += 4;
             HasSalvageCacheAssets = hasValidPrefab && m_palette.HasSalvageCacheTexture &&
@@ -1447,24 +1475,48 @@ namespace DeadSignal.World
 
         private Vector3 _currentObjectiveTarget(RunModel model)
         {
-            if (!model.TowerOnline)
+            switch (model.CurrentMissionStage)
             {
-                return TowerPosition;
+                case MissionStage.CentralTower:
+                    return TowerPosition;
+                case MissionStage.RelayTower:
+                    return RelayTowerPosition;
+                case MissionStage.SpineTower:
+                    return SpineTowerPosition;
+                case MissionStage.Extraction:
+                    return ExtractionPosition;
+                case MissionStage.CentralPayload:
+                    return _nearestPayloadTarget(SignalRegion.Central);
+                case MissionStage.RelayPayload:
+                    return _nearestPayloadTarget(SignalRegion.Relay);
+                case MissionStage.SpinePayload:
+                    return _nearestPayloadTarget(SignalRegion.Spine);
+                default:
+                    return TowerPosition;
             }
-            if (model.CanExtract)
+        }
+
+        private Vector3 _nearestPayloadTarget(SignalRegion region)
+        {
+            var nearest = region switch
             {
-                return ExtractionPosition;
-            }
-            var nearest = TowerPosition;
+                SignalRegion.Relay => RelayTowerPosition,
+                SignalRegion.Spine => SpineTowerPosition,
+                _ => TowerPosition
+            };
             var distance = float.PositiveInfinity;
             foreach (var cache in m_salvagePickups)
             {
-                if (cache.activeSelf && FlatDistance(Player.position, cache.transform.position) < distance)
+                if (!cache.activeSelf || IsOptionalCache(cache) || GetPayloadRegion(cache) != region ||
+                    FlatDistance(Player.position, cache.transform.position) >= distance)
                 {
-                    nearest = cache.transform.position;
-                    distance = FlatDistance(Player.position, nearest);
+                    continue;
                 }
+
+                nearest = cache.transform.position;
+                distance = FlatDistance(Player.position, nearest);
             }
+
             return nearest;
         }
 
@@ -1556,6 +1608,8 @@ namespace DeadSignal.World
         private readonly List<AuthoredMapObstacle> m_authoredMapObstacles = new();
         private readonly List<MovementBlocker> m_movementBlockers = new();
         private readonly List<GameObject> m_salvagePickups = new();
+        private readonly Dictionary<GameObject, SignalRegion> m_salvageRegions = new();
+        private readonly HashSet<GameObject> m_optionalSalvagePickups = new();
         private readonly List<AuthoredPoweredTerritory> m_authoredPoweredTerritories = new();
         private readonly List<GameObject> m_towerTerritoryMarkers = new();
         private readonly List<GameObject> m_relayTerritoryMarkers = new();

@@ -115,10 +115,10 @@ namespace DeadSignal.Presentation
         private void _drawAbilityStatus()
         {
             var primary = m_overclocks.Selected == SignalOverclock.None
-                ? "PRIMARY  LOCKED — CACHE 1"
+                ? "PRIMARY  LOCKED — CENTRAL PAYLOAD"
                 : $"PRIMARY  {m_overclocks.Selected.ToString().ToUpperInvariant()}";
             var auxiliary = m_overclocks.SelectedAuxiliary == SignalAuxiliaryOverclock.None
-                ? "AUXILIARY  LOCKED — CACHE 2"
+                ? "AUXILIARY  LOCKED — RELAY PAYLOAD"
                 : $"AUXILIARY  {m_overclocks.SelectedAuxiliary.ToString().ToUpperInvariant()}";
             var weapon = m_overclocks.SelectedWeapon == SignalWeaponOverclock.None
                 ? "WEAPON  LOCKED — RELAY"
@@ -229,11 +229,17 @@ namespace DeadSignal.Presentation
             _drawMapPoint(map, m_world.TowerPosition, new Color(0.2f, 0.95f, 1f), 18f, "TOWER");
             _drawMapPoint(map, m_world.RelayTowerPosition,
                 m_model.RelayTowerOnline ? new Color(0.2f, 0.95f, 1f) : new Color(0.35f, 0.48f, 0.52f), 16f, "RELAY");
+            _drawMapPoint(map, m_world.SpineTowerPosition,
+                m_model.SpineTowerOnline ? new Color(0.2f, 0.95f, 1f) : new Color(0.35f, 0.48f, 0.52f), 16f, "SPINE");
             foreach (var cache in m_world.SalvagePickups)
             {
                 if (cache.activeSelf)
                 {
-                    _drawMapPoint(map, cache.transform.position, new Color(1f, 0.66f, 0.12f), 12f, "CACHE");
+                    var optional = m_world.IsOptionalCache(cache);
+                    var available = optional ? m_model.CanExtract : m_model.CanCollectPayload(m_world.GetPayloadRegion(cache));
+                    var color = available ? new Color(1f, 0.66f, 0.12f) : new Color(0.32f, 0.27f, 0.2f);
+                    _drawMapPoint(map, cache.transform.position, color, optional ? 10f : 12f,
+                        optional ? "GREED" : available ? "PAYLOAD" : "LOCKED");
                 }
             }
             _drawMapPoint(map, m_world.Warden.position, Color.red, 10f, "W");
@@ -256,11 +262,17 @@ namespace DeadSignal.Presentation
 
         private string _objectiveName()
         {
-            if (!m_model.TowerOnline)
+            return m_model.CurrentMissionStage switch
             {
-                return "TOWER";
-            }
-            return m_model.CanExtract ? "EXTRACTION" : "CACHE";
+                MissionStage.CentralTower => "CENTRAL TOWER",
+                MissionStage.CentralPayload => "CENTRAL PAYLOAD",
+                MissionStage.RelayTower => "RELAY TOWER",
+                MissionStage.RelayPayload => "RELAY PAYLOAD",
+                MissionStage.SpineTower => "SPINE TOWER",
+                MissionStage.SpinePayload => "SPINE PAYLOAD",
+                MissionStage.Extraction => "EXTRACTION",
+                _ => "OBJECTIVE"
+            };
         }
 
         private readonly struct SignalEvent

@@ -9,6 +9,24 @@ namespace DeadSignal.Missions
         Destroyed
     }
 
+    public enum SignalRegion
+    {
+        Central,
+        Relay,
+        Spine
+    }
+
+    public enum MissionStage
+    {
+        CentralTower,
+        CentralPayload,
+        RelayTower,
+        RelayPayload,
+        SpineTower,
+        SpinePayload,
+        Extraction
+    }
+
     /// <summary>
     /// Small deterministic run report used by the result screen and future balance sessions.
     /// It deliberately stores no personal or persistent data.
@@ -110,11 +128,22 @@ namespace DeadSignal.Missions
         public bool SpineTowerOnline { get; private set; }
         public bool ShortcutOpen { get; private set; }
         public bool OptionalSalvageSecured { get; private set; }
+        public bool CentralPayloadSecured { get; private set; }
+        public bool RelayPayloadSecured { get; private set; }
+        public bool SpinePayloadSecured { get; private set; }
         public RunOutcome Outcome { get; private set; } = RunOutcome.Running;
         public float CriticalRecoveryRemaining { get; private set; }
         public bool IsCriticalRecovery => CriticalRecoveryRemaining > 0f && Outcome == RunOutcome.Running;
 
-        public bool CanExtract => Outcome == RunOutcome.Running && Salvage >= SalvageRequired;
+        public bool HasAllRegionalPayloads => CentralPayloadSecured && RelayPayloadSecured && SpinePayloadSecured;
+        public bool CanExtract => Outcome == RunOutcome.Running && TowerOnline && RelayTowerOnline && SpineTowerOnline &&
+                                  HasAllRegionalPayloads;
+        public MissionStage CurrentMissionStage => !TowerOnline ? MissionStage.CentralTower :
+            !CentralPayloadSecured ? MissionStage.CentralPayload :
+            !RelayTowerOnline ? MissionStage.RelayTower :
+            !RelayPayloadSecured ? MissionStage.RelayPayload :
+            !SpineTowerOnline ? MissionStage.SpineTower :
+            !SpinePayloadSecured ? MissionStage.SpinePayload : MissionStage.Extraction;
 
         public static float PassiveDrainRate(bool isPowered) => isPowered ? 0f : 2.8f;
         public static float MovementDrainRate(bool isMoving, bool isPowered) =>
@@ -177,7 +206,8 @@ namespace DeadSignal.Missions
 
         public bool TryActivateRelayTower()
         {
-            if (!TowerOnline || RelayTowerOnline || Outcome != RunOutcome.Running || Signal <= RelayTowerCost)
+            if (!TowerOnline || !CentralPayloadSecured || RelayTowerOnline || Outcome != RunOutcome.Running ||
+                Signal <= RelayTowerCost)
             {
                 return false;
             }
@@ -190,7 +220,8 @@ namespace DeadSignal.Missions
 
         public bool TryActivateSpineTower()
         {
-            if (!RelayTowerOnline || SpineTowerOnline || Outcome != RunOutcome.Running || Signal <= SpineTowerCost)
+            if (!RelayTowerOnline || !RelayPayloadSecured || SpineTowerOnline || Outcome != RunOutcome.Running ||
+                Signal <= SpineTowerCost)
             {
                 return false;
             }
@@ -234,11 +265,61 @@ namespace DeadSignal.Missions
             _evaluateSignal();
         }
 
+        public bool CanCollectPayload(SignalRegion region)
+        {
+            if (Outcome != RunOutcome.Running)
+            {
+                return false;
+            }
+
+            return region switch
+            {
+                SignalRegion.Central => TowerOnline && !CentralPayloadSecured,
+                SignalRegion.Relay => RelayTowerOnline && CentralPayloadSecured && !RelayPayloadSecured,
+                SignalRegion.Spine => SpineTowerOnline && RelayPayloadSecured && !SpinePayloadSecured,
+                _ => false
+            };
+        }
+
+        public bool CollectPayload(SignalRegion region)
+        {
+            if (!CanCollectPayload(region))
+            {
+                return false;
+            }
+
+            switch (region)
+            {
+                case SignalRegion.Central:
+                    CentralPayloadSecured = true;
+                    break;
+                case SignalRegion.Relay:
+                    RelayPayloadSecured = true;
+                    break;
+                case SignalRegion.Spine:
+                    SpinePayloadSecured = true;
+                    break;
+                default:
+                    return false;
+            }
+
+            Salvage++;
+            return true;
+        }
+
         public void CollectSalvage()
         {
-            if (Outcome == RunOutcome.Running && Salvage < SalvageRequired)
+            if (CanCollectPayload(SignalRegion.Central))
             {
-                Salvage++;
+                CollectPayload(SignalRegion.Central);
+            }
+            else if (CanCollectPayload(SignalRegion.Relay))
+            {
+                CollectPayload(SignalRegion.Relay);
+            }
+            else if (CanCollectPayload(SignalRegion.Spine))
+            {
+                CollectPayload(SignalRegion.Spine);
             }
         }
 

@@ -5077,3 +5077,40 @@ Next highest-impact step: perform the matched cache-abandonment/Furnace/Quench c
 - Added PlayMode regression assertions for the bootstrapped closed menu and both open/close transitions.
 - The live Unity `6000.3.11f1` Editor reloaded the changed assemblies successfully with no compiler errors. Focused PlayMode tests were not run because the user's interactive Editor remained open; manually verify F5 open/close, Escape close, focus loss/recovery, and a Play Mode script recompile.
 - No package, project-setting, scene, prefab, serialized-data, tuning, generated-file, or asset GUID changed.
+
+## 2026-08-24 — Matched journey evaluation (Run 99)
+
+- Milestone and player benefit: make the established required-only withdrawal and optional Quench greed commitment directly comparable before station-guardian work. The result screen now names the route outcome, while the development route runner preserves the gameplay evidence that previously disappeared at victory.
+- Acceptance criteria recorded for the milestone: both routes follow the same Central payload, Relay calibration/payload, Spine evolution/payload journey; only the greed route collects the optional Quench cache; both begin extraction and write distinct reports through victory; reports contain time, dead-zone exposure, hits, Sapper drains, shots, purges, Signal spend/recovery, final reserve, and final position; the debrief distinguishes required withdrawal, shortcut use, and optional greed; focused route/debrief and applicable full Unity suites pass.
+- Implementation and validation details pending completion of this run.
+## 2026-08-24 — Required three-region payload journey
+
+### Milestone and player benefit
+
+Converted the expanded station from an optional itinerary into the required mission. Extraction now needs the Central, Relay, and Spine towers online plus one distinct payload from each region. Each region offers two payload approaches; securing either candidate retires its sibling for the run. The authored Arc Furnace/Quench cache remains a separate post-readiness greed reward. The player now has a reason to cross the complete map, establish each powered foothold, grow the temporary build, face Relay lockdown, evolve the calibrated weapon at the Spine, and then make the long return.
+
+Acceptance required Central payload gating Relay, Relay payload gating Spine, all three towers and regional payloads gating extraction, two candidates per region, a distinct optional cache, seven-stage guidance, tactical-map differentiation, preserved bounded threat escalation, and complete deterministic plus runtime coverage.
+
+### Changed files and systems
+
+- `Assets/DeadSignal/Scripts/Runtime/Missions/RunModel.cs` adds regional payload state, seven deterministic mission stages, tower prerequisites, and the complete extraction contract.
+- `Assets/DeadSignal/Scripts/Runtime/World/DeadSignalWorld.cs` creates two Central, two Relay, and two Spine payload candidates, tracks regional/optional identity, retires sibling routes, and targets the correct tower or payload for each stage.
+- `Assets/DeadSignal/Scripts/Runtime/Salvage/DeadSignalSalvageController.cs` enforces regional eligibility, preserves the optional Quench reward, and reports named payload recovery.
+- `Assets/DeadSignal/Scripts/Runtime/Application/DeadSignalGame.cs` exposes regional state, gives actionable lock feedback, and makes debug/full-journey setup satisfy the real mission contract.
+- `Assets/DeadSignal/Scripts/Runtime/Missions/MissionGuidance.cs`, `Assets/DeadSignal/Scripts/Runtime/Presentation/ObjectiveBeaconHud.cs`, and `Assets/DeadSignal/Scripts/Runtime/Presentation/MissionClarityHud.cs` route the player through Central tower, Central payload, Relay tower, Relay payload, Spine tower, Spine payload, and extraction; the tactical map distinguishes available payloads, locked payloads, and optional greed.
+- `Assets/DeadSignal/Scripts/Tests/RunModelTests.cs`, `Assets/DeadSignal/Scripts/Tests/MissionGuidanceTests.cs`, `Assets/DeadSignal/Scripts/Tests/PlayMode/BootstrapSmokeTests.cs`, `Assets/DeadSignal/Scripts/Tests/PlayMode/CapacitorSpinePlayModeTests.cs`, `Assets/DeadSignal/Scripts/Tests/PlayMode/CommercialJourneyPlayModeTests.cs`, and `Assets/DeadSignal/Scripts/Tests/PlayMode/QuenchLoopPlayModeTests.cs` cover the new prerequisites, presentation, complete journey, optional cache, threat ordering, and region behavior.
+- `GAME_VISION.md` records the material mission-structure decision and `BACKLOG.md` records the completed P0 scope plus the remaining matched human comparison.
+
+No scene YAML, prefab, model, texture, material, audio, package, project setting, save format, input binding, enemy statistic, threat count, Signal cost/reward, or asset GUID was intentionally changed by this milestone.
+
+### Exact validation and remaining risk
+
+- Unity `6000.3.11f1` compile/import: exit `0` (`Logs/RegionalMission-Compile.log`).
+- Final full EditMode: `123/123` passed in `0.1598267s`, exit `0` (`TestResults-RegionalMission-Final-EditMode.xml`, `Logs/RegionalMission-Final-EditMode.log`).
+- Final full PlayMode: `32/32` passed in `138.548538s`, exit `0` (`TestResults-RegionalMission-Final-PlayMode.xml`, `Logs/RegionalMission-Final-PlayMode.log`).
+- Focused Spine runtime: `1/1` passed, exit `0` (`TestResults-RegionalMission-SpineFocused.xml`).
+- Focused complete scene/combat runtime: `1/1` passed, exit `0` (`TestResults-RegionalMission-SceneFocused.xml`).
+
+The automated Full Extraction journey now proves all three towers, all three regional payload flags, Piercing Pulse selection/evolution, optional Quench recovery, extraction readiness, and active uplink. No watched human playtest was performed, so the relative appeal, landmark readability, combat pressure, and traversal time of each region's two payload choices remain subjective risks.
+
+Next step: play one north/protected payload route and one south/exposed payload route through all three regions, then compare total time, damage, Signal, upgrade use, threat overlaps, shortcut use, and final reserve. Confirm that each region presents a real route choice and that the required journey feels purposeful rather than padded before adding the station guardian or more map area.

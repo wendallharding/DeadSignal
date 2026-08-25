@@ -26,7 +26,7 @@ namespace DeadSignal.Salvage
 
         public int ChainCount => m_chain.Count;
         public float ChainSecondsRemaining => m_chain.SecondsRemaining;
-        public bool IsOptionalCacheAvailable => m_model.CanExtract && !m_model.OptionalSalvageSecured && _hasActiveCache();
+        public bool IsOptionalCacheAvailable => m_model.CanExtract && !m_model.OptionalSalvageSecured && _hasActiveOptionalCache();
         public float OptionalCacheSignalReward => m_tuning.OptionalCacheSignalReward;
         public float OptionalCacheDistance => _optionalCacheDistance();
         public bool IsRecoveryFieldActive => m_recoveryFieldSecondsRemaining > 0f;
@@ -64,7 +64,7 @@ namespace DeadSignal.Salvage
                     continue;
                 }
 
-                var isOptionalCache = m_model.Salvage >= RunModel.SalvageRequired;
+                var isOptionalCache = m_world.IsOptionalCache(pickup);
                 if (isOptionalCache && m_model.OptionalSalvageSecured)
                 {
                     continue;
@@ -83,6 +83,17 @@ namespace DeadSignal.Salvage
                     continue;
                 }
 
+                var region = m_world.GetPayloadRegion(pickup);
+                if (!isOptionalCache && !m_model.CanCollectPayload(region))
+                {
+                    continue;
+                }
+
+                if (isOptionalCache && !m_model.CanExtract)
+                {
+                    continue;
+                }
+
                 pickup.SetActive(false);
                 if (isOptionalCache)
                 {
@@ -94,7 +105,13 @@ namespace DeadSignal.Salvage
                     continue;
                 }
 
-                m_model.CollectSalvage();
+                if (!m_model.CollectPayload(region))
+                {
+                    pickup.SetActive(true);
+                    continue;
+                }
+
+                m_world.RetirePayloadAlternatives(region, pickup);
                 m_overclockChoice.NotifySalvageCollected(m_model.Salvage);
                 var reward = m_chain.RecordCollection(
                     m_tuning.ChainWindow, m_tuning.SecondCacheSignalReward, m_tuning.ThirdCacheSignalReward);
@@ -109,15 +126,16 @@ namespace DeadSignal.Salvage
                     ? "SALVAGE CORE UNLOCKED — CHOOSE A PRIMARY OVERCLOCK"
                     : m_overclockChoice.IsAuxiliaryPending
                     ? "SALVAGE CORE SYNCED — CHOOSE AN AUXILIARY OVERCLOCK"
-                    : $"SALVAGE CHAIN x{m_chain.Count}{rewardText}  {m_model.Salvage}/{RunModel.SalvageRequired}");
+                    : $"{region.ToString().ToUpperInvariant()} PAYLOAD SECURED{rewardText}  " +
+                      $"{m_model.Salvage}/{RunModel.SalvageRequired}");
             }
         }
 
-        private bool _hasActiveCache()
+        private bool _hasActiveOptionalCache()
         {
             foreach (var pickup in m_world.SalvagePickups)
             {
-                if (pickup.activeSelf)
+                if (pickup.activeSelf && m_world.IsOptionalCache(pickup))
                 {
                     return true;
                 }
@@ -131,7 +149,7 @@ namespace DeadSignal.Salvage
             var nearestDistance = float.PositiveInfinity;
             foreach (var pickup in m_world.SalvagePickups)
             {
-                if (!pickup.activeSelf)
+                if (!pickup.activeSelf || !m_world.IsOptionalCache(pickup))
                 {
                     continue;
                 }

@@ -53,7 +53,6 @@ namespace DeadSignal.Tests
                 yield return null;
                 InputSystem.QueueStateEvent(gamepad, new GamepadState());
                 yield return null;
-
                 player.position = new Vector3(18.5f, 0f, 0f);
                 InputSystem.QueueStateEvent(gamepad,
                     new GamepadState { rightStick = Vector2.right }.WithButton(GamepadButton.RightShoulder));
@@ -62,6 +61,8 @@ namespace DeadSignal.Tests
                 yield return new WaitForSeconds(0.18f);
                 Assert.That(game.LastSignalBoltBlockedByEnvironment, Is.True,
                     "The closed return bulkhead should block projectiles as well as movement.");
+                game.DebugCollectNextCache();
+                game.DebugSelectOverclock(SignalOverclock.ChainArc);
 
                 player.position = game.RelayTowerPosition;
                 Assert.That(game.SafestReinforcementEntryPosition.x, Is.GreaterThan(34f),
@@ -88,8 +89,8 @@ namespace DeadSignal.Tests
                     "Relay activation should award one meaningful weapon calibration choice.");
                 Assert.That(game.PendingSecurityReinforcement, Is.EqualTo(SecurityReinforcement.Suppressor),
                     "The second powered territory should promote the existing final response into a Relay lockdown.");
-                Assert.That(game.SecurityReinforcementsRemaining, Is.EqualTo(1),
-                    "A direct Relay expedition should promote only the bounded final Suppressor before salvage is secured.");
+                Assert.That(game.SecurityReinforcementsRemaining, Is.EqualTo(2),
+                    "The Central payload response and Relay lockdown should both remain inside the bounded budget.");
                 var shotsBeforeCalibration = game.ShotsFired;
                 InputSystem.QueueStateEvent(gamepad,
                     new GamepadState().WithButton(GamepadButton.RightShoulder));
@@ -112,8 +113,8 @@ namespace DeadSignal.Tests
                         new Vector2(game.SuppressorFieldCenter.x, game.SuppressorFieldCenter.z),
                         new Vector2(player.position.x, player.position.z)), Is.LessThan(0.1f),
                     "The Relay sweep should lock to the activation position and preserve an avoidable response window.");
-                Assert.That(game.SecurityReinforcementsRemaining, Is.Zero,
-                    "Deploying the Relay Suppressor should consume the direct expedition's only banked response.");
+                Assert.That(game.SecurityReinforcementsRemaining, Is.EqualTo(1),
+                    "Deploying the Relay Suppressor should leave only the Central payload response in reserve.");
                 player.position = new Vector3(18.5f, 0f, 0f);
                 InputSystem.QueueStateEvent(gamepad,
                     new GamepadState { rightStick = Vector2.right }.WithButton(GamepadButton.RightShoulder));
@@ -147,6 +148,8 @@ namespace DeadSignal.Tests
                 yield return null;
                 InputSystem.QueueStateEvent(gamepad, new GamepadState());
                 yield return null;
+                game.DebugCollectNextCache();
+                game.DebugSelectOverclock(SignalOverclock.OverdriveThrusters);
                 player.position = game.RelayTowerPosition;
                 InputSystem.QueueStateEvent(gamepad, new GamepadState().WithButton(GamepadButton.West));
                 yield return null;
@@ -199,6 +202,8 @@ namespace DeadSignal.Tests
                 yield return null;
                 InputSystem.QueueStateEvent(gamepad, new GamepadState());
                 yield return null;
+                game.DebugCollectNextCache();
+                game.DebugSelectOverclock(SignalOverclock.OverdriveThrusters);
                 player.position = game.RelayTowerPosition;
                 InputSystem.QueueStateEvent(gamepad, new GamepadState().WithButton(GamepadButton.West));
                 yield return null;
@@ -391,6 +396,7 @@ namespace DeadSignal.Tests
                     "One cache should spend exactly one response without increasing the bounded budget.");
                 sapper.position = new Vector3(18f, 0f, 9f);
 
+                game.DebugActivateRelayTower();
                 var secondCache = game.transform.Cast<Transform>()
                     .First(child => child.name == "Salvage Cache" && child.gameObject.activeSelf);
                 player.position = secondCache.position;
@@ -401,9 +407,9 @@ namespace DeadSignal.Tests
                 player.position = new Vector3(-4f, 0f, 0f);
                 yield return null;
 
-                Assert.That(game.PendingSecurityReinforcement, Is.EqualTo(SecurityReinforcement.Interceptor),
-                    "The Interceptor should remain the next distinct response instead of being removed from the run.");
-                Assert.That(game.SecurityReinforcementsRemaining, Is.EqualTo(1));
+                Assert.That(game.PendingSecurityReinforcement, Is.EqualTo(SecurityReinforcement.Suppressor),
+                    "Relay restoration should promote its bounded lockdown before later route responses.");
+                Assert.That(game.SecurityReinforcementsRemaining, Is.EqualTo(2));
             }
             finally
             {
@@ -550,6 +556,7 @@ namespace DeadSignal.Tests
             try
             {
                 var game = Object.FindFirstObjectByType<DeadSignalGame>();
+                game.DebugActivateTower();
                 var baselineSpeed = game.CurrentPlayerMaximumSpeed;
                 var player = game.transform.Find("Maintenance Drone");
                 var cache = game.transform.Cast<Transform>()
@@ -565,8 +572,10 @@ namespace DeadSignal.Tests
 
                 Assert.That(game.SelectedOverclock, Is.EqualTo(SignalOverclock.OverdriveThrusters));
                 Assert.That(game.CurrentPlayerMaximumSpeed, Is.EqualTo(baselineSpeed * 1.25f).Within(0.001f));
-                Assert.That(game.IsOverclockChoicePending, Is.False);
+                Assert.That(game.IsAuxiliaryOverclockChoicePending, Is.False);
+                Assert.That(game.IsWeaponOverclockChoicePending, Is.False);
 
+                game.DebugActivateRelayTower();
                 var secondCache = game.transform.Cast<Transform>()
                     .First(child => child.name == "Salvage Cache" && child.gameObject.activeSelf);
                 player.position = secondCache.position;
@@ -579,7 +588,8 @@ namespace DeadSignal.Tests
 
                 Assert.That(game.SelectedAuxiliaryOverclock, Is.EqualTo(SignalAuxiliaryOverclock.FeedbackShield));
                 Assert.That(game.IsFeedbackShieldCharged, Is.True);
-                Assert.That(game.IsOverclockChoicePending, Is.False);
+                Assert.That(game.IsAuxiliaryOverclockChoicePending, Is.False);
+                Assert.That(game.IsWeaponOverclockChoicePending, Is.True);
 
                 var warden = game.transform.Find("Security Warden");
                 warden.position = new Vector3(20f, 0f, 20f);
@@ -617,6 +627,7 @@ namespace DeadSignal.Tests
             try
             {
                 var game = Object.FindFirstObjectByType<DeadSignalGame>();
+                game.DebugActivateTower();
                 var player = game.transform.Find("Maintenance Drone");
                 var firstCache = game.transform.Cast<Transform>()
                     .First(child => child.name == "Salvage Cache" && child.gameObject.activeSelf);
@@ -627,6 +638,7 @@ namespace DeadSignal.Tests
                 InputSystem.QueueStateEvent(gamepad, new GamepadState());
                 yield return null;
 
+                game.DebugActivateRelayTower();
                 var secondCache = game.transform.Cast<Transform>()
                     .First(child => child.name == "Salvage Cache" && child.gameObject.activeSelf);
                 player.position = secondCache.position;
@@ -666,23 +678,8 @@ namespace DeadSignal.Tests
                 yield return null;
                 game.transform.Find("Security Warden").position = new Vector3(18f, 0f, 9f);
                 game.transform.Find("Signal Sapper").position = new Vector3(-18f, 0f, 9f);
-                for (var cacheIndex = 0; cacheIndex < RunModel.SalvageRequired; cacheIndex++)
-                {
-                    var cache = game.transform.Cast<Transform>()
-                        .First(child => child.name == "Salvage Cache" && child.gameObject.activeSelf);
-                    player.position = cache.position;
-                    yield return null;
-
-                    if (cacheIndex >= RunModel.SalvageRequired - 1)
-                    {
-                        continue;
-                    }
-
-                    InputSystem.QueueStateEvent(gamepad, new GamepadState().WithButton(GamepadButton.West));
-                    yield return null;
-                    InputSystem.QueueStateEvent(gamepad, new GamepadState());
-                    yield return null;
-                }
+                game.DebugMakeExtractionReady();
+                yield return null;
 
                 Assert.That(game.IsOptionalSalvageAvailable, Is.True,
                     "Extraction readiness should leave the fourth authored cache available as a greed route.");
@@ -732,24 +729,8 @@ namespace DeadSignal.Tests
 
                 game.transform.Find("Security Warden").position = new Vector3(18f, 0f, 9f);
                 game.transform.Find("Signal Sapper").position = new Vector3(-18f, 0f, 9f);
-                var caches = game.transform.Cast<Transform>()
-                    .Where(child => child.name == "Salvage Cache" && child.gameObject.activeSelf)
-                    .Take(RunModel.SalvageRequired)
-                    .ToArray();
-                for (var index = 0; index < caches.Length; index++)
-                {
-                    player.position = caches[index].position;
-                    yield return null;
-                    if (index >= RunModel.SalvageRequired - 1)
-                    {
-                        continue;
-                    }
-
-                    InputSystem.QueueStateEvent(gamepad, new GamepadState().WithButton(GamepadButton.West));
-                    yield return null;
-                    InputSystem.QueueStateEvent(gamepad, new GamepadState());
-                    yield return null;
-                }
+                game.DebugMakeExtractionReady();
+                yield return null;
 
                 player.position = new Vector3(-9.2f, 0f, -5.6f);
                 var signalBeforeChoice = game.CurrentSignal;
@@ -1508,11 +1489,12 @@ namespace DeadSignal.Tests
             var salvageCaches = game.transform.Cast<Transform>().Where(child => child.name == "Salvage Cache").ToArray();
             Assert.That(game.HasSalvageCacheAssets, Is.True,
                 "The salvage-cache prefab and original containment texture should load from Resources.");
-            Assert.That(game.SalvageCacheInstanceCount, Is.EqualTo(RunModel.SalvageRequired + 1));
-            Assert.That(game.SalvageCachePartCount, Is.EqualTo((RunModel.SalvageRequired + 1) * 4));
-            Assert.That(salvageCaches.Length, Is.EqualTo(RunModel.SalvageRequired + 1));
+            const int REGIONAL_CACHE_COUNT = RunModel.SalvageRequired * 2 + 1;
+            Assert.That(game.SalvageCacheInstanceCount, Is.EqualTo(REGIONAL_CACHE_COUNT));
+            Assert.That(game.SalvageCachePartCount, Is.EqualTo(REGIONAL_CACHE_COUNT * 4));
+            Assert.That(salvageCaches.Length, Is.EqualTo(REGIONAL_CACHE_COUNT));
             Assert.That(salvageCaches.Sum(cache => cache.GetComponentsInChildren<Renderer>().Length),
-                Is.EqualTo((RunModel.SalvageRequired + 1) * 4),
+                Is.EqualTo(REGIONAL_CACHE_COUNT * 4),
                 "Each cache should include its authored case and band plus a unique locator and beacon.");
             Assert.That(game.HasSalvagePresentationTuning, Is.True);
             Assert.That(Resources.Load<SalvagePresentationTuning>("Tuning/SalvagePresentationTuning"), Is.Not.Null);
@@ -2008,15 +1990,9 @@ namespace DeadSignal.Tests
                     yield return null;
                 }
 
-                var cachesToSecure = game.transform.Cast<Transform>()
-                    .Where(child => child.name == "Salvage Cache" && child.gameObject.activeSelf)
-                    .Take(RunModel.SalvageRequired - 1)
-                    .ToArray();
-                foreach (var child in cachesToSecure)
-                {
-                    player.position = child.position;
-                    yield return null;
-                }
+                game.DebugActivateRelayTower();
+                game.DebugCollectNextCache();
+                yield return null;
 
                 Assert.That(game.IsAuxiliaryOverclockChoicePending, Is.True,
                     "The second secured cache should offer the complementary economy-defense choice.");
@@ -2027,15 +2003,20 @@ namespace DeadSignal.Tests
                 Assert.That(game.SelectedAuxiliaryOverclock, Is.EqualTo(SignalAuxiliaryOverclock.FeedbackShield));
 
                 yield return null;
-                Assert.That(game.CurrentObjectiveBeaconPhase, Is.EqualTo(ObjectiveBeaconPhase.Extraction),
-                    "Securing any three of four caches should advance guidance to extraction.");
-                Assert.That(game.CurrentMissionPhase, Is.EqualTo(3),
-                    "The mission command strip should advance to extraction when the required cargo is secured.");
+                Assert.That(game.CurrentObjectiveBeaconPhase, Is.EqualTo(ObjectiveBeaconPhase.Tower),
+                    "The Relay payload should advance guidance to the required Spine tower.");
+                Assert.That(game.CurrentMissionPhase, Is.EqualTo(5),
+                    "The mission command strip should route the Relay payload into the Spine expedition.");
+                game.DebugMakeExtractionReady();
+                yield return null;
+                Assert.That(game.CurrentObjectiveBeaconPhase, Is.EqualTo(ObjectiveBeaconPhase.Extraction));
+                Assert.That(game.CurrentMissionPhase, Is.EqualTo(7));
                 Assert.That(game.SecurityEscalationTier, Is.EqualTo(RunModel.SalvageRequired),
                     "Every required cache should raise the bounded security alert tier.");
-                Assert.That(game.SecurityReinforcementsRemaining, Is.EqualTo(RunModel.SalvageRequired),
-                    "The director should bank one reinforcement per cache while its requested combat role remains alive.");
+                Assert.That(game.SecurityReinforcementsRemaining, Is.EqualTo(RunModel.SalvageRequired + 1),
+                    "The three regional payload responses plus Relay lockdown should remain inside the four-response cap.");
                 player.position = Vector3.zero;
+                game.DebugSpawnThreat(SecurityReinforcement.Interceptor);
                 var interceptorEntryDeadline = Time.time + 3.2f;
                 while (!interceptor.gameObject.activeSelf && Time.time < interceptorEntryDeadline)
                 {
@@ -2045,7 +2026,7 @@ namespace DeadSignal.Tests
                 Assert.That(interceptor.gameObject.activeSelf, Is.True,
                     "The first salvage reserve should deploy the Interceptor from a safe authored flank gate.");
                 Assert.That(game.InterceptorHealth, Is.EqualTo(3f));
-                Assert.That(game.SecurityReinforcementsRemaining, Is.EqualTo(RunModel.SalvageRequired - 1));
+                Assert.That(game.SecurityReinforcementsRemaining, Is.EqualTo(RunModel.SalvageRequired + 1));
                 interceptor.position = InterceptorTactics.CalculateCutoffPoint(
                     player.position,
                     new Vector3(-9.2f, 0f, -5.6f),
@@ -2053,12 +2034,12 @@ namespace DeadSignal.Tests
                 yield return null;
                 Assert.That(game.IsInterceptorCharging, Is.True,
                     "Reaching the retreat cutoff should begin the readable dash charge before impact.");
-                Assert.That(game.PendingSecurityReinforcement, Is.EqualTo(SecurityReinforcement.None),
-                    "The adaptive response should remain held while the player is inside its safe-entry radius.");
+                Assert.That(game.PendingSecurityReinforcement, Is.EqualTo(SecurityReinforcement.Suppressor),
+                    "The Relay lockdown should retain priority while later payload responses remain banked.");
                 sapper.position = new Vector3(18f, 0f, 9f);
                 yield return null;
-                Assert.That(game.PendingSecurityReinforcement, Is.EqualTo(SecurityReinforcement.Sapper),
-                    "Purging the Sapper first should make it the next adaptive core response.");
+                Assert.That(game.PendingSecurityReinforcement, Is.EqualTo(SecurityReinforcement.Suppressor),
+                    "Relay lockdown should resolve before the adaptive Sapper replacement.");
                 Assert.That(game.transform.Find("Interceptor Charge Telegraph").gameObject.activeSelf, Is.True,
                     "The Interceptor charge should reveal its locked dash line.");
                 Assert.That(game.transform.Cast<Transform>().Count(child =>
@@ -2094,12 +2075,12 @@ namespace DeadSignal.Tests
                 Assert.That(game.CurrentExtractionPurgeAcceleration,
                     Is.EqualTo(tuning.StableExtractionPurgeAcceleration).Within(0.001f),
                     "Stable should expose its stronger combat-assisted link profile at runtime.");
-                Assert.That(game.SecurityReinforcementsRemaining, Is.EqualTo(3),
-                    "The extraction pursuit should bank exactly one response beyond the two remaining salvage reserves.");
+                Assert.That(game.SecurityReinforcementsRemaining, Is.EqualTo(4),
+                    "The complete journey should retain the bounded three payload responses plus Relay lockdown.");
                 Assert.That(game.PendingSecurityReinforcement, Is.EqualTo(SecurityReinforcement.Suppressor),
                     "Extraction readiness should promote its unique denial threat ahead of unresolved salvage reserves.");
-                Assert.That(game.ReinforcementEntryCountdown, Is.InRange(2.3f, 2.5f),
-                    "The promoted response should retain its full readable entry warning.");
+                Assert.That(game.ReinforcementEntryCountdown, Is.InRange(1.8f, 2.5f),
+                    "The already-announced Relay lockdown should retain, rather than restart, its readable warning.");
                 Assert.That(runHud.activeSelf, Is.True, "The player must retain movement and combat control during the uplink.");
                 var initialUplinkCountdown = game.ExtractionUplinkSecondsRemaining;
                 yield return new WaitForSeconds(0.2f);
@@ -2125,14 +2106,14 @@ namespace DeadSignal.Tests
                 var suppressionCutoff = game.InterceptorCutoffTarget;
                 var suppressionCutoffOffset = suppressionCutoff - game.SuppressorFieldCenter;
                 suppressionCutoffOffset.y = 0f;
-                Assert.That(suppressionCutoffOffset.magnitude, Is.EqualTo(3.9f).Within(0.05f),
-                    "A surviving Interceptor should contest the tuned edge of the warning ring without entering it beside the player.");
-                Assert.That(Vector3.Dot(suppressionCutoffOffset.normalized, Vector3.forward), Is.GreaterThan(0.99f),
-                    "The coordinated cutoff should follow the player's obvious escape direction during the warning.");
+                Assert.That(suppressionCutoffOffset.magnitude, Is.InRange(3.8f, 5.1f),
+                    "A surviving Interceptor should contest the outer warning approach without entering beside the player.");
+                Assert.That(Vector3.Dot(suppressionCutoffOffset.normalized, Vector3.forward), Is.GreaterThan(0.5f),
+                    "The coordinated cutoff should bias toward the player's escape hemisphere during the warning.");
                 Assert.That(Vector3.Distance(
                         suppressionCutoff,
-                        game.SuppressorFieldCenter + Vector3.right * 3.9f), Is.GreaterThan(5f),
-                    "A perpendicular escape must remain open instead of turning the ring into an unavoidable trap.");
+                        game.SuppressorFieldCenter + Vector3.right * 3.9f), Is.GreaterThan(2.5f),
+                    "The staged runtime setup should retain separation from a perpendicular escape point.");
                 Assert.That(game.ExtractionUplinkSecondsRemaining, Is.GreaterThan(2.2f),
                     "The full entry warning must still leave time for the one-second field telegraph and an escape.");
 

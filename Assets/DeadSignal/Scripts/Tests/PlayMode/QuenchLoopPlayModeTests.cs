@@ -105,6 +105,7 @@ namespace DeadSignal.Tests
                     game.DebugCollectNextCache();
                     yield return null;
                 }
+                yield return null;
 
                 Assert.That(shutter.activeSelf, Is.False,
                     "Securing the deep optional cache should retract the Quench pressure shutter.");

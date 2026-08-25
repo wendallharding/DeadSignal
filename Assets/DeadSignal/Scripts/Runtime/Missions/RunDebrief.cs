@@ -26,7 +26,8 @@ namespace DeadSignal.Missions
                 signalRatio >= 0.4f ? "RESERVE SECURE" : signalRatio >= 0.2f ? "RESERVE TIGHT" : "RESERVE CRITICAL",
                 pressure == 0 ? "NO SECURITY DRAINS" : pressure == 1 ? "1 SECURITY DRAIN" : $"{pressure} SECURITY DRAINS",
                 deadZoneRatio <= 0.3f ? "EXPOSURE CONTROLLED" : deadZoneRatio <= 0.55f ? "EXPOSURE ELEVATED" : "EXPOSURE SEVERE",
-                model.ShortcutOpen ? "SHORTCUT ROUTE" : "CONSERVATION ROUTE",
+                model.OptionalSalvageSecured ? "GREED ROUTE — OPTIONAL SECURED" :
+                model.ShortcutOpen ? "SHORTCUT ROUTE" : "REQUIRED ROUTE — WITHDREW",
                 _coaching(model, metrics));
         }
 

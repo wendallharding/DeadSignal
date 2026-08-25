@@ -87,46 +87,13 @@ namespace DeadSignal.Presentation
 
         private void _refreshTarget()
         {
-            if (!m_model.TowerOnline)
+            CurrentTarget = m_world.GetObjectiveTarget(m_model);
+            CurrentPhase = m_model.CurrentMissionStage switch
             {
-                CurrentPhase = ObjectiveBeaconPhase.Tower;
-                CurrentTarget = m_world.TowerPosition;
-                return;
-            }
-
-            if (m_model.CanExtract)
-            {
-                CurrentPhase = ObjectiveBeaconPhase.Extraction;
-                CurrentTarget = m_world.ExtractionPosition;
-                return;
-            }
-
-            GameObject nearestSalvage = null;
-            float nearestDistance = float.PositiveInfinity;
-            foreach (var salvage in m_world.SalvagePickups)
-            {
-                if (!salvage.activeSelf)
-                {
-                    continue;
-                }
-
-                float sqrDistance = (salvage.transform.position - m_world.Player.position).sqrMagnitude;
-                if (sqrDistance < nearestDistance)
-                {
-                    nearestDistance = sqrDistance;
-                    nearestSalvage = salvage;
-                }
-            }
-
-            if (nearestSalvage != null)
-            {
-                CurrentPhase = ObjectiveBeaconPhase.Salvage;
-                CurrentTarget = nearestSalvage.transform.position;
-                return;
-            }
-
-            CurrentPhase = ObjectiveBeaconPhase.Extraction;
-            CurrentTarget = m_world.ExtractionPosition;
+                MissionStage.CentralTower or MissionStage.RelayTower or MissionStage.SpineTower => ObjectiveBeaconPhase.Tower,
+                MissionStage.Extraction => ObjectiveBeaconPhase.Extraction,
+                _ => ObjectiveBeaconPhase.Salvage
+            };
         }
 
         private float _directionAngle()
@@ -137,22 +104,30 @@ namespace DeadSignal.Presentation
 
         private string _currentLabel()
         {
-            return CurrentPhase switch
+            return m_model.CurrentMissionStage switch
             {
-                ObjectiveBeaconPhase.Tower => "ACTIVATE TOWER",
-                ObjectiveBeaconPhase.Salvage => "RECOVER SALVAGE",
-                ObjectiveBeaconPhase.Extraction => "RETURN TO EXTRACTION",
+                MissionStage.CentralTower => "ACTIVATE CENTRAL TOWER",
+                MissionStage.CentralPayload => "RECOVER CENTRAL PAYLOAD",
+                MissionStage.RelayTower => "RESTORE RELAY TOWER",
+                MissionStage.RelayPayload => "RECOVER RELAY PAYLOAD",
+                MissionStage.SpineTower => "RESTORE SPINE TOWER",
+                MissionStage.SpinePayload => "RECOVER SPINE PAYLOAD",
+                MissionStage.Extraction => "RETURN TO EXTRACTION",
                 _ => string.Empty
             };
         }
 
         private string _currentHint()
         {
-            return CurrentPhase switch
+            return m_model.CurrentMissionStage switch
             {
-                ObjectiveBeaconPhase.Tower => "Bring the network online",
-                ObjectiveBeaconPhase.Salvage => $"Nearest cache  |  {m_model.Salvage}/{RunModel.SalvageRequired} secured",
-                ObjectiveBeaconPhase.Extraction => "All salvage secured",
+                MissionStage.CentralTower => "Bring the opening network online",
+                MissionStage.CentralPayload => "Choose one of two local payload routes",
+                MissionStage.RelayTower => "Push east and establish the Relay foothold",
+                MissionStage.RelayPayload => "Choose the protected or exposed Relay route",
+                MissionStage.SpineTower => "Carry the network into the Capacitor Spine",
+                MissionStage.SpinePayload => "Secure the final extraction payload",
+                MissionStage.Extraction => "Three towers and regional payloads secured",
                 _ => string.Empty
             };
         }

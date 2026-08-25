@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using DeadSignal.Missions;
 using UnityEngine;
 
 namespace DeadSignal.Diagnostics
@@ -11,6 +12,7 @@ namespace DeadSignal.Diagnostics
         RequiredSalvage,
         ThreeTowerRun,
         EasternRoom,
+        RequiredExtraction,
         FullExtraction,
         RecordedRoute
     }
@@ -182,7 +184,7 @@ namespace DeadSignal.Diagnostics
             }
         }
 
-        public bool TickNavigation(float distance, float dt, bool blocked)
+        public bool TickNavigation(float distance, float dt, bool blocked, bool hasCompleteNavigationRoute = false)
         {
             if (State != DebugRouteRunState.Navigating || CurrentStep == null)
             {
@@ -195,9 +197,13 @@ namespace DeadSignal.Diagnostics
                 m_bestDistance = distance;
                 m_noProgressSeconds = 0f;
             }
-            else
+            else if (blocked || !hasCompleteNavigationRoute)
             {
                 m_noProgressSeconds += dt;
+            }
+            else
+            {
+                m_noProgressSeconds = 0f;
             }
 
             if (distance <= CurrentStep.ArrivalRadius)
@@ -250,12 +256,21 @@ namespace DeadSignal.Diagnostics
             }
         }
 
-        public string FinishReport(float signal, int shots, int threats, Vector3 position)
+        public string FinishReport(float signal, RunMetrics metrics, bool optionalSalvageSecured, bool shortcutOpen,
+            Vector3 position)
         {
             if (!m_report.ToString().Contains("Final Signal"))
             {
                 m_report.AppendLine($"Final Signal {signal:0.0} (Δ {signal - m_startSignal:+0.0;-0.0;0.0})");
-                m_report.AppendLine($"Shots {shots}  Threats {threats}  Position {position.x:0.00},{position.z:0.00}");
+                m_report.AppendLine($"Journey {(optionalSalvageSecured ? "OPTIONAL GREED" : "REQUIRED WITHDRAWAL")}  " +
+                                    $"Shortcut {(shortcutOpen ? "OPEN" : "CLOSED")}");
+                m_report.AppendLine($"Time {metrics.ElapsedSeconds:0.00}s  Dead zone {metrics.DeadZoneSeconds:0.00}s  " +
+                                    $"Hits {metrics.SecurityHits}  Sapper drains {metrics.SapperPulses}");
+                m_report.AppendLine($"Shots {metrics.ShotsFired}  Purges {metrics.ThreatsPurged}  " +
+                                    $"Travel spent {metrics.PassiveSignalSpent + metrics.MovementSignalSpent:0.0}  " +
+                                    $"Fire spent {metrics.WeaponSignalSpent:0.0}");
+                m_report.AppendLine($"Recovered {metrics.SignalRecovered + metrics.SalvageSignalRecovered:0.0}  " +
+                                    $"Position {position.x:0.00},{position.z:0.00}");
             }
             return m_report.ToString();
         }
@@ -285,17 +300,26 @@ namespace DeadSignal.Diagnostics
                         DebugRouteAssertion.CameraContainsPlayer);
                     yield return new DebugRouteStep("Optional cache", DebugLocation.CacheFour, 2.3f, DebugRouteAction.CollectCache);
                     break;
+                case DebugRoutePreset.RequiredExtraction:
                 case DebugRoutePreset.FullExtraction:
                     yield return new DebugRouteStep("Central tower", DebugLocation.CentralTower, 2f, DebugRouteAction.ActivateCentralTower);
+                    yield return new DebugRouteStep("Central payload", DebugLocation.CurrentObjective, 2.3f, DebugRouteAction.CollectCache);
                     yield return new DebugRouteStep("Relay tower", DebugLocation.RelayTower, 2f, DebugRouteAction.ActivateRelayTower);
                     yield return new DebugRouteStep("Piercing calibration", DebugLocation.RelayTower, 2f,
                         DebugRouteAction.SelectWeaponOverclock);
+                    yield return new DebugRouteStep("Relay payload", DebugLocation.CurrentObjective, 2.3f, DebugRouteAction.CollectCache);
                     yield return new DebugRouteStep("Spine tower", DebugLocation.SpineTower, 2f, DebugRouteAction.ActivateSpineTower);
-                    yield return new DebugRouteStep("Nearest cache one", DebugLocation.CurrentObjective, 2.3f, DebugRouteAction.CollectCache);
-                    yield return new DebugRouteStep("Nearest cache two", DebugLocation.CurrentObjective, 2.3f, DebugRouteAction.CollectCache);
-                    yield return new DebugRouteStep("Nearest cache three", DebugLocation.CurrentObjective, 2.3f, DebugRouteAction.CollectCache);
-                    yield return new DebugRouteStep("Optional Quench cache", DebugLocation.CacheFour, 2.3f,
-                        DebugRouteAction.CollectCache);
+                    yield return new DebugRouteStep("Spine payload", DebugLocation.CurrentObjective, 2.3f, DebugRouteAction.CollectCache);
+                    if (preset == DebugRoutePreset.FullExtraction)
+                    {
+                        yield return new DebugRouteStep("Optional Quench cache", DebugLocation.CacheFour, 2.3f,
+                            DebugRouteAction.CollectCache);
+                    }
+                    else
+                    {
+                        yield return new DebugRouteStep("Spine discharge withdrawal", DebugLocation.SpineTower, 2f,
+                            DebugRouteAction.CaptureScreenshot);
+                    }
                     yield return new DebugRouteStep("Extraction", DebugLocation.Extraction, 1.5f, DebugRouteAction.BeginStableExtraction,
                         DebugRouteAssertion.SignalAboveTwenty);
                     break;

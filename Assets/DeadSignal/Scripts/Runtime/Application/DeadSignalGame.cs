@@ -63,9 +63,12 @@ namespace DeadSignal.Application
         private bool m_debugRouteDriving;
         private DebugLocation m_debugRouteDestination;
         private DebugRouteSequencer m_debugRouteSequencer;
+        private bool m_debugRouteReportWritten;
         private int m_lastDebugInputFrame = -1;
         private float m_debugRouteBlockedSeconds;
         private int m_debugObservedRecoveryCount;
+        private int m_debugSalvageBeforeRouteAction;
+        private bool m_debugOptionalBeforeRouteAction;
         private int m_debugObservedSequenceStep = -1;
         private Vector3 m_debugSequenceTarget;
         private bool m_debugCaptureEachRouteStep;
@@ -83,6 +86,11 @@ namespace DeadSignal.Application
         public bool IsRelayTowerOnline => m_model?.RelayTowerOnline ?? false;
         public Vector3 RelayTowerPosition => m_world?.RelayTowerPosition ?? Vector3.zero;
         public bool IsSpineTowerOnline => m_model?.SpineTowerOnline ?? false;
+        public bool IsCentralPayloadSecured => m_model?.CentralPayloadSecured ?? false;
+        public bool IsRelayPayloadSecured => m_model?.RelayPayloadSecured ?? false;
+        public bool IsSpinePayloadSecured => m_model?.SpinePayloadSecured ?? false;
+        public bool IsExtractionReady => m_model?.CanExtract ?? false;
+        public MissionStage CurrentMissionStage => m_model?.CurrentMissionStage ?? MissionStage.CentralTower;
         public Vector3 SpineTowerPosition => m_world?.SpineTowerPosition ?? Vector3.zero;
         public bool IsWeaponEvolved => m_overclockChoice?.IsWeaponEvolved ?? false;
         public Vector3 SafestReinforcementEntryPosition => m_world == null
@@ -274,6 +282,7 @@ namespace DeadSignal.Application
               $"{m_debugRouteSequencer.StepSeconds:0.0}s  Recoveries {m_debugRouteSequencer.RecoveryCount}";
         public string DebugRouteSequenceReport => m_debugRouteSequencer?.Report ?? "No route report available.";
         public DebugRouteRunState DebugRouteSequenceState => m_debugRouteSequencer?.State ?? DebugRouteRunState.Idle;
+        public string DebugLastCapturePath => m_lastDebugCapturePath;
         public string DebugEventLog => string.Join("\n", m_debugEventLog);
         public string DebugReplayInfo =>
             $"Route seed {PlayerPrefs.GetInt("DeadSignal.RouteVariant", 0)}  Frame {Time.frameCount}  Capture {m_lastDebugCapturePath}";
@@ -371,6 +380,7 @@ namespace DeadSignal.Application
         public void DebugStartRouteSequence(DebugRoutePreset preset, DebugAutomationMode mode, DebugAutomationProfile profile)
         {
             _resetDebugTransientState();
+            m_debugRouteReportWritten = false;
             m_debugRouteSequencer.Start(preset, mode, profile, CurrentSignal);
             m_debugObservedSequenceStep = -1;
             m_debugRouteDriving = m_debugRouteSequencer.IsRunning;
@@ -520,6 +530,10 @@ namespace DeadSignal.Application
         public void DebugActivateRelayTower()
         {
             DebugActivateTower();
+            if (!m_model.CentralPayloadSecured)
+            {
+                DebugCollectNextCache();
+            }
             if (m_model.RelayTowerOnline)
             {
                 return;
@@ -537,6 +551,10 @@ namespace DeadSignal.Application
         public void DebugActivateSpineTower()
         {
             DebugActivateRelayTower();
+            if (!m_model.RelayPayloadSecured)
+            {
+                DebugCollectNextCache();
+            }
             if (m_overclockChoice.SelectedWeapon == SignalWeaponOverclock.None)
             {
                 DebugSelectWeapon(SignalWeaponOverclock.PiercingPulse);
@@ -586,7 +604,25 @@ namespace DeadSignal.Application
 
             foreach (var pickup in m_world.SalvagePickups)
             {
-                if (!pickup.activeSelf)
+                if (!pickup.activeSelf || m_world.IsOptionalCache(pickup) ||
+                    !m_model.CanCollectPayload(m_world.GetPayloadRegion(pickup)))
+                {
+                    continue;
+                }
+
+                m_world.Player.position = pickup.transform.position;
+                m_salvage.Tick(0f);
+                return;
+            }
+
+            if (!m_model.CanExtract || m_model.OptionalSalvageSecured)
+            {
+                return;
+            }
+
+            foreach (var pickup in m_world.SalvagePickups)
+            {
+                if (!pickup.activeSelf || !m_world.IsOptionalCache(pickup))
                 {
                     continue;
                 }
@@ -600,14 +636,23 @@ namespace DeadSignal.Application
         public void DebugMakeExtractionReady()
         {
             DebugActivateTower();
-            while (!m_model.CanExtract)
+            DebugCollectNextCache();
+            if (m_overclockChoice.IsPrimaryPending)
             {
-                DebugCollectNextCache();
-                if (m_model.Salvage >= RunModel.SalvageRequired)
-                {
-                    break;
-                }
+                m_overclockChoice.TrySelect(SignalOverclock.ChainArc);
             }
+            DebugActivateRelayTower();
+            if (m_overclockChoice.IsWeaponPending)
+            {
+                m_overclockChoice.TrySelect(SignalWeaponOverclock.PiercingPulse);
+            }
+            DebugCollectNextCache();
+            if (m_overclockChoice.IsAuxiliaryPending)
+            {
+                m_overclockChoice.TrySelect(SignalAuxiliaryOverclock.FeedbackShield);
+            }
+            DebugActivateSpineTower();
+            DebugCollectNextCache();
         }
 
         public void DebugSpawnThreat(SecurityReinforcement reinforcement)
@@ -660,7 +705,10 @@ namespace DeadSignal.Application
 
         public void DebugBeginExtraction(ExtractionUplinkMode mode)
         {
-            DebugMakeExtractionReady();
+            if (!m_model.CanExtract)
+            {
+                DebugMakeExtractionReady();
+            }
             if (mode == ExtractionUplinkMode.Overdrive)
             {
                 m_model.SetSignalForDebug(Mathf.Max(m_model.Signal, m_extractionUplink.OverdriveSignalCost + 1f));
@@ -932,6 +980,7 @@ namespace DeadSignal.Application
 
             if (m_model.Outcome != RunOutcome.Running)
             {
+                _finalizeDebugRouteAfterOutcome();
                 if (m_input.PressedRestart())
                 {
                     _resetDebugTransientState();
@@ -1273,6 +1322,10 @@ namespace DeadSignal.Application
                 {
                     _showFeedback("SPINE LOCKED — RESTORE RELAY FOUNDRY");
                 }
+                else if (!m_model.RelayPayloadSecured)
+                {
+                    _showFeedback("SPINE LOCKED — SECURE A RELAY PAYLOAD");
+                }
                 else
                 {
                     _showFeedback($"KEEP 1 SIGNAL AFTER {RunModel.SpineTowerCost:0} COST");
@@ -1294,6 +1347,10 @@ namespace DeadSignal.Application
                 else if (!m_model.TowerOnline)
                 {
                     _showFeedback("RELAY LOCKED — RESTORE CENTRAL TOWER");
+                }
+                else if (!m_model.CentralPayloadSecured)
+                {
+                    _showFeedback("RELAY LOCKED — SECURE A CENTRAL PAYLOAD");
                 }
                 else
                 {
@@ -1348,7 +1405,7 @@ namespace DeadSignal.Application
 
             if (!m_model.CanExtract)
             {
-                _showFeedback($"EXTRACTION LOCKED — {RunModel.SalvageRequired - m_model.Salvage} SALVAGE MISSING");
+                _showFeedback($"EXTRACTION LOCKED — {_extractionRequirement()}");
             }
         }
 
@@ -1358,6 +1415,20 @@ namespace DeadSignal.Application
                    !m_extractionUplink.IsActive &&
                    !m_extractionUplink.IsComplete &&
                    DeadSignalWorld.FlatDistance(m_world.Player.position, m_world.ExtractionPosition) < 1.65f;
+        }
+
+        private string _extractionRequirement()
+        {
+            return m_model.CurrentMissionStage switch
+            {
+                MissionStage.CentralTower => "RESTORE CENTRAL TOWER",
+                MissionStage.CentralPayload => "SECURE CENTRAL PAYLOAD",
+                MissionStage.RelayTower => "RESTORE RELAY TOWER",
+                MissionStage.RelayPayload => "SECURE RELAY PAYLOAD",
+                MissionStage.SpineTower => "RESTORE SPINE TOWER",
+                MissionStage.SpinePayload => "SECURE SPINE PAYLOAD",
+                _ => "COMPLETE NETWORK JOURNEY"
+            };
         }
 
         private void _handleExtractionUplinkChoice()
@@ -1565,13 +1636,17 @@ namespace DeadSignal.Application
             var step = m_debugRouteSequencer.CurrentStep;
             var destination = _debugRouteSequenceDestination(step);
             var distance = DeadSignalWorld.FlatDistance(m_world.Player.position, destination);
-            var arrived = m_debugRouteSequencer.TickNavigation(distance, dt, m_world.LastMovementBlocked);
+            var hasCompleteRoute = m_world.GetRemainingNavMeshCorners(m_world.Player) > 0;
+            var arrived = m_debugRouteSequencer.TickNavigation(
+                distance, dt, m_world.LastMovementBlocked, hasCompleteRoute);
             if (arrived && m_debugCaptureEachRouteStep)
             {
                 DebugCaptureScreenshot();
             }
             if (m_debugRouteSequencer.ShouldIssueAction())
             {
+                m_debugSalvageBeforeRouteAction = m_model.Salvage;
+                m_debugOptionalBeforeRouteAction = m_model.OptionalSalvageSecured;
                 _executeDebugRouteAction(step.Action);
             }
             if (m_debugRouteSequencer.State == DebugRouteRunState.Verifying)
@@ -1621,7 +1696,8 @@ namespace DeadSignal.Application
             return action switch
             {
                 DebugRouteAction.ActivateCentralTower => m_model.TowerOnline,
-                DebugRouteAction.CollectCache => m_model.Salvage > 0,
+                DebugRouteAction.CollectCache => m_model.Salvage > m_debugSalvageBeforeRouteAction ||
+                                                 m_model.OptionalSalvageSecured != m_debugOptionalBeforeRouteAction,
                 DebugRouteAction.SelectPrimaryOverclock => m_overclockChoice.Selected != SignalOverclock.None,
                 DebugRouteAction.ActivateRelayTower => m_model.RelayTowerOnline,
                 DebugRouteAction.SelectWeaponOverclock => m_overclockChoice.SelectedWeapon != SignalWeaponOverclock.None,
@@ -1684,17 +1760,39 @@ namespace DeadSignal.Application
 
         private string _finishDebugRouteReport()
         {
-            return m_debugRouteSequencer?.FinishReport(CurrentSignal, ShotsFired, ThreatsPurged,
-                m_world?.Player.position ?? Vector3.zero) ?? "No route report available.";
+            return m_debugRouteSequencer?.FinishReport(CurrentSignal, m_metrics, m_model.OptionalSalvageSecured,
+                m_model.ShortcutOpen, m_world?.Player.position ?? Vector3.zero) ?? "No route report available.";
         }
 
         private void _writeDebugRouteReport()
         {
+            if (m_debugRouteReportWritten)
+            {
+                return;
+            }
+
             var directory = Path.Combine(UnityEngine.Application.persistentDataPath, "PlaytestReports");
             Directory.CreateDirectory(directory);
-            var path = Path.Combine(directory, $"route-{System.DateTime.Now:yyyyMMdd-HHmmss}.txt");
+            var preset = m_debugRouteSequencer?.Preset.ToString() ?? "Unknown";
+            var path = Path.Combine(directory, $"route-{preset}-{System.DateTime.Now:yyyyMMdd-HHmmss}.txt");
             File.WriteAllText(path, _finishDebugRouteReport());
             m_lastDebugCapturePath = path;
+            m_debugRouteReportWritten = true;
+        }
+
+        private void _finalizeDebugRouteAfterOutcome()
+        {
+            if (m_debugRouteSequencer == null || m_debugRouteReportWritten ||
+                m_debugRouteSequencer.State == DebugRouteRunState.Idle)
+            {
+                return;
+            }
+
+            if (m_debugRouteSequencer.IsRunning)
+            {
+                m_debugRouteSequencer.Abort($"Run ended with {m_model.Outcome} before route completion.");
+            }
+            _writeDebugRouteReport();
         }
 
         private void _tryStartCommandLineDebugRoute()
@@ -1781,13 +1879,20 @@ namespace DeadSignal.Application
                 DebugLocation.CacheOne => m_world.GetSalvagePosition(0),
                 DebugLocation.CacheTwo => m_world.GetSalvagePosition(1),
                 DebugLocation.CacheThree => m_world.GetSalvagePosition(2),
-                DebugLocation.CacheFour => m_world.GetSalvagePosition(3),
+                DebugLocation.CacheFour => _debugOptionalCachePosition(),
                 DebugLocation.FarEast => new Vector3(m_world.ArenaHalfExtents.x - 1.2f, 0f, 0f),
                 DebugLocation.NorthBoundary => new Vector3(0f, 0f, m_world.ArenaHalfExtents.y - 1.2f),
                 DebugLocation.SouthBoundary => new Vector3(0f, 0f, -m_world.ArenaHalfExtents.y + 1.2f),
                 DebugLocation.CurrentObjective => m_world.GetObjectiveTarget(m_model),
                 _ => m_world.ExtractionPosition
             };
+        }
+
+        private Vector3 _debugOptionalCachePosition()
+        {
+            var optional = m_world.SalvagePickups.FirstOrDefault(pickup =>
+                pickup.activeSelf && m_world.IsOptionalCache(pickup));
+            return optional != null ? optional.transform.position : m_world.GetSalvagePosition(3);
         }
 
         private IEnumerator _debugStepFrame()

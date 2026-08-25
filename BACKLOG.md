@@ -1,5 +1,26 @@
 # DEAD SIGNAL — Product Backlog
 
+## P0 — Required three-region mission journey
+
+- [x] Replace extraction readiness based on any three caches with one payload from Central, Relay, and Spine
+- [x] Require the Central payload before Relay activation and the Relay payload before Spine activation
+- [x] Require all three towers and all three regional payloads before extraction can begin
+- [x] Offer two payload routes per region and retire the unchosen sibling after one regional payload is secured
+- [x] Preserve the authored Arc Furnace/Quench cache as the distinct optional Signal greed reward
+- [x] Route objective beacons, mission guidance, tactical-map labels, and locked ability milestones through seven mission stages
+- [x] Preserve Central threat awakening, Relay lockdown, Spine weapon evolution, and the bounded extraction pursuit
+- [x] Prove the complete required journey, optional cache, NavMesh traversal, combat regression, and extraction contract in Unity
+- [ ] Compare the two payload choices in each region and record route time, damage, Signal, upgrade use, and final reserve
+
+## P0 — Matched journey evaluation (Run 99)
+
+- [x] Add a required-only extraction route that matches the full three-region progression without committing to Quench
+- [x] Preserve a named report through victory for both required withdrawal and optional-greed routes
+- [x] Record elapsed time, dead-zone exposure, hits, Sapper drains, shots, purges, Signal spend/recovery, and final reserve
+- [x] Make the outcome debrief identify required withdrawal, shortcut use, or optional greed
+- [x] Add an original route-ledger debrief insignia with validated Unity import settings
+- [ ] Run both live-balance routes as a watched human comparison before authoring the station guardian
+
 ## P0 — Commercial full-journey gate (Run 98)
 
 - [x] Make Full Extraction traverse Central, Relay, weapon calibration, and Spine progression in order

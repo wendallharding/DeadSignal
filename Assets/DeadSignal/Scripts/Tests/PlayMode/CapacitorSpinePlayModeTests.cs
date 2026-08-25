@@ -81,6 +81,9 @@ namespace DeadSignal.Tests
 
                 game.DebugActivateTower();
                 game.DebugActivateRelayTower();
+                game.DebugCollectNextCache();
+                game.DebugSelectOverclock(DeadSignal.Missions.SignalOverclock.OverdriveThrusters);
+                game.DebugSelectAuxiliary(DeadSignal.Missions.SignalAuxiliaryOverclock.FeedbackShield);
                 game.DebugSelectWeapon(DeadSignal.Missions.SignalWeaponOverclock.PiercingPulse);
                 player.position = game.SpineTowerPosition;
                 InputSystem.QueueStateEvent(gamepad, new GamepadState().WithButton(GamepadButton.West));

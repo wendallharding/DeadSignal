@@ -88,6 +88,7 @@ namespace DeadSignal.Tests
         {
             var run = new RunModel();
             run.TryActivateTower();
+            run.CollectPayload(SignalRegion.Central);
             var before = run.Signal;
 
             Assert.That(run.TryActivateRelayTower(), Is.True);
@@ -106,7 +107,10 @@ namespace DeadSignal.Tests
             Assert.That(run.TryActivateSpineTower(), Is.False);
             Assert.That(run.TryActivateTower(), Is.True);
             Assert.That(run.TryActivateSpineTower(), Is.False);
+            Assert.That(run.CollectPayload(SignalRegion.Central), Is.True);
             Assert.That(run.TryActivateRelayTower(), Is.True);
+            Assert.That(run.TryActivateSpineTower(), Is.False);
+            Assert.That(run.CollectPayload(SignalRegion.Relay), Is.True);
             Assert.That(run.TrySpend(run.Signal - RunModel.SpineTowerCost), Is.True);
             Assert.That(run.TryActivateSpineTower(), Is.False);
             Assert.That(run.SpineTowerOnline, Is.False);
@@ -150,15 +154,19 @@ namespace DeadSignal.Tests
         }
 
         [Test]
-        public void Extraction_RequiresAllSalvage()
+        public void Extraction_RequiresAllTowersAndOnePayloadFromEachRegion()
         {
             var run = new RunModel();
 
             Assert.That(run.TryExtract(), Is.False);
-            for (int i = 0; i < RunModel.SalvageRequired; i++)
-            {
-                run.CollectSalvage();
-            }
+            Assert.That(run.TryActivateTower(), Is.True);
+            Assert.That(run.CollectPayload(SignalRegion.Central), Is.True);
+            Assert.That(run.CanExtract, Is.False);
+            Assert.That(run.TryActivateRelayTower(), Is.True);
+            Assert.That(run.CollectPayload(SignalRegion.Relay), Is.True);
+            Assert.That(run.CanExtract, Is.False);
+            Assert.That(run.TryActivateSpineTower(), Is.True);
+            Assert.That(run.CollectPayload(SignalRegion.Spine), Is.True);
 
             Assert.That(run.CanExtract, Is.True);
             Assert.That(run.TryExtract(), Is.True);
@@ -172,10 +180,12 @@ namespace DeadSignal.Tests
 
             Assert.That(run.CollectOptionalSalvage(18f), Is.Zero);
             Assert.That(run.OptionalSalvageSecured, Is.False);
-            for (var index = 0; index < RunModel.SalvageRequired; index++)
-            {
-                run.CollectSalvage();
-            }
+            Assert.That(run.TryActivateTower(), Is.True);
+            Assert.That(run.CollectPayload(SignalRegion.Central), Is.True);
+            Assert.That(run.TryActivateRelayTower(), Is.True);
+            Assert.That(run.CollectPayload(SignalRegion.Relay), Is.True);
+            Assert.That(run.TryActivateSpineTower(), Is.True);
+            Assert.That(run.CollectPayload(SignalRegion.Spine), Is.True);
 
             run.TrySpend(30f);
             Assert.That(run.CollectOptionalSalvage(18f), Is.EqualTo(18f));

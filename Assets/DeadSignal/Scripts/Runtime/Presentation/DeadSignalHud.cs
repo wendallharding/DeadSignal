@@ -138,7 +138,7 @@ namespace DeadSignal.Presentation
             m_overclockChoice = overclockChoice;
             m_signalHudTuning = Resources.Load<SignalHudTuning>("Tuning/SignalHudTuning");
             var signalSprite = Resources.Load<Sprite>("UI/SignalReserveConduit");
-            m_runDebriefTexture = Resources.Load<Texture2D>("UI/RunDebriefInsignia");
+            m_runDebriefTexture = Resources.Load<Texture2D>("UI/RouteLedgerInsignia");
             if (m_runReportText != null)
             {
                 m_runReportText.resizeTextForBestFit = true;

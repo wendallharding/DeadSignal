@@ -10,8 +10,7 @@ namespace DeadSignal.Tests
         {
             var model = new RunModel();
             var metrics = new RunMetrics();
-            model.TryActivateTower();
-            for (var i = 0; i < RunModel.SalvageRequired; i++) model.CollectSalvage();
+            _completeRequiredJourney(model);
             model.TryExtract();
             metrics.Advance(10f, true);
             var debrief = RunDebrief.Evaluate(model, metrics);
@@ -19,7 +18,7 @@ namespace DeadSignal.Tests
             Assert.That(debrief.Signal, Is.EqualTo("RESERVE SECURE"));
             Assert.That(debrief.Combat, Is.EqualTo("NO SECURITY DRAINS"));
             Assert.That(debrief.Exposure, Is.EqualTo("EXPOSURE CONTROLLED"));
-            Assert.That(debrief.Route, Is.EqualTo("CONSERVATION ROUTE"));
+            Assert.That(debrief.Route, Is.EqualTo("REQUIRED ROUTE — WITHDREW"));
         }
 
         [Test]
@@ -35,6 +34,29 @@ namespace DeadSignal.Tests
             Assert.That(debrief.Exposure, Is.EqualTo("EXPOSURE SEVERE"));
             Assert.That(debrief.Route, Is.EqualTo("SHORTCUT ROUTE"));
             Assert.That(debrief.Grade, Is.EqualTo("D"));
+        }
+
+        [Test]
+        public void Evaluate_OptionalCacheNamesGreedRoute()
+        {
+            var model = new RunModel();
+            var metrics = new RunMetrics();
+            _completeRequiredJourney(model);
+            model.CollectOptionalSalvage(12f);
+
+            var debrief = RunDebrief.Evaluate(model, metrics);
+
+            Assert.That(debrief.Route, Is.EqualTo("GREED ROUTE — OPTIONAL SECURED"));
+        }
+
+        private static void _completeRequiredJourney(RunModel model)
+        {
+            model.TryActivateTower();
+            model.CollectPayload(SignalRegion.Central);
+            model.TryActivateRelayTower();
+            model.CollectPayload(SignalRegion.Relay);
+            model.TryActivateSpineTower();
+            model.CollectPayload(SignalRegion.Spine);
         }
     }
 }
