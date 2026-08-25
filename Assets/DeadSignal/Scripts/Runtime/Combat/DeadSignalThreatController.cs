@@ -445,8 +445,8 @@ namespace DeadSignal.Combat
                 m_world.Player.position,
                 m_world.ExtractionPosition,
                 0.5f);
-            var navigationTarget = m_world.GetNavigationWaypoint(
-                m_world.Suppressor.position,
+            var navigationTarget = m_world.GetNavMeshWaypoint(
+                m_world.Suppressor,
                 anchor,
                 SUPPRESSOR_COLLISION_RADIUS,
                 m_model.ShortcutOpen);
@@ -548,8 +548,8 @@ namespace DeadSignal.Combat
             }
 
             m_interceptorCutoffTarget = _calculateInterceptorCutoffTarget();
-            var navigationTarget = m_world.GetNavigationWaypoint(
-                m_world.Interceptor.position,
+            var navigationTarget = m_world.GetNavMeshWaypoint(
+                m_world.Interceptor,
                 m_interceptorCutoffTarget,
                 INTERCEPTOR_COLLISION_RADIUS,
                 m_model.ShortcutOpen);
@@ -694,8 +694,8 @@ namespace DeadSignal.Combat
                 return;
             }
 
-            var navigationTarget = m_world.GetNavigationWaypoint(
-                m_world.Warden.position,
+            var navigationTarget = m_world.GetNavMeshWaypoint(
+                m_world.Warden,
                 m_wardenTacticalTarget,
                 WARDEN_COLLISION_RADIUS,
                 m_model.ShortcutOpen);
@@ -745,9 +745,14 @@ namespace DeadSignal.Combat
             m_world.SapperCore.Rotate(Vector3.up, (m_sapperLatched ? 260f : 120f) * dt, Space.Self);
             if (!m_sapperLatched)
             {
-                var delta = m_world.TowerPosition - m_world.Sapper.position;
+                var navigationTarget = m_world.GetNavMeshWaypoint(
+                    m_world.Sapper,
+                    m_world.TowerPosition,
+                    SAPPER_COLLISION_RADIUS,
+                    m_model.ShortcutOpen);
+                var delta = navigationTarget - m_world.Sapper.position;
                 delta.y = 0f;
-                var distance = delta.magnitude;
+                var distance = DeadSignalWorld.FlatDistance(m_world.Sapper.position, m_world.TowerPosition);
                 if (distance > 0.05f)
                 {
                     m_world.Sapper.rotation = Quaternion.LookRotation(delta.normalized, Vector3.up);

@@ -1935,9 +1935,17 @@ namespace DeadSignal.Tests
                 var firstOverclockCache = game.transform.Cast<Transform>()
                     .First(child => child.name == "Salvage Cache" && child.gameObject.activeSelf);
                 player.position = firstOverclockCache.position;
-                yield return null;
+                var salvageCollectionDeadline = Time.realtimeSinceStartup + 0.4f;
+                while (game.CurrentSalvage == 0 && Time.realtimeSinceStartup < salvageCollectionDeadline)
+                {
+                    yield return null;
+                }
+
                 Assert.That(game.IsOverclockChoicePending, Is.True,
-                    "The first meaningful salvage event should offer one temporary build choice.");
+                    $"The first meaningful salvage event should offer one temporary build choice. " +
+                    $"Salvage {game.CurrentSalvage}, player {player.position}, cache {firstOverclockCache.position}, " +
+                    $"cache active {firstOverclockCache.gameObject.activeSelf}, outcome {game.CurrentRunOutcome}, " +
+                    $"Signal {game.CurrentSignal:0.##}.");
                 var shotsBeforeChoice = game.ShotsFired;
                 InputSystem.QueueStateEvent(gamepad,
                     new GamepadState().WithButton(GamepadButton.RightShoulder));

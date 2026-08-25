@@ -65,9 +65,6 @@ namespace DeadSignal.Application
         private DebugRouteSequencer m_debugRouteSequencer;
         private int m_lastDebugInputFrame = -1;
         private float m_debugRouteBlockedSeconds;
-        private Vector3 m_debugRouteAnchor;
-        private Vector3 m_debugRouteAnchorDestination;
-        private bool m_debugRouteAnchorActive;
         private int m_debugObservedRecoveryCount;
         private int m_debugObservedSequenceStep = -1;
         private Vector3 m_debugSequenceTarget;
@@ -267,7 +264,8 @@ namespace DeadSignal.Application
               $"{m_world.Camera.transform.position.y:0.0}, {m_world.Camera.transform.position.z:0.0}  " +
               $"Route {(m_debugRouteDriving ? m_debugRouteDestination.ToString() : "MANUAL")}" +
               $"{(m_debugRouteBlockedSeconds > 0.1f ? $" BLOCKED {m_debugRouteBlockedSeconds:0.0}s" : string.Empty)}\n" +
-              $"Interaction {_debugInteractionTelemetry()}";
+              $"Interaction {_debugInteractionTelemetry()}\n" +
+              $"NavMesh {m_world.NavMeshStatus}  Corners {m_world.GetRemainingNavMeshCorners(m_world.Player)}";
         public string DebugRouteSequenceStatus => m_debugRouteSequencer == null
             ? "ROUTE SEQUENCE  Unavailable"
             : $"ROUTE SEQUENCE  {m_debugRouteSequencer.State}  " +
@@ -282,12 +280,26 @@ namespace DeadSignal.Application
         public Vector3 DebugPlayerPosition => m_world?.Player.position ?? Vector3.zero;
         public bool IsDebugRouteDriving => m_debugRouteDriving;
         public bool IsDebugMenuOpen => m_debugMenuOpen;
+        public bool HasRuntimeNavMesh => m_world?.HasRuntimeNavMesh ?? false;
+        public string DebugNavMeshStatus => m_world?.NavMeshStatus ?? "Unavailable";
 
         public float DebugDistanceToLocation(DebugLocation location)
         {
             return m_world == null
                 ? float.PositiveInfinity
                 : DeadSignalWorld.FlatDistance(m_world.Player.position, _debugLocationPosition(location));
+        }
+
+        public Vector3 DebugThreatPosition(SecurityReinforcement reinforcement)
+        {
+            return reinforcement switch
+            {
+                SecurityReinforcement.Warden => m_world?.Warden.position ?? Vector3.zero,
+                SecurityReinforcement.Sapper => m_world?.Sapper.position ?? Vector3.zero,
+                SecurityReinforcement.Interceptor => m_world?.Interceptor.position ?? Vector3.zero,
+                SecurityReinforcement.Suppressor => m_world?.Suppressor.position ?? Vector3.zero,
+                _ => Vector3.zero
+            };
         }
 
         public void SetDebugMenuState(bool open, bool runWhileOpen)
@@ -882,6 +894,7 @@ namespace DeadSignal.Application
             m_lowSignalWarning.Configure(m_model);
             m_lowSignalWarning.Tick(0f);
             m_towerActivationSweep.Configure(m_world.TowerPosition, DeadSignalWorld.TOWER_POWER_RADIUS);
+            _tryStartCommandLineDebugRoute();
         }
 
         private void Update()
@@ -1003,6 +1016,7 @@ namespace DeadSignal.Application
 
         private void OnDestroy()
         {
+            m_world?.Dispose();
             if (m_container != null)
             {
                 m_container.Dispose();
@@ -1512,12 +1526,10 @@ namespace DeadSignal.Application
                 ? _debugLocationPosition(m_debugRouteDestination)
                 : _debugRouteSequenceDestination(sequenceStep);
             var completionRadius = sequenceStep?.ArrivalRadius ?? _debugRouteCompletionRadius(m_debugRouteDestination);
-            if (DeadSignalWorld.FlatDistance(destination, m_debugRouteAnchorDestination) > 0.1f ||
-                m_debugObservedRecoveryCount != (m_debugRouteSequencer?.RecoveryCount ?? 0))
+            if (m_debugObservedRecoveryCount != (m_debugRouteSequencer?.RecoveryCount ?? 0))
             {
-                m_debugRouteAnchorActive = false;
-                m_debugRouteAnchorDestination = destination;
                 m_debugObservedRecoveryCount = m_debugRouteSequencer?.RecoveryCount ?? 0;
+                m_world.InvalidateNavMeshRoute(m_world.Player);
             }
             var targetDelta = destination - m_world.Player.position;
             targetDelta.y = 0f;
@@ -1533,18 +1545,8 @@ namespace DeadSignal.Application
                 return Vector2.zero;
             }
 
-            if (m_debugRouteAnchorActive && DeadSignalWorld.FlatDistance(m_world.Player.position, m_debugRouteAnchor) <= 0.65f)
-            {
-                m_debugRouteAnchorActive = false;
-            }
-            var waypoint = m_debugRouteAnchorActive
-                ? m_debugRouteAnchor
-                : m_world.GetNavigationWaypoint(m_world.Player.position, destination, PLAYER_COLLISION_RADIUS, m_model.ShortcutOpen);
-            if (!m_debugRouteAnchorActive && DeadSignalWorld.FlatDistance(waypoint, destination) > 0.35f)
-            {
-                m_debugRouteAnchor = waypoint;
-                m_debugRouteAnchorActive = true;
-            }
+            var waypoint = m_world.GetNavMeshWaypoint(
+                m_world.Player, destination, PLAYER_COLLISION_RADIUS, m_model.ShortcutOpen);
             var delta = waypoint - m_world.Player.position;
             delta.y = 0f;
             delta.Normalize();
@@ -1594,7 +1596,7 @@ namespace DeadSignal.Application
             switch (action)
             {
                 case DebugRouteAction.ActivateCentralTower: DebugActivateTower(); break;
-                case DebugRouteAction.CollectCache: DebugCollectNextCache(); break;
+                case DebugRouteAction.CollectCache: _debugCollectNearestCacheForRoute(); break;
                 case DebugRouteAction.SelectPrimaryOverclock: DebugSelectOverclock(SignalOverclock.ChainArc); break;
                 case DebugRouteAction.ActivateRelayTower: DebugActivateRelayTower(); break;
                 case DebugRouteAction.SelectWeaponOverclock: DebugSelectWeapon(SignalWeaponOverclock.PiercingPulse); break;
@@ -1627,6 +1629,30 @@ namespace DeadSignal.Application
                 DebugRouteAction.BeginStableExtraction => m_extractionUplink.IsActive,
                 _ => true
             };
+        }
+
+        private void _debugCollectNearestCacheForRoute()
+        {
+            var nearest = m_world.SalvagePickups
+                .Where(pickup => pickup.activeSelf)
+                .OrderBy(pickup => DeadSignalWorld.FlatDistance(m_world.Player.position, pickup.transform.position))
+                .FirstOrDefault();
+            if (nearest == null)
+            {
+                return;
+            }
+            var routePosition = m_world.Player.position;
+            m_world.Player.position = nearest.transform.position;
+            m_salvage.Tick(0f);
+            m_world.Player.position = routePosition;
+            if (m_overclockChoice.IsPending)
+            {
+                DebugSelectOverclock(SignalOverclock.ChainArc);
+            }
+            if (m_overclockChoice.IsAuxiliaryPending)
+            {
+                DebugSelectAuxiliary(SignalAuxiliaryOverclock.EmergencyCapacitor);
+            }
         }
 
         private bool _verifyDebugRouteAssertion(DebugRouteAssertion assertion, float distance)
@@ -1671,6 +1697,32 @@ namespace DeadSignal.Application
             m_lastDebugCapturePath = path;
         }
 
+        private void _tryStartCommandLineDebugRoute()
+        {
+            if (!DeadSignalDebugMenu.IsAvailable)
+            {
+                return;
+            }
+            const string PREFIX = "-DEADSIGNALROUTE=";
+            const string LIVE_ROUTE_ARGUMENT = "-DEADSIGNALLIVEROUTE";
+            var arguments = System.Environment.GetCommandLineArgs();
+            var liveRoute = arguments.Any(argument =>
+                argument.Equals(LIVE_ROUTE_ARGUMENT, System.StringComparison.OrdinalIgnoreCase));
+            foreach (var argument in arguments)
+            {
+                if (!argument.StartsWith(PREFIX, System.StringComparison.OrdinalIgnoreCase) ||
+                    !System.Enum.TryParse(argument.Substring(PREFIX.Length), true, out DebugRoutePreset preset))
+                {
+                    continue;
+                }
+                DebugStartRouteSequence(
+                    preset,
+                    liveRoute ? DebugAutomationMode.AssistedPlaythrough : DebugAutomationMode.DeterministicValidation,
+                    liveRoute ? DebugAutomationProfile.LiveBalance : DebugAutomationProfile.SafeNavigation);
+                return;
+            }
+        }
+
         private float _debugRouteCompletionRadius(DebugLocation location)
         {
             return location switch
@@ -1712,7 +1764,6 @@ namespace DeadSignal.Application
         {
             m_debugRouteDriving = false;
             m_debugRouteBlockedSeconds = 0f;
-            m_debugRouteAnchorActive = false;
             m_debugObservedSequenceStep = -1;
             m_fireBuffered = false;
             m_playerMovement?.ApplyResolvedVelocity(Vector3.zero);

@@ -95,6 +95,8 @@ namespace DeadSignal.World
         public bool HasPlayerCameraTuning { get; private set; }
         public PlayerFollowCamera PlayerCamera { get; private set; }
         public bool LastMovementBlocked { get; private set; }
+        public bool HasRuntimeNavMesh => m_navMeshPlanner?.IsReady ?? false;
+        public string NavMeshStatus => m_navMeshPlanner?.LastStatus ?? "Unavailable";
 
         public DeadSignalWorld(Transform root, IComfortSettings comfortSettings)
         {
@@ -117,6 +119,8 @@ namespace DeadSignal.World
             _buildPresentation();
             _buildArena();
             _registerAuthoredMapObstacles();
+            m_navMeshPlanner = new DeadSignalNavMeshPlanner();
+            _rebuildNavMesh();
             _registerAuthoredPoweredTerritories();
             _buildActors(comfortSettings);
             _configurePlayerCamera();
@@ -238,6 +242,23 @@ namespace DeadSignal.World
             return bestWaypoint;
         }
 
+        public Vector3 GetNavMeshWaypoint(Transform actor, Vector3 destination, float radius, bool shortcutOpen)
+        {
+            if (m_navMeshPlanner?.IsReady == true)
+            {
+                var waypoint = m_navMeshPlanner.GetWaypoint(actor, destination);
+                if (DeadSignalWorld.FlatDistance(actor.position, waypoint) > 0.05f)
+                {
+                    return waypoint;
+                }
+            }
+            return GetNavigationWaypoint(actor.position, destination, radius, shortcutOpen);
+        }
+
+        public int GetRemainingNavMeshCorners(Transform actor) => m_navMeshPlanner?.GetRemainingCornerCount(actor) ?? 0;
+
+        public void InvalidateNavMeshRoute(Transform actor) => m_navMeshPlanner?.Invalidate(actor);
+
         public Vector3 GetObjectiveTarget(RunModel model)
         {
             return _currentObjectiveTarget(model);
@@ -328,6 +349,7 @@ namespace DeadSignal.World
             m_relaySignalLines.SetActive(true);
             m_relayShortcutGate.SetActive(false);
             m_relayShortcutOpen = true;
+            _rebuildNavMesh();
             _activateAuthoredTerritories(PoweredTerritorySource.RelayTower);
         }
 
@@ -342,6 +364,7 @@ namespace DeadSignal.World
             m_spineSignalLines.SetActive(true);
             m_spineReturnGate.SetActive(false);
             m_spineReturnOpen = true;
+            _rebuildNavMesh();
             _activateAuthoredTerritories(PoweredTerritorySource.SpineTower);
         }
 
@@ -358,6 +381,7 @@ namespace DeadSignal.World
                 m_quenchReturnSignal.SetActive(true);
             }
             m_quenchReturnOpen = true;
+            _rebuildNavMesh();
         }
 
         public void ApplyHighContrast(bool enabled)
@@ -415,6 +439,31 @@ namespace DeadSignal.World
         public void OpenShortcut()
         {
             m_shortcutGate.SetActive(false);
+            m_shortcutOpen = true;
+            _rebuildNavMesh();
+        }
+
+        public void Dispose() => m_navMeshPlanner?.Dispose();
+
+        private void _rebuildNavMesh()
+        {
+            if (m_navMeshPlanner == null)
+            {
+                return;
+            }
+            var obstacles = new List<NavMeshObstacleBounds>(m_movementBlockers.Count);
+            foreach (var blocker in m_movementBlockers)
+            {
+                if (blocker.IsShortcutGate && m_shortcutOpen ||
+                    blocker.IsRelayShortcutGate && m_relayShortcutOpen ||
+                    blocker.IsSpineReturnGate && m_spineReturnOpen ||
+                    blocker.IsQuenchReturnGate && m_quenchReturnOpen)
+                {
+                    continue;
+                }
+                obstacles.Add(new NavMeshObstacleBounds(blocker.Center, blocker.HalfSize, blocker.ForwardAxis));
+            }
+            m_navMeshPlanner.Build(ArenaHalfExtents, obstacles, 0.48f);
         }
 
         public void PurgeWarden()
@@ -1540,6 +1589,8 @@ namespace DeadSignal.World
         private bool m_relayShortcutOpen;
         private GameObject m_extractionBeacon;
         private GameObject m_shortcutGate;
+        private bool m_shortcutOpen;
+        private DeadSignalNavMeshPlanner m_navMeshPlanner;
         private Transform m_cameraRig;
         private LineRenderer m_interceptorTelegraph;
 

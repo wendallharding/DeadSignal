@@ -25,7 +25,7 @@ Material:
     m_TexEnvs: []
     m_Ints: []
     m_Floats:
-    - _Pulse: 0.92514807
+    - _Pulse: 0.9255365
     m_Colors:
     - _BaseColor: {r: 0.015, g: 0.42, b: 0.5, a: 0.32}
     - _EdgeColor: {r: 0.05, g: 0.95, b: 1, a: 0.92}

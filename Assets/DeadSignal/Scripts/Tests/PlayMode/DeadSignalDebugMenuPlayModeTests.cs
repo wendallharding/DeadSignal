@@ -34,6 +34,7 @@ namespace DeadSignal.Tests.PlayMode
             }
 
             Assert.That(game, Is.Not.Null);
+            Assert.That(game.HasRuntimeNavMesh, Is.True, game.DebugNavMeshStatus);
             Assert.That(menu, Is.Not.Null);
             Assert.That(menu.IsOpen, Is.False);
             Assert.That(debugCanvas, Is.Not.Null);
@@ -243,6 +244,58 @@ namespace DeadSignal.Tests.PlayMode
             Assert.That(game.IsTowerOnline, Is.True);
             Assert.That(game.DebugRouteSequenceReport, Does.Contain("ROUTE COMPLETE"));
             game.DebugSetTimeScale(1f);
+        }
+
+        [UnityTest]
+        public IEnumerator NavMeshRouteSequence_CompletesFullExtractionPlan()
+        {
+            SceneManager.LoadScene("SampleScene");
+            yield return null;
+            yield return null;
+
+            var game = Object.FindFirstObjectByType<DeadSignalGame>();
+            Assert.That(game, Is.Not.Null);
+            Assert.That(game.HasRuntimeNavMesh, Is.True, game.DebugNavMeshStatus);
+            game.DebugSetTimeScale(2f);
+            game.DebugStartRouteSequence(DebugRoutePreset.FullExtraction, DebugAutomationMode.DeterministicValidation,
+                DebugAutomationProfile.SafeNavigation);
+
+            var timeout = Time.realtimeSinceStartup + 45f;
+            while ((game.DebugRouteSequenceState == DebugRouteRunState.Navigating ||
+                    game.DebugRouteSequenceState == DebugRouteRunState.Verifying) && Time.realtimeSinceStartup < timeout)
+            {
+                yield return null;
+            }
+
+            Assert.That(game.DebugRouteSequenceState, Is.EqualTo(DebugRouteRunState.Completed),
+                $"{game.DebugRouteSequenceReport}\n{game.DebugRouteSequenceStatus}\n{game.DebugTelemetry}");
+            Assert.That(game.CurrentSalvage, Is.EqualTo(RunModel.SalvageRequired));
+            Assert.That(game.IsExtractionUplinkActive, Is.True);
+            game.DebugSetTimeScale(1f);
+        }
+
+        [UnityTest]
+        public IEnumerator Warden_UsesNavMeshToAdvanceAcrossAuthoredObstacles()
+        {
+            SceneManager.LoadScene("SampleScene");
+            yield return null;
+            yield return null;
+
+            var game = Object.FindFirstObjectByType<DeadSignalGame>();
+            Assert.That(game, Is.Not.Null);
+            game.DebugActivateTower();
+            game.DebugTeleport(DebugLocation.FarEast);
+            game.DebugSetInvulnerable(true);
+            var start = game.DebugThreatPosition(SecurityReinforcement.Warden);
+            var timeout = Time.realtimeSinceStartup + 6f;
+            while (Time.realtimeSinceStartup < timeout)
+            {
+                yield return null;
+            }
+
+            var end = game.DebugThreatPosition(SecurityReinforcement.Warden);
+            Assert.That(Vector3.Distance(start, end), Is.GreaterThan(1f));
+            Assert.That(game.DebugNavMeshStatus, Does.Contain("corner").Or.Contain("Complete"));
         }
     }
 }

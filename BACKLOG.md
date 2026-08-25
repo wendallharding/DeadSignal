@@ -10,6 +10,15 @@
 - [ ] Compare a required-only withdrawal against optional-cache Furnace/Quench routes with live threats; record time, hits, Signal, weapon use, shortcut use, and final reserve
 - [ ] Author the station guardian only after the matched human comparison confirms the expanded run is readable, completable, and tactically varied
 
+## P0 — Shared runtime NavMesh routing
+
+- [x] Build one runtime NavMesh from the scene-authored arena bounds and authoritative oriented movement blockers
+- [x] Rebuild the mesh when the central, Relay, Spine, or Quench return gates open
+- [x] Route the playtest sequencer and Suppressor, Interceptor, Warden, and Sapper through complete multi-corner paths
+- [x] Preserve authoritative movement collision and the previous local-detour planner as a safe fallback
+- [x] Expose NavMesh availability, query status, and remaining route corners in debug telemetry
+- [x] Prove a complete Full Extraction automation route and enemy traversal around authored obstacles
+
 ## P0 — Quench cache-release shortcut (Run 96)
 
 - [x] Add a scene-authored pressure shutter that forces the outbound Quench route onto its exposed east edge
