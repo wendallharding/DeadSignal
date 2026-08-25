@@ -66,6 +66,9 @@ namespace DeadSignal.Combat
         private int m_pendingEntryIndex = -1;
         private bool m_debugFrozen;
         private bool m_debugPlayerInvulnerable;
+        private bool m_debugScenarioActive;
+        private int m_debugScenarioAttackMask;
+        private AuthoredCombatScenario m_debugScenario;
 
         public DeadSignalThreatController(
             RunModel model,
@@ -146,6 +149,21 @@ namespace DeadSignal.Combat
         public SecurityReinforcement PendingReinforcement => m_director.PendingReinforcement;
         public int PiercingPulseFollowThroughs { get; private set; }
         public int ControlledRicochets { get; private set; }
+        public int DebugScenarioAttackCount
+        {
+            get
+            {
+                var count = 0;
+                for (var bit = 1; bit <= 8; bit <<= 1)
+                {
+                    if ((m_debugScenarioAttackMask & bit) != 0)
+                    {
+                        count++;
+                    }
+                }
+                return count;
+            }
+        }
 
         public void BeginExtractionPressure(ExtractionUplinkMode mode)
         {
@@ -213,6 +231,77 @@ namespace DeadSignal.Combat
 
         public void SetPlayerInvulnerableForDebug(bool invulnerable) => m_debugPlayerInvulnerable = invulnerable;
 
+        public void ConfigureForDebugScenario(AuthoredCombatScenario scenario)
+        {
+            ResetDebugScenario();
+            if (scenario == null || !scenario.IsComplete)
+            {
+                return;
+            }
+
+            m_debugScenarioActive = true;
+            m_debugScenario = scenario;
+            m_debugPlayerInvulnerable = true;
+            SpawnForDebug(SecurityReinforcement.Warden);
+            SpawnForDebug(SecurityReinforcement.Sapper);
+            SpawnForDebug(SecurityReinforcement.Interceptor);
+            SpawnForDebug(SecurityReinforcement.Suppressor);
+            _placeForDebug(m_world.Warden, scenario.WardenAnchor, scenario.PlayerAnchor.position);
+            _placeForDebug(m_world.Sapper, scenario.SapperAnchor, scenario.PlayerAnchor.position);
+            _placeForDebug(m_world.Interceptor, scenario.InterceptorAnchor, scenario.PlayerAnchor.position);
+            _placeForDebug(m_world.Suppressor, scenario.SuppressorAnchor, scenario.PlayerAnchor.position);
+            m_wardenAttackCooldown = 1f;
+            m_sapperLatched = true;
+            m_sapperPulseCooldown = 1.5f;
+            m_interceptorDashTarget = scenario.PlayerAnchor.position;
+            m_interceptorChargeCountdown = 1.5f;
+            m_suppressorFieldCooldown = 1f;
+            m_world.SapperTelegraph.SetThreatState(true, true, m_sapperPulseCooldown, m_tuning.SapperPulseInterval);
+        }
+
+        public void ResetDebugScenario()
+        {
+            m_debugScenarioActive = false;
+            m_debugScenario = null;
+            m_debugScenarioAttackMask = 0;
+            m_debugPlayerInvulnerable = false;
+            m_debugFrozen = false;
+            m_extractionPressure = false;
+            m_extractionUplinkMode = ExtractionUplinkMode.None;
+            m_wardenHealth = 0f;
+            m_sapperHealth = 0f;
+            m_interceptorHealth = 0f;
+            m_suppressorHealth = 0f;
+            m_wardenAttackCooldown = 0f;
+            m_wardenScreeningSapper = false;
+            m_sapperPulseCooldown = 0f;
+            m_sapperLatched = false;
+            m_interceptorChargeCountdown = 0f;
+            m_interceptorDashRemaining = 0f;
+            m_interceptorRecoveryCountdown = 0f;
+            m_interceptorHitCooldown = 0f;
+            m_interceptorCuttingSapperFlank = false;
+            m_suppressorWarningCountdown = 0f;
+            m_suppressorFieldCountdown = 0f;
+            m_suppressorFieldCooldown = 0f;
+            m_suppressorPulseCountdown = 0f;
+            m_pendingEntryIndex = -1;
+            m_shotCooldown = 0f;
+            foreach (var projectile in m_projectiles)
+            {
+                if (projectile.Visual != null)
+                {
+                    UnityEngine.Object.Destroy(projectile.Visual);
+                }
+            }
+            m_projectiles.Clear();
+            m_world.PurgeWarden();
+            m_world.PurgeSapper();
+            m_world.PurgeInterceptor();
+            m_world.PurgeSuppressor();
+            m_world.SetReinforcementEntryWarning(SecurityReinforcement.None, -1, false, 0f);
+        }
+
         public void DamageForDebug(SecurityReinforcement reinforcement)
         {
             switch (reinforcement)
@@ -254,6 +343,7 @@ namespace DeadSignal.Combat
             _tickWarden(dt);
             _tickSapper(dt);
             _tickProjectiles(dt);
+            _clampDebugScenarioActors();
         }
 
         public void TryFire(Vector3 direction)
@@ -435,16 +525,22 @@ namespace DeadSignal.Combat
                 {
                     m_suppressorFieldCountdown = m_tuning.SuppressorFieldDuration;
                     m_suppressorPulseCountdown = 0f;
+                    if (m_debugScenarioActive)
+                    {
+                        m_debugScenarioAttackMask |= 8;
+                    }
                 }
 
                 return;
             }
 
             m_suppressorFieldCooldown = Mathf.Max(0f, m_suppressorFieldCooldown - dt);
-            var anchor = InterceptorTactics.CalculateCutoffPoint(
-                m_world.Player.position,
-                m_world.ExtractionPosition,
-                0.5f);
+            var anchor = m_debugScenarioActive
+                ? m_world.Player.position
+                : InterceptorTactics.CalculateCutoffPoint(
+                    m_world.Player.position,
+                    m_world.ExtractionPosition,
+                    0.5f);
             var navigationTarget = m_world.GetNavMeshWaypoint(
                 m_world.Suppressor,
                 anchor,
@@ -542,6 +638,10 @@ namespace DeadSignal.Combat
                     m_interceptorDashDirection = dashDelta.sqrMagnitude > 0.01f ? dashDelta.normalized : m_world.Interceptor.forward;
                     m_interceptorDashRemaining = m_tuning.InterceptorDashDuration;
                     m_world.SetInterceptorTelegraph(false, m_interceptorDashTarget);
+                    if (m_debugScenarioActive)
+                    {
+                        m_debugScenarioAttackMask |= 4;
+                    }
                 }
 
                 return;
@@ -722,6 +822,10 @@ namespace DeadSignal.Combat
         private void _applyWardenHit()
         {
             m_wardenAttackCooldown = m_tuning.WardenAttackCooldown;
+            if (m_debugScenarioActive)
+            {
+                m_debugScenarioAttackMask |= 1;
+            }
             if (_tryAbsorbThreatDamage("WARDEN IMPACT"))
             {
                 return;
@@ -788,6 +892,10 @@ namespace DeadSignal.Combat
             }
 
             m_sapperPulseCooldown = m_tuning.SapperPulseInterval;
+            if (m_debugScenarioActive)
+            {
+                m_debugScenarioAttackMask |= 2;
+            }
             m_combatFeedback.PlaySapperImpact(m_world.TowerPosition + Vector3.up * 0.65f);
             m_audio.Play(DeadSignalAudioCue.SapperPulse);
             m_world.SapperTelegraph.SetThreatState(true, true, m_sapperPulseCooldown, m_tuning.SapperPulseInterval);
@@ -1298,6 +1406,29 @@ namespace DeadSignal.Combat
             };
             m_showFeedback($"FEEDBACK SHIELD — {threatName} NEGATED{synergyText}  //  PURGE TO RECHARGE");
             return true;
+        }
+
+        private static void _placeForDebug(Transform threat, Transform anchor, Vector3 target)
+        {
+            threat.position = anchor.position;
+            var forward = target - threat.position;
+            forward.y = 0f;
+            threat.rotation = forward.sqrMagnitude > 0.01f
+                ? Quaternion.LookRotation(forward.normalized, Vector3.up)
+                : anchor.rotation;
+        }
+
+        private void _clampDebugScenarioActors()
+        {
+            if (!m_debugScenarioActive || m_debugScenario == null)
+            {
+                return;
+            }
+
+            m_world.Warden.position = m_debugScenario.ClampToSafeArea(m_world.Warden.position);
+            m_world.Sapper.position = m_debugScenario.ClampToSafeArea(m_world.Sapper.position);
+            m_world.Interceptor.position = m_debugScenario.ClampToSafeArea(m_world.Interceptor.position);
+            m_world.Suppressor.position = m_debugScenario.ClampToSafeArea(m_world.Suppressor.position);
         }
 
         private string _purgeRewardText()

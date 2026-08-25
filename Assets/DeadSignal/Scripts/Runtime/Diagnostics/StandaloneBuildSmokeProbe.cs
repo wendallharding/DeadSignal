@@ -66,6 +66,12 @@ namespace DeadSignal.Diagnostics
             var departureAlbedoReady = Resources.Load<Texture2D>("Environment/DepartureCapacitorAlbedo") != null;
             var departureSurgeTextureReady = Resources.Load<Texture2D>("Environment/DepartureCapacitorSurgeDecal") != null;
             var departureSurgeMaterialReady = Resources.Load<Material>("Materials/DepartureCapacitorSurgeDecal") != null;
+            var combatLabTextureReady = Resources.Load<Texture2D>("Environment/EasternCombatLabTarget") != null;
+            var combatLabMaterialReady =
+                Resources.Load<Material>("Materials/EasternCombatLab/EasternCombatLabTarget") != null;
+            var combatLabAnchorsReady = game != null && game.transform.Find(
+                "Spine Induction Gallery Region/Convergence Chamber Region/" +
+                "Arc Furnace Region/Eastern Combat Scenario") != null;
             Debug.Log($"[DEAD SIGNAL STANDALONE SMOKE] RELAY WEAPON | " +
                       $"decal={weaponDecalReady} texture={weaponTextureReady} material={weaponMaterialReady} " +
                       $"obstacles={game?.AuthoredMapObstacleCount ?? -1}");
@@ -74,6 +80,8 @@ namespace DeadSignal.Diagnostics
                       $"capacitor={departureCapacitorReady} channel={departureChannelReady} albedo={departureAlbedoReady} " +
                       $"surgeTexture={departureSurgeTextureReady} surgeMaterial={departureSurgeMaterialReady} " +
                       $"salvage={game?.SalvageCacheInstanceCount ?? -1}");
+            Debug.Log($"[DEAD SIGNAL STANDALONE SMOKE] EASTERN COMBAT LAB | " +
+                      $"anchors={combatLabAnchorsReady} texture={combatLabTextureReady} material={combatLabMaterialReady}");
             var runtimeReady = game != null &&
                                 game.transform.Find("Maintenance Drone") != null &&
                                 game.transform.Find("Shortcut Gate Assembly/Signal Shortcut Gate") != null &&
@@ -211,6 +219,9 @@ namespace DeadSignal.Diagnostics
                                 departureReturnMaterialReady &&
                                 departureSurgeTextureReady &&
                                 departureSurgeMaterialReady &&
+                                combatLabTextureReady &&
+                                combatLabMaterialReady &&
+                                combatLabAnchorsReady &&
                                 Resources.Load<GameObject>("Environment/SignalSpineInlay") != null &&
                                 Resources.Load<GameObject>("Environment/OpeningSignalSpine") != null &&
                                 Resources.Load<Texture2D>("Environment/SignalSpineInlay") != null &&

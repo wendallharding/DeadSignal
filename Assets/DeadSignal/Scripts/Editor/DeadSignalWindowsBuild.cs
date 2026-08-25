@@ -51,6 +51,7 @@ namespace DeadSignal.Editor
             DeadSignalFluxBypassSetup.EnsureAssets();
             DeadSignalArcFurnaceSetup.EnsureAssets();
             DeadSignalQuenchLoopSetup.EnsureAssets();
+            DeadSignalEasternCombatScenarioSetup.EnsureAssets();
             DeadSignalSignalSpineSetup.EnsureAssets();
             DeadSignalBoundaryThresholdSetup.EnsureAssets();
             DeadSignalHudSetup.EnsureAssets();
@@ -209,6 +210,11 @@ namespace DeadSignal.Editor
             if (!DeadSignalQuenchLoopSetup.HasAssets)
             {
                 throw new BuildFailedException("The scene-authored Quench Loop is missing or incomplete.");
+            }
+
+            if (!DeadSignalEasternCombatScenarioSetup.HasAssets)
+            {
+                throw new BuildFailedException("The scene-authored eastern combat laboratory is missing or incomplete.");
             }
 
             if (!DeadSignalActorSetup.HasSecurityWardenAssets)

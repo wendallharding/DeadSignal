@@ -1,5 +1,16 @@
 # DEAD SIGNAL — Product Backlog
 
+## P0 — Eastern room combat laboratory (Run 103)
+
+- [x] Replace the arena-edge teleport with a scene-authored Arc Furnace player anchor, camera focus, four role staging points, and safe framing envelope
+- [x] Preset Central, Relay, Spine, two resolved temporary choices, Piercing Pulse, full Signal, and an explicit combat-lab objective
+- [x] Reset projectiles, role health, attack timers, drain/dash/suppression state, feedback objectives, and debug invulnerability on scenario transitions
+- [x] Keep Warden, Sapper, Interceptor, and Suppressor behavior active while a visible debug shield prevents the 30-second readability lab from ending early
+- [x] Report scenario time, Signal, active threats, completed role attacks, and 15–85 percent viewport status
+- [x] Add an original transparent combat-target floor insignia and enforce its prefab/resource packaging
+- [x] Prove five consecutive loads, complete attack coverage, 30-second survival, viewport containment, full regression, Windows build, and packaged smoke
+- [ ] Capture and inspect one rendered 1600x900 frame per role telegraph plus one mixed-combat frame in an interactive Editor session
+
 ## P0 — Departure capacitor surge (Run 102)
 
 - [x] Turn the released direct cargo lane into a one-shot 12-Signal return resource

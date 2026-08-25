@@ -30,6 +30,7 @@ namespace DeadSignal.Presentation
         void Configure(RunModel model, RunMetrics metrics, DeadSignalWorld world, DeadSignalThreatController threats,
             DeadSignalSalvageController salvage, ExtractionUplink extractionUplink, SignalOverclockChoice overclockChoice);
         void ShowFeedback(string message);
+        void SetDebugObjective(string objective);
         void SetDebugMenuVisible(bool visible);
         void Tick(float dt);
     }
@@ -98,6 +99,7 @@ namespace DeadSignal.Presentation
         private bool m_debugMenuVisible;
         private string m_personalBestText = string.Empty;
         private string m_feedback = string.Empty;
+        private string m_debugObjective = string.Empty;
 
         public bool HasPauseInsignia => _hasTexture(m_pauseInsignia);
         public bool HasCameraComfortIcon => _hasTexture(m_cameraComfortIcon);
@@ -169,6 +171,12 @@ namespace DeadSignal.Presentation
             m_feedback = message;
             m_feedbackTimer = 2.2f;
             m_feedbackPriority = priority;
+        }
+
+        void IDeadSignalHud.SetDebugObjective(string objective)
+        {
+            m_debugObjective = objective ?? string.Empty;
+            _refresh();
         }
 
         void IDeadSignalHud.SetDebugMenuVisible(bool visible)
@@ -262,7 +270,9 @@ namespace DeadSignal.Presentation
             var guidance = MissionGuidance.Evaluate(m_model, m_threats.IsSapperAlive, m_threats.IsSapperLatched,
                 m_threats.SapperPulseCooldown);
             CurrentMissionPhase = guidance.Phase;
-            m_objectiveText.text = m_overclockChoice.IsWeaponPending
+            m_objectiveText.text = !string.IsNullOrEmpty(m_debugObjective)
+                ? m_debugObjective
+                : m_overclockChoice.IsWeaponPending
                 ? $"RELAY WEAPON CALIBRATION\nFIRE [{m_input.FireKeyboardBinding}]  PIERCING PULSE — STRIKE TWO THREATS\n" +
                   $"USE [{m_input.InteractKeyboardBinding}]  CONTROLLED RICOCHET — REDIRECT FROM COVER"
                 : m_overclockChoice.IsPrimaryPending
@@ -453,6 +463,8 @@ namespace DeadSignal.Presentation
 
         private string _contextPrompt()
         {
+            if (!string.IsNullOrEmpty(m_debugObjective))
+                return string.Empty;
             if (m_overclockChoice.IsPrimaryPending)
                 return $"CHOOSE NOW  —  {_binding("FIRE: CHAIN ARC", "RB: CHAIN ARC")}  |  " +
                        $"{_binding("USE: OVERDRIVE", "X: OVERDRIVE")}";

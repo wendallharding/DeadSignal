@@ -79,6 +79,9 @@ namespace DeadSignal.Application
         private DeadSignalDebugVisualization m_debugVisualization;
         private DeadSignalDebugCamera m_debugCamera;
         private string m_lastDebugCapturePath = "None";
+        private AuthoredCombatScenario m_debugCombatScenario;
+        private float m_debugCombatScenarioSeconds;
+        private bool m_debugCombatScenarioActive;
 
         public float CurrentSignal => m_model?.Signal ?? 0f;
         public int CurrentSalvage => m_model?.Salvage ?? 0;
@@ -289,6 +292,20 @@ namespace DeadSignal.Application
         public string DebugReplayInfo =>
             $"Route seed {PlayerPrefs.GetInt("DeadSignal.RouteVariant", 0)}  Frame {Time.frameCount}  Capture {m_lastDebugCapturePath}";
         public Vector3 DebugPlayerPosition => m_world?.Player.position ?? Vector3.zero;
+        public bool IsEasternCombatScenarioActive => m_debugCombatScenarioActive;
+        public float DebugCombatScenarioSeconds => m_debugCombatScenarioSeconds;
+        public int DebugCombatScenarioAttackCount => m_threats?.DebugScenarioAttackCount ?? 0;
+        public bool AreDebugCombatActorsInSafeViewport => m_debugCombatScenarioActive &&
+            _isInSafeViewport(m_world.Player) && _isInSafeViewport(m_world.Warden) &&
+            _isInSafeViewport(m_world.Sapper) && _isInSafeViewport(m_world.Interceptor) &&
+            _isInSafeViewport(m_world.Suppressor);
+        public string DebugCombatScenarioStatus => !m_debugCombatScenarioActive
+            ? "COMBAT LAB  Inactive"
+            : $"COMBAT LAB  {m_debugCombatScenarioSeconds:0.0}s  Signal {CurrentSignal:0.0}  " +
+              $"Threats {_activeDebugThreatCount()}/4  Attacks {DebugCombatScenarioAttackCount}/4\n" +
+              $"Viewport P:{_viewportState(m_world.Player)} W:{_viewportState(m_world.Warden)} " +
+              $"S:{_viewportState(m_world.Sapper)} I:{_viewportState(m_world.Interceptor)} " +
+              $"X:{_viewportState(m_world.Suppressor)}";
         public bool IsDebugRouteDriving => m_debugRouteDriving;
         public bool IsDebugMenuOpen => m_debugMenuOpen;
         public bool HasRuntimeNavMesh => m_world?.HasRuntimeNavMesh ?? false;
@@ -768,7 +785,7 @@ namespace DeadSignal.Application
                 case DebugScenario.Victory: DebugCompleteExtraction(); break;
                 case DebugScenario.Failure: m_model.SetSignalForDebug(0f); m_model.Advance(RunModel.CriticalRecoveryDuration, false, false); break;
                 case DebugScenario.EasternRoomCombat:
-                    DebugActivateRelayTower(); DebugTeleport(DebugLocation.FarEast); DebugSpawnThreat(SecurityReinforcement.Warden); break;
+                    _applyEasternRoomCombatScenario(); break;
                 case DebugScenario.AllEffects:
                     DebugActivateTower(); DebugTeleport(DebugLocation.CentralTower); DebugExerciseCombatFeedback(); break;
             }
@@ -963,6 +980,10 @@ namespace DeadSignal.Application
 
             _handlePauseInput();
             var dt = Mathf.Min(Time.deltaTime, 0.05f);
+            if (m_debugCombatScenarioActive && !IsPaused)
+            {
+                m_debugCombatScenarioSeconds += dt;
+            }
             m_hud.Tick(dt);
 
             if (m_combatFeedback.IsFrozen)
@@ -1865,6 +1886,96 @@ namespace DeadSignal.Application
             m_debugPreviousSignal = m_model.Signal;
         }
 
+        private void _applyEasternRoomCombatScenario()
+        {
+            m_debugCombatScenario = Object.FindFirstObjectByType<AuthoredCombatScenario>(FindObjectsInactive.Include);
+            if (m_debugCombatScenario == null || !m_debugCombatScenario.IsComplete)
+            {
+                _showFeedback("DEBUG — EASTERN COMBAT ANCHORS MISSING");
+                return;
+            }
+
+            DebugActivateTower();
+            if (!m_model.CentralPayloadSecured)
+            {
+                DebugCollectNextCache();
+            }
+            if (m_overclockChoice.IsPrimaryPending)
+            {
+                DebugSelectOverclock(SignalOverclock.ChainArc);
+            }
+            DebugActivateRelayTower();
+            if (m_overclockChoice.IsWeaponPending)
+            {
+                DebugSelectWeapon(SignalWeaponOverclock.PiercingPulse);
+            }
+            if (!m_model.RelayPayloadSecured)
+            {
+                DebugCollectNextCache();
+            }
+            if (m_overclockChoice.IsAuxiliaryPending)
+            {
+                DebugSelectAuxiliary(SignalAuxiliaryOverclock.FeedbackShield);
+            }
+            DebugActivateSpineTower();
+
+            m_model.SetSignalForDebug(RunModel.MaximumSignal);
+            m_world.Player.SetPositionAndRotation(
+                m_debugCombatScenario.PlayerAnchor.position,
+                m_debugCombatScenario.PlayerAnchor.rotation);
+            m_playerMovement = new PlayerDroneMovement();
+            m_world.PlayerCamera.SnapToFocus(m_debugCombatScenario.CameraFocus.position);
+            m_threats.ConfigureForDebugScenario(m_debugCombatScenario);
+            m_debugCombatScenarioSeconds = 0f;
+            m_debugCombatScenarioActive = true;
+            m_hud.SetDebugObjective(
+                "COMBAT LAB  //  SURVIVE 30 SECONDS\n" +
+                "READ WARDEN, SAPPER, INTERCEPTOR, AND SUPPRESSOR ATTACKS\n" +
+                "DEBUG SHIELD ACTIVE — FIRE AND EVADE NORMALLY");
+            if (m_missionClarityHud != null)
+            {
+                m_missionClarityHud.enabled = false;
+            }
+            if (m_objectiveBeacon is MonoBehaviour objectiveBeacon)
+            {
+                objectiveBeacon.enabled = false;
+            }
+            _showFeedback("DEBUG — EASTERN COMBAT LAB READY");
+        }
+
+        private int _activeDebugThreatCount()
+        {
+            var count = 0;
+            if (WardenHealth > 0f) count++;
+            if (SapperHealth > 0f) count++;
+            if (InterceptorHealth > 0f) count++;
+            if (SuppressorHealth > 0f) count++;
+            return count;
+        }
+
+        private bool _isInSafeViewport(Transform target)
+        {
+            if (target == null || !target.gameObject.activeInHierarchy || m_world?.Camera == null)
+            {
+                return false;
+            }
+
+            var viewport = m_world.Camera.WorldToViewportPoint(target.position + Vector3.up * 0.5f);
+            return viewport.z > 0f && viewport.x >= 0.15f && viewport.x <= 0.85f &&
+                   viewport.y >= 0.15f && viewport.y <= 0.85f;
+        }
+
+        private string _viewportState(Transform target)
+        {
+            if (target == null || m_world?.Camera == null)
+            {
+                return "MISSING";
+            }
+
+            var viewport = m_world.Camera.WorldToViewportPoint(target.position + Vector3.up * 0.5f);
+            return $"{(_isInSafeViewport(target) ? "SAFE" : "OUT")}({viewport.x:0.00},{viewport.y:0.00})";
+        }
+
         private void _resetDebugTransientState()
         {
             m_debugRouteDriving = false;
@@ -1872,6 +1983,25 @@ namespace DeadSignal.Application
             m_debugObservedSequenceStep = -1;
             m_fireBuffered = false;
             m_playerMovement?.ApplyResolvedVelocity(Vector3.zero);
+            if (m_debugCombatScenarioActive)
+            {
+                m_threats?.ResetDebugScenario();
+            }
+            else
+            {
+                m_threats?.SetPlayerInvulnerableForDebug(false);
+            }
+            m_debugCombatScenarioActive = false;
+            m_debugCombatScenarioSeconds = 0f;
+            m_hud?.SetDebugObjective(string.Empty);
+            if (m_missionClarityHud != null)
+            {
+                m_missionClarityHud.enabled = true;
+            }
+            if (m_objectiveBeacon is MonoBehaviour objectiveBeacon)
+            {
+                objectiveBeacon.enabled = true;
+            }
         }
 
         private Vector3 _debugLocationPosition(DebugLocation location)

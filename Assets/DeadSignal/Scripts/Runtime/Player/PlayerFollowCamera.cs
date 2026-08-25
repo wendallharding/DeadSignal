@@ -112,6 +112,28 @@ namespace DeadSignal.Player
             m_aimDirection = aimDirection;
         }
 
+        public void SnapToFocus(Vector3 focus)
+        {
+            if (!m_isConfigured)
+            {
+                return;
+            }
+
+            m_currentLookAhead = Vector3.zero;
+            m_lastTargetPosition = m_target.position;
+            m_currentFocus = CalculateClampedFocus(
+                focus,
+                m_arenaHalfExtents,
+                m_groundFootprintMinimum,
+                m_groundFootprintMaximum,
+                m_tuning.ArenaEdgePadding);
+            m_currentFocus = EnsureTargetVisibleFocus(
+                m_currentFocus,
+                m_target.position,
+                m_tuning.MaximumTargetFocusOffset);
+            transform.position = m_currentFocus;
+        }
+
         public static Vector3 CalculateClampedFocus(
             Vector3 desiredFocus,
             Vector2 arenaHalfExtents,

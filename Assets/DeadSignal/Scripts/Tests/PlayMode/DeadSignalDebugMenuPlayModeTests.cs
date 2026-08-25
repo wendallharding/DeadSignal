@@ -8,6 +8,7 @@ using DeadSignal.Diagnostics;
 using DeadSignal.Missions;
 using DeadSignal.Combat;
 using DeadSignal.Presentation;
+using DeadSignal.World;
 using UnityEngine.UI;
 
 namespace DeadSignal.Tests.PlayMode
@@ -302,6 +303,75 @@ namespace DeadSignal.Tests.PlayMode
             var end = game.DebugThreatPosition(SecurityReinforcement.Warden);
             Assert.That(Vector3.Distance(start, end), Is.GreaterThan(1f));
             Assert.That(game.DebugNavMeshStatus, Does.Contain("corner").Or.Contain("Complete"));
+        }
+
+        [UnityTest]
+        public IEnumerator EasternRoomCombat_UsesAuthoredAnchorsAndSurvivesThirtySeconds()
+        {
+            var originalWidth = Screen.width;
+            var originalHeight = Screen.height;
+            Screen.SetResolution(1600, 900, false);
+            SceneManager.LoadScene("SampleScene");
+            yield return null;
+            yield return null;
+
+            var game = Object.FindFirstObjectByType<DeadSignalGame>();
+            var scenario = Object.FindFirstObjectByType<AuthoredCombatScenario>(FindObjectsInactive.Include);
+            Assert.That(game, Is.Not.Null);
+            Assert.That(scenario, Is.Not.Null);
+            Assert.That(scenario.IsComplete, Is.True);
+            Assert.That(Resources.Load<Texture2D>("Environment/EasternCombatLabTarget"), Is.Not.Null);
+            Assert.That(Resources.Load<Material>("Materials/EasternCombatLab/EasternCombatLabTarget"), Is.Not.Null);
+            var obstacles = Object.FindObjectsByType<AuthoredMapObstacle>(FindObjectsSortMode.None);
+            foreach (var anchor in new[]
+                     {
+                         scenario.PlayerAnchor, scenario.WardenAnchor, scenario.SapperAnchor,
+                         scenario.InterceptorAnchor, scenario.SuppressorAnchor
+                     })
+            {
+                foreach (var obstacle in obstacles)
+                {
+                    Assert.That(obstacle.OverlapsCircle(anchor.position, 0.6f), Is.False,
+                        $"{anchor.name} must keep a safe authored clearance from {obstacle.name}.");
+                }
+            }
+
+            for (var load = 0; load < 5; load++)
+            {
+                game.DebugApplyScenario(DebugScenario.EasternRoomCombat);
+                yield return null;
+                yield return null;
+                Assert.That(game.CurrentRunOutcome, Is.EqualTo(RunOutcome.Running), game.DebugCombatScenarioStatus);
+                Assert.That(game.IsEasternCombatScenarioActive, Is.True);
+                Assert.That(game.IsTowerOnline, Is.True);
+                Assert.That(game.IsRelayTowerOnline, Is.True);
+                Assert.That(game.IsSpineTowerOnline, Is.True);
+                Assert.That(game.SelectedWeaponOverclock, Is.EqualTo(SignalWeaponOverclock.PiercingPulse));
+                Assert.That(game.IsOverclockChoicePending, Is.False);
+                Assert.That(game.IsWeaponOverclockChoicePending, Is.False);
+                Assert.That(game.CurrentMissionObjective, Does.Contain("COMBAT LAB"));
+                Assert.That(game.CurrentMissionObjective, Does.Not.Contain("SALVAGE"));
+                Assert.That(game.AreDebugCombatActorsInSafeViewport, Is.True, game.DebugCombatScenarioStatus);
+            }
+
+            game.DebugSetTimeScale(8f);
+            var timeout = Time.realtimeSinceStartup + 45f;
+            while (game.DebugCombatScenarioSeconds < 30f && Time.realtimeSinceStartup < timeout)
+            {
+                Assert.That(game.CurrentRunOutcome, Is.EqualTo(RunOutcome.Running), game.DebugCombatScenarioStatus);
+                Assert.That(game.AreDebugCombatActorsInSafeViewport, Is.True, game.DebugCombatScenarioStatus);
+                yield return null;
+            }
+
+            Assert.That(game.DebugCombatScenarioSeconds, Is.GreaterThanOrEqualTo(30f), game.DebugCombatScenarioStatus);
+            Assert.That(game.DebugCombatScenarioAttackCount, Is.EqualTo(4), game.DebugCombatScenarioStatus);
+            Assert.That(game.WardenHealth, Is.GreaterThan(0f));
+            Assert.That(game.SapperHealth, Is.GreaterThan(0f));
+            Assert.That(game.InterceptorHealth, Is.GreaterThan(0f));
+            Assert.That(game.SuppressorHealth, Is.GreaterThan(0f));
+            Assert.That(game.DebugNavMeshStatus, Does.Not.Contain("Failed"));
+            game.DebugSetTimeScale(1f);
+            Screen.SetResolution(originalWidth, originalHeight, false);
         }
     }
 }
