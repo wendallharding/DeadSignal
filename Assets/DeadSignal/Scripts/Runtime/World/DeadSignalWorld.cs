@@ -114,6 +114,7 @@ namespace DeadSignal.World
         public bool LastMovementBlocked { get; private set; }
         public bool HasRuntimeNavMesh => m_navMeshPlanner?.IsReady ?? false;
         public string NavMeshStatus => m_navMeshPlanner?.LastStatus ?? "Unavailable";
+        public bool IsDepartureSurgeConsumed => m_departureSurgeConsumed;
 
         public DeadSignalWorld(Transform root, IComfortSettings comfortSettings)
         {
@@ -416,8 +417,39 @@ namespace DeadSignal.World
             {
                 m_departureReturnSignal.SetActive(true);
             }
+            if (m_departureSurgeSignal != null)
+            {
+                m_departureSurgeSignal.SetActive(true);
+            }
+            m_departurePreviousLocalX = m_departureChannel == null
+                ? 0f
+                : m_departureChannel.InverseTransformPoint(Player.position).x;
             m_departureReturnOpen = true;
             _rebuildNavMesh();
+        }
+
+        public bool TryConsumeDepartureSurge(Vector3 playerPosition)
+        {
+            if (!m_departureReturnOpen || m_departureSurgeConsumed || m_departureChannel == null)
+            {
+                return false;
+            }
+
+            var localPosition = m_departureChannel.InverseTransformPoint(playerPosition);
+            var crossedDirectLane = m_departurePreviousLocalX < 0f && localPosition.x >= 0f &&
+                                    Mathf.Abs(localPosition.z) <= 0.9f;
+            m_departurePreviousLocalX = localPosition.x;
+            if (!crossedDirectLane)
+            {
+                return false;
+            }
+
+            m_departureSurgeConsumed = true;
+            if (m_departureSurgeSignal != null)
+            {
+                m_departureSurgeSignal.SetActive(false);
+            }
+            return true;
         }
 
         public void ApplyHighContrast(bool enabled)
@@ -970,12 +1002,17 @@ namespace DeadSignal.World
             {
                 m_quenchReturnSignal.SetActive(false);
             }
-            var departureChannel = GameObject.Find("Extraction Departure Channel")?.transform;
-            m_departureReturnGate = departureChannel?.Find("Departure Cargo Shutter")?.gameObject;
-            m_departureReturnSignal = departureChannel?.Find("Departure Cargo Return Signal")?.gameObject;
+            m_departureChannel = GameObject.Find("Extraction Departure Channel")?.transform;
+            m_departureReturnGate = m_departureChannel?.Find("Departure Cargo Shutter")?.gameObject;
+            m_departureReturnSignal = m_departureChannel?.Find("Departure Cargo Return Signal")?.gameObject;
+            m_departureSurgeSignal = m_departureChannel?.Find("Departure Capacitor Surge Signal")?.gameObject;
             if (m_departureReturnSignal != null)
             {
                 m_departureReturnSignal.SetActive(false);
+            }
+            if (m_departureSurgeSignal != null)
+            {
+                m_departureSurgeSignal.SetActive(false);
             }
             m_movementBlockers.Add(new MovementBlocker(
                 new Vector2(SpineTowerPosition.x, SpineTowerPosition.z), Vector2.one * TOWER_BLOCKER_HALF_SIZE, false));
@@ -1674,7 +1711,11 @@ namespace DeadSignal.World
         private bool m_quenchReturnOpen;
         private GameObject m_departureReturnGate;
         private GameObject m_departureReturnSignal;
+        private Transform m_departureChannel;
+        private GameObject m_departureSurgeSignal;
         private bool m_departureReturnOpen;
+        private bool m_departureSurgeConsumed;
+        private float m_departurePreviousLocalX;
         private GameObject m_relayShortcutGate;
         private bool m_relayShortcutOpen;
         private GameObject m_extractionBeacon;

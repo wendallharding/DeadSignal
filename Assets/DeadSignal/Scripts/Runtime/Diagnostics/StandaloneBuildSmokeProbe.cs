@@ -64,12 +64,16 @@ namespace DeadSignal.Diagnostics
             var departureCapacitorReady = Resources.Load<GameObject>("Environment/DepartureCapacitor") != null;
             var departureChannelReady = Resources.Load<GameObject>("Environment/ExtractionDepartureChannel") != null;
             var departureAlbedoReady = Resources.Load<Texture2D>("Environment/DepartureCapacitorAlbedo") != null;
+            var departureSurgeTextureReady = Resources.Load<Texture2D>("Environment/DepartureCapacitorSurgeDecal") != null;
+            var departureSurgeMaterialReady = Resources.Load<Material>("Materials/DepartureCapacitorSurgeDecal") != null;
             Debug.Log($"[DEAD SIGNAL STANDALONE SMOKE] RELAY WEAPON | " +
                       $"decal={weaponDecalReady} texture={weaponTextureReady} material={weaponMaterialReady} " +
                       $"obstacles={game?.AuthoredMapObstacleCount ?? -1}");
             Debug.Log($"[DEAD SIGNAL STANDALONE SMOKE] DEPARTURE RETURN | " +
                       $"texture={departureReturnTextureReady} material={departureReturnMaterialReady} " +
-                      $"capacitor={departureCapacitorReady} channel={departureChannelReady} albedo={departureAlbedoReady}");
+                      $"capacitor={departureCapacitorReady} channel={departureChannelReady} albedo={departureAlbedoReady} " +
+                      $"surgeTexture={departureSurgeTextureReady} surgeMaterial={departureSurgeMaterialReady} " +
+                      $"salvage={game?.SalvageCacheInstanceCount ?? -1}");
             var runtimeReady = game != null &&
                                 game.transform.Find("Maintenance Drone") != null &&
                                 game.transform.Find("Shortcut Gate Assembly/Signal Shortcut Gate") != null &&
@@ -83,7 +87,7 @@ namespace DeadSignal.Diagnostics
                                 game.HasSignalRoutingAssets &&
                                 game.HasStationMachineAssets &&
                                 game.HasSalvageCacheAssets &&
-                                game.SalvageCacheInstanceCount == RunModel.SalvageRequired + 1 &&
+                                game.SalvageCacheInstanceCount == RunModel.SalvageRequired * 2 + 1 &&
                                 game.AuthoredSalvageSocketCount == 1 &&
                                 game.HasSalvagePresentationTuning &&
                                 game.HasPlayerDroneAssets &&
@@ -205,6 +209,8 @@ namespace DeadSignal.Diagnostics
                                 departureAlbedoReady &&
                                 departureReturnTextureReady &&
                                 departureReturnMaterialReady &&
+                                departureSurgeTextureReady &&
+                                departureSurgeMaterialReady &&
                                 Resources.Load<GameObject>("Environment/SignalSpineInlay") != null &&
                                 Resources.Load<GameObject>("Environment/OpeningSignalSpine") != null &&
                                 Resources.Load<Texture2D>("Environment/SignalSpineInlay") != null &&

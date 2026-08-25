@@ -1,5 +1,16 @@
 # DEAD SIGNAL — Product Backlog
 
+## P0 — Departure capacitor surge (Run 102)
+
+- [x] Turn the released direct cargo lane into a one-shot 12-Signal return resource
+- [x] Trigger only on an outer-to-inner direct centerline crossing after extraction readiness
+- [x] Keep both capacitor flanks traversable without consuming the reserve
+- [x] Add an original text-free surge decal and hide it after discharge
+- [x] Record actual restored Signal in the existing run evidence
+- [x] Correct the packaged smoke cache-count contract for the seven regional/optional candidates
+- [x] Prove collision, route choice, one-shot recovery, resource packaging, full regression, and Windows smoke
+- [ ] Compare direct-surge and flank returns under the same live threats; record time, hits, drains, and extraction reserve
+
 ## P0 — Departure cargo-release shortcut (Run 101)
 
 - [x] Add a scene-authored shutter between the extraction departure-channel capacitor banks

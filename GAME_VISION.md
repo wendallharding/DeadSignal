@@ -282,3 +282,6 @@ The Quench Loop wraps the Arc Furnace's east side as a compact two-threshold fla
 ### Run 96 product decision — Quench cache-release shortcut
 
 The optional Arc Furnace cache now transforms the Quench Loop instead of paying Signal alone. A scene-authored pressure shutter leaves a narrow exposed east-edge passage on the outward journey, then retracts when the cache is secured to reveal a direct cyan cut-through for the return. This was selected over more floor area, another reward, or stronger enemies because the greed objective should immediately reshape withdrawal through already-authored cover while preserving the same cache economy, six safe gates, four-response cap, combat stats, and Signal drains.
+# Run 102 product decision — departure capacitor surge
+
+Completing the required three-region payload journey now energizes a one-shot 12-Signal capacitor reserve in the released departure-channel centerline. Returning through the direct cut-through claims it; either authored flank remains a valid route and leaves it untouched. This turns the shortcut from pure distance reduction into a visible Signal decision while preserving the existing tower, combat, enemy-count, extraction-mode, and optional-greed contracts.

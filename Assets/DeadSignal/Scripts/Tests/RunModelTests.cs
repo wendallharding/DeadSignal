@@ -343,5 +343,17 @@ namespace DeadSignal.Tests
             Assert.That(metrics.BestSalvageChain, Is.EqualTo(3));
             Assert.That(metrics.SalvageSignalRecovered, Is.EqualTo(6f));
         }
+
+        [Test]
+        public void RunMetrics_DepartureSurgeRecordsOnlyActualRecovery()
+        {
+            var metrics = new RunMetrics();
+
+            metrics.RecordDepartureSurge(12f);
+            metrics.RecordDepartureSurge(0f);
+            metrics.RecordDepartureSurge(-4f);
+
+            Assert.That(metrics.SignalRecovered, Is.EqualTo(12f));
+        }
     }
 }

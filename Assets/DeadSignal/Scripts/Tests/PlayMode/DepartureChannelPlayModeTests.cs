@@ -27,13 +27,17 @@ namespace DeadSignal.Tests
                 var channel = GameObject.Find("Extraction Departure Channel").transform;
                 var shutter = channel.Find("Departure Cargo Shutter").gameObject;
                 var returnSignal = channel.Find("Departure Cargo Return Signal").gameObject;
+                var surgeSignal = channel.Find("Departure Capacitor Surge Signal").gameObject;
 
                 Assert.That(channel.GetComponentsInChildren<AuthoredMapObstacle>().Length, Is.EqualTo(3));
                 Assert.That(channel.GetComponentsInChildren<Collider>().Length, Is.Zero);
                 Assert.That(shutter.activeSelf, Is.True);
                 Assert.That(returnSignal.activeSelf, Is.False);
+                Assert.That(surgeSignal.activeSelf, Is.False);
                 Assert.That(Resources.Load<Texture2D>("Environment/DepartureCargoReturnDecal"), Is.Not.Null);
                 Assert.That(Resources.Load<Material>("Materials/DepartureCargoReturnDecal"), Is.Not.Null);
+                Assert.That(Resources.Load<Texture2D>("Environment/DepartureCapacitorSurgeDecal"), Is.Not.Null);
+                Assert.That(Resources.Load<Material>("Materials/DepartureCapacitorSurgeDecal"), Is.Not.Null);
                 Assert.That(game.AuthoredMapObstacleCount, Is.EqualTo(96));
 
                 var directStart = channel.TransformPoint(new Vector3(-1.35f, 0f, 0f));
@@ -64,11 +68,34 @@ namespace DeadSignal.Tests
                     "Completing all three required regional payloads should retract the cargo shutter.");
                 Assert.That(returnSignal.activeSelf, Is.True,
                     "The open channel should reveal its cyan direct-return cue.");
-                player.position = directStart;
+                Assert.That(surgeSignal.activeSelf, Is.True,
+                    "The open channel should reveal the one-shot capacitor surge cue.");
+                yield return _crossFlank(gamepad, player, channel, 2.15f);
+                Assert.That(game.IsDepartureSurgeConsumed, Is.False,
+                    "The protected flank should remain a valid return without consuming the direct-lane reserve.");
+                game.DebugSetSignal(40f);
+                yield return null;
+                var signalBeforeSurge = game.CurrentSignal;
+                var surgeStart = channel.TransformPoint(new Vector3(-2.85f, 0f, 0f));
+                player.position = surgeStart;
+                InputSystem.QueueStateEvent(gamepad, new GamepadState());
+                yield return null;
                 yield return _move(gamepad, player, directDirection, () =>
                     channel.InverseTransformPoint(player.position).x > 0.75f);
                 Assert.That(channel.InverseTransformPoint(player.position).x, Is.GreaterThan(0.75f),
                     "The released shutter should open the direct route into extraction.");
+                Assert.That(game.IsDepartureSurgeConsumed, Is.True);
+                Assert.That(game.CurrentSignal, Is.GreaterThan(signalBeforeSurge),
+                    "Crossing the direct return should discharge the one-shot Signal reserve.");
+                Assert.That(surgeSignal.activeSelf, Is.False,
+                    "The surge cue should switch off once its reserve is consumed.");
+
+                var signalAfterSurge = game.CurrentSignal;
+                player.position = surgeStart;
+                yield return _move(gamepad, player, directDirection, () =>
+                    channel.InverseTransformPoint(player.position).x > 0.75f);
+                Assert.That(game.CurrentSignal, Is.LessThanOrEqualTo(signalAfterSurge),
+                    "The departure capacitor must not restore Signal more than once.");
             }
             finally
             {

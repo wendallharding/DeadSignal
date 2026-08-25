@@ -26,6 +26,7 @@ namespace DeadSignal.Application
         private const float DASH_SIGNAL_COST = 4f;
         private const float DASH_COOLDOWN = 2.4f;
         private const float TOWER_INTERACTION_RADIUS = 2.2f;
+        private const float DEPARTURE_SURGE_SIGNAL_RESTORE = 12f;
 
         private RunModel m_model;
         private RunMetrics m_metrics;
@@ -90,6 +91,7 @@ namespace DeadSignal.Application
         public bool IsRelayPayloadSecured => m_model?.RelayPayloadSecured ?? false;
         public bool IsSpinePayloadSecured => m_model?.SpinePayloadSecured ?? false;
         public bool IsExtractionReady => m_model?.CanExtract ?? false;
+        public bool IsDepartureSurgeConsumed => m_world?.IsDepartureSurgeConsumed ?? false;
         public MissionStage CurrentMissionStage => m_model?.CurrentMissionStage ?? MissionStage.CentralTower;
         public Vector3 SpineTowerPosition => m_world?.SpineTowerPosition ?? Vector3.zero;
         public bool IsWeaponEvolved => m_overclockChoice?.IsWeaponEvolved ?? false;
@@ -1939,6 +1941,14 @@ namespace DeadSignal.Application
             if (m_model.CanExtract)
             {
                 m_world.OpenDepartureReturn();
+                if (m_world.TryConsumeDepartureSurge(m_world.Player.position))
+                {
+                    var restored = m_model.RestoreSignal(DEPARTURE_SURGE_SIGNAL_RESTORE);
+                    m_metrics.RecordDepartureSurge(restored);
+                    m_combatFeedback.PlaySignalRecovery(m_world.Player.position + Vector3.up * 0.45f);
+                    m_audio.Play(DeadSignalAudioCue.TowerOnline);
+                    _showFeedback($"DEPARTURE CAPACITOR DISCHARGED  +{restored:0} SIGNAL");
+                }
             }
             m_world.TickExtraction(dt, m_model.CanExtract);
             if (m_extractionUplink.Tick(dt))

@@ -98,6 +98,11 @@ namespace DeadSignal.Missions
         {
             SalvageSignalRecovered += Math.Max(0f, signalRecovered);
         }
+
+        public void RecordDepartureSurge(float signalRecovered)
+        {
+            SignalRecovered += Math.Max(0f, signalRecovered);
+        }
     }
 
     /// <summary>

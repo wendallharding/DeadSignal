@@ -21,3 +21,13 @@ Final prompt:
 > Use case: stylized-concept. Asset type: transparent top-down sci-fi floor route decal for a Unity game. Create a centered industrial circuit-routing emblem showing two amber outbound paths splitting around a solid central blast-shutter symbol, then recombining into one bold cyan return path through the opened center. Use broad, distant-camera-readable graphite, white-ceramic, cyan, amber, and tiny red-lock shapes on genuine transparency. No text, letters, numbers, logos, brands, characters, watermark, scene backdrop, edge clipping, or tiny detail.
 
 Unity import contract: alpha transparency enabled, mipmaps enabled, clamp wrapping, 2048 maximum size, and high-quality compression. The setup script assigns the texture to a transparent URP Unlit material and keeps the decal hidden until all three required regional payloads make extraction ready.
+
+## Capacitor-surge decal
+
+`DepartureCapacitorSurgeDecal.png` is the original transparent one-shot recharge cue for the released direct lane. It was generated with OpenAI's built-in image generation mode and copied unchanged into `Assets/DeadSignal/Resources/Environment/DepartureCapacitorSurgeDecal.png`. SHA-256: `8A194A6EF6531D59BCFC6DA35F5DC6F900CEB094657C7B454D0036292529F8C0`.
+
+Final prompt:
+
+> Use case: stylized-concept. Asset type: Unity top-down floor decal for the DEAD SIGNAL extraction return shortcut. Create a text-free capacitor-surge emblem showing three cyan-white maintenance circuits converging into one central cell and bold forward chevron, with restrained amber lock remnants, genuine transparency, and a distant-camera-readable silhouette. No text, letters, numbers, logo, brand, character, scenery, background plate, border, shadow, watermark, red, or magenta.
+
+Unity import contract: alpha transparency enabled, mipmaps enabled, clamp wrapping, 2048 maximum size, and high-quality compression. The setup script assigns a transparent URP Unlit material. Runtime reveals the cue with extraction readiness and hides it after the player crosses the direct centerline and consumes the one-shot reserve.

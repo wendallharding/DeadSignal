@@ -13,12 +13,16 @@ namespace DeadSignal.Editor
         private const string TEXTURE_PATH = "Assets/DeadSignal/Resources/Environment/DepartureCapacitorAlbedo.png";
         private const string RETURN_DECAL_PATH =
             "Assets/DeadSignal/Resources/Environment/DepartureCargoReturnDecal.png";
+        private const string SURGE_DECAL_PATH =
+            "Assets/DeadSignal/Resources/Environment/DepartureCapacitorSurgeDecal.png";
         private const string MODEL_PATH = "Assets/DeadSignal/Resources/Environment/DepartureCapacitorModel.fbx";
         private const string ARMOR_MATERIAL_PATH = "Assets/DeadSignal/Resources/Materials/DepartureCapacitorArmor.mat";
         private const string CELL_MATERIAL_PATH = "Assets/DeadSignal/Resources/Materials/DepartureCapacitorCells.mat";
         private const string BEACON_MATERIAL_PATH = "Assets/DeadSignal/Resources/Materials/DepartureThresholdBeacons.mat";
         private const string RETURN_DECAL_MATERIAL_PATH =
             "Assets/DeadSignal/Resources/Materials/DepartureCargoReturnDecal.mat";
+        private const string SURGE_DECAL_MATERIAL_PATH =
+            "Assets/DeadSignal/Resources/Materials/DepartureCapacitorSurgeDecal.mat";
         private const string ARMOR_MATERIAL_SOURCE_PATH =
             "Assets/DeadSignal/Resources/Materials/WorldPalette/StationBlack.mat";
         private const string AMBER_MATERIAL_SOURCE_PATH =
@@ -38,16 +42,19 @@ namespace DeadSignal.Editor
                 var channel = AssetDatabase.LoadAssetAtPath<GameObject>(CHANNEL_PREFAB_PATH);
                 return AssetDatabase.LoadAssetAtPath<Texture2D>(TEXTURE_PATH) != null &&
                        AssetDatabase.LoadAssetAtPath<Texture2D>(RETURN_DECAL_PATH) != null &&
+                       AssetDatabase.LoadAssetAtPath<Texture2D>(SURGE_DECAL_PATH) != null &&
                        AssetDatabase.LoadAssetAtPath<GameObject>(MODEL_PATH) != null &&
                        AssetDatabase.LoadAssetAtPath<Material>(ARMOR_MATERIAL_PATH) != null &&
                        AssetDatabase.LoadAssetAtPath<Material>(CELL_MATERIAL_PATH) != null &&
                        AssetDatabase.LoadAssetAtPath<Material>(BEACON_MATERIAL_PATH) != null &&
                        AssetDatabase.LoadAssetAtPath<Material>(RETURN_DECAL_MATERIAL_PATH) != null &&
+                       AssetDatabase.LoadAssetAtPath<Material>(SURGE_DECAL_MATERIAL_PATH) != null &&
                        _hasValidCapacitor(capacitor) &&
                        channel != null &&
                        channel.GetComponentsInChildren<AuthoredMapObstacle>().Length == 3 &&
                        channel.transform.Find("Departure Cargo Shutter") != null &&
-                       channel.transform.Find("Departure Cargo Return Signal") != null;
+                       channel.transform.Find("Departure Cargo Return Signal") != null &&
+                       channel.transform.Find("Departure Capacitor Surge Signal") != null;
             }
         }
 
@@ -55,6 +62,7 @@ namespace DeadSignal.Editor
         {
             _configureTextureImport();
             _configureReturnDecalImport();
+            _configureSurgeDecalImport();
             _configureModelImport();
             _ensureMaterials();
             _ensureCapacitorPrefab();
@@ -90,6 +98,22 @@ namespace DeadSignal.Editor
             if (importer == null)
             {
                 throw new InvalidOperationException($"Could not find the departure return decal at {RETURN_DECAL_PATH}.");
+            }
+
+            importer.alphaIsTransparency = true;
+            importer.mipmapEnabled = true;
+            importer.maxTextureSize = 2048;
+            importer.wrapMode = TextureWrapMode.Clamp;
+            importer.textureCompression = TextureImporterCompression.CompressedHQ;
+            importer.SaveAndReimport();
+        }
+
+        private static void _configureSurgeDecalImport()
+        {
+            var importer = AssetImporter.GetAtPath(SURGE_DECAL_PATH) as TextureImporter;
+            if (importer == null)
+            {
+                throw new InvalidOperationException($"Could not find the departure surge decal at {SURGE_DECAL_PATH}.");
             }
 
             importer.alphaIsTransparency = true;
@@ -146,6 +170,18 @@ namespace DeadSignal.Editor
             returnDecal.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
             returnDecal.renderQueue = (int)UnityEngine.Rendering.RenderQueue.Transparent;
             EditorUtility.SetDirty(returnDecal);
+
+            var surgeDecal = _loadOrCreateMaterial(SURGE_DECAL_MATERIAL_PATH, "DepartureCapacitorSurgeDecal",
+                "Universal Render Pipeline/Unlit");
+            surgeDecal.SetTexture("_BaseMap", AssetDatabase.LoadAssetAtPath<Texture2D>(SURGE_DECAL_PATH));
+            surgeDecal.SetColor("_BaseColor", Color.white);
+            surgeDecal.SetFloat("_Surface", 1f);
+            surgeDecal.SetFloat("_SrcBlend", (float)UnityEngine.Rendering.BlendMode.SrcAlpha);
+            surgeDecal.SetFloat("_DstBlend", (float)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+            surgeDecal.SetFloat("_ZWrite", 0f);
+            surgeDecal.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
+            surgeDecal.renderQueue = (int)UnityEngine.Rendering.RenderQueue.Transparent;
+            EditorUtility.SetDirty(surgeDecal);
         }
 
         private static void _configureEmission(Material material, Color color, float intensity)
@@ -241,6 +277,7 @@ namespace DeadSignal.Editor
                 _addCapacitor(channel.transform, capacitorPrefab, "South Departure Capacitor", new Vector3(0f, 0f, -1.25f), 0f);
                 _addCargoShutter(channel.transform);
                 _addReturnSignal(channel.transform);
+                _addSurgeSignal(channel.transform);
                 PrefabUtility.SaveAsPrefabAsset(channel, CHANNEL_PREFAB_PATH);
             }
             finally
@@ -278,6 +315,19 @@ namespace DeadSignal.Editor
             signal.transform.localScale = Vector3.one * 2.65f;
             signal.GetComponent<Renderer>().sharedMaterial =
                 AssetDatabase.LoadAssetAtPath<Material>(RETURN_DECAL_MATERIAL_PATH);
+            UnityEngine.Object.DestroyImmediate(signal.GetComponent<Collider>());
+        }
+
+        private static void _addSurgeSignal(Transform parent)
+        {
+            var signal = GameObject.CreatePrimitive(PrimitiveType.Quad);
+            signal.name = "Departure Capacitor Surge Signal";
+            signal.transform.SetParent(parent, false);
+            signal.transform.localPosition = new Vector3(-0.62f, -0.11f, 0f);
+            signal.transform.localRotation = Quaternion.Euler(90f, 90f, 0f);
+            signal.transform.localScale = Vector3.one * 1.75f;
+            signal.GetComponent<Renderer>().sharedMaterial =
+                AssetDatabase.LoadAssetAtPath<Material>(SURGE_DECAL_MATERIAL_PATH);
             UnityEngine.Object.DestroyImmediate(signal.GetComponent<Collider>());
         }
 
