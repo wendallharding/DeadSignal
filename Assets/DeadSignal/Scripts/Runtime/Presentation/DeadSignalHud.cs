@@ -282,7 +282,7 @@ namespace DeadSignal.Presentation
                 ? $"AUXILIARY OVERCLOCK AVAILABLE\nFIRE [{m_input.FireKeyboardBinding}]  CAPACITOR — LOW-SIGNAL REFILL\n" +
                   $"USE [{m_input.InteractKeyboardBinding}]  SHIELD — NEGATE ONE THREAT"
                 : _isExtractionUplinkChoiceAvailable()
-                ? $"CHOOSE EXTRACTION LINK\nFIRE [{m_input.FireKeyboardBinding}]  OVERDRIVE — " +
+                ? $"CHOOSE EXTRACTION LINK{_extractionCountertraceHeader()}\nFIRE [{m_input.FireKeyboardBinding}]  OVERDRIVE — " +
                   $"{m_extractionUplink.OverdriveDuration:0.##}s / −{m_extractionUplink.OverdriveSignalCost:0} / " +
                   $"PURGE +{m_extractionUplink.OverdrivePurgeAcceleration:0.##}s / PREDICTIVE SWEEP\n" +
                   $"USE [{m_input.InteractKeyboardBinding}]  STABLE — {m_extractionUplink.StableDuration:0.##}s / FREE / " +
@@ -290,13 +290,11 @@ namespace DeadSignal.Presentation
                 : m_extractionUplink.IsActive
                 ? $"PHASE 3/3  //  {m_extractionUplink.Mode.ToString().ToUpperInvariant()} UPLINK\n" +
                   $"SURVIVE PURSUIT  {m_extractionUplink.SecondsRemaining:0.0}s\n" +
-                  (m_extractionUplink.Mode == ExtractionUplinkMode.Overdrive
-                      ? "BREAK YOUR RETREAT LINE — PREDICTIVE SWEEP INBOUND"
-                      : "LEAVE THE LOCKED RING — FIGHTING ADVANCES THE LINK")
+                  _extractionPursuitAdvisory()
                 : m_salvage.IsOptionalCacheAvailable
                 ? $"PHASE 3/3  //  EXTRACTION READY\n" +
                   $"RETURN TO DOCK OR RAID OPTIONAL CACHE  {m_salvage.OptionalCacheDistance:0}m\n" +
-                  $"GREED REWARD +{m_salvage.OptionalCacheSignalReward:0} SIGNAL — SECURITY REMAINS ACTIVE"
+                  $"GREED +{m_salvage.OptionalCacheSignalReward:0} SIGNAL — {_optionalGreedCountertrace()}"
                 : $"PHASE {guidance.Phase}/3  //  {guidance.Title}\n{guidance.Action}\n{guidance.Advisory}";
             m_threatText.text = _threatStatus();
             m_controlLegendText.text = _activeControlLegend();
@@ -307,6 +305,43 @@ namespace DeadSignal.Presentation
             m_feedbackText.text = m_feedback;
             m_feedbackText.color = m_feedback.Contains("DEAD") || m_feedback.Contains("SECURITY")
                 ? new Color(1f, 0.25f, 0.2f) : new Color(0.1f, 0.95f, 1f);
+        }
+
+        private string _optionalGreedCountertrace()
+        {
+            return m_overclockChoice.SelectedWeapon switch
+            {
+                SignalWeaponOverclock.PiercingPulse => "COUNTERTRACE: CROSS-LANE SWEEP AT EXTRACTION",
+                SignalWeaponOverclock.ControlledRicochet => "COUNTERTRACE: COVER FLUSH AT EXTRACTION",
+                _ => "SECURITY REMAINS ACTIVE"
+            };
+        }
+
+        private string _extractionCountertraceHeader()
+        {
+            if (!m_model.OptionalSalvageSecured)
+            {
+                return string.Empty;
+            }
+
+            return m_overclockChoice.SelectedWeapon switch
+            {
+                SignalWeaponOverclock.PiercingPulse => "  //  QUENCH CROSS-LANE COUNTERTRACE",
+                SignalWeaponOverclock.ControlledRicochet => "  //  QUENCH COVER-FLUSH COUNTERTRACE",
+                _ => string.Empty
+            };
+        }
+
+        private string _extractionPursuitAdvisory()
+        {
+            return m_threats.CurrentExtractionSuppressionProfile switch
+            {
+                ExtractionSuppressionProfile.PiercingCrossLane => "CROSS-LANE SWEEP — TAKE THE OPPOSITE EXIT",
+                ExtractionSuppressionProfile.RicochetCoverFlush => "COVER FLUSH — LEAVE YOUR CURRENT ANCHOR",
+                _ => m_extractionUplink.Mode == ExtractionUplinkMode.Overdrive
+                    ? "BREAK YOUR RETREAT LINE — PREDICTIVE SWEEP INBOUND"
+                    : "LEAVE THE LOCKED RING — FIGHTING ADVANCES THE LINK"
+            };
         }
 
         private void _refreshOutcome()

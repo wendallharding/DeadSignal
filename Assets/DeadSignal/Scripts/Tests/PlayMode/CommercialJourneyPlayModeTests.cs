@@ -134,6 +134,41 @@ namespace DeadSignal.Tests.PlayMode
         }
 
         [UnityTest]
+        public IEnumerator OptionalCache_ForecastsRicochetCoverFlushBeforeCommitment()
+        {
+            SceneManager.LoadScene("SampleScene");
+            yield return null;
+            yield return null;
+
+            var game = Object.FindFirstObjectByType<DeadSignalGame>();
+            Assert.That(game, Is.Not.Null);
+            game.DebugActivateTower();
+            game.DebugCollectNextCache();
+            game.DebugSelectOverclock(SignalOverclock.ChainArc);
+            game.DebugActivateRelayTower();
+            game.DebugSelectWeapon(SignalWeaponOverclock.ControlledRicochet);
+            game.DebugCollectNextCache();
+            game.DebugSelectAuxiliary(SignalAuxiliaryOverclock.FeedbackShield);
+            game.DebugActivateSpineTower();
+            game.DebugCollectNextCache();
+            yield return null;
+
+            Assert.That(game.IsExtractionReady, Is.True);
+            Assert.That(game.IsOptionalSalvageSecured, Is.False);
+            Assert.That(game.CurrentMissionObjective, Does.Contain("COUNTERTRACE: COVER FLUSH AT EXTRACTION"),
+                "Ricochet greed should disclose the cover-flush consequence while the cache can still be abandoned.");
+
+            game.DebugCollectNextCache();
+            game.DebugBeginExtraction(ExtractionUplinkMode.Stable);
+            yield return null;
+
+            Assert.That(game.IsOptionalSalvageSecured, Is.True);
+            Assert.That(game.CurrentExtractionSuppressionProfile, Is.EqualTo(ExtractionSuppressionProfile.RicochetCoverFlush));
+            Assert.That(game.CurrentMissionObjective, Does.Contain("COVER FLUSH — LEAVE YOUR CURRENT ANCHOR"),
+                "The active pursuit should repeat the disclosed exit response when the field becomes actionable.");
+        }
+
+        [UnityTest]
         public IEnumerator LiveBalanceRequiredExtraction_FightsEvadesAndReachesTerminalOutcome()
         {
             SceneManager.LoadScene("SampleScene");

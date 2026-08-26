@@ -687,6 +687,8 @@ namespace DeadSignal.Tests
                 yield return null;
                 Assert.That(game.CurrentMissionObjective, Does.Contain("RAID OPTIONAL CACHE"));
                 Assert.That(game.CurrentMissionObjective, Does.Contain("+18 SIGNAL"));
+                Assert.That(game.CurrentMissionObjective, Does.Contain("COUNTERTRACE: CROSS-LANE SWEEP AT EXTRACTION"),
+                    "The optional cache decision should disclose the selected weapon's extraction consequence before greed.");
                 var optionalCache = game.transform.Cast<Transform>()
                     .Single(child => child.name == "Salvage Cache" && child.gameObject.activeSelf);
                 var signalBeforeGreed = game.CurrentSignal;

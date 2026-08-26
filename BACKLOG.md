@@ -1,5 +1,13 @@
 # DEAD SIGNAL — Product Backlog
 
+## P0 — Quench countertrace briefing (Run 111)
+
+- [x] Forecast the weapon-specific extraction countertrace while the optional Quench cache can still be abandoned
+- [x] Repeat the Quench profile at extraction-link commitment and replace the generic pursuit advice with its actionable exit response
+- [x] Preserve Required withdrawal, Suppressor rules, Signal economy, mission geometry, scene assets, and the existing HUD hierarchy
+- [x] Prove Piercing and Ricochet forecasts, Ricochet active-pursuit advice, and full Unity regression
+- [ ] Compare Required withdrawal, Piercing greed, and Ricochet greed with the briefing visible; record recognition before cache commitment and chosen field exit
+
 ## P0 — Quench weapon countertrace (Run 110)
 
 - [x] Preserve the established required-withdrawal extraction response
