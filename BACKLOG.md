@@ -1,5 +1,15 @@
 # DEAD SIGNAL — Product Backlog
 
+## P0 — Spine Discharge Trench (Run 114)
+
+- [x] Add a scene-authored 60-square-metre south Spine loop, equal to 42.9 percent of the original Capacitor Spine floor contract
+- [x] Open two independent thresholds around a central discharge coil and angled ceramic firing cover
+- [x] Keep the trench a dead-zone risk before Spine activation and make it a powered return foothold afterward
+- [x] Add one safe far-side reinforcement gate and preserve the four-response cap, enemy stats, Signal economy, objectives, and extraction
+- [x] Package an original transparent cyan/amber route decal with a reproducible ArtSource record
+- [x] Prove both approaches, oriented movement/projectile collision, powered-state transition, scene bounds, Resources packaging, and full regression
+- [ ] Compare direct Spine transit against west-trench and east-trench routes under matched live threats; record time, Signal, hits, cover use, and gate recognition
+
 ## P0 — Relay gantry payload choice (Run 113)
 
 - [x] Keep one scene-authored Relay payload on the protected inner Foundry route

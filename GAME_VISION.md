@@ -153,6 +153,10 @@ The shared Signal reserve now reads as operational telemetry rather than a gener
 
 ## Experience target
 
+### Run 114 product decision — Spine Discharge Trench
+
+The Capacitor Spine now opens into a compact south-side discharge trench with two approaches around a central coil and angled ceramic cover. The 60-square-metre loop is a dead-zone combat commitment on the outward journey and becomes a powered foothold after the third tower, so its tactical value reverses on the return. This was selected over another enemy, stat increase, or traversal corridor because the deepest required region needed an additional positioning choice that tests the evolved weapon and creates a safe-but-contested return option without changing Signal economy, response count, or objectives.
+
 ### Run 60 product decision — salvage chain momentum
 
 Consecutive cache recoveries now form a 12-second chain that pays 4 Signal on the second cache and 8 on the third. This turns the authored route network into a readable tempo decision without making deliberate exploration invalid: the first cache remains safe, chain rewards are capped by the existing 100-Signal authority, and the HUD exposes the remaining window. Best chain and actual recovery appear in the debrief so future tuning can use play evidence. This was selected over another room or enemy because the current map already offers route choice but lacked a positive incentive to execute a fast line.

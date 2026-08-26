@@ -29,7 +29,7 @@ namespace DeadSignal.Tests
                 var spine = GameObject.Find("Capacitor Spine Region").transform;
 
                 Assert.That(spine.position, Is.EqualTo(new Vector3(42.5f, 0f, 0f)));
-                Assert.That(spine.GetComponentsInChildren<AuthoredMapObstacle>().Length, Is.EqualTo(10));
+                Assert.That(spine.GetComponentsInChildren<AuthoredMapObstacle>().Length, Is.EqualTo(18));
                 Assert.That(spine.GetComponentsInChildren<Collider>().Length, Is.Zero);
                 Assert.That(spine.Find("Capacitor Transfer Bank"), Is.Not.Null);
                 Assert.That(spine.Find("North Capacitor Shield"), Is.Not.Null);
@@ -46,10 +46,10 @@ namespace DeadSignal.Tests
                 Assert.That(Resources.Load<Material>("Materials/CapacitorSpine/CapacitorSpineActivationDecal"), Is.Not.Null);
                 Assert.That(Resources.Load<Texture2D>("Environment/CapacitorSpineReturnDecal"), Is.Not.Null);
                 Assert.That(Resources.Load<Material>("Materials/CapacitorSpine/CapacitorSpineReturnDecal"), Is.Not.Null);
-                Assert.That(game.AuthoredMapObstacleCount, Is.EqualTo(104));
+                Assert.That(game.AuthoredMapObstacleCount, Is.EqualTo(112));
                 Assert.That(game.AuthoredSalvageSocketCount, Is.EqualTo(3));
-                Assert.That(game.AuthoredInterceptorEntranceCount, Is.EqualTo(7),
-                    "The extension should preserve the established gates and add one safe deep-region entrance.");
+                Assert.That(game.AuthoredInterceptorEntranceCount, Is.EqualTo(8),
+                    "The Spine extensions should preserve the established gates and add two safe deep-region entrances.");
                 Assert.That(foundry.Find("Foundry East Bulkhead"), Is.Null);
                 Assert.That(foundry.Find("Foundry East North"), Is.Not.Null);
                 Assert.That(foundry.Find("Foundry East Center"), Is.Not.Null);

@@ -48,7 +48,7 @@ namespace DeadSignal.Editor
                        AssetDatabase.LoadAssetAtPath<Material>(DECAL_MATERIAL_PATH) != null &&
                        AssetDatabase.LoadAssetAtPath<Material>(ACTIVATION_DECAL_MATERIAL_PATH) != null &&
                        AssetDatabase.LoadAssetAtPath<Material>(RETURN_DECAL_MATERIAL_PATH) != null &&
-                       prefab.GetComponentsInChildren<AuthoredMapObstacle>().Length == 10 &&
+                       prefab.GetComponentsInChildren<AuthoredMapObstacle>().Length >= 10 &&
                        prefab.GetComponentsInChildren<AuthoredSalvageSocket>().Length == 0 &&
                        prefab.transform.Find("Capacitor Transfer Bank") != null &&
                        prefab.transform.Find("Third Tower Berth") != null &&

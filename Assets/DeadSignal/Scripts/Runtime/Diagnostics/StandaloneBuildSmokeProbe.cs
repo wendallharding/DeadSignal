@@ -19,7 +19,7 @@ namespace DeadSignal.Diagnostics
         public const string COMMAND_LINE_ARGUMENT = "-deadSignalBuildSmoke";
         public const string PASS_MARKER = "[DEAD SIGNAL STANDALONE SMOKE] PASS";
 
-        private const int EXPECTED_AUTHORED_OBSTACLE_COUNT = 104;
+        private const int EXPECTED_AUTHORED_OBSTACLE_COUNT = 112;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         private static void _startWhenRequested()
@@ -155,7 +155,7 @@ namespace DeadSignal.Diagnostics
                                 Resources.Load<WardenThreatTelegraphTuning>("Tuning/WardenThreatTelegraphTuning") != null &&
                                 game.HasSecurityInterceptorAssets &&
                                 game.SecurityInterceptorPartCount == 4 &&
-                                game.AuthoredInterceptorEntranceCount == 7 &&
+                                game.AuthoredInterceptorEntranceCount == 8 &&
                                 Resources.Load<GameObject>("Actors/SecurityInterceptorAssembly") != null &&
                                 game.HasSecuritySuppressorAssets &&
                                 game.SecuritySuppressorPartCount == 4 &&
@@ -205,6 +205,15 @@ namespace DeadSignal.Diagnostics
                                 Resources.Load<Material>("Materials/CapacitorSpine/CapacitorSpineActivationDecal") != null &&
                                 Resources.Load<Texture2D>("Environment/CapacitorSpineReturnDecal") != null &&
                                 Resources.Load<Material>("Materials/CapacitorSpine/CapacitorSpineReturnDecal") != null &&
+                                game.transform.Find(
+                                    "Capacitor Spine Region/Spine Discharge Trench Region/Central Discharge Coil") != null &&
+                                game.transform.Find(
+                                    "Capacitor Spine Region/Spine Discharge Trench Region/" +
+                                    "Discharge Trench Reinforcement Gate") != null &&
+                                Resources.Load<GameObject>("Environment/SpineDischargeTrenchRegion") != null &&
+                                Resources.Load<Texture2D>("Environment/SpineDischargeTrenchRouteDecal") != null &&
+                                Resources.Load<Material>(
+                                    "Materials/SpineDischargeTrench/SpineDischargeTrenchRouteDecal") != null &&
                                 game.transform.Find("Spine Induction Gallery Region/Induction Coil") != null &&
                                 game.transform.Find("Spine Induction Gallery Region/Induction Gallery Signal Lines") != null &&
                                 game.transform.Find("Spine Induction Gallery Region/Induction Gallery Route Decal") != null &&
