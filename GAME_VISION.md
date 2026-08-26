@@ -13,6 +13,18 @@ The hook is a readable risk loop: **power territory, provoke danger, raid the da
 3. **The dark is lucrative.** Warm-gold salvage lives beyond the network, where passive Signal loss creates a strict expedition clock.
 4. **Miniature machine drama.** Chunky geometric machinery, crisp silhouettes, dark station decking, cyan network light, amber rewards, and red threats make state readable at a glance.
 5. **Short runs, immediate mastery.** Responsive controls, clear failures, rapid restarts, and deterministic core rules support learning without friction.
+6. **Movement is defense.** Geometry Wars-inspired immediacy, readable pressure, complementary enemy roles, and build-changing weapons should create short tactical loops without copying that game's aesthetic or abandoning Signal costs and extraction decisions.
+
+## Current product strategy — combat-first proof
+
+The three-region journey now provides enough authored space to prove the core combat. Further map growth, additional towers, and the station guardian are gated behind matched playtest evidence that the existing rooms or roster cannot sustain the intended pressure arc. Development proceeds through four gates:
+
+1. Make movement, aiming, firing, impacts, purges, danger, and escape lanes immediately readable with keyboard/mouse and controller.
+2. Make Warden, Sapper, Interceptor, and Suppressor combinations create distinct target-priority and movement decisions through timing, approach direction, and counterplay rather than stat inflation.
+3. Make weapon choices visibly transform targeting, positioning, cadence, or routing while retaining a Signal or opportunity cost and an enemy counter.
+4. Tune or repurpose existing arenas and run pacing before adding a behavioral variant, a new enemy, more level area, or a guardian.
+
+Every combat advancement requires a bounded hypothesis, rejection criteria, and matched before/after evidence. The comparison must cover weapon satisfaction, movement decisions, enemy-role distinction, encounter variety, combat readability, completion pressure, build diversity, Signal economy, fun, and replay intent. Automated validation proves correctness; subjective balance and fun require human play.
 
 ## MVP scope
 
@@ -20,7 +32,7 @@ The commercial MVP expands the first playable into 15–25 minute runs containin
 
 - One station biome assembled from modular rooms and alternate routes.
 - Three tower choices per run; powering territory also increases threat intensity.
-- Four enemy archetypes and one station guardian.
+- Four enemy archetypes, with a station guardian added only if the proven combat arc needs a distinct climax.
 - Six drone tools sharing the Signal economy.
 - Salvage-driven upgrades, a small permanent unlock track, and route decisions.
 - Keyboard/mouse and controller support, options, pause, audio, onboarding, and save data.

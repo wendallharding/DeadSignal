@@ -1,5 +1,43 @@
 # DEAD SIGNAL — Product Backlog
 
+## P0 — Geometry Wars-inspired combat proof
+
+Work through these gates in order. Authorize one bounded combat advancement per development pass and require matched before/after evidence.
+
+### Gate A — Immediate control and weapon feel
+
+- [ ] Baseline keyboard/mouse and controller movement, aiming, continuous fire, collision, camera framing, projectile cadence, and Signal spend in the eastern combat laboratory and one live-balance route
+- [ ] Make aim, shot paths, impacts, purges, incoming danger, and escape lanes readable during dense mixed-role combat at 1280x720 and 1600x900
+- [ ] Improve the smallest demonstrated weakness in firing, hit, purge, damage, or near-danger feedback without expanding the HUD or weakening Signal commitment
+- [ ] Reject the change if it harms input parity, collision authority, readability, performance, or the Signal economy
+
+### Gate B — Mixed-role pressure
+
+- [ ] Compare Warden screening, Sapper target priority, Interceptor displacement, and Suppressor space denial in matched routes
+- [ ] Produce at least two readable, non-identical mixed-role situations by tuning telegraphs, timing, approach direction, or combination logic before changing health, damage, speed, or quantity
+- [ ] Preserve a reasonable response to every threat and prevent unavoidable close spawns or attritional stat escalation
+
+### Gate C — Weapon transformations
+
+- [ ] Compare Chain Arc, Overdrive Thrusters, Piercing Pulse, Controlled Ricochet, Emergency Capacitor, Feedback Shield, and established weapon evolution before proposing another modifier
+- [ ] If weapon progression remains tactically flat, add at most one modifier that changes targeting, positioning, cadence, or routing and does not duplicate an existing choice
+- [ ] Define its Signal cost or downside, enemy counter, positional/opportunity cost, scope cost, and rejection criteria before implementation
+- [ ] Reject any dominant build, trivialized enemy role, uncontrolled Signal gain, or balance response based on raw enemy-stat inflation
+
+### Gate D — Arena and run pacing
+
+- [ ] Repurpose or tune one existing authored combat room before adding geometry; use timing, approach direction, terrain, cover, power state, optional greed, or return-route reversal
+- [ ] Add one behavioral variant using existing assets only if the four current roles cannot create a required movement decision
+- [ ] Add a genuinely new enemy only if existing roles cannot supply the required counterplay
+- [ ] Add level area or the station guardian only when matched human play shows the existing spaces or roster cannot sustain the intended 15–25-minute escalation and extraction climax
+
+### Combat-proof Definition of Done
+
+- [ ] Matched evidence improves weapon satisfaction, movement decisions, role distinction, encounter variety, combat readability, completion pressure, build diversity, fun, and replay intent
+- [ ] No build is dominant, no role is trivialized, and Signal remains a meaningful ammunition, mobility, machinery, and survival tradeoff
+- [ ] Focused and applicable full Unity suites pass; the Windows development player builds and smoke-tests when runtime integration changes
+- [ ] A human-controlled comparison validates feel, or the DEVLOG states clearly that subjective balance and fun remain unproven and supplies a concise manual script
+
 ## P0 — Convergence Breaker Gallery (Run 115)
 
 - [x] Add a scene-authored 7-by-8-metre lateral loop equal to 50 percent of the Convergence Chamber floor contract
