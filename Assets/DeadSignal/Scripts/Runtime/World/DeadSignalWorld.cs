@@ -144,7 +144,6 @@ namespace DeadSignal.World
             _buildActors(comfortSettings);
             _configurePlayerCamera();
             _configurePlayerCombatPresentation(comfortSettings);
-            _configureForegroundOcclusion();
             ApplyHighContrast(comfortSettings.HighContrastEnabled);
         }
 
@@ -1117,13 +1116,6 @@ namespace DeadSignal.World
                 PlayerNose,
                 Resources.Load<Material>("Materials/SignalBoltTrail"),
                 comfortSettings);
-        }
-
-        private void _configureForegroundOcclusion()
-        {
-            ForegroundOcclusion = m_root.gameObject.AddComponent<ForegroundOcclusionController>();
-            var authoredCutaways = Object.FindObjectsByType<AuthoredForegroundCutaway>(FindObjectsSortMode.None);
-            ForegroundOcclusion.Configure(Camera, Player, m_authoredMapObstacles, authoredCutaways);
         }
 
         private void _buildActors(IComfortSettings comfortSettings)

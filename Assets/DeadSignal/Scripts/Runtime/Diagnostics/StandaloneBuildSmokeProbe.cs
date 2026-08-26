@@ -109,7 +109,7 @@ namespace DeadSignal.Diagnostics
                       $"scene={stationBackdropSceneReady} texture={stationBackdropTextureReady} " +
                       $"material={stationBackdropMaterialReady} prefab={stationBackdropPrefabReady}");
             Debug.Log($"[DEAD SIGNAL STANDALONE SMOKE] FOREGROUND CUTAWAY | " +
-                      $"runtime={game?.HasForegroundOcclusion ?? false} texture={foregroundCutawayTextureReady} " +
+                      $"runtimeEnabled={game?.HasForegroundOcclusion ?? false} texture={foregroundCutawayTextureReady} " +
                       $"material={foregroundCutawayMaterialReady} authoredTexture={authoredCutawayTextureReady} " +
                       $"authoredMaterial={authoredCutawayMaterialReady} wideTexture={wideCutawayTextureReady} " +
                       $"wideMaterial={wideCutawayMaterialReady} bindings={authoredCutawayBindingCount}");

@@ -991,8 +991,8 @@ namespace DeadSignal.Tests
             Assert.That(game.HasSignalBoltBulkheadImpact, Is.True);
             Assert.That(game.HasPlayerCombatPresentation, Is.True,
                 "The player should own muzzle, recoil, and dash presentation.");
-            Assert.That(game.HasForegroundOcclusion, Is.True,
-                "Tall authored blockers should participate in the player cutaway system.");
+            Assert.That(game.HasForegroundOcclusion, Is.False,
+                "Foreground blockers should remain rendered while the cutaway system is disabled.");
             var securityWarden = game.transform.Find("Security Warden");
             var authoredWardenPrefab = Resources.Load<GameObject>("Actors/SecurityWardenAssembly");
             Assert.That(authoredWardenPrefab, Is.Not.Null,
