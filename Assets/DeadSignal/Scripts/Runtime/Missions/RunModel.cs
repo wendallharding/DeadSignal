@@ -113,7 +113,7 @@ namespace DeadSignal.Missions
     {
         public const float MaximumSignal = 100f;
         public const float StartingSignal = 72f;
-        public const float ShotCost = 5f;
+        public const float ShotCost = 0f;
         public const float TowerCost = 10f;
         public const float TowerRefill = 62f;
         public const float RelayTowerCost = 14f;

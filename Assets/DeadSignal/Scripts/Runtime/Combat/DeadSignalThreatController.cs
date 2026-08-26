@@ -364,12 +364,6 @@ namespace DeadSignal.Combat
                 direction = m_world.Player.forward;
             }
 
-            if (!m_model.TrySpend(RunModel.ShotCost))
-            {
-                m_showFeedback("INSUFFICIENT SIGNAL");
-                return;
-            }
-
             m_shotCooldown = m_projectileTuning.FireCooldown;
             m_metrics.RecordShot();
             m_audio.Play(DeadSignalAudioCue.Fire);

@@ -2,6 +2,8 @@ using NUnit.Framework;
 using System;
 using System.Reflection;
 using UnityEngine;
+using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.LowLevel;
 using DeadSignal.Missions;
 using DeadSignal.Player;
 
@@ -15,6 +17,48 @@ namespace DeadSignal.Tests
         private const string MOVE_DOWN_BINDING_KEY = "DeadSignal.Input.MoveDownKeyboard";
         private const string MOVE_LEFT_BINDING_KEY = "DeadSignal.Input.MoveLeftKeyboard";
         private const string MOVE_RIGHT_BINDING_KEY = "DeadSignal.Input.MoveRightKeyboard";
+
+        [Test]
+        public void HeldFire_RecognizesKeyboardMouseAndControllerBindings()
+        {
+            var hadFireBinding = PlayerPrefs.HasKey(FIRE_BINDING_KEY);
+            var initialFireBinding = PlayerPrefs.GetString(FIRE_BINDING_KEY, string.Empty);
+            PlayerPrefs.DeleteKey(FIRE_BINDING_KEY);
+            var keyboard = InputSystem.AddDevice<Keyboard>();
+            var mouse = InputSystem.AddDevice<Mouse>();
+            var gamepad = InputSystem.AddDevice<Gamepad>();
+            var inputType = typeof(RunModel).Assembly.GetType("DeadSignal.Player.DeadSignalInput");
+            var input = Activator.CreateInstance(inputType);
+            try
+            {
+                InputSystem.QueueStateEvent(keyboard, new KeyboardState(Key.Space));
+                InputSystem.Update();
+                Assert.That((bool)inputType.GetMethod("IsFireHeld").Invoke(input, null), Is.True);
+
+                InputSystem.QueueStateEvent(keyboard, new KeyboardState());
+                InputSystem.QueueStateEvent(mouse, new MouseState().WithButton(MouseButton.Left));
+                InputSystem.Update();
+                Assert.That((bool)inputType.GetMethod("IsFireHeld").Invoke(input, null), Is.True);
+
+                InputSystem.QueueStateEvent(mouse, new MouseState());
+                InputSystem.QueueStateEvent(gamepad, new GamepadState().WithButton(GamepadButton.RightShoulder));
+                InputSystem.Update();
+                Assert.That((bool)inputType.GetMethod("IsFireHeld").Invoke(input, null), Is.True);
+
+                InputSystem.QueueStateEvent(gamepad, new GamepadState());
+                InputSystem.Update();
+                Assert.That((bool)inputType.GetMethod("IsFireHeld").Invoke(input, null), Is.False);
+            }
+            finally
+            {
+                ((IDisposable)input).Dispose();
+                InputSystem.RemoveDevice(keyboard);
+                InputSystem.RemoveDevice(mouse);
+                InputSystem.RemoveDevice(gamepad);
+                _restorePreference(FIRE_BINDING_KEY, hadFireBinding, initialFireBinding);
+                PlayerPrefs.Save();
+            }
+        }
 
         [Test]
         public void ResetKeyboardBindings_RestoresDefaultsAndClearsPersistence()

@@ -25,6 +25,7 @@ namespace DeadSignal.Player
         Vector2 ReadMovement();
         Vector3 ReadAimDirection(Camera camera, Transform player);
         bool PressedFire();
+        bool IsFireHeld();
         bool PressedInteract();
         bool PressedDash();
         bool PressedRestart();
@@ -178,6 +179,24 @@ namespace DeadSignal.Player
                 {
                     _useKeyboardMouse();
                 }
+                return true;
+            }
+
+            return false;
+        }
+
+        public bool IsFireHeld()
+        {
+            var gamepad = Gamepad.current;
+            if (gamepad != null && (gamepad.rightTrigger.isPressed || gamepad.rightShoulder.isPressed))
+            {
+                _useGamepad();
+                return true;
+            }
+
+            if (Mouse.current?.leftButton.isPressed == true || _isKeyboardFireHeld())
+            {
+                _useKeyboardMouse();
                 return true;
             }
 
@@ -422,6 +441,24 @@ namespace DeadSignal.Player
             action.AddBinding(fallbackPath);
             action.Enable();
             return action;
+        }
+
+        private bool _isKeyboardFireHeld()
+        {
+            var keyboard = Keyboard.current;
+            if (keyboard == null)
+            {
+                return false;
+            }
+
+            var path = m_fireAction.bindings[1].effectivePath;
+            var separator = path.LastIndexOf('/');
+            if (separator < 0 || separator >= path.Length - 1)
+            {
+                return false;
+            }
+
+            return keyboard[path.Substring(separator + 1)] is ButtonControl control && control.isPressed;
         }
 
         private (InputAction action, int index)[] _primaryKeyboardBindings()

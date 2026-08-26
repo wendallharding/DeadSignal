@@ -303,6 +303,8 @@ namespace DeadSignal.Tests
             metrics.RecordSapperPulse();
 
             Assert.That(metrics.ShotsFired, Is.EqualTo(2));
+            Assert.That(RunModel.ShotCost, Is.Zero, "Basic shots are permanently free under the combat-first direction.");
+            Assert.That(metrics.WeaponSignalSpent, Is.Zero);
             Assert.That(metrics.SecurityHits, Is.EqualTo(1));
             Assert.That(metrics.SapperPulses, Is.EqualTo(1));
         }

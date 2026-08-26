@@ -2,7 +2,8 @@
   "name": "DeadSignal.Tests.EditMode",
   "rootNamespace": "DeadSignal.Tests",
   "references": [
-    "DeadSignal.Runtime"
+    "DeadSignal.Runtime",
+    "Unity.InputSystem"
   ],
   "includePlatforms": [
     "Editor"

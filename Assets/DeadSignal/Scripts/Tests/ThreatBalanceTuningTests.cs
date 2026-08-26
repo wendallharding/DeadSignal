@@ -8,17 +8,18 @@ namespace DeadSignal.Tests
     public sealed class ThreatBalanceTuningTests
     {
         [Test]
-        public void DefaultRewards_OffsetWardenCostAndMakeUrgentSapperNetPositive()
+        public void DefaultRewards_RewardBoundedCombatWithoutExceedingOneSecurityHit()
         {
             var tuning = ScriptableObject.CreateInstance<ThreatBalanceTuning>();
             try
             {
                 Assert.That(tuning.WardenSignalReward, Is.GreaterThan(0f));
-                Assert.That(tuning.WardenSignalReward, Is.LessThan(tuning.WardenHealth * RunModel.ShotCost));
+                Assert.That(tuning.WardenSignalReward, Is.LessThan(RunModel.SecurityHitCost));
                 Assert.That(tuning.WardenSapperScreenDistance, Is.InRange(2.5f, 3.5f));
                 Assert.That(tuning.WardenSapperScreenBreakDistance,
                     Is.GreaterThan(tuning.WardenAttackDistance).And.LessThan(tuning.WardenSapperScreenDistance));
-                Assert.That(tuning.SapperSignalReward, Is.GreaterThan(tuning.SapperHealth * RunModel.ShotCost));
+                Assert.That(tuning.SapperSignalReward, Is.GreaterThan(tuning.WardenSignalReward));
+                Assert.That(tuning.SapperSignalReward, Is.LessThan(RunModel.SecurityHitCost));
                 Assert.That(tuning.SapperPulseInterval, Is.GreaterThan(0f));
                 Assert.That(tuning.DeadZoneTraceDuration, Is.InRange(6f, 12f));
                 Assert.That(tuning.ReinforcementEntryDelay, Is.GreaterThanOrEqualTo(2f));
@@ -29,7 +30,7 @@ namespace DeadSignal.Tests
                     Is.GreaterThan(tuning.ReinforcementEntryDelay + tuning.SuppressorWarningDuration + 1f),
                     "The faster link must preserve a meaningful response window after the readable opening sweep.");
                 Assert.That(tuning.ExtractionOverdriveSignalCost,
-                    Is.InRange(RunModel.ShotCost * 2f, RunModel.SecurityHitCost));
+                    Is.GreaterThan(0f).And.LessThanOrEqualTo(RunModel.SecurityHitCost));
                 Assert.That(tuning.StableExtractionPurgeAcceleration, Is.InRange(0.75f, 1f));
                 Assert.That(tuning.StableExtractionPurgeAcceleration, Is.LessThan(tuning.SuppressorWarningDuration),
                     "One purge should reward combat without bypassing the readable suppression response.");
@@ -52,14 +53,14 @@ namespace DeadSignal.Tests
                     Is.GreaterThan(tuning.WardenSapperScreenBreakDistance)
                         .And.LessThan(tuning.InterceptorSapperFlankDistance));
                 Assert.That(tuning.InterceptorSignalReward,
-                    Is.LessThanOrEqualTo(tuning.InterceptorHealth * RunModel.ShotCost));
+                    Is.LessThan(RunModel.SecurityHitCost));
                 Assert.That(tuning.SuppressorHealth, Is.EqualTo(3));
                 Assert.That(tuning.SuppressorWarningDuration, Is.GreaterThanOrEqualTo(0.75f));
                 Assert.That(tuning.SuppressorFieldDuration, Is.GreaterThan(tuning.SuppressorWarningDuration));
                 Assert.That(tuning.SuppressorFieldRadius, Is.InRange(2.5f, 4f));
                 Assert.That(tuning.SuppressorMovementMultiplier, Is.InRange(0.4f, 0.75f));
                 Assert.That(tuning.SuppressorSignalReward,
-                    Is.LessThanOrEqualTo(tuning.SuppressorHealth * RunModel.ShotCost));
+                    Is.LessThan(RunModel.SecurityHitCost));
                 Assert.That(tuning.ReinforcementEntryDelay + tuning.SuppressorWarningDuration,
                     Is.LessThan(tuning.ExtractionUplinkDuration - 1f),
                     "The promoted Suppressor needs a meaningful active-field response window before extraction completes.");

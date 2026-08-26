@@ -20,6 +20,44 @@ namespace DeadSignal.Tests
     public sealed class BootstrapSmokeTests
     {
         [UnityTest]
+        public IEnumerator HeldFire_RepeatsFreeShotsAtTunedCadenceAndStopsOnRelease()
+        {
+            yield return SceneManager.LoadSceneAsync("SampleScene");
+            yield return null;
+
+            var game = Object.FindFirstObjectByType<DeadSignalGame>();
+            Assert.That(game, Is.Not.Null);
+            game.DebugSetThreatsFrozen(true);
+            game.DebugSetSignal(RunModel.MaximumSignal);
+
+            var shotsBefore = game.ShotsFired;
+            var signalBefore = game.CurrentSignal;
+            game.DebugSetFireHeld(true);
+            yield return new WaitForSeconds(0.38f);
+            game.DebugSetFireHeld(false);
+
+            var heldShots = game.ShotsFired - shotsBefore;
+            Assert.That(heldShots, Is.InRange(3, 4),
+                "Held fire should repeat at the authored 0.16-second cadence.");
+            Assert.That(game.CurrentSignal, Is.EqualTo(signalBefore).Within(0.05f),
+                "Continuous basic fire must not consume Signal.");
+
+            var releaseShots = game.ShotsFired;
+            yield return new WaitForSeconds(0.2f);
+            Assert.That(game.ShotsFired, Is.EqualTo(releaseShots),
+                "Releasing Fire should stop repeated shots immediately.");
+
+            game.DebugSetSignal(1f);
+            var lowReserveShotsBefore = game.ShotsFired;
+            game.DebugSetFireHeld(true);
+            yield return new WaitForSeconds(0.2f);
+            game.DebugSetFireHeld(false);
+            Assert.That(game.ShotsFired - lowReserveShotsBefore, Is.GreaterThanOrEqualTo(1),
+                "Basic fire must remain available at critical Signal.");
+            Assert.That(game.CurrentSignal, Is.EqualTo(1f).Within(0.05f));
+        }
+
+        [UnityTest]
         public IEnumerator RelayFoundry_ActivatesSecondFootholdAndReturnShortcut()
         {
             yield return SceneManager.LoadSceneAsync("SampleScene");

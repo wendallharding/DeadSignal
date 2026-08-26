@@ -34,9 +34,18 @@ Work through these gates in order. Authorize one bounded combat advancement per 
 ### Combat-proof Definition of Done
 
 - [ ] Matched evidence improves weapon satisfaction, movement decisions, role distinction, encounter variety, combat readability, completion pressure, build diversity, fun, and replay intent
-- [ ] No build is dominant, no role is trivialized, and Signal remains a meaningful ammunition, mobility, machinery, and survival tradeoff
+- [ ] No build is dominant, no role is trivialized, and Signal remains a meaningful mobility, machinery, special-power, damage, and survival tradeoff while basic fire stays free
 - [ ] Focused and applicable full Unity suites pass; the Windows development player builds and smoke-tests when runtime integration changes
 - [ ] A human-controlled comparison validates feel, or the DEVLOG states clearly that subjective balance and fun remain unproven and supplies a concise manual script
+
+## P0 — Free continuous basic fire (Run 116)
+
+- [x] Permanently remove Signal spend from ordinary, Piercing Pulse, and Controlled Ricochet bolts
+- [x] Let keyboard, mouse, trigger, and shoulder Fire repeat at the authored 0.16-second cadence while held
+- [x] Keep single presses immediate, release stopping deterministic, and hit-stop buffering intact
+- [x] Preserve projectile speed, lifetime, collision, hit budgets, enemy health, enemy roles, finite purge rewards, and all non-firing Signal costs
+- [x] Prove held input parity, zero firing spend at critical reserve, cadence, release behavior, and bounded reward constraints
+- [ ] Compare keyboard/mouse and controller feel at 1280x720 and 1600x900; reject or add an explicit sustained-fire limiter if stationary spray dominates movement, targeting, or role counterplay
 
 ## P0 — Convergence Breaker Gallery (Run 115)
 
@@ -380,10 +389,10 @@ Work through these gates in order. Authorize one bounded combat advancement per 
 ## P0 — Relay weapon calibration (Run 86)
 
 - [x] Award one independent weapon choice when the Relay tower comes online, without discarding unresolved cache choices
-- [x] Add Piercing Pulse: one five-Signal bolt can strike two different aligned threats but never pass authored cover
+- [x] Add Piercing Pulse: one free basic bolt can strike two different aligned threats but never pass authored cover
 - [x] Add Controlled Ricochet: one authored-cover impact can redirect toward one nearby unobstructed threat
 - [x] Place an original text-free cyan/amber calibration decal beside the scene-authored Relay tower
-- [x] Preserve enemy health, damage, movement, rewards, role order, response cap, shot cost, and Signal drains
+- [x] Preserve enemy health, damage, movement, rewards, role order, response cap, and Signal drains; the former shot-cost contract is superseded by permanent free basic fire
 - [x] Prove input consumption, two-target piercing, one-bounce termination, Resources packaging, and full-run regression
 - [ ] Compare both calibrations on the north approach, south approach, and opened return; record hits per shot, cover rebounds, Signal spent, damage, and extraction reserve
 
@@ -585,7 +594,7 @@ Work through these gates in order. Authorize one bounded combat advancement per 
 - [x] Preserve each role's Signal bounty and Feedback Shield recharge alongside the new combat reward
 - [x] Keep fleeing viable through the unchanged six-second timer while making an extraction fight shorten exposure
 - [x] Prove a Suppressor purge advances but does not bypass the remaining holdout in the complete runtime flow
-- [ ] Playtest fight and flight extractions for ammunition cost, time saved, live threat mix, and final Signal reserve
+- [ ] Playtest fight and flight extractions for firing commitment, time saved, live threat mix, and final Signal reserve
 
 ### Run 70 locked-extraction-sweep ideas
 
@@ -688,7 +697,7 @@ Work through these gates in order. Authorize one bounded combat advancement per 
 
 ### Run 59 security-purge recovery ideas
 
-- [x] Warden recovery bounty — player value: fighting the pursuer can offset most of its ammunition cost; acceptance: purging it restores up to 12 Signal exactly once.
+- [x] Warden recovery bounty — player value: fighting the pursuer can recover survival reserve; acceptance: purging it restores up to 12 Signal exactly once.
 - [x] Sapper recovery bounty — player value: intercepting the network threat is a net-positive emergency play; acceptance: purging it restores up to 16 Signal exactly once.
 - [x] Cap-safe Signal restoration — player value: rewards never overflow or destabilize the shared resource; acceptance: deterministic restoration clamps at 100 and reports the amount actually received.
 - [x] Purge telemetry — player value: the debrief acknowledges successful threat control; acceptance: run metrics and the raw report track purge count and actual Signal reclaimed.

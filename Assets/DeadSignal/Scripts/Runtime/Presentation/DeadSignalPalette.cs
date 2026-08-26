@@ -147,6 +147,38 @@ namespace DeadSignal.Presentation
                 enabled ? new Color(0.18f, 0.22f, 0.24f) : new Color(0.03f, 0.06f, 0.07f));
         }
 
+        public void RebindHierarchy(Transform root)
+        {
+            if (root == null)
+            {
+                return;
+            }
+
+            foreach (var renderer in root.GetComponentsInChildren<Renderer>(true))
+            {
+                var materials = renderer.sharedMaterials;
+                var changed = false;
+                for (var index = 0; index < materials.Length; index++)
+                {
+                    var material = materials[index];
+                    if (material == null ||
+                        !m_runtimeMaterialsByName.TryGetValue(material.name, out var runtimeMaterial) ||
+                        material == runtimeMaterial)
+                    {
+                        continue;
+                    }
+
+                    materials[index] = runtimeMaterial;
+                    changed = true;
+                }
+
+                if (changed)
+                {
+                    renderer.sharedMaterials = materials;
+                }
+            }
+        }
+
         public void Dispose()
         {
             foreach (var material in m_runtimeMaterials)
@@ -158,6 +190,7 @@ namespace DeadSignal.Presentation
             }
 
             m_runtimeMaterials.Clear();
+            m_runtimeMaterialsByName.Clear();
         }
 
         private Material _loadMaterial(string materialName)
@@ -174,6 +207,7 @@ namespace DeadSignal.Presentation
                 hideFlags = HideFlags.DontSave
             };
             m_runtimeMaterials.Add(runtimeMaterial);
+            m_runtimeMaterialsByName.Add(materialName, runtimeMaterial);
             return runtimeMaterial;
         }
 
@@ -193,5 +227,6 @@ namespace DeadSignal.Presentation
         }
 
         private readonly List<Material> m_runtimeMaterials = new List<Material>();
+        private readonly Dictionary<string, Material> m_runtimeMaterialsByName = new Dictionary<string, Material>();
     }
 }

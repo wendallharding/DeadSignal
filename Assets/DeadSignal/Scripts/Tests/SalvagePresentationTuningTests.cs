@@ -22,7 +22,7 @@ namespace DeadSignal.Tests
             Assert.That(tuning.RecoveryFieldDuration, Is.GreaterThanOrEqualTo(2f));
             Assert.That(tuning.RecoveryFieldRadius, Is.GreaterThanOrEqualTo(2f));
             Assert.That(tuning.OptionalCacheSignalReward, Is.EqualTo(18f),
-                "The optional route should repay meaningful extraction ammunition without refilling the full reserve.");
+                "The optional route should provide meaningful survival recovery without refilling the full reserve.");
         }
 
         [Test]

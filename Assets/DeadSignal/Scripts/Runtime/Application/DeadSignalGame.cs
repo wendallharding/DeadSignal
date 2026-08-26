@@ -67,6 +67,7 @@ namespace DeadSignal.Application
         private float m_blockedFeedbackCooldown;
         private bool m_debugMenuOpen;
         private bool m_debugInfiniteSignal;
+        private bool m_debugFireHeld;
         private bool m_debugRouteDriving;
         private DebugLocation m_debugRouteDestination;
         private DebugRouteSequencer m_debugRouteSequencer;
@@ -379,6 +380,8 @@ namespace DeadSignal.Application
         public void DebugSetInvulnerable(bool enabled) => m_threats?.SetPlayerInvulnerableForDebug(enabled);
 
         public void DebugSetThreatsFrozen(bool frozen) => m_threats?.SetFrozenForDebug(frozen);
+
+        public void DebugSetFireHeld(bool held) => m_debugFireHeld = held;
 
         public void DebugSetTimeScale(float scale)
         {
@@ -1003,7 +1006,7 @@ namespace DeadSignal.Application
 
             if (m_combatFeedback.IsFrozen)
             {
-                if (!IsPaused && m_input.PressedFire())
+                if (!IsPaused && m_input.IsFireHeld())
                 {
                     m_fireBuffered = true;
                 }
@@ -1085,7 +1088,7 @@ namespace DeadSignal.Application
             }
             else
             {
-                if ((m_fireBuffered || m_input.PressedFire()) && m_threats.CanFire)
+                if ((m_fireBuffered || m_debugFireHeld || m_input.IsFireHeld()) && m_threats.CanFire)
                 {
                     m_fireBuffered = false;
                     m_threats.TryFire(aimDirection);
@@ -1677,7 +1680,6 @@ namespace DeadSignal.Application
             if (_isLiveBalanceAutomationActive() &&
                 m_liveBalanceCombatDecision.Target == SecurityReinforcement.Sapper &&
                 m_threats.IsSapperAlive &&
-                CurrentSignal >= RunModel.ShotCost * 2f &&
                 DeadSignalWorld.FlatDistance(m_world.Player.position, m_world.Sapper.position) > 2.5f)
             {
                 navigationDestination = _liveBalanceSapperInterceptPosition();
@@ -2142,6 +2144,7 @@ namespace DeadSignal.Application
             m_debugRouteBlockedSeconds = 0f;
             m_debugObservedSequenceStep = -1;
             m_fireBuffered = false;
+            m_debugFireHeld = false;
             m_playerMovement?.ApplyResolvedVelocity(Vector3.zero);
             if (m_debugCombatScenarioActive)
             {

@@ -142,6 +142,7 @@ namespace DeadSignal.World
             _rebuildNavMesh();
             _registerAuthoredPoweredTerritories();
             _buildActors(comfortSettings);
+            m_palette.RebindHierarchy(m_root);
             _configurePlayerCamera();
             _configurePlayerCombatPresentation(comfortSettings);
             ApplyHighContrast(comfortSettings.HighContrastEnabled);

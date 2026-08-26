@@ -2,13 +2,13 @@
 
 ## Commercial pitch
 
-**DEAD SIGNAL** is a compact top-down action roguelite about pushing a fragile network through a dying orbital station. You are a maintenance drone whose movement, weapons, and machinery all draw from one dwindling Signal reserve. Signal towers turn darkness into safe, luminous territory—but every restored node wakes more of the station's security. Leave the network to recover rare salvage, then make it home before your power, health, and options all disappear together.
+**DEAD SIGNAL** is a compact top-down action roguelite about pushing a fragile network through a dying orbital station. You are a maintenance drone whose movement, machinery, special combat power, and survival draw from one dwindling Signal reserve. Signal towers turn darkness into safe, luminous territory—but every restored node wakes more of the station's security. Leave the network to recover rare salvage, then make it home before your power, health, and options all disappear together.
 
 The hook is a readable risk loop: **power territory, provoke danger, raid the dark, extract before Signal runs out**. A finished run should fit into 15–25 minutes, with fast restarts and route-changing upgrades.
 
 ## Design pillars
 
-1. **One resource, tense decisions.** Signal is mobility, ammunition, machinery access, and life support. Every meaningful action has an opportunity cost.
+1. **One reserve, tense commitments.** Signal is mobility, machinery access, special combat power, and life support. Basic bolts are free so combat stays immediate; positioning, damage, traversal, and stronger abilities still put the reserve at risk.
 2. **Safety changes the map.** Activated towers create unmistakable cyan territory and new tactical footholds while escalating security pressure.
 3. **The dark is lucrative.** Warm-gold salvage lives beyond the network, where passive Signal loss creates a strict expedition clock.
 4. **Miniature machine drama.** Chunky geometric machinery, crisp silhouettes, dark station decking, cyan network light, amber rewards, and red threats make state readable at a glance.
@@ -25,6 +25,8 @@ The three-region journey now provides enough authored space to prove the core co
 4. Tune or repurpose existing arenas and run pacing before adding a behavioral variant, a new enemy, more level area, or a guardian.
 
 Every combat advancement requires a bounded hypothesis, rejection criteria, and matched before/after evidence. The comparison must cover weapon satisfaction, movement decisions, enemy-role distinction, encounter variety, combat readability, completion pressure, build diversity, Signal economy, fun, and replay intent. Automated validation proves correctness; subjective balance and fun require human play.
+
+Basic Signal bolts are permanently free. Keyboard/mouse and controller Fire can be held for the authored cadence, including at critical reserve. Signal pressure now comes from traversal, dashing, machinery, enemy damage and drains, extraction commitments, and future explicitly costed special power—not from every ordinary trigger pull. Purge rewards remain finite, cap-safe survival recovery rather than ammunition repayment.
 
 ## MVP scope
 
@@ -46,7 +48,7 @@ This autonomous run is accepted when a fresh Play session provides all of the fo
 - WASD movement and mouse aim feel immediate; left click or Space fires.
 - Shift / gamepad south performs a short four-Signal dash with a visible cooldown, creating deliberate telegraph and route counterplay.
 - Objective and emergency guidance route through reachable authored-obstacle detours, while pause exposes a compact tactical map of safe nodes, caches, threats, and the next corridor turn.
-- Movement in dead zones, attacks, tower activation, and enemy impacts visibly consume Signal.
+- Movement in dead zones, dashes, tower activation, special combat power, and enemy impacts visibly consume Signal; ordinary bolts never do.
 - One nearby tower can be activated with E, replenishes Signal, and produces obvious cyan powered territory.
 - Tower activation launches a cyan circuit sweep from the tower to the powered boundary, visibly selling the network's expansion while respecting pause and Reduced Flashes.
 - The station deck is assembled from reusable authored floor modules carrying original dark-alloy plating art while powered/dead-zone overlays remain readable.
@@ -73,9 +75,9 @@ This autonomous run is accepted when a fresh Play session provides all of the fo
 - Three salvage objectives use a reusable authored cache assembly with original amber containment art while collection and beacon guidance remain unchanged.
 - The maintenance drone uses four purpose-built, UV-mapped low-poly meshes with original white-ceramic Signal art; its chassis faces resolved travel while the stabilized core/tool turret independently follows aim, making strafing and retained momentum readable without changing movement or firing rules.
 - The maintenance drone leaves a short twin cyan Signal wake whose intensity follows actual flight speed, making acceleration and coasting readable without changing movement rules.
-- Player shots use a reusable two-part, UV-mapped maintenance-pulse prefab with original white-ceramic/cyan Signal art while cost, speed, lifetime, and hit rules remain unchanged.
+- Player shots use a reusable two-part, UV-mapped maintenance-pulse prefab with original white-ceramic/cyan Signal art. Holding Fire repeats free basic bolts at the authored cadence while speed, lifetime, collision, and hit rules remain unchanged.
 - Each maintenance pulse leaves a brief authored cyan circuit afterimage, making shot direction and speed readable without obscuring enemies or changing projectile rules.
-- Activating the Relay Foundry offers one run-long weapon calibration: Piercing Pulse continues through one threat into a second aligned role, while Controlled Ricochet redirects once from authored cover toward a nearby unobstructed role. Both retain the five-Signal shot cost and terminate at cover or after their bounded hit budget.
+- Activating the Relay Foundry offers one run-long weapon calibration: Piercing Pulse continues through one threat into a second aligned role, while Controlled Ricochet redirects once from authored cover toward a nearby unobstructed role. Both share free basic-fire cadence and terminate at cover or after their bounded hit budget.
 - The pursuing Security Warden uses three purpose-built, UV-mapped low-poly meshes with original graphite/crimson armor art while threat rules remain unchanged.
 - The tower-draining Signal Sapper uses four purpose-built, UV-mapped low-poly meshes with original black-violet/magenta siphon art while drain rules remain unchanged.
 - Dead zones are visually distinct, show a warning, and drain Signal quickly.
@@ -135,7 +137,7 @@ The second powered region is the Relay Foundry beyond that vault. A closed cente
 
 Restoring that optional Relay now promotes the existing final Suppressor response into the Foundry. Its committed safe gate and full warning remain intact, then its opening field locks to the activation position so either turbine lane stays available as counterplay. The response is consumed once: extraction cannot add a fifth deployment. This was selected over stat or count inflation because the second safe territory should provoke a distinct tactical cost, make Relay greed alter the current mixed-role composition, and still reward players who survive the lockdown with a quieter extraction roster.
 
-The leftover fourth cache now remains collectible after extraction readiness as a one-time 18-Signal greed reward. The mission strip discloses its distance and value while still presenting the dock as the safe finish, so the identity of the skipped branch becomes a late-run resource decision rather than inert scenery. This was selected over another reinforcement because the return route already carries bounded adaptive responses; a cap-safe reserve reward strengthens ammunition, Overdrive affordability, and survival decisions without increasing unavoidable threat count or weakening the extraction climax.
+The leftover fourth cache now remains collectible after extraction readiness as a one-time 18-Signal greed reward. The mission strip discloses its distance and value while still presenting the dock as the safe finish, so the identity of the skipped branch becomes a late-run resource decision rather than inert scenery. This was selected over another reinforcement because the return route already carries bounded adaptive responses; a cap-safe reserve reward strengthens Overdrive affordability, traversal, and survival decisions without increasing unavoidable threat count or weakening the extraction climax.
 
 The expanded station is now the required mission rather than an optional sightseeing route. A valid extraction needs the Central, Relay, and Spine towers online plus one distinct payload from each region. Every region offers two payload approaches and retires the unchosen sibling once its regional objective is secured, preserving route choice without allowing three opening-room caches to bypass the authored journey. Central establishes the first build layer and awakens the core threats; Relay requires the Central payload, grants weapon calibration, and promotes its bounded lockdown; Spine requires the Relay payload, evolves the weapon, and leads to the final regional payload. The Arc Furnace/Quench cache remains a separate optional Signal greed reward after extraction readiness. This was selected over merely relocating three identical pickups because progression, navigation, build growth, enemy escalation, and extraction should describe the same three-region arc.
 
@@ -175,7 +177,7 @@ Consecutive cache recoveries now form a 12-second chain that pays 4 Signal on th
 
 ### Run 59 product decision — security-purge recovery
 
-Destroyed threats now return part of the shared resource they forced the player to risk: the Warden offsets most of its minimum ammunition cost, while the time-critical Sapper is deliberately net-positive if intercepted cleanly. This was selected over another room or HUD-only pass because combat previously consumed Signal without creating an economic reason to engage. The asymmetric 12/16 rewards preserve avoidance as a valid Warden choice while making a fast Sapper purge an active recovery tactic. Enemy health, bounty values, actual reclaimed Signal, and purge counts are visible and deterministic; all prior enemy behavior is preserved in a new designer-facing tuning asset.
+Destroyed threats return part of the survival reserve they endangered. The asymmetric 12/16 Warden and Sapper rewards make clean aggression a bounded recovery tactic while avoidance remains valid; each reward stays below one security-hit loss and the director supplies only finite responses. Enemy health, bounty values, actual reclaimed Signal, and purge counts remain visible and deterministic.
 
 ### Run 58 product decision — mission command strip
 
@@ -193,7 +195,7 @@ Salvage progress now raises a deterministic three-tier security alert instead of
 
 ### Run 62 product decision — flanking Interceptor
 
-The first salvage escalation now introduces an Interceptor before the existing Warden and Sapper reserves. It selects the farther of two scene-authored edge gates, advances toward a point between the drone and extraction, locks a visible line for 0.8 seconds, and then commits to a short collision-bounded dash. This was selected over increasing enemy health, speed, or count because the return leg needed a threat that changes route and dodge decisions while combining cleanly with direct pursuit and tower denial. Three health and a 14-Signal purge bounty keep fighting economically competitive without making a clean purge profitable after its minimum shot cost.
+The first salvage escalation now introduces an Interceptor before the existing Warden and Sapper reserves. It selects the farther of two scene-authored edge gates, advances toward a point between the drone and extraction, locks a visible line for 0.8 seconds, and then commits to a short collision-bounded dash. This was selected over increasing enemy health, speed, or count because the return leg needed a threat that changes route and dodge decisions while combining cleanly with direct pursuit and tower denial. Three health and a 14-Signal purge bounty make clean interception a bounded survival recovery without exceeding one security-hit loss.
 
 ### Run 83 product decision — persistent reinforcement entry
 
@@ -257,7 +259,7 @@ A committed Interceptor dash now stops when it hits authored cover and exposes a
 
 ### Run 86 product decision — Relay weapon calibration
 
-Relay activation now awards a third, independent build layer. Piercing Pulse rewards lining up mixed roles in open lanes by allowing one bolt to strike two different threats; Controlled Ricochet rewards deliberate use of authored cover by redirecting one impact toward a nearby unobstructed role. Both keep the established five-Signal cost, normal one-hit damage, finite lifetime, and hard cover rules. This was selected over a generic damage percentage because the new region should change how the player reads its turbine lanes and return bulkheads, and over a random drop because meaningful region progress should produce a legible build decision.
+Relay activation now awards a third, independent build layer. Piercing Pulse rewards lining up mixed roles in open lanes by allowing one bolt to strike two different threats; Controlled Ricochet rewards deliberate use of authored cover by redirecting one impact toward a nearby unobstructed role. Both keep free basic-fire cadence, normal one-hit damage, finite lifetime, and hard cover rules. This was selected over a generic damage percentage because the new region should change how the player reads its turbine lanes and return bulkheads, and over a random drop because meaningful region progress should produce a legible build decision.
 
 ### Run 87 product decision — Relay lockdown composition
 
