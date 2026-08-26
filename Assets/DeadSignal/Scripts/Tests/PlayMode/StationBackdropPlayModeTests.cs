@@ -62,7 +62,12 @@ namespace DeadSignal.Tests
                 var renderer = obstacleObject.GetComponent<Renderer>();
                 var controller = controllerObject.AddComponent<ForegroundOcclusionController>();
 
-                controller.Configure(camera, player.transform, new[] { obstacle }, footprintMaterial);
+                controller.Configure(
+                    camera,
+                    player.transform,
+                    new[] { obstacle },
+                    new AuthoredForegroundCutaway[0],
+                    footprintMaterial);
                 yield return null;
                 Assert.That(renderer.forceRenderingOff, Is.True);
                 Assert.That(controller.VisibleFootprintCount, Is.EqualTo(1));
@@ -72,7 +77,12 @@ namespace DeadSignal.Tests
                 Assert.That(footprint.GetComponent<Collider>(), Is.Null,
                     "The cutaway cue must not add traversal or projectile collision.");
 
-                controller.Configure(camera, player.transform, new AuthoredMapObstacle[0], footprintMaterial);
+                controller.Configure(
+                    camera,
+                    player.transform,
+                    new AuthoredMapObstacle[0],
+                    new AuthoredForegroundCutaway[0],
+                    footprintMaterial);
                 Assert.That(renderer.forceRenderingOff, Is.False,
                     "Refreshing authored obstacles must not strand an old cutaway renderer in the hidden state.");
                 Assert.That(controller.VisibleFootprintCount, Is.Zero);
@@ -108,7 +118,7 @@ namespace DeadSignal.Tests
                 var renderer = obstacleObject.GetComponent<Renderer>();
                 var controller = controllerObject.AddComponent<ForegroundOcclusionController>();
 
-                controller.Configure(camera, player.transform, new[] { obstacle });
+                controller.Configure(camera, player.transform, new[] { obstacle }, new AuthoredForegroundCutaway[0]);
                 yield return null;
 
                 var playerPoint = camera.WorldToScreenPoint(player.transform.position + Vector3.up * 0.35f);
@@ -134,15 +144,101 @@ namespace DeadSignal.Tests
             }
         }
 
+        [UnityTest]
+        public IEnumerator ForegroundOcclusion_UsesSceneAuthoredWallShellBindings()
+        {
+            yield return SceneManager.LoadSceneAsync("SampleScene");
+            yield return null;
+
+            var bindings = Object.FindObjectsByType<AuthoredForegroundCutaway>(FindObjectsSortMode.None);
+            Assert.That(bindings, Has.Length.GreaterThanOrEqualTo(4));
+
+            var hasCentralBoundary = false;
+            foreach (var binding in bindings)
+            {
+                Assert.That(binding.Renderers, Is.Not.Null.And.Not.Empty);
+                foreach (var renderer in binding.Renderers)
+                {
+                    Assert.That(renderer, Is.Not.Null);
+                    hasCentralBoundary |= renderer.name == "North Bulkhead" ||
+                                          renderer.name == "South Bulkhead" ||
+                                          renderer.name == "West Bulkhead";
+                }
+
+                if (binding.CollisionOwner != null)
+                {
+                    Assert.That(binding.CollisionOwner.enabled, Is.True,
+                        "Cutaway authoring must reference collision authority without disabling it.");
+                }
+            }
+
+            Assert.That(hasCentralBoundary, Is.True,
+                "The central shell boundaries must participate in the explicit foreground cutaway pass.");
+        }
+
+        [UnityTest]
+        public IEnumerator ForegroundOcclusion_HidesExplicitSiblingWithoutChangingCollision()
+        {
+            var cameraObject = new GameObject("Authored Cutaway Camera");
+            var player = new GameObject("Authored Cutaway Player");
+            var collisionOwnerObject = new GameObject("Authored Collision Owner");
+            var wallShell = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            var bindingObject = new GameObject("Authored Cutaway Binding");
+            var controllerObject = new GameObject("Authored Cutaway Controller");
+            try
+            {
+                var camera = cameraObject.AddComponent<Camera>();
+                cameraObject.transform.position = new Vector3(0f, 3f, -6f);
+                cameraObject.transform.LookAt(new Vector3(0f, 0.5f, 0f));
+                player.transform.position = Vector3.zero;
+                collisionOwnerObject.transform.position = new Vector3(0f, 0f, -2f);
+                var collisionOwner = collisionOwnerObject.AddComponent<AuthoredMapObstacle>();
+                collisionOwner.Configure(new Vector2(1f, 0.25f));
+                wallShell.transform.position = new Vector3(0f, 0.75f, -2f);
+                wallShell.transform.localScale = new Vector3(2f, 1.5f, 0.5f);
+                var renderer = wallShell.GetComponent<Renderer>();
+                var collider = wallShell.GetComponent<Collider>();
+                var binding = bindingObject.AddComponent<AuthoredForegroundCutaway>();
+                binding.Configure(collisionOwner, renderer);
+                var controller = controllerObject.AddComponent<ForegroundOcclusionController>();
+
+                controller.Configure(camera, player.transform, new[] { collisionOwner }, new[] { binding });
+                yield return null;
+
+                Assert.That(renderer.forceRenderingOff, Is.True);
+                Assert.That(collider.enabled, Is.True,
+                    "Presentation cutaways must not disable the shell's existing physical authority.");
+                Assert.That(controller.VisibleFootprintCount, Is.EqualTo(1));
+                var footprint = controllerObject.transform.Find("Foreground Cutaway Footprint");
+                Assert.That(footprint, Is.Not.Null);
+                Assert.That(footprint.GetComponent<Renderer>().sharedMaterial.name,
+                    Is.EqualTo("ForegroundCutawayFootprintAuthored"));
+            }
+            finally
+            {
+                Object.DestroyImmediate(controllerObject);
+                Object.DestroyImmediate(bindingObject);
+                Object.DestroyImmediate(wallShell);
+                Object.DestroyImmediate(collisionOwnerObject);
+                Object.DestroyImmediate(player);
+                Object.DestroyImmediate(cameraObject);
+            }
+        }
+
         [Test]
         public void ForegroundCutaway_ResourcesArePackagedForRuntime()
         {
             var texture = Resources.Load<Texture2D>("VFX/ForegroundCutawayFootprint");
             var material = Resources.Load<Material>("Materials/ForegroundCutawayFootprint");
+            var authoredTexture = Resources.Load<Texture2D>("VFX/ForegroundCutawayFootprintAuthored");
+            var authoredMaterial = Resources.Load<Material>("Materials/ForegroundCutawayFootprintAuthored");
 
             Assert.That(texture, Is.Not.Null);
             Assert.That(material, Is.Not.Null);
             Assert.That(material.mainTexture, Is.SameAs(texture));
+            Assert.That(authoredTexture, Is.Not.Null);
+            Assert.That(authoredMaterial, Is.Not.Null);
+            Assert.That(authoredMaterial.mainTexture, Is.SameAs(authoredTexture));
         }
     }
 }

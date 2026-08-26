@@ -10,12 +10,14 @@ namespace DeadSignal.Presentation
     {
         private const float MINIMUM_CUTAWAY_HEIGHT = 0.25f;
         private const string FOOTPRINT_MATERIAL_PATH = "Materials/ForegroundCutawayFootprint";
+        private const string AUTHORED_FOOTPRINT_MATERIAL_PATH = "Materials/ForegroundCutawayFootprintAuthored";
         private const string FOOTPRINT_NAME = "Foreground Cutaway Footprint";
 
         private readonly List<ObstacleRenderGroup> m_groups = new();
 
         private Camera m_camera;
         private Material m_footprintMaterial;
+        private Material m_authoredFootprintMaterial;
         private Mesh m_footprintMesh;
         private Transform m_player;
 
@@ -27,12 +29,14 @@ namespace DeadSignal.Presentation
             public AuthoredMapObstacle Obstacle;
             public Renderer[] Renderers;
             public MeshRenderer Footprint;
+            public Material FootprintMaterial;
         }
 
         public void Configure(
             Camera targetCamera,
             Transform player,
             IReadOnlyList<AuthoredMapObstacle> obstacles,
+            IReadOnlyList<AuthoredForegroundCutaway> authoredCutaways,
             Material footprintMaterial = null)
         {
             _restoreRenderers();
@@ -41,14 +45,49 @@ namespace DeadSignal.Presentation
             m_footprintMaterial = footprintMaterial != null
                 ? footprintMaterial
                 : Resources.Load<Material>(FOOTPRINT_MATERIAL_PATH);
+            m_authoredFootprintMaterial = Resources.Load<Material>(AUTHORED_FOOTPRINT_MATERIAL_PATH);
             m_player = player;
             m_groups.Clear();
+            var ownedRenderers = new HashSet<Renderer>();
             foreach (var obstacle in obstacles)
             {
                 var renderers = obstacle.GetComponentsInChildren<Renderer>(true);
                 if (renderers.Length > 0)
                 {
-                    m_groups.Add(new ObstacleRenderGroup { Obstacle = obstacle, Renderers = renderers });
+                    m_groups.Add(new ObstacleRenderGroup
+                    {
+                        Obstacle = obstacle,
+                        Renderers = renderers,
+                        FootprintMaterial = m_footprintMaterial
+                    });
+                    foreach (var renderer in renderers)
+                    {
+                        ownedRenderers.Add(renderer);
+                    }
+                }
+            }
+
+            foreach (var authoredCutaway in authoredCutaways)
+            {
+                var renderers = new List<Renderer>();
+                foreach (var renderer in authoredCutaway.Renderers)
+                {
+                    if (renderer != null && ownedRenderers.Add(renderer))
+                    {
+                        renderers.Add(renderer);
+                    }
+                }
+
+                if (renderers.Count > 0)
+                {
+                    m_groups.Add(new ObstacleRenderGroup
+                    {
+                        Obstacle = authoredCutaway.CollisionOwner,
+                        Renderers = renderers.ToArray(),
+                        FootprintMaterial = m_authoredFootprintMaterial != null
+                            ? m_authoredFootprintMaterial
+                            : m_footprintMaterial
+                    });
                 }
             }
         }
@@ -190,7 +229,7 @@ namespace DeadSignal.Presentation
 
         private MeshRenderer _ensureFootprint(ObstacleRenderGroup group)
         {
-            if (group.Footprint != null || m_footprintMaterial == null)
+            if (group.Footprint != null || group.FootprintMaterial == null)
             {
                 return group.Footprint;
             }
@@ -209,20 +248,23 @@ namespace DeadSignal.Presentation
 
             if (float.IsPositiveInfinity(floorHeight))
             {
-                floorHeight = group.Obstacle.transform.position.y;
+                floorHeight = group.Obstacle != null ? group.Obstacle.transform.position.y : 0f;
             }
 
-            var center = group.Obstacle.Center;
-            var forward = group.Obstacle.ForwardAxis;
-            var markerHeight = Mathf.Max(floorHeight + 0.025f, group.Obstacle.transform.position.y + 0.08f);
+            var center = group.Obstacle != null ? group.Obstacle.Center : _rendererCenter(group.Renderers);
+            var forward = group.Obstacle != null ? group.Obstacle.ForwardAxis : Vector2.up;
+            var ownerHeight = group.Obstacle != null
+                ? group.Obstacle.transform.position.y + 0.08f
+                : floorHeight + 0.025f;
+            var markerHeight = Mathf.Max(floorHeight + 0.025f, ownerHeight);
             marker.transform.position = new Vector3(center.x, markerHeight, center.y);
             marker.transform.rotation = Quaternion.LookRotation(new Vector3(forward.x, 0f, forward.y), Vector3.up);
-            var halfSize = group.Obstacle.ScaledHalfSize;
+            var halfSize = group.Obstacle != null ? group.Obstacle.ScaledHalfSize : _rendererHalfSize(group.Renderers);
             marker.transform.localScale = new Vector3(halfSize.x * 2f, 1f, halfSize.y * 2f);
 
             marker.AddComponent<MeshFilter>().sharedMesh = _getFootprintMesh();
             group.Footprint = marker.AddComponent<MeshRenderer>();
-            group.Footprint.sharedMaterial = m_footprintMaterial;
+            group.Footprint.sharedMaterial = group.FootprintMaterial;
             group.Footprint.shadowCastingMode = ShadowCastingMode.Off;
             group.Footprint.receiveShadows = false;
             group.Footprint.lightProbeUsage = LightProbeUsage.Off;
@@ -230,6 +272,43 @@ namespace DeadSignal.Presentation
             group.Footprint.motionVectorGenerationMode = MotionVectorGenerationMode.ForceNoMotion;
             group.Footprint.enabled = false;
             return group.Footprint;
+        }
+
+        private static Vector2 _rendererCenter(IReadOnlyList<Renderer> renderers)
+        {
+            var bounds = _combinedBounds(renderers);
+            return new Vector2(bounds.center.x, bounds.center.z);
+        }
+
+        private static Vector2 _rendererHalfSize(IReadOnlyList<Renderer> renderers)
+        {
+            var bounds = _combinedBounds(renderers);
+            return new Vector2(Mathf.Max(0.05f, bounds.extents.x), Mathf.Max(0.05f, bounds.extents.z));
+        }
+
+        private static Bounds _combinedBounds(IReadOnlyList<Renderer> renderers)
+        {
+            var bounds = new Bounds();
+            var initialized = false;
+            foreach (var renderer in renderers)
+            {
+                if (renderer == null)
+                {
+                    continue;
+                }
+
+                if (!initialized)
+                {
+                    bounds = renderer.bounds;
+                    initialized = true;
+                }
+                else
+                {
+                    bounds.Encapsulate(renderer.bounds);
+                }
+            }
+
+            return bounds;
         }
 
         private Mesh _getFootprintMesh()

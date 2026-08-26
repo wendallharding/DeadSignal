@@ -1122,7 +1122,8 @@ namespace DeadSignal.World
         private void _configureForegroundOcclusion()
         {
             ForegroundOcclusion = m_root.gameObject.AddComponent<ForegroundOcclusionController>();
-            ForegroundOcclusion.Configure(Camera, Player, m_authoredMapObstacles);
+            var authoredCutaways = Object.FindObjectsByType<AuthoredForegroundCutaway>(FindObjectsSortMode.None);
+            ForegroundOcclusion.Configure(Camera, Player, m_authoredMapObstacles, authoredCutaways);
         }
 
         private void _buildActors(IComfortSettings comfortSettings)

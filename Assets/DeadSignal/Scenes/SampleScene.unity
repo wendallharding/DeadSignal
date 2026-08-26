@@ -438,6 +438,46 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 650148704720777452, guid: 9f4174f9c3e4c6b449cf99582d77e1fa, type: 3}
   m_PrefabInstance: {fileID: 61606408}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &101058679
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 101058680}
+  m_Layer: 0
+  m_Name: Authored Foreground Cutaway Bindings
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &101058680
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 101058679}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 1229436270}
+  - {fileID: 1137595032}
+  - {fileID: 1005828315}
+  - {fileID: 417004169}
+  - {fileID: 707007728}
+  - {fileID: 1942057116}
+  - {fileID: 299256723}
+  - {fileID: 913344389}
+  - {fileID: 160040667}
+  m_Father: {fileID: 2147458777}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &116780036
 GameObject:
   m_ObjectHideFlags: 0
@@ -719,6 +759,53 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 3992784759083235401, guid: 4bf93dfa3a2586243b93bb789b185732, type: 3}
   m_PrefabInstance: {fileID: 156426351}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &160040666
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 160040667}
+  - component: {fileID: 160040668}
+  m_Layer: 0
+  m_Name: Shortcut Bulkhead North Cutaway
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &160040667
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 160040666}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 101058680}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &160040668
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 160040666}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0dd64253bb2c9694aabbbb6b3e18d09a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: DeadSignal.Runtime::DeadSignal.World.AuthoredForegroundCutaway
+  m_collisionOwner: {fileID: 0}
+  m_renderers:
+  - {fileID: 821964419}
 --- !u!1001 &171198311
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1072,6 +1159,53 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 1915019235770815922, guid: 14c7f9e646bfcab4288c734465661db1, type: 3}
   m_PrefabInstance: {fileID: 276048930}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &299256722
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 299256723}
+  - component: {fileID: 299256724}
+  m_Layer: 0
+  m_Name: Vault South Wall Cutaway
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &299256723
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 299256722}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 101058680}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &299256724
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 299256722}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0dd64253bb2c9694aabbbb6b3e18d09a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: DeadSignal.Runtime::DeadSignal.World.AuthoredForegroundCutaway
+  m_collisionOwner: {fileID: 890906252}
+  m_renderers:
+  - {fileID: 890906254}
 --- !u!1 &330585543
 GameObject:
   m_ObjectHideFlags: 0
@@ -1429,6 +1563,53 @@ MonoBehaviour:
   m_ShadowLayerMask: 1
   m_RenderingLayers: 1
   m_ShadowRenderingLayers: 1
+--- !u!1 &417004168
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 417004169}
+  - component: {fileID: 417004170}
+  m_Layer: 0
+  m_Name: Relay Return Bulkhead Cutaway
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &417004169
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 417004168}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 101058680}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &417004170
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 417004168}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0dd64253bb2c9694aabbbb6b3e18d09a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: DeadSignal.Runtime::DeadSignal.World.AuthoredForegroundCutaway
+  m_collisionOwner: {fileID: 0}
+  m_renderers:
+  - {fileID: 1473688703}
 --- !u!1001 &428921429
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -2281,6 +2462,53 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 8170571173809107420, guid: 58549610818e64f4f99f089d3ec16cec, type: 3}
   m_PrefabInstance: {fileID: 690767807}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &707007727
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 707007728}
+  - component: {fileID: 707007729}
+  m_Layer: 0
+  m_Name: Vault North Wall Cutaway
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &707007728
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 707007727}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 101058680}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &707007729
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 707007727}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0dd64253bb2c9694aabbbb6b3e18d09a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: DeadSignal.Runtime::DeadSignal.World.AuthoredForegroundCutaway
+  m_collisionOwner: {fileID: 890906253}
+  m_renderers:
+  - {fileID: 890906255}
 --- !u!1001 &708361843
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -2520,6 +2748,16 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 3109046093689687674, guid: 796d83f1401c8bd428319d3407d66d77, type: 3}
   m_PrefabInstance: {fileID: 821964416}
   m_PrefabAsset: {fileID: 0}
+--- !u!23 &821964419 stripped
+MeshRenderer:
+  m_CorrespondingSourceObject: {fileID: 6245894148520020790, guid: 796d83f1401c8bd428319d3407d66d77, type: 3}
+  m_PrefabInstance: {fileID: 821964416}
+  m_PrefabAsset: {fileID: 0}
+--- !u!23 &821964420 stripped
+MeshRenderer:
+  m_CorrespondingSourceObject: {fileID: 5923600034076846356, guid: 796d83f1401c8bd428319d3407d66d77, type: 3}
+  m_PrefabInstance: {fileID: 821964416}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &832575517
 GameObject:
   m_ObjectHideFlags: 0
@@ -2704,6 +2942,90 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: cb92ee6f49043b442b79fd41b762059a, type: 3}
+--- !u!23 &890906251 stripped
+MeshRenderer:
+  m_CorrespondingSourceObject: {fileID: 330088729118367756, guid: cb92ee6f49043b442b79fd41b762059a, type: 3}
+  m_PrefabInstance: {fileID: 890906250}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &890906252 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 8997900596072114399, guid: cb92ee6f49043b442b79fd41b762059a, type: 3}
+  m_PrefabInstance: {fileID: 890906250}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e5c2114ec9f7be54889bb05839f089fe, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: DeadSignal.Runtime::DeadSignal.World.AuthoredMapObstacle
+--- !u!114 &890906253 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 5177243441056999647, guid: cb92ee6f49043b442b79fd41b762059a, type: 3}
+  m_PrefabInstance: {fileID: 890906250}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e5c2114ec9f7be54889bb05839f089fe, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: DeadSignal.Runtime::DeadSignal.World.AuthoredMapObstacle
+--- !u!23 &890906254 stripped
+MeshRenderer:
+  m_CorrespondingSourceObject: {fileID: 6265902621009742288, guid: cb92ee6f49043b442b79fd41b762059a, type: 3}
+  m_PrefabInstance: {fileID: 890906250}
+  m_PrefabAsset: {fileID: 0}
+--- !u!23 &890906255 stripped
+MeshRenderer:
+  m_CorrespondingSourceObject: {fileID: 4334439216171006220, guid: cb92ee6f49043b442b79fd41b762059a, type: 3}
+  m_PrefabInstance: {fileID: 890906250}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &913344388
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 913344389}
+  - component: {fileID: 913344390}
+  m_Layer: 0
+  m_Name: Vault East Wall Cutaway
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &913344389
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 913344388}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 101058680}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &913344390
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 913344388}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0dd64253bb2c9694aabbbb6b3e18d09a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: DeadSignal.Runtime::DeadSignal.World.AuthoredForegroundCutaway
+  m_collisionOwner: {fileID: 0}
+  m_renderers:
+  - {fileID: 890906251}
 --- !u!1001 &916966860
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -2926,6 +3248,53 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 8170571173809107420, guid: 58549610818e64f4f99f089d3ec16cec, type: 3}
   m_PrefabInstance: {fileID: 994021637}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1005828314
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1005828315}
+  - component: {fileID: 1005828316}
+  m_Layer: 0
+  m_Name: West Bulkhead Cutaway
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1005828315
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1005828314}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 101058680}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1005828316
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1005828314}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0dd64253bb2c9694aabbbb6b3e18d09a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: DeadSignal.Runtime::DeadSignal.World.AuthoredForegroundCutaway
+  m_collisionOwner: {fileID: 0}
+  m_renderers:
+  - {fileID: 1678895569}
 --- !u!1001 &1013640706
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -3178,6 +3547,53 @@ Transform:
   - {fileID: 116780037}
   m_Father: {fileID: 2147458777}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1137595031
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1137595032}
+  - component: {fileID: 1137595033}
+  m_Layer: 0
+  m_Name: North Bulkhead Cutaway
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1137595032
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1137595031}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 101058680}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1137595033
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1137595031}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0dd64253bb2c9694aabbbb6b3e18d09a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: DeadSignal.Runtime::DeadSignal.World.AuthoredForegroundCutaway
+  m_collisionOwner: {fileID: 0}
+  m_renderers:
+  - {fileID: 1678895571}
 --- !u!1 &1143858298
 GameObject:
   m_ObjectHideFlags: 0
@@ -3209,6 +3625,53 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1113528125}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1229436269
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1229436270}
+  - component: {fileID: 1229436271}
+  m_Layer: 0
+  m_Name: Shortcut Bulkhead South Cutaway
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1229436270
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1229436269}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 101058680}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1229436271
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1229436269}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0dd64253bb2c9694aabbbb6b3e18d09a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: DeadSignal.Runtime::DeadSignal.World.AuthoredForegroundCutaway
+  m_collisionOwner: {fileID: 0}
+  m_renderers:
+  - {fileID: 821964420}
 --- !u!1001 &1254372957
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -3926,6 +4389,11 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 5051603616982336212, guid: 80aa18974bb1e1c41ae0ed4261d45cff, type: 3}
   m_PrefabInstance: {fileID: 1446826701}
   m_PrefabAsset: {fileID: 0}
+--- !u!23 &1473688703 stripped
+MeshRenderer:
+  m_CorrespondingSourceObject: {fileID: 6724921474053150444, guid: 3ee1f2e5c9154234f93ea430d643f05f, type: 3}
+  m_PrefabInstance: {fileID: 1752854263}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &1504026202
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -4597,6 +5065,21 @@ Transform:
 --- !u!1 &1678895568 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 4308132234720562775, guid: 6121d8ab7c35a5d4f9eaf9c66ecd0d49, type: 3}
+  m_PrefabInstance: {fileID: 1678895566}
+  m_PrefabAsset: {fileID: 0}
+--- !u!23 &1678895569 stripped
+MeshRenderer:
+  m_CorrespondingSourceObject: {fileID: 5618431432927496668, guid: 6121d8ab7c35a5d4f9eaf9c66ecd0d49, type: 3}
+  m_PrefabInstance: {fileID: 1678895566}
+  m_PrefabAsset: {fileID: 0}
+--- !u!23 &1678895570 stripped
+MeshRenderer:
+  m_CorrespondingSourceObject: {fileID: 496416602965080625, guid: 6121d8ab7c35a5d4f9eaf9c66ecd0d49, type: 3}
+  m_PrefabInstance: {fileID: 1678895566}
+  m_PrefabAsset: {fileID: 0}
+--- !u!23 &1678895571 stripped
+MeshRenderer:
+  m_CorrespondingSourceObject: {fileID: 8584085826349914027, guid: 6121d8ab7c35a5d4f9eaf9c66ecd0d49, type: 3}
   m_PrefabInstance: {fileID: 1678895566}
   m_PrefabAsset: {fileID: 0}
 --- !u!1 &1693593893
@@ -5274,6 +5757,53 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 8170571173809107420, guid: 58549610818e64f4f99f089d3ec16cec, type: 3}
   m_PrefabInstance: {fileID: 1922270578}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1942057115
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1942057116}
+  - component: {fileID: 1942057117}
+  m_Layer: 0
+  m_Name: South Bulkhead Cutaway
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1942057116
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1942057115}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 101058680}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1942057117
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1942057115}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0dd64253bb2c9694aabbbb6b3e18d09a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: DeadSignal.Runtime::DeadSignal.World.AuthoredForegroundCutaway
+  m_collisionOwner: {fileID: 0}
+  m_renderers:
+  - {fileID: 1678895570}
 --- !u!1001 &1972519764
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -6002,6 +6532,7 @@ Transform:
   - {fileID: 504074787}
   - {fileID: 1693593894}
   - {fileID: 344876501}
+  - {fileID: 101058680}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1660057539 &9223372036854775807

@@ -1,5 +1,16 @@
 # DEAD SIGNAL — Product Backlog
 
+## P0 — Explicit wall-shell cutaway ownership (Run 108)
+
+- [x] Add scene-authored renderer ownership for nine non-obstacle wall/bulkhead presentation meshes
+- [x] Keep existing collider, oriented-blocker, projectile, NavMesh, objective, entrance, and powered-territory authority unchanged
+- [x] Give explicitly bound shells a distinct transparent-center cyan/amber collision footprint without replacing the existing obstacle cue
+- [x] Restore explicitly bound renderers on reconfiguration, disable, and teardown through the existing symmetric lifecycle
+- [x] Package the new texture/material and require all nine bindings in standalone smoke validation
+- [x] Preserve all 96 authored obstacles and both complete commercial journeys
+- [ ] Capture Central, Spine, and extraction native frames to verify which formerly opaque sibling faces now cut away
+- [ ] Run the watched Required-versus-Full human comparison after the visual check; keep the guardian gated until then
+
 ## P0 — Collision-preserving foreground cutaways (Run 107)
 
 - [x] Expand the foreground cutaway from direct drone overlap to a resolution-scaled tactical window around the player
@@ -9,7 +20,7 @@
 - [x] Restore renderers and disable/destroy footprint cues on reconfiguration, disable, and teardown
 - [x] Package the generated texture/material and prove 96 obstacles plus both commercial journeys
 - [x] Capture native 1600×900 Spine evidence showing obstacle-owned opaque faces replaced by readable footprint cues
-- [ ] Add explicit authored cutaway ownership to the remaining non-obstacle Central/Spine/extraction wall-face meshes
+- [x] Add explicit authored cutaway ownership to the remaining non-obstacle Central/Spine/extraction wall-face meshes
 - [ ] Run the watched Required-versus-Full human comparison after those sibling presentation meshes are corrected
 
 ## P0 — Authored station underdeck continuity (Run 106)

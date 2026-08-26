@@ -82,6 +82,12 @@ namespace DeadSignal.Diagnostics
                 Resources.Load<Texture2D>("VFX/ForegroundCutawayFootprint") != null;
             var foregroundCutawayMaterialReady =
                 Resources.Load<Material>("Materials/ForegroundCutawayFootprint") != null;
+            var authoredCutawayTextureReady =
+                Resources.Load<Texture2D>("VFX/ForegroundCutawayFootprintAuthored") != null;
+            var authoredCutawayMaterialReady =
+                Resources.Load<Material>("Materials/ForegroundCutawayFootprintAuthored") != null;
+            var authoredCutawayBindingCount = FindObjectsByType<AuthoredForegroundCutaway>(
+                FindObjectsSortMode.None).Length;
             Debug.Log($"[DEAD SIGNAL STANDALONE SMOKE] RELAY WEAPON | " +
                       $"decal={weaponDecalReady} texture={weaponTextureReady} material={weaponMaterialReady} " +
                       $"obstacles={game?.AuthoredMapObstacleCount ?? -1}");
@@ -100,7 +106,8 @@ namespace DeadSignal.Diagnostics
                       $"material={stationBackdropMaterialReady} prefab={stationBackdropPrefabReady}");
             Debug.Log($"[DEAD SIGNAL STANDALONE SMOKE] FOREGROUND CUTAWAY | " +
                       $"runtime={game?.HasForegroundOcclusion ?? false} texture={foregroundCutawayTextureReady} " +
-                      $"material={foregroundCutawayMaterialReady}");
+                      $"material={foregroundCutawayMaterialReady} authoredTexture={authoredCutawayTextureReady} " +
+                      $"authoredMaterial={authoredCutawayMaterialReady} bindings={authoredCutawayBindingCount}");
             var runtimeReady = game != null &&
                                 game.transform.Find("Maintenance Drone") != null &&
                                 game.transform.Find("Shortcut Gate Assembly/Signal Shortcut Gate") != null &&
@@ -249,6 +256,9 @@ namespace DeadSignal.Diagnostics
                                 stationBackdropSceneReady &&
                                 foregroundCutawayTextureReady &&
                                 foregroundCutawayMaterialReady &&
+                                authoredCutawayTextureReady &&
+                                authoredCutawayMaterialReady &&
+                                authoredCutawayBindingCount >= 9 &&
                                 Resources.Load<GameObject>("Environment/SignalSpineInlay") != null &&
                                 Resources.Load<GameObject>("Environment/OpeningSignalSpine") != null &&
                                 Resources.Load<Texture2D>("Environment/SignalSpineInlay") != null &&
