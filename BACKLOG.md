@@ -1,5 +1,17 @@
 # DEAD SIGNAL — Product Backlog
 
+## P0 — Collision-preserving foreground cutaways (Run 107)
+
+- [x] Expand the foreground cutaway from direct drone overlap to a resolution-scaled tactical window around the player
+- [x] Limit the broader rule to obstacle-owned wall-like or large projected faces so compact landmarks retain their authored presentation
+- [x] Preserve movement, projectile, and NavMesh authority while obstacle renderers are hidden
+- [x] Show an original collider-free cyan/amber footprint cue for every active cutaway
+- [x] Restore renderers and disable/destroy footprint cues on reconfiguration, disable, and teardown
+- [x] Package the generated texture/material and prove 96 obstacles plus both commercial journeys
+- [x] Capture native 1600×900 Spine evidence showing obstacle-owned opaque faces replaced by readable footprint cues
+- [ ] Add explicit authored cutaway ownership to the remaining non-obstacle Central/Spine/extraction wall-face meshes
+- [ ] Run the watched Required-versus-Full human comparison after those sibling presentation meshes are corrected
+
 ## P0 — Authored station underdeck continuity (Run 106)
 
 - [x] Replace exposed ground-level camera void with a scene-authored, presentation-only station underdeck
@@ -8,7 +20,7 @@
 - [x] Restore previously hidden wall renderers whenever the foreground-occlusion controller is reconfigured or disabled
 - [x] Package and smoke-test the texture, material, prefab, and scene instance
 - [x] Capture native 1600×900 route frames and distinguish underdeck continuity from unresolved vertical wall-face obstruction
-- [ ] Replace or cut away the large black/gray authored wall faces that occupy the upper and central frame in Central, Spine, and extraction views
+- [ ] Finish the remaining non-obstacle black/gray authored wall faces in Central, Spine, and extraction views
 - [ ] Run the watched Required-versus-Full human comparison only after the wall-face pass preserves combat and route readability
 
 ## P0 — Readable Suppressor denial field (Run 105)

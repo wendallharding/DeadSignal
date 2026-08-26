@@ -54,6 +54,7 @@ namespace DeadSignal.Editor
             DeadSignalQuenchLoopSetup.EnsureAssets();
             DeadSignalEasternCombatScenarioSetup.EnsureAssets();
             DeadSignalStationBackdropSetup.EnsureAssets();
+            DeadSignalForegroundCutawaySetup.EnsureAssets();
             DeadSignalSignalSpineSetup.EnsureAssets();
             DeadSignalBoundaryThresholdSetup.EnsureAssets();
             DeadSignalHudSetup.EnsureAssets();
@@ -222,6 +223,11 @@ namespace DeadSignal.Editor
             if (!DeadSignalStationBackdropSetup.HasAssets)
             {
                 throw new BuildFailedException("The scene-authored station underdeck backdrop is missing or incomplete.");
+            }
+
+            if (!DeadSignalForegroundCutawaySetup.HasAssets)
+            {
+                throw new BuildFailedException("The foreground-cutaway footprint assets are missing or incomplete.");
             }
 
             if (!DeadSignalActorSetup.HasSecurityWardenAssets)

@@ -49,6 +49,7 @@ namespace DeadSignal.Tests
             var player = new GameObject("Occlusion Test Player");
             var obstacleObject = GameObject.CreatePrimitive(PrimitiveType.Cube);
             var controllerObject = new GameObject("Occlusion Test Controller");
+            var footprintMaterial = new Material(Shader.Find("Universal Render Pipeline/Unlit"));
             try
             {
                 var camera = cameraObject.AddComponent<Camera>();
@@ -61,13 +62,20 @@ namespace DeadSignal.Tests
                 var renderer = obstacleObject.GetComponent<Renderer>();
                 var controller = controllerObject.AddComponent<ForegroundOcclusionController>();
 
-                controller.Configure(camera, player.transform, new[] { obstacle });
+                controller.Configure(camera, player.transform, new[] { obstacle }, footprintMaterial);
                 yield return null;
                 Assert.That(renderer.forceRenderingOff, Is.True);
+                Assert.That(controller.VisibleFootprintCount, Is.EqualTo(1));
+                var footprint = controllerObject.transform.Find("Foreground Cutaway Footprint");
+                Assert.That(footprint, Is.Not.Null,
+                    "A hidden collision-authoritative wall needs a visible footprint cue.");
+                Assert.That(footprint.GetComponent<Collider>(), Is.Null,
+                    "The cutaway cue must not add traversal or projectile collision.");
 
-                controller.Configure(camera, player.transform, new AuthoredMapObstacle[0]);
+                controller.Configure(camera, player.transform, new AuthoredMapObstacle[0], footprintMaterial);
                 Assert.That(renderer.forceRenderingOff, Is.False,
                     "Refreshing authored obstacles must not strand an old cutaway renderer in the hidden state.");
+                Assert.That(controller.VisibleFootprintCount, Is.Zero);
             }
             finally
             {
@@ -75,7 +83,66 @@ namespace DeadSignal.Tests
                 Object.DestroyImmediate(obstacleObject);
                 Object.DestroyImmediate(player);
                 Object.DestroyImmediate(cameraObject);
+                Object.DestroyImmediate(footprintMaterial);
             }
+        }
+
+        [UnityTest]
+        public IEnumerator ForegroundOcclusion_UsesBoundedTacticalWindowNearPlayer()
+        {
+            var cameraObject = new GameObject("Tactical Window Camera");
+            var player = new GameObject("Tactical Window Player");
+            var obstacleObject = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            var controllerObject = new GameObject("Tactical Window Controller");
+            try
+            {
+                var camera = cameraObject.AddComponent<Camera>();
+                camera.enabled = false;
+                cameraObject.transform.position = new Vector3(0f, 6f, -9f);
+                cameraObject.transform.LookAt(new Vector3(0f, 0.5f, 0f));
+                camera.targetTexture = new RenderTexture(800, 450, 16);
+                player.transform.position = Vector3.zero;
+                obstacleObject.transform.position = new Vector3(0f, 1.25f, -2.4f);
+                obstacleObject.transform.localScale = new Vector3(4f, 1.4f, 0.5f);
+                var obstacle = obstacleObject.AddComponent<AuthoredMapObstacle>();
+                var renderer = obstacleObject.GetComponent<Renderer>();
+                var controller = controllerObject.AddComponent<ForegroundOcclusionController>();
+
+                controller.Configure(camera, player.transform, new[] { obstacle });
+                yield return null;
+
+                var playerPoint = camera.WorldToScreenPoint(player.transform.position + Vector3.up * 0.35f);
+                var closestWallPoint = camera.WorldToScreenPoint(new Vector3(0f, renderer.bounds.min.y, renderer.bounds.max.z));
+                Assert.That(Mathf.Abs(playerPoint.y - closestWallPoint.y), Is.GreaterThan(24f),
+                    "This regression wall should narrowly miss the former fixed cutaway margin.");
+                Assert.That(renderer.forceRenderingOff, Is.True,
+                    "A tall foreground wall inside the bounded tactical window should cut away before hiding the route.");
+            }
+            finally
+            {
+                if (cameraObject.TryGetComponent<Camera>(out var camera) && camera.targetTexture != null)
+                {
+                    var targetTexture = camera.targetTexture;
+                    camera.targetTexture = null;
+                    Object.DestroyImmediate(targetTexture);
+                }
+
+                Object.DestroyImmediate(controllerObject);
+                Object.DestroyImmediate(obstacleObject);
+                Object.DestroyImmediate(player);
+                Object.DestroyImmediate(cameraObject);
+            }
+        }
+
+        [Test]
+        public void ForegroundCutaway_ResourcesArePackagedForRuntime()
+        {
+            var texture = Resources.Load<Texture2D>("VFX/ForegroundCutawayFootprint");
+            var material = Resources.Load<Material>("Materials/ForegroundCutawayFootprint");
+
+            Assert.That(texture, Is.Not.Null);
+            Assert.That(material, Is.Not.Null);
+            Assert.That(material.mainTexture, Is.SameAs(texture));
         }
     }
 }

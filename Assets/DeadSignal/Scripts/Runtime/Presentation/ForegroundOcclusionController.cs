@@ -1,28 +1,46 @@
 using System.Collections.Generic;
 using DeadSignal.World;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 namespace DeadSignal.Presentation
 {
     /// <summary>Creates a clean camera cutaway when tall foreground blockers cover the player.</summary>
     public sealed class ForegroundOcclusionController : MonoBehaviour
     {
+        private const float MINIMUM_CUTAWAY_HEIGHT = 0.25f;
+        private const string FOOTPRINT_MATERIAL_PATH = "Materials/ForegroundCutawayFootprint";
+        private const string FOOTPRINT_NAME = "Foreground Cutaway Footprint";
+
         private readonly List<ObstacleRenderGroup> m_groups = new();
 
         private Camera m_camera;
+        private Material m_footprintMaterial;
+        private Mesh m_footprintMesh;
         private Transform m_player;
 
         public int HiddenGroupCount { get; private set; }
+        public int VisibleFootprintCount { get; private set; }
 
         private sealed class ObstacleRenderGroup
         {
+            public AuthoredMapObstacle Obstacle;
             public Renderer[] Renderers;
+            public MeshRenderer Footprint;
         }
 
-        public void Configure(Camera targetCamera, Transform player, IReadOnlyList<AuthoredMapObstacle> obstacles)
+        public void Configure(
+            Camera targetCamera,
+            Transform player,
+            IReadOnlyList<AuthoredMapObstacle> obstacles,
+            Material footprintMaterial = null)
         {
             _restoreRenderers();
+            _destroyFootprints();
             m_camera = targetCamera;
+            m_footprintMaterial = footprintMaterial != null
+                ? footprintMaterial
+                : Resources.Load<Material>(FOOTPRINT_MATERIAL_PATH);
             m_player = player;
             m_groups.Clear();
             foreach (var obstacle in obstacles)
@@ -30,7 +48,7 @@ namespace DeadSignal.Presentation
                 var renderers = obstacle.GetComponentsInChildren<Renderer>(true);
                 if (renderers.Length > 0)
                 {
-                    m_groups.Add(new ObstacleRenderGroup { Renderers = renderers });
+                    m_groups.Add(new ObstacleRenderGroup { Obstacle = obstacle, Renderers = renderers });
                 }
             }
         }
@@ -44,6 +62,7 @@ namespace DeadSignal.Presentation
 
             var playerPoint = m_camera.WorldToScreenPoint(m_player.position + Vector3.up * 0.35f);
             HiddenGroupCount = 0;
+            VisibleFootprintCount = 0;
             foreach (var group in m_groups)
             {
                 var hidden = _coversPlayer(group.Renderers, playerPoint);
@@ -55,6 +74,16 @@ namespace DeadSignal.Presentation
                 if (hidden)
                 {
                     HiddenGroupCount++;
+                    var footprint = _ensureFootprint(group);
+                    if (footprint != null)
+                    {
+                        footprint.enabled = true;
+                        VisibleFootprintCount++;
+                    }
+                }
+                else if (group.Footprint != null)
+                {
+                    group.Footprint.enabled = false;
                 }
             }
         }
@@ -62,6 +91,15 @@ namespace DeadSignal.Presentation
         private void OnDisable()
         {
             _restoreRenderers();
+        }
+
+        private void OnDestroy()
+        {
+            _destroyFootprints();
+            if (m_footprintMesh != null)
+            {
+                Destroy(m_footprintMesh);
+            }
         }
 
         private void _restoreRenderers()
@@ -75,21 +113,29 @@ namespace DeadSignal.Presentation
                         renderer.forceRenderingOff = false;
                     }
                 }
+
+                if (group.Footprint != null)
+                {
+                    group.Footprint.enabled = false;
+                }
             }
+
+            HiddenGroupCount = 0;
+            VisibleFootprintCount = 0;
         }
 
         private bool _coversPlayer(IReadOnlyList<Renderer> renderers, Vector3 playerPoint)
         {
             foreach (var renderer in renderers)
             {
-                if (renderer == null || renderer.bounds.size.y < 0.65f)
+                if (renderer == null || renderer.bounds.size.y < MINIMUM_CUTAWAY_HEIGHT)
                 {
                     continue;
                 }
 
                 var bounds = renderer.bounds;
                 var centerPoint = m_camera.WorldToScreenPoint(bounds.center);
-                if (centerPoint.z <= 0f || centerPoint.z >= playerPoint.z)
+                if (centerPoint.z <= 0f)
                 {
                     continue;
                 }
@@ -110,15 +156,130 @@ namespace DeadSignal.Presentation
                     }
                 }
 
-                const float margin = 24f;
-                if (playerPoint.x >= minimum.x - margin && playerPoint.x <= maximum.x + margin &&
-                    playerPoint.y >= minimum.y - margin && playerPoint.y <= maximum.y + margin)
+                const float directOcclusionMargin = 24f;
+                var directlyOccludesPlayer = centerPoint.z < playerPoint.z &&
+                                              playerPoint.x >= minimum.x - directOcclusionMargin &&
+                                              playerPoint.x <= maximum.x + directOcclusionMargin &&
+                                              playerPoint.y >= minimum.y - directOcclusionMargin &&
+                                              playerPoint.y <= maximum.y + directOcclusionMargin;
+                if (directlyOccludesPlayer)
+                {
+                    return true;
+                }
+
+                var horizontalSize = Mathf.Max(bounds.size.x, bounds.size.z);
+                var screenSize = maximum - minimum;
+                var projectedArea = Mathf.Max(0f, screenSize.x) * Mathf.Max(0f, screenSize.y);
+                var largeScreenFace = projectedArea >= m_camera.pixelWidth * m_camera.pixelHeight * 0.045f;
+                if (horizontalSize < bounds.size.y * 1.4f && !largeScreenFace)
+                {
+                    continue;
+                }
+
+                var horizontalMargin = Mathf.Max(directOcclusionMargin, m_camera.pixelWidth * 0.18f);
+                var verticalMargin = Mathf.Max(directOcclusionMargin, m_camera.pixelHeight * 0.23f);
+                if (playerPoint.x >= minimum.x - horizontalMargin && playerPoint.x <= maximum.x + horizontalMargin &&
+                    playerPoint.y >= minimum.y - verticalMargin && playerPoint.y <= maximum.y + verticalMargin)
                 {
                     return true;
                 }
             }
 
             return false;
+        }
+
+        private MeshRenderer _ensureFootprint(ObstacleRenderGroup group)
+        {
+            if (group.Footprint != null || m_footprintMaterial == null)
+            {
+                return group.Footprint;
+            }
+
+            var marker = new GameObject(FOOTPRINT_NAME);
+            marker.layer = LayerMask.NameToLayer("Ignore Raycast");
+            marker.transform.SetParent(transform, false);
+            var floorHeight = float.PositiveInfinity;
+            foreach (var renderer in group.Renderers)
+            {
+                if (renderer != null)
+                {
+                    floorHeight = Mathf.Min(floorHeight, renderer.bounds.min.y);
+                }
+            }
+
+            if (float.IsPositiveInfinity(floorHeight))
+            {
+                floorHeight = group.Obstacle.transform.position.y;
+            }
+
+            var center = group.Obstacle.Center;
+            var forward = group.Obstacle.ForwardAxis;
+            var markerHeight = Mathf.Max(floorHeight + 0.025f, group.Obstacle.transform.position.y + 0.08f);
+            marker.transform.position = new Vector3(center.x, markerHeight, center.y);
+            marker.transform.rotation = Quaternion.LookRotation(new Vector3(forward.x, 0f, forward.y), Vector3.up);
+            var halfSize = group.Obstacle.ScaledHalfSize;
+            marker.transform.localScale = new Vector3(halfSize.x * 2f, 1f, halfSize.y * 2f);
+
+            marker.AddComponent<MeshFilter>().sharedMesh = _getFootprintMesh();
+            group.Footprint = marker.AddComponent<MeshRenderer>();
+            group.Footprint.sharedMaterial = m_footprintMaterial;
+            group.Footprint.shadowCastingMode = ShadowCastingMode.Off;
+            group.Footprint.receiveShadows = false;
+            group.Footprint.lightProbeUsage = LightProbeUsage.Off;
+            group.Footprint.reflectionProbeUsage = ReflectionProbeUsage.Off;
+            group.Footprint.motionVectorGenerationMode = MotionVectorGenerationMode.ForceNoMotion;
+            group.Footprint.enabled = false;
+            return group.Footprint;
+        }
+
+        private Mesh _getFootprintMesh()
+        {
+            if (m_footprintMesh != null)
+            {
+                return m_footprintMesh;
+            }
+
+            m_footprintMesh = new Mesh { name = "Foreground Cutaway Footprint Plane" };
+            m_footprintMesh.vertices = new[]
+            {
+                new Vector3(-0.5f, 0f, -0.5f),
+                new Vector3(-0.5f, 0f, 0.5f),
+                new Vector3(0.5f, 0f, 0.5f),
+                new Vector3(0.5f, 0f, -0.5f)
+            };
+            m_footprintMesh.uv = new[]
+            {
+                new Vector2(0f, 0f),
+                new Vector2(0f, 1f),
+                new Vector2(1f, 1f),
+                new Vector2(1f, 0f)
+            };
+            m_footprintMesh.triangles = new[] { 0, 1, 2, 0, 2, 3 };
+            m_footprintMesh.RecalculateNormals();
+            m_footprintMesh.RecalculateBounds();
+            return m_footprintMesh;
+        }
+
+        private void _destroyFootprints()
+        {
+            foreach (var group in m_groups)
+            {
+                if (group.Footprint == null)
+                {
+                    continue;
+                }
+
+                if (UnityEngine.Application.isPlaying)
+                {
+                    Destroy(group.Footprint.gameObject);
+                }
+                else
+                {
+                    DestroyImmediate(group.Footprint.gameObject);
+                }
+
+                group.Footprint = null;
+            }
         }
     }
 }

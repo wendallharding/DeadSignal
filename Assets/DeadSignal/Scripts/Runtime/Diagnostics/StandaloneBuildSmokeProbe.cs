@@ -78,6 +78,10 @@ namespace DeadSignal.Diagnostics
             var stationBackdropMaterialReady = Resources.Load<Material>("Materials/StationUnderdeck") != null;
             var stationBackdropPrefabReady = Resources.Load<GameObject>("Environment/StationUnderdeckBackdrop") != null;
             var stationBackdropSceneReady = FindFirstObjectByType<AuthoredStationBackdrop>() != null;
+            var foregroundCutawayTextureReady =
+                Resources.Load<Texture2D>("VFX/ForegroundCutawayFootprint") != null;
+            var foregroundCutawayMaterialReady =
+                Resources.Load<Material>("Materials/ForegroundCutawayFootprint") != null;
             Debug.Log($"[DEAD SIGNAL STANDALONE SMOKE] RELAY WEAPON | " +
                       $"decal={weaponDecalReady} texture={weaponTextureReady} material={weaponMaterialReady} " +
                       $"obstacles={game?.AuthoredMapObstacleCount ?? -1}");
@@ -94,6 +98,9 @@ namespace DeadSignal.Diagnostics
             Debug.Log($"[DEAD SIGNAL STANDALONE SMOKE] STATION UNDERDECK | " +
                       $"scene={stationBackdropSceneReady} texture={stationBackdropTextureReady} " +
                       $"material={stationBackdropMaterialReady} prefab={stationBackdropPrefabReady}");
+            Debug.Log($"[DEAD SIGNAL STANDALONE SMOKE] FOREGROUND CUTAWAY | " +
+                      $"runtime={game?.HasForegroundOcclusion ?? false} texture={foregroundCutawayTextureReady} " +
+                      $"material={foregroundCutawayMaterialReady}");
             var runtimeReady = game != null &&
                                 game.transform.Find("Maintenance Drone") != null &&
                                 game.transform.Find("Shortcut Gate Assembly/Signal Shortcut Gate") != null &&
@@ -240,6 +247,8 @@ namespace DeadSignal.Diagnostics
                                 stationBackdropMaterialReady &&
                                 stationBackdropPrefabReady &&
                                 stationBackdropSceneReady &&
+                                foregroundCutawayTextureReady &&
+                                foregroundCutawayMaterialReady &&
                                 Resources.Load<GameObject>("Environment/SignalSpineInlay") != null &&
                                 Resources.Load<GameObject>("Environment/OpeningSignalSpine") != null &&
                                 Resources.Load<Texture2D>("Environment/SignalSpineInlay") != null &&
