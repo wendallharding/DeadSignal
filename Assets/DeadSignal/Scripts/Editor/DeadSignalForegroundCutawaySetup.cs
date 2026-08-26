@@ -16,6 +16,10 @@ namespace DeadSignal.Editor
             "Assets/DeadSignal/Resources/VFX/ForegroundCutawayFootprintAuthored.png";
         private const string AUTHORED_MATERIAL_PATH =
             "Assets/DeadSignal/Resources/Materials/ForegroundCutawayFootprintAuthored.mat";
+        private const string WIDE_TEXTURE_PATH =
+            "Assets/DeadSignal/Resources/VFX/ForegroundCutawayFootprintWide.png";
+        private const string WIDE_MATERIAL_PATH =
+            "Assets/DeadSignal/Resources/Materials/ForegroundCutawayFootprintWide.mat";
         private const string SCENE_PATH = "Assets/DeadSignal/Scenes/SampleScene.unity";
         private const string BINDINGS_ROOT_NAME = "Authored Foreground Cutaway Bindings";
 
@@ -23,15 +27,19 @@ namespace DeadSignal.Editor
             AssetDatabase.LoadAssetAtPath<Texture2D>(TEXTURE_PATH) != null &&
             AssetDatabase.LoadAssetAtPath<Material>(MATERIAL_PATH) != null &&
             AssetDatabase.LoadAssetAtPath<Texture2D>(AUTHORED_TEXTURE_PATH) != null &&
-            AssetDatabase.LoadAssetAtPath<Material>(AUTHORED_MATERIAL_PATH) != null;
+            AssetDatabase.LoadAssetAtPath<Material>(AUTHORED_MATERIAL_PATH) != null &&
+            AssetDatabase.LoadAssetAtPath<Texture2D>(WIDE_TEXTURE_PATH) != null &&
+            AssetDatabase.LoadAssetAtPath<Material>(WIDE_MATERIAL_PATH) != null;
 
         public static void EnsureAssets()
         {
             AssetDatabase.Refresh();
             _configureTexture(TEXTURE_PATH);
             _configureTexture(AUTHORED_TEXTURE_PATH);
+            _configureTexture(WIDE_TEXTURE_PATH);
             _ensureMaterial(MATERIAL_PATH, TEXTURE_PATH, "ForegroundCutawayFootprint");
             _ensureMaterial(AUTHORED_MATERIAL_PATH, AUTHORED_TEXTURE_PATH, "ForegroundCutawayFootprintAuthored");
+            _ensureMaterial(WIDE_MATERIAL_PATH, WIDE_TEXTURE_PATH, "ForegroundCutawayFootprintWide");
             _ensureAuthoredSceneBindings();
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();

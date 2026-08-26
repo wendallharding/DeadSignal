@@ -1,5 +1,15 @@
 # DEAD SIGNAL — Product Backlog
 
+## P0 — Wide foreground shell cutaways (Run 109)
+
+- [x] Capture a final-source Required Extraction route at 1600×900 after the explicit sibling-binding pass
+- [x] Preserve direct-cover and bounded tactical-window behavior for existing foreground cutaways
+- [x] Cut away only collision-authoritative faces that are nearer than the drone and occupy at least ten percent of the clipped frame
+- [x] Replace wide faces with an original sparse transparent-center cyan/amber boundary cue
+- [x] Keep movement, projectile, NavMesh, objective, entrance, powered-territory, threat, Signal, and journey rules unchanged
+- [x] Prove the wide-face classification, resource packaging, full regression, Windows build, and final Required-versus-Full rendered comparison
+- [ ] Run the watched human Required-versus-Full comparison before beginning the station guardian
+
 ## P0 — Explicit wall-shell cutaway ownership (Run 108)
 
 - [x] Add scene-authored renderer ownership for nine non-obstacle wall/bulkhead presentation meshes

@@ -11,6 +11,7 @@ namespace DeadSignal.Presentation
         private const float MINIMUM_CUTAWAY_HEIGHT = 0.25f;
         private const string FOOTPRINT_MATERIAL_PATH = "Materials/ForegroundCutawayFootprint";
         private const string AUTHORED_FOOTPRINT_MATERIAL_PATH = "Materials/ForegroundCutawayFootprintAuthored";
+        private const string WIDE_FOOTPRINT_MATERIAL_PATH = "Materials/ForegroundCutawayFootprintWide";
         private const string FOOTPRINT_NAME = "Foreground Cutaway Footprint";
 
         private readonly List<ObstacleRenderGroup> m_groups = new();
@@ -18,11 +19,21 @@ namespace DeadSignal.Presentation
         private Camera m_camera;
         private Material m_footprintMaterial;
         private Material m_authoredFootprintMaterial;
+        private Material m_wideFootprintMaterial;
         private Mesh m_footprintMesh;
         private Transform m_player;
 
         public int HiddenGroupCount { get; private set; }
         public int VisibleFootprintCount { get; private set; }
+        public int WideCutawayCount { get; private set; }
+
+        private enum CutawayReason
+        {
+            None,
+            DirectOcclusion,
+            TacticalWindow,
+            WideForeground
+        }
 
         private sealed class ObstacleRenderGroup
         {
@@ -30,6 +41,7 @@ namespace DeadSignal.Presentation
             public Renderer[] Renderers;
             public MeshRenderer Footprint;
             public Material FootprintMaterial;
+            public Material WideFootprintMaterial;
         }
 
         public void Configure(
@@ -46,6 +58,7 @@ namespace DeadSignal.Presentation
                 ? footprintMaterial
                 : Resources.Load<Material>(FOOTPRINT_MATERIAL_PATH);
             m_authoredFootprintMaterial = Resources.Load<Material>(AUTHORED_FOOTPRINT_MATERIAL_PATH);
+            m_wideFootprintMaterial = Resources.Load<Material>(WIDE_FOOTPRINT_MATERIAL_PATH);
             m_player = player;
             m_groups.Clear();
             var ownedRenderers = new HashSet<Renderer>();
@@ -58,7 +71,8 @@ namespace DeadSignal.Presentation
                     {
                         Obstacle = obstacle,
                         Renderers = renderers,
-                        FootprintMaterial = m_footprintMaterial
+                        FootprintMaterial = m_footprintMaterial,
+                        WideFootprintMaterial = m_wideFootprintMaterial
                     });
                     foreach (var renderer in renderers)
                     {
@@ -86,7 +100,8 @@ namespace DeadSignal.Presentation
                         Renderers = renderers.ToArray(),
                         FootprintMaterial = m_authoredFootprintMaterial != null
                             ? m_authoredFootprintMaterial
-                            : m_footprintMaterial
+                            : m_footprintMaterial,
+                        WideFootprintMaterial = m_wideFootprintMaterial
                     });
                 }
             }
@@ -102,9 +117,11 @@ namespace DeadSignal.Presentation
             var playerPoint = m_camera.WorldToScreenPoint(m_player.position + Vector3.up * 0.35f);
             HiddenGroupCount = 0;
             VisibleFootprintCount = 0;
+            WideCutawayCount = 0;
             foreach (var group in m_groups)
             {
-                var hidden = _coversPlayer(group.Renderers, playerPoint);
+                var reason = _cutawayReason(group.Renderers, playerPoint);
+                var hidden = reason != CutawayReason.None;
                 foreach (var renderer in group.Renderers)
                 {
                     renderer.forceRenderingOff = hidden;
@@ -116,8 +133,16 @@ namespace DeadSignal.Presentation
                     var footprint = _ensureFootprint(group);
                     if (footprint != null)
                     {
+                        footprint.sharedMaterial = reason == CutawayReason.WideForeground &&
+                                                   group.WideFootprintMaterial != null
+                            ? group.WideFootprintMaterial
+                            : group.FootprintMaterial;
                         footprint.enabled = true;
                         VisibleFootprintCount++;
+                        if (reason == CutawayReason.WideForeground)
+                        {
+                            WideCutawayCount++;
+                        }
                     }
                 }
                 else if (group.Footprint != null)
@@ -161,9 +186,10 @@ namespace DeadSignal.Presentation
 
             HiddenGroupCount = 0;
             VisibleFootprintCount = 0;
+            WideCutawayCount = 0;
         }
 
-        private bool _coversPlayer(IReadOnlyList<Renderer> renderers, Vector3 playerPoint)
+        private CutawayReason _cutawayReason(IReadOnlyList<Renderer> renderers, Vector3 playerPoint)
         {
             foreach (var renderer in renderers)
             {
@@ -182,6 +208,7 @@ namespace DeadSignal.Presentation
                 var extents = bounds.extents;
                 var minimum = new Vector2(float.PositiveInfinity, float.PositiveInfinity);
                 var maximum = new Vector2(float.NegativeInfinity, float.NegativeInfinity);
+                var nearestDepth = float.PositiveInfinity;
                 for (var x = -1; x <= 1; x += 2)
                 {
                     for (var y = -1; y <= 1; y += 2)
@@ -191,6 +218,10 @@ namespace DeadSignal.Presentation
                             var point = m_camera.WorldToScreenPoint(bounds.center + Vector3.Scale(extents, new Vector3(x, y, z)));
                             minimum = Vector2.Min(minimum, point);
                             maximum = Vector2.Max(maximum, point);
+                            if (point.z > 0f)
+                            {
+                                nearestDepth = Mathf.Min(nearestDepth, point.z);
+                            }
                         }
                     }
                 }
@@ -203,13 +234,32 @@ namespace DeadSignal.Presentation
                                               playerPoint.y <= maximum.y + directOcclusionMargin;
                 if (directlyOccludesPlayer)
                 {
-                    return true;
+                    return CutawayReason.DirectOcclusion;
                 }
 
                 var horizontalSize = Mathf.Max(bounds.size.x, bounds.size.z);
                 var screenSize = maximum - minimum;
                 var projectedArea = Mathf.Max(0f, screenSize.x) * Mathf.Max(0f, screenSize.y);
                 var largeScreenFace = projectedArea >= m_camera.pixelWidth * m_camera.pixelHeight * 0.045f;
+                var clippedMinimum = new Vector2(
+                    Mathf.Clamp(minimum.x, 0f, m_camera.pixelWidth),
+                    Mathf.Clamp(minimum.y, 0f, m_camera.pixelHeight));
+                var clippedMaximum = new Vector2(
+                    Mathf.Clamp(maximum.x, 0f, m_camera.pixelWidth),
+                    Mathf.Clamp(maximum.y, 0f, m_camera.pixelHeight));
+                var clippedSize = clippedMaximum - clippedMinimum;
+                var clippedArea = Mathf.Max(0f, clippedSize.x) * Mathf.Max(0f, clippedSize.y);
+                var occupiesWideForeground = nearestDepth < playerPoint.z &&
+                                             clippedArea >= m_camera.pixelWidth * m_camera.pixelHeight * 0.1f &&
+                                             clippedMaximum.x >= m_camera.pixelWidth * 0.1f &&
+                                             clippedMinimum.x <= m_camera.pixelWidth * 0.9f &&
+                                             clippedMaximum.y >= m_camera.pixelHeight * 0.1f &&
+                                             clippedMinimum.y <= m_camera.pixelHeight * 0.9f;
+                if (occupiesWideForeground)
+                {
+                    return CutawayReason.WideForeground;
+                }
+
                 if (horizontalSize < bounds.size.y * 1.4f && !largeScreenFace)
                 {
                     continue;
@@ -220,11 +270,11 @@ namespace DeadSignal.Presentation
                 if (playerPoint.x >= minimum.x - horizontalMargin && playerPoint.x <= maximum.x + horizontalMargin &&
                     playerPoint.y >= minimum.y - verticalMargin && playerPoint.y <= maximum.y + verticalMargin)
                 {
-                    return true;
+                    return CutawayReason.TacticalWindow;
                 }
             }
 
-            return false;
+            return CutawayReason.None;
         }
 
         private MeshRenderer _ensureFootprint(ObstacleRenderGroup group)

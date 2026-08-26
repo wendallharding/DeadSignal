@@ -145,6 +145,54 @@ namespace DeadSignal.Tests
         }
 
         [UnityTest]
+        public IEnumerator ForegroundOcclusion_CutsWideForegroundFaceBeforeItConsumesTheFrame()
+        {
+            var cameraObject = new GameObject("Wide Foreground Camera");
+            var player = new GameObject("Wide Foreground Player");
+            var obstacleObject = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            var controllerObject = new GameObject("Wide Foreground Controller");
+            try
+            {
+                var camera = cameraObject.AddComponent<Camera>();
+                camera.enabled = false;
+                cameraObject.transform.position = new Vector3(0f, 6f, -9f);
+                cameraObject.transform.LookAt(new Vector3(0f, 0.5f, 0f));
+                camera.targetTexture = new RenderTexture(800, 450, 16);
+                player.transform.position = Vector3.zero;
+                obstacleObject.transform.position = new Vector3(4.5f, 1.5f, -3f);
+                obstacleObject.transform.localScale = new Vector3(5f, 2.5f, 1.5f);
+                var obstacle = obstacleObject.AddComponent<AuthoredMapObstacle>();
+                var renderer = obstacleObject.GetComponent<Renderer>();
+                var controller = controllerObject.AddComponent<ForegroundOcclusionController>();
+
+                controller.Configure(camera, player.transform, new[] { obstacle }, new AuthoredForegroundCutaway[0]);
+                yield return null;
+
+                Assert.That(renderer.forceRenderingOff, Is.True,
+                    "A foreground shell consuming at least a tenth of the frame should not remain opaque at the edge.");
+                Assert.That(controller.WideCutawayCount, Is.EqualTo(1));
+                var footprint = controllerObject.transform.Find("Foreground Cutaway Footprint");
+                Assert.That(footprint, Is.Not.Null);
+                Assert.That(footprint.GetComponent<Renderer>().sharedMaterial.name,
+                    Is.EqualTo("ForegroundCutawayFootprintWide"));
+            }
+            finally
+            {
+                if (cameraObject.TryGetComponent<Camera>(out var camera) && camera.targetTexture != null)
+                {
+                    var targetTexture = camera.targetTexture;
+                    camera.targetTexture = null;
+                    Object.DestroyImmediate(targetTexture);
+                }
+
+                Object.DestroyImmediate(controllerObject);
+                Object.DestroyImmediate(obstacleObject);
+                Object.DestroyImmediate(player);
+                Object.DestroyImmediate(cameraObject);
+            }
+        }
+
+        [UnityTest]
         public IEnumerator ForegroundOcclusion_UsesSceneAuthoredWallShellBindings()
         {
             yield return SceneManager.LoadSceneAsync("SampleScene");
@@ -232,6 +280,8 @@ namespace DeadSignal.Tests
             var material = Resources.Load<Material>("Materials/ForegroundCutawayFootprint");
             var authoredTexture = Resources.Load<Texture2D>("VFX/ForegroundCutawayFootprintAuthored");
             var authoredMaterial = Resources.Load<Material>("Materials/ForegroundCutawayFootprintAuthored");
+            var wideTexture = Resources.Load<Texture2D>("VFX/ForegroundCutawayFootprintWide");
+            var wideMaterial = Resources.Load<Material>("Materials/ForegroundCutawayFootprintWide");
 
             Assert.That(texture, Is.Not.Null);
             Assert.That(material, Is.Not.Null);
@@ -239,6 +289,9 @@ namespace DeadSignal.Tests
             Assert.That(authoredTexture, Is.Not.Null);
             Assert.That(authoredMaterial, Is.Not.Null);
             Assert.That(authoredMaterial.mainTexture, Is.SameAs(authoredTexture));
+            Assert.That(wideTexture, Is.Not.Null);
+            Assert.That(wideMaterial, Is.Not.Null);
+            Assert.That(wideMaterial.mainTexture, Is.SameAs(wideTexture));
         }
     }
 }
