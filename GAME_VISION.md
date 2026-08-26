@@ -289,3 +289,7 @@ Completing the required three-region payload journey now energizes a one-shot 12
 # Run 110 product decision — Quench weapon countertrace
 
 Taking the optional Quench cache now lets the station read the evolved Relay weapon and retarget the existing bounded Suppressor response at extraction. Piercing Pulse receives a cross-lane sweep that contests one alignment flank while leaving the opposite exit open; Controlled Ricochet receives a warned cover flush at the player's current position. Required withdrawal keeps the established response. This was selected over another enemy, larger health values, or a longer uplink because greed should create a build-specific tactical consequence, not merely exchange extra travel and Signal for the same climax.
+
+### Run 112 product decision — Relay Cooling Gantry
+
+The Relay Foundry's south bulkhead now opens into a two-threshold 12-by-8.5-metre cooling gantry. Before Relay activation, its ceramic and copper deflectors offer a dead-zone flank around the Foundry's main turbine lanes; after activation, the same room becomes a powered return foothold. A far-side authored gate can redirect the existing bounded response roster without raising the four-response cap. This was selected over a guardian or enemy-stat increase because the expanded journey still needs watched human route evidence, while another reusable room can immediately change navigation, weapon positioning, Signal exposure, reinforcement direction, and withdrawal through the established second region.

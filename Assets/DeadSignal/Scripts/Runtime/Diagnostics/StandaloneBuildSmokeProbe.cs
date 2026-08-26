@@ -19,7 +19,7 @@ namespace DeadSignal.Diagnostics
         public const string COMMAND_LINE_ARGUMENT = "-deadSignalBuildSmoke";
         public const string PASS_MARKER = "[DEAD SIGNAL STANDALONE SMOKE] PASS";
 
-        private const int EXPECTED_AUTHORED_OBSTACLE_COUNT = 96;
+        private const int EXPECTED_AUTHORED_OBSTACLE_COUNT = 104;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         private static void _startWhenRequested()
@@ -155,7 +155,7 @@ namespace DeadSignal.Diagnostics
                                 Resources.Load<WardenThreatTelegraphTuning>("Tuning/WardenThreatTelegraphTuning") != null &&
                                 game.HasSecurityInterceptorAssets &&
                                 game.SecurityInterceptorPartCount == 4 &&
-                                game.AuthoredInterceptorEntranceCount == 6 &&
+                                game.AuthoredInterceptorEntranceCount == 7 &&
                                 Resources.Load<GameObject>("Actors/SecurityInterceptorAssembly") != null &&
                                 game.HasSecuritySuppressorAssets &&
                                 game.SecuritySuppressorPartCount == 4 &&
@@ -179,6 +179,15 @@ namespace DeadSignal.Diagnostics
                                 Resources.Load<GameObject>("Environment/RelayFoundryTurbineModel") != null &&
                                 Resources.Load<Texture2D>("Environment/RelayFoundryTurbineAlbedo") != null &&
                                 Resources.Load<Texture2D>("Environment/RelayFoundryRouteDecal") != null &&
+                                game.transform.Find(
+                                    "Relay Foundry Region/Relay Cooling Gantry Region/Relay Heat Exchanger") != null &&
+                                game.transform.Find(
+                                    "Relay Foundry Region/Relay Cooling Gantry Region/Cooling Gantry Reinforcement Gate") != null &&
+                                Resources.Load<GameObject>("Environment/RelayCoolingGantryRegion") != null &&
+                                Resources.Load<GameObject>("Environment/RelayHeatExchanger") != null &&
+                                Resources.Load<Texture2D>("Environment/RelayCoolingGantryRouteDecal") != null &&
+                                Resources.Load<Material>(
+                                    "Materials/RelayCoolingGantry/RelayCoolingGantryRouteDecal") != null &&
                                 game.transform.Find("Capacitor Spine Region/Capacitor Transfer Bank") != null &&
                                 game.transform.Find("Capacitor Spine Region/Third Tower Berth") != null &&
                                 game.transform.Find("Capacitor Spine Region/Capacitor Spine Route Decal") != null &&

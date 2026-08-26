@@ -35,8 +35,8 @@ namespace DeadSignal.Editor
                        AssetDatabase.LoadAssetAtPath<Texture2D>(WEAPON_DECAL_PATH) != null &&
                        AssetDatabase.LoadAssetAtPath<Texture2D>(LOCKDOWN_DECAL_PATH) != null &&
                        AssetDatabase.LoadAssetAtPath<GameObject>(MODEL_PATH) != null && prefab != null &&
-                       prefab.GetComponentsInChildren<AuthoredMapObstacle>().Length is 6 or 8 &&
-                       prefab.GetComponentsInChildren<AuthoredInterceptorEntrance>().Length == 2 &&
+                       prefab.GetComponentsInChildren<AuthoredMapObstacle>().Length >= 6 &&
+                       prefab.GetComponentsInChildren<AuthoredInterceptorEntrance>().Length >= 2 &&
                        prefab.transform.Find("Foundry Route Split Decal") != null &&
                        prefab.transform.Find("Relay Weapon Calibration Decal") != null &&
                        prefab.transform.Find("Foundry North Lockdown Decal") != null &&

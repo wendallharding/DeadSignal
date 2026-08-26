@@ -1,5 +1,15 @@
 # DEAD SIGNAL — Product Backlog
 
+## P0 — Relay Cooling Gantry (Run 112)
+
+- [x] Add a scene-authored two-threshold cooling loop equal to roughly 40–45 percent of the Relay Foundry floor area
+- [x] Make the gantry a dead-zone positioning flank before Relay activation and a powered return foothold afterward
+- [x] Add an original UV-mapped exchanger, object-aligned movement/projectile cover, and one safe far-side reinforcement gate
+- [x] Package an original transparent amber/cyan route decal without changing the existing Foundry art contracts
+- [x] Preserve the four-response cap, enemy stats, Signal economy, payloads, extraction rules, and current scene bounds
+- [x] Prove both thresholds, collision, powered-state transition, NavMesh routing, resource packaging, and complete-journey regression
+- [ ] Compare direct Foundry transit against west-gantry and east-gantry routes under matched live threats
+
 ## P0 — Quench countertrace briefing (Run 111)
 
 - [x] Forecast the weapon-specific extraction countertrace while the optional Quench cache can still be abandoned

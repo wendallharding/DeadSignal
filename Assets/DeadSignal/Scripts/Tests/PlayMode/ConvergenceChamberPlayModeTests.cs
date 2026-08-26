@@ -47,8 +47,8 @@ namespace DeadSignal.Tests
                 Assert.That(Resources.Load<Texture2D>("Environment/ConvergenceChamberRouteDecal"), Is.Not.Null);
                 Assert.That(Resources.Load<Material>(
                     "Materials/ConvergenceChamber/ConvergenceChamberRouteDecal"), Is.Not.Null);
-                Assert.That(game.AuthoredMapObstacleCount, Is.EqualTo(96));
-                Assert.That(game.AuthoredInterceptorEntranceCount, Is.EqualTo(6));
+                Assert.That(game.AuthoredMapObstacleCount, Is.EqualTo(104));
+                Assert.That(game.AuthoredInterceptorEntranceCount, Is.EqualTo(7));
                 Assert.That(gallery.Find("Induction Gallery North Bulkhead"), Is.Null);
                 Assert.That(gallery.Find("Induction Gallery North West"), Is.Not.Null);
                 Assert.That(gallery.Find("Induction Gallery North Center"), Is.Not.Null);

@@ -1,0 +1,104 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1001 &88064168317887799
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: -9152982628931963359, guid: 2cb56f5e28f1d564398eb18296683955, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 4a8c60dfc2ed4e54dbe0d38bc42e774f, type: 2}
+    - target: {fileID: -8679921383154817045, guid: 2cb56f5e28f1d564398eb18296683955, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 2cb56f5e28f1d564398eb18296683955, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 2cb56f5e28f1d564398eb18296683955, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 2cb56f5e28f1d564398eb18296683955, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 2cb56f5e28f1d564398eb18296683955, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 2cb56f5e28f1d564398eb18296683955, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 2cb56f5e28f1d564398eb18296683955, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 2cb56f5e28f1d564398eb18296683955, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 2cb56f5e28f1d564398eb18296683955, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 2cb56f5e28f1d564398eb18296683955, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -4494795878889445003, guid: 2cb56f5e28f1d564398eb18296683955, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: d85eab2abe9601a4e96a656f2675f35b, type: 2}
+    - target: {fileID: -1074902624137908281, guid: 2cb56f5e28f1d564398eb18296683955, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 4ddc31b0b8f8f1a40b764d849d2fba1e, type: 2}
+    - target: {fileID: 120832846358477846, guid: 2cb56f5e28f1d564398eb18296683955, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: d85eab2abe9601a4e96a656f2675f35b, type: 2}
+    - target: {fileID: 919132149155446097, guid: 2cb56f5e28f1d564398eb18296683955, type: 3}
+      propertyPath: m_Name
+      value: RelayHeatExchanger
+      objectReference: {fileID: 0}
+    - target: {fileID: 3289298097477902920, guid: 2cb56f5e28f1d564398eb18296683955, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: c2539860e7c8c5e4eb809eff873fea2b, type: 2}
+    - target: {fileID: 9186509319921760134, guid: 2cb56f5e28f1d564398eb18296683955, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: c2539860e7c8c5e4eb809eff873fea2b, type: 2}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 2cb56f5e28f1d564398eb18296683955, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 6634844093432540941}
+  m_SourcePrefab: {fileID: 100100000, guid: 2cb56f5e28f1d564398eb18296683955, type: 3}
+--- !u!1 &1007034131857152102 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 2cb56f5e28f1d564398eb18296683955, type: 3}
+  m_PrefabInstance: {fileID: 88064168317887799}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &6634844093432540941
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1007034131857152102}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e5c2114ec9f7be54889bb05839f089fe, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: DeadSignal.Runtime::DeadSignal.World.AuthoredMapObstacle
+  m_localHalfSize: {x: 1.3, y: 2}
