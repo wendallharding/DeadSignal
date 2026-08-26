@@ -53,6 +53,7 @@ namespace DeadSignal.Editor
             DeadSignalArcFurnaceSetup.EnsureAssets();
             DeadSignalQuenchLoopSetup.EnsureAssets();
             DeadSignalEasternCombatScenarioSetup.EnsureAssets();
+            DeadSignalStationBackdropSetup.EnsureAssets();
             DeadSignalSignalSpineSetup.EnsureAssets();
             DeadSignalBoundaryThresholdSetup.EnsureAssets();
             DeadSignalHudSetup.EnsureAssets();
@@ -216,6 +217,11 @@ namespace DeadSignal.Editor
             if (!DeadSignalEasternCombatScenarioSetup.HasAssets)
             {
                 throw new BuildFailedException("The scene-authored eastern combat laboratory is missing or incomplete.");
+            }
+
+            if (!DeadSignalStationBackdropSetup.HasAssets)
+            {
+                throw new BuildFailedException("The scene-authored station underdeck backdrop is missing or incomplete.");
             }
 
             if (!DeadSignalActorSetup.HasSecurityWardenAssets)

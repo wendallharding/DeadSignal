@@ -1,5 +1,16 @@
 # DEAD SIGNAL — Product Backlog
 
+## P0 — Authored station underdeck continuity (Run 106)
+
+- [x] Replace exposed ground-level camera void with a scene-authored, presentation-only station underdeck
+- [x] Create and retain an original low-contrast dark-alloy texture through the built-in image-generation workflow
+- [x] Cover every arena edge plus a 15-metre camera-correction margin without adding collision, NavMesh, objectives, or traversable space
+- [x] Restore previously hidden wall renderers whenever the foreground-occlusion controller is reconfigured or disabled
+- [x] Package and smoke-test the texture, material, prefab, and scene instance
+- [x] Capture native 1600×900 route frames and distinguish underdeck continuity from unresolved vertical wall-face obstruction
+- [ ] Replace or cut away the large black/gray authored wall faces that occupy the upper and central frame in Central, Spine, and extraction views
+- [ ] Run the watched Required-versus-Full human comparison only after the wall-face pass preserves combat and route readability
+
 ## P0 — Readable Suppressor denial field (Run 105)
 
 - [x] Replace the opaque full-radius field primitive with an amber warning boundary and a transparent-center active edge

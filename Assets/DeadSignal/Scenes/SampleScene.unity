@@ -1813,6 +1813,7 @@ Transform:
   - {fileID: 1446826702}
   - {fileID: 821964417}
   - {fileID: 1795554687}
+  - {fileID: 1616391717}
   m_Father: {fileID: 2147458777}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &560658794
@@ -4370,6 +4371,68 @@ Transform:
 GameObject:
   m_CorrespondingSourceObject: {fileID: 2214520332262367289, guid: 6a4569b188778c34a93cb8ff308c7d19, type: 3}
   m_PrefabInstance: {fileID: 1591059654}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1001 &1616391716
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 504074787}
+    m_Modifications:
+    - target: {fileID: 727709942285017225, guid: 31b787177fc55a149ba6c232d64016a4, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 727709942285017225, guid: 31b787177fc55a149ba6c232d64016a4, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: -1.1
+      objectReference: {fileID: 0}
+    - target: {fileID: 727709942285017225, guid: 31b787177fc55a149ba6c232d64016a4, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 727709942285017225, guid: 31b787177fc55a149ba6c232d64016a4, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 0.7071068
+      objectReference: {fileID: 0}
+    - target: {fileID: 727709942285017225, guid: 31b787177fc55a149ba6c232d64016a4, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0.7071068
+      objectReference: {fileID: 0}
+    - target: {fileID: 727709942285017225, guid: 31b787177fc55a149ba6c232d64016a4, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 727709942285017225, guid: 31b787177fc55a149ba6c232d64016a4, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 727709942285017225, guid: 31b787177fc55a149ba6c232d64016a4, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 727709942285017225, guid: 31b787177fc55a149ba6c232d64016a4, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 727709942285017225, guid: 31b787177fc55a149ba6c232d64016a4, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5034512631706208430, guid: 31b787177fc55a149ba6c232d64016a4, type: 3}
+      propertyPath: m_Name
+      value: Station Underdeck Backdrop
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 31b787177fc55a149ba6c232d64016a4, type: 3}
+--- !u!4 &1616391717 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 727709942285017225, guid: 31b787177fc55a149ba6c232d64016a4, type: 3}
+  m_PrefabInstance: {fileID: 1616391716}
   m_PrefabAsset: {fileID: 0}
 --- !u!1001 &1674624652
 PrefabInstance:

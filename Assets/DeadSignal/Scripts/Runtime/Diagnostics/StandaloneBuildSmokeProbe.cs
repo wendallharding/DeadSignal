@@ -7,6 +7,7 @@ using DeadSignal.Missions;
 using DeadSignal.Player;
 using DeadSignal.Presentation;
 using DeadSignal.Salvage;
+using DeadSignal.World;
 
 namespace DeadSignal.Diagnostics
 {
@@ -72,6 +73,11 @@ namespace DeadSignal.Diagnostics
             var combatLabAnchorsReady = game != null && game.transform.Find(
                 "Spine Induction Gallery Region/Convergence Chamber Region/" +
                 "Arc Furnace Region/Eastern Combat Scenario") != null;
+            var stationBackdropTextureReady =
+                Resources.Load<Texture2D>("Environment/StationUnderdeckAlbedo") != null;
+            var stationBackdropMaterialReady = Resources.Load<Material>("Materials/StationUnderdeck") != null;
+            var stationBackdropPrefabReady = Resources.Load<GameObject>("Environment/StationUnderdeckBackdrop") != null;
+            var stationBackdropSceneReady = FindFirstObjectByType<AuthoredStationBackdrop>() != null;
             Debug.Log($"[DEAD SIGNAL STANDALONE SMOKE] RELAY WEAPON | " +
                       $"decal={weaponDecalReady} texture={weaponTextureReady} material={weaponMaterialReady} " +
                       $"obstacles={game?.AuthoredMapObstacleCount ?? -1}");
@@ -85,6 +91,9 @@ namespace DeadSignal.Diagnostics
             Debug.Log($"[DEAD SIGNAL STANDALONE SMOKE] SUPPRESSOR FIELD | " +
                       $"runtime={game?.HasSuppressorFieldTexture ?? false} " +
                       $"texture={Resources.Load<Texture2D>("VFX/SuppressorFieldActive") != null}");
+            Debug.Log($"[DEAD SIGNAL STANDALONE SMOKE] STATION UNDERDECK | " +
+                      $"scene={stationBackdropSceneReady} texture={stationBackdropTextureReady} " +
+                      $"material={stationBackdropMaterialReady} prefab={stationBackdropPrefabReady}");
             var runtimeReady = game != null &&
                                 game.transform.Find("Maintenance Drone") != null &&
                                 game.transform.Find("Shortcut Gate Assembly/Signal Shortcut Gate") != null &&
@@ -227,6 +236,10 @@ namespace DeadSignal.Diagnostics
                                 combatLabTextureReady &&
                                 combatLabMaterialReady &&
                                 combatLabAnchorsReady &&
+                                stationBackdropTextureReady &&
+                                stationBackdropMaterialReady &&
+                                stationBackdropPrefabReady &&
+                                stationBackdropSceneReady &&
                                 Resources.Load<GameObject>("Environment/SignalSpineInlay") != null &&
                                 Resources.Load<GameObject>("Environment/OpeningSignalSpine") != null &&
                                 Resources.Load<Texture2D>("Environment/SignalSpineInlay") != null &&

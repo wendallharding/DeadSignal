@@ -21,6 +21,7 @@ namespace DeadSignal.Presentation
 
         public void Configure(Camera targetCamera, Transform player, IReadOnlyList<AuthoredMapObstacle> obstacles)
         {
+            _restoreRenderers();
             m_camera = targetCamera;
             m_player = player;
             m_groups.Clear();
@@ -59,6 +60,11 @@ namespace DeadSignal.Presentation
         }
 
         private void OnDisable()
+        {
+            _restoreRenderers();
+        }
+
+        private void _restoreRenderers()
         {
             foreach (var group in m_groups)
             {

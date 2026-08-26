@@ -1,0 +1,81 @@
+using System.Collections;
+using DeadSignal.Presentation;
+using DeadSignal.World;
+using NUnit.Framework;
+using UnityEngine;
+using UnityEngine.SceneManagement;
+using UnityEngine.TestTools;
+
+namespace DeadSignal.Tests
+{
+    public sealed class StationBackdropPlayModeTests
+    {
+        [UnityTest]
+        public IEnumerator StationBackdrop_CoversArenaWithoutChangingTraversal()
+        {
+            yield return SceneManager.LoadSceneAsync("SampleScene");
+            yield return null;
+
+            var backdrop = Object.FindFirstObjectByType<AuthoredStationBackdrop>();
+            var references = Object.FindFirstObjectByType<DeadSignalSceneReferences>();
+
+            Assert.That(backdrop, Is.Not.Null, "The authored scene should contain its station underdeck backdrop.");
+            Assert.That(references, Is.Not.Null);
+            const float cameraSafetyMargin = 15f;
+            Assert.That(backdrop.Coverage.x,
+                Is.GreaterThanOrEqualTo((references.ArenaHalfExtents.x + cameraSafetyMargin) * 2f));
+            Assert.That(backdrop.Coverage.y,
+                Is.GreaterThanOrEqualTo((references.ArenaHalfExtents.y + cameraSafetyMargin) * 2f));
+            Assert.That(backdrop.GetComponentInChildren<Collider>(), Is.Null,
+                "The visual underdeck must not create movement, projectile, or NavMesh collision.");
+
+            var renderer = backdrop.GetComponentInChildren<Renderer>();
+            Assert.That(renderer, Is.Not.Null);
+            Assert.That(renderer.sharedMaterial.mainTexture.name, Is.EqualTo("StationUnderdeckAlbedo"));
+            Assert.That(renderer.bounds.min.x,
+                Is.LessThanOrEqualTo(-references.ArenaHalfExtents.x - cameraSafetyMargin));
+            Assert.That(renderer.bounds.max.x,
+                Is.GreaterThanOrEqualTo(references.ArenaHalfExtents.x + cameraSafetyMargin));
+            Assert.That(renderer.bounds.min.z,
+                Is.LessThanOrEqualTo(-references.ArenaHalfExtents.y - cameraSafetyMargin));
+            Assert.That(renderer.bounds.max.z,
+                Is.GreaterThanOrEqualTo(references.ArenaHalfExtents.y + cameraSafetyMargin));
+        }
+
+        [UnityTest]
+        public IEnumerator ForegroundOcclusion_ReconfigureRestoresPreviouslyHiddenRenderers()
+        {
+            var cameraObject = new GameObject("Occlusion Test Camera");
+            var player = new GameObject("Occlusion Test Player");
+            var obstacleObject = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            var controllerObject = new GameObject("Occlusion Test Controller");
+            try
+            {
+                var camera = cameraObject.AddComponent<Camera>();
+                cameraObject.transform.position = new Vector3(0f, 3f, -6f);
+                cameraObject.transform.LookAt(new Vector3(0f, 0.5f, 0f));
+                player.transform.position = Vector3.zero;
+                obstacleObject.transform.position = new Vector3(0f, 0.75f, -2f);
+                obstacleObject.transform.localScale = new Vector3(2f, 1.5f, 0.5f);
+                var obstacle = obstacleObject.AddComponent<AuthoredMapObstacle>();
+                var renderer = obstacleObject.GetComponent<Renderer>();
+                var controller = controllerObject.AddComponent<ForegroundOcclusionController>();
+
+                controller.Configure(camera, player.transform, new[] { obstacle });
+                yield return null;
+                Assert.That(renderer.forceRenderingOff, Is.True);
+
+                controller.Configure(camera, player.transform, new AuthoredMapObstacle[0]);
+                Assert.That(renderer.forceRenderingOff, Is.False,
+                    "Refreshing authored obstacles must not strand an old cutaway renderer in the hidden state.");
+            }
+            finally
+            {
+                Object.DestroyImmediate(controllerObject);
+                Object.DestroyImmediate(obstacleObject);
+                Object.DestroyImmediate(player);
+                Object.DestroyImmediate(cameraObject);
+            }
+        }
+    }
+}
