@@ -242,6 +242,8 @@ namespace DeadSignal.Application
         public bool IsWeaponOverclockChoicePending => m_overclockChoice?.IsWeaponPending ?? false;
         public SignalWeaponOverclock SelectedWeaponOverclock =>
             m_overclockChoice?.SelectedWeapon ?? SignalWeaponOverclock.None;
+        public ExtractionSuppressionProfile CurrentExtractionSuppressionProfile =>
+            m_threats?.CurrentExtractionSuppressionProfile ?? ExtractionSuppressionProfile.Standard;
         public bool IsEmergencyCapacitorAvailable => m_overclockChoice?.IsEmergencyCapacitorAvailable ?? false;
         public bool IsFeedbackShieldCharged => m_overclockChoice?.IsFeedbackShieldCharged ?? false;
         public bool IsChainArcOverloadReady => m_overclockChoice?.IsChainArcOverloadReady ?? false;
@@ -1513,7 +1515,13 @@ namespace DeadSignal.Application
             }
 
             m_threats.BeginExtractionPressure(mode);
-            _showFeedback(feedback);
+            var countermeasure = m_threats.CurrentExtractionSuppressionProfile switch
+            {
+                ExtractionSuppressionProfile.PiercingCrossLane => " // QUENCH CROSS-LANE COUNTERTRACE",
+                ExtractionSuppressionProfile.RicochetCoverFlush => " // QUENCH COVER-FLUSH COUNTERTRACE",
+                _ => string.Empty
+            };
+            _showFeedback(feedback + countermeasure);
         }
 
         private void _handleOverclockChoice()

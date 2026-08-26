@@ -149,6 +149,7 @@ namespace DeadSignal.Combat
         public bool IsDeadZoneTraceCooling => m_director.IsDeadZoneTraceCooling;
         public float DeadZoneTraceSecondsRemaining => m_director.DeadZoneTraceSecondsRemaining;
         public SecurityReinforcement PendingReinforcement => m_director.PendingReinforcement;
+        public ExtractionSuppressionProfile CurrentExtractionSuppressionProfile { get; private set; }
         public int PiercingPulseFollowThroughs { get; private set; }
         public int ControlledRicochets { get; private set; }
         public int DebugScenarioAttackCount
@@ -171,6 +172,13 @@ namespace DeadSignal.Combat
         {
             m_extractionPressure = true;
             m_extractionUplinkMode = mode;
+            CurrentExtractionSuppressionProfile = InterceptorTactics.ResolveExtractionSuppressionProfile(
+                m_model.OptionalSalvageSecured,
+                m_overclockChoice.SelectedWeapon);
+            if (IsSuppressorAlive && CurrentExtractionSuppressionProfile != ExtractionSuppressionProfile.Standard)
+            {
+                _beginSuppressorWarning(_calculateExtractionSuppressionCenter(), _extractionSuppressionWarning());
+            }
         }
 
         public void SpawnForDebug(SecurityReinforcement reinforcement)
@@ -270,6 +278,7 @@ namespace DeadSignal.Combat
             m_debugFrozen = false;
             m_extractionPressure = false;
             m_extractionUplinkMode = ExtractionUplinkMode.None;
+            CurrentExtractionSuppressionProfile = ExtractionSuppressionProfile.Standard;
             m_wardenHealth = 0f;
             m_sapperHealth = 0f;
             m_interceptorHealth = 0f;
@@ -462,11 +471,7 @@ namespace DeadSignal.Combat
                 m_showFeedback("FLANK GATES OPEN — SUPPRESSOR INBOUND");
                 var openingCenter = isRelayLockdown
                     ? m_world.Player.position
-                    : InterceptorTactics.CalculateOpeningSuppressionCenter(
-                        m_world.Player.position,
-                        m_world.ExtractionPosition,
-                        m_extractionUplinkMode,
-                        m_tuning.OverdriveSuppressionLeadDistance);
+                    : _calculateExtractionSuppressionCenter();
                 if (!isRelayLockdown && m_extractionUplinkMode == ExtractionUplinkMode.Overdrive)
                 {
                     openingCenter = m_world.ClampToArena(openingCenter, m_tuning.SuppressorFieldRadius);
@@ -474,9 +479,7 @@ namespace DeadSignal.Combat
 
                 var warning = isRelayLockdown
                     ? "RELAY LOCKDOWN SWEEP — LEAVE THE RING"
-                    : m_extractionUplinkMode == ExtractionUplinkMode.Overdrive
-                        ? "PREDICTIVE SUPPRESSION SWEEP — BREAK COURSE"
-                        : "SUPPRESSION SWEEP LOCKED — LEAVE THE RING";
+                    : _extractionSuppressionWarning();
                 _beginSuppressorWarning(openingCenter, warning);
             }
 
@@ -580,6 +583,39 @@ namespace DeadSignal.Combat
             m_suppressorWarningCountdown = m_tuning.SuppressorWarningDuration;
             m_world.SetSuppressorFieldAt(true, false, m_tuning.SuppressorFieldRadius, m_suppressorFieldCenter);
             m_showFeedback(feedback);
+        }
+
+        private Vector3 _calculateExtractionSuppressionCenter()
+        {
+            if (CurrentExtractionSuppressionProfile != ExtractionSuppressionProfile.Standard)
+            {
+                var center = InterceptorTactics.CalculateGreedSuppressionCenter(
+                    m_world.Player.position,
+                    m_world.ExtractionPosition,
+                    CurrentExtractionSuppressionProfile,
+                    m_tuning.OverdriveSuppressionLeadDistance);
+                return m_world.ClampToArena(center, m_tuning.SuppressorFieldRadius);
+            }
+
+            return InterceptorTactics.CalculateOpeningSuppressionCenter(
+                m_world.Player.position,
+                m_world.ExtractionPosition,
+                m_extractionUplinkMode,
+                m_tuning.OverdriveSuppressionLeadDistance);
+        }
+
+        private string _extractionSuppressionWarning()
+        {
+            return CurrentExtractionSuppressionProfile switch
+            {
+                ExtractionSuppressionProfile.PiercingCrossLane =>
+                    "QUENCH COUNTERTRACE — CROSS-LANE SWEEP, BREAK ALIGNMENT",
+                ExtractionSuppressionProfile.RicochetCoverFlush =>
+                    "QUENCH COUNTERTRACE — COVER FLUSH, LEAVE THE RING",
+                _ => m_extractionUplinkMode == ExtractionUplinkMode.Overdrive
+                    ? "PREDICTIVE SUPPRESSION SWEEP — BREAK COURSE"
+                    : "SUPPRESSION SWEEP LOCKED — LEAVE THE RING"
+            };
         }
 
         private void _tickInterceptor(float dt)

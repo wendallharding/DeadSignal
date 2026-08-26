@@ -1,6 +1,7 @@
 using NUnit.Framework;
 using UnityEngine;
 using DeadSignal.Combat;
+using DeadSignal.Missions;
 
 namespace DeadSignal.Tests
 {
@@ -93,6 +94,50 @@ namespace DeadSignal.Tests
         {
             Assert.That(InterceptorTactics.CalculateDashRecoveryDuration(false, 0.7f, 1.5f), Is.EqualTo(0.7f));
             Assert.That(InterceptorTactics.CalculateDashRecoveryDuration(true, 0.7f, 1.5f), Is.EqualTo(1.5f));
+        }
+
+        [TestCase(false, SignalWeaponOverclock.PiercingPulse, ExtractionSuppressionProfile.Standard)]
+        [TestCase(true, SignalWeaponOverclock.PiercingPulse, ExtractionSuppressionProfile.PiercingCrossLane)]
+        [TestCase(true, SignalWeaponOverclock.ControlledRicochet, ExtractionSuppressionProfile.RicochetCoverFlush)]
+        public void ResolveExtractionSuppressionProfile_RequiresGreedAndCountersWeapon(
+            bool optionalSalvageSecured,
+            SignalWeaponOverclock weaponOverclock,
+            ExtractionSuppressionProfile expected)
+        {
+            Assert.That(
+                InterceptorTactics.ResolveExtractionSuppressionProfile(optionalSalvageSecured, weaponOverclock),
+                Is.EqualTo(expected));
+        }
+
+        [Test]
+        public void CalculateGreedSuppressionCenter_PiercingSweepOffsetsAcrossReturnLane()
+        {
+            var player = new Vector3(4f, 2f, 0f);
+            var extraction = Vector3.zero;
+
+            var center = InterceptorTactics.CalculateGreedSuppressionCenter(
+                player,
+                extraction,
+                ExtractionSuppressionProfile.PiercingCrossLane,
+                3.5f);
+
+            Assert.That(center, Is.EqualTo(new Vector3(4f, 0f, 3.5f)));
+            Assert.That(Vector3.Dot(center - new Vector3(4f, 0f, 0f), player - extraction),
+                Is.Zero.Within(0.001f), "The greed sweep should contest one flank without sealing the return lane.");
+        }
+
+        [Test]
+        public void CalculateGreedSuppressionCenter_RicochetFlushWarnsAtCurrentCover()
+        {
+            var player = new Vector3(4f, 2f, -3f);
+
+            var center = InterceptorTactics.CalculateGreedSuppressionCenter(
+                player,
+                Vector3.zero,
+                ExtractionSuppressionProfile.RicochetCoverFlush,
+                3.5f);
+
+            Assert.That(center, Is.EqualTo(new Vector3(4f, 0f, -3f)));
         }
     }
 }

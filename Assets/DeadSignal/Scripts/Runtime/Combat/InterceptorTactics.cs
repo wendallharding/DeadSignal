@@ -3,6 +3,13 @@ using DeadSignal.Missions;
 
 namespace DeadSignal.Combat
 {
+    public enum ExtractionSuppressionProfile
+    {
+        Standard,
+        PiercingCrossLane,
+        RicochetCoverFlush
+    }
+
     /// <summary>
     /// Deterministic positioning rules for coordinated retreat interception and suppression.
     /// </summary>
@@ -39,6 +46,47 @@ namespace DeadSignal.Combat
             return retreatDirection.sqrMagnitude > 0.01f
                 ? playerPosition + retreatDirection.normalized * Mathf.Max(0f, overdriveLeadDistance)
                 : playerPosition;
+        }
+
+        public static ExtractionSuppressionProfile ResolveExtractionSuppressionProfile(
+            bool optionalSalvageSecured,
+            SignalWeaponOverclock weaponOverclock)
+        {
+            if (!optionalSalvageSecured)
+            {
+                return ExtractionSuppressionProfile.Standard;
+            }
+
+            return weaponOverclock switch
+            {
+                SignalWeaponOverclock.PiercingPulse => ExtractionSuppressionProfile.PiercingCrossLane,
+                SignalWeaponOverclock.ControlledRicochet => ExtractionSuppressionProfile.RicochetCoverFlush,
+                _ => ExtractionSuppressionProfile.Standard
+            };
+        }
+
+        public static Vector3 CalculateGreedSuppressionCenter(
+            Vector3 playerPosition,
+            Vector3 extractionPosition,
+            ExtractionSuppressionProfile profile,
+            float offsetDistance)
+        {
+            playerPosition.y = 0f;
+            if (profile != ExtractionSuppressionProfile.PiercingCrossLane)
+            {
+                return playerPosition;
+            }
+
+            var retreatDirection = playerPosition - extractionPosition;
+            retreatDirection.y = 0f;
+            if (retreatDirection.sqrMagnitude < 0.01f)
+            {
+                retreatDirection = Vector3.forward;
+            }
+
+            retreatDirection.Normalize();
+            var crossLaneDirection = new Vector3(-retreatDirection.z, 0f, retreatDirection.x);
+            return playerPosition + crossLaneDirection * Mathf.Max(0f, offsetDistance);
         }
 
         public static Vector3 CalculateSuppressionExitPoint(

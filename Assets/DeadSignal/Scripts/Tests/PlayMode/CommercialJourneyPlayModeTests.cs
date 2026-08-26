@@ -1,6 +1,7 @@
 using System.Collections;
 using System.IO;
 using DeadSignal.Application;
+using DeadSignal.Combat;
 using DeadSignal.Diagnostics;
 using DeadSignal.Missions;
 using NUnit.Framework;
@@ -69,6 +70,8 @@ namespace DeadSignal.Tests.PlayMode
             Assert.That(game.CurrentSalvage, Is.EqualTo(RunModel.SalvageRequired));
             Assert.That(game.IsOptionalSalvageSecured, Is.True);
             Assert.That(game.IsExtractionUplinkActive, Is.True);
+            Assert.That(game.CurrentExtractionSuppressionProfile, Is.EqualTo(ExtractionSuppressionProfile.PiercingCrossLane),
+                "Optional Quench greed should make the bounded extraction response counter the evolved weapon.");
 
             var victoryTimeout = Time.realtimeSinceStartup + 8f;
             while (game.CurrentRunOutcome == RunOutcome.Running && Time.realtimeSinceStartup < victoryTimeout)
@@ -110,6 +113,8 @@ namespace DeadSignal.Tests.PlayMode
                 $"{game.DebugRouteSequenceReport}\n{game.DebugRouteSequenceStatus}\n{game.DebugTelemetry}");
             Assert.That(game.IsOptionalSalvageSecured, Is.False);
             Assert.That(game.IsExtractionUplinkActive, Is.True);
+            Assert.That(game.CurrentExtractionSuppressionProfile, Is.EqualTo(ExtractionSuppressionProfile.Standard),
+                "Required withdrawal should preserve the established extraction response.");
 
             var victoryTimeout = Time.realtimeSinceStartup + 8f;
             while (game.CurrentRunOutcome == RunOutcome.Running && Time.realtimeSinceStartup < victoryTimeout)

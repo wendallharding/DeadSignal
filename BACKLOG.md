@@ -1,5 +1,16 @@
 # DEAD SIGNAL — Product Backlog
 
+## P0 — Quench weapon countertrace (Run 110)
+
+- [x] Preserve the established required-withdrawal extraction response
+- [x] Make optional Quench greed select a bounded extraction suppression profile from the evolved Relay weapon
+- [x] Offset the Piercing response across the return lane so one flank is contested without sealing the route
+- [x] Flush the Ricochet response at the player's current cover while preserving the full warning and open ring exits
+- [x] Reuse the existing Suppressor, safe authored gates, response slot, telegraph, field radius, timing, and penalties
+- [x] Preserve enemy count, health, speed, damage, Signal economy, extraction modes, authored collision, and NavMesh
+- [x] Prove deterministic profile selection, both complete commercial journeys, and full Unity regression
+- [ ] Compare Required withdrawal, Piercing greed, and Ricochet greed extraction under matched live threats; record field recognition, chosen exit, hits, Signal, and final reserve
+
 ## P0 — Wide foreground shell cutaways (Run 109)
 
 - [x] Capture a final-source Required Extraction route at 1600×900 after the explicit sibling-binding pass

@@ -285,3 +285,7 @@ The optional Arc Furnace cache now transforms the Quench Loop instead of paying 
 # Run 102 product decision — departure capacitor surge
 
 Completing the required three-region payload journey now energizes a one-shot 12-Signal capacitor reserve in the released departure-channel centerline. Returning through the direct cut-through claims it; either authored flank remains a valid route and leaves it untouched. This turns the shortcut from pure distance reduction into a visible Signal decision while preserving the existing tower, combat, enemy-count, extraction-mode, and optional-greed contracts.
+
+# Run 110 product decision — Quench weapon countertrace
+
+Taking the optional Quench cache now lets the station read the evolved Relay weapon and retarget the existing bounded Suppressor response at extraction. Piercing Pulse receives a cross-lane sweep that contests one alignment flank while leaving the opposite exit open; Controlled Ricochet receives a warned cover flush at the player's current position. Required withdrawal keeps the established response. This was selected over another enemy, larger health values, or a longer uplink because greed should create a build-specific tactical consequence, not merely exchange extra travel and Signal for the same climax.
