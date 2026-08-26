@@ -39,8 +39,8 @@ namespace DeadSignal.Tests
                 Assert.That(Resources.Load<Texture2D>("Environment/SpineDischargeTrenchRouteDecal"), Is.Not.Null);
                 Assert.That(Resources.Load<Material>(
                     "Materials/SpineDischargeTrench/SpineDischargeTrenchRouteDecal"), Is.Not.Null);
-                Assert.That(game.AuthoredMapObstacleCount, Is.EqualTo(112));
-                Assert.That(game.AuthoredInterceptorEntranceCount, Is.EqualTo(8));
+                Assert.That(game.AuthoredMapObstacleCount, Is.EqualTo(123));
+                Assert.That(game.AuthoredInterceptorEntranceCount, Is.EqualTo(9));
 
                 player.position = new Vector3(40.3f, 0f, -4.2f);
                 yield return _moveDown(gamepad, player, -6.2f);

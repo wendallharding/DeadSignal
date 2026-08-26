@@ -51,6 +51,7 @@ namespace DeadSignal.Editor
             DeadSignalSpineDischargeTrenchSetup.EnsureAssets();
             DeadSignalSpineInductionGallerySetup.EnsureAssets();
             DeadSignalConvergenceChamberSetup.EnsureAssets();
+            DeadSignalConvergenceBreakerGallerySetup.EnsureAssets();
             DeadSignalFluxBypassSetup.EnsureAssets();
             DeadSignalArcFurnaceSetup.EnsureAssets();
             DeadSignalQuenchLoopSetup.EnsureAssets();
@@ -210,6 +211,11 @@ namespace DeadSignal.Editor
             if (!DeadSignalConvergenceChamberSetup.HasAssets)
             {
                 throw new BuildFailedException("The scene-authored Convergence Chamber is missing or incomplete.");
+            }
+
+            if (!DeadSignalConvergenceBreakerGallerySetup.HasAssets)
+            {
+                throw new BuildFailedException("The scene-authored Convergence Breaker Gallery is missing or incomplete.");
             }
 
             if (!DeadSignalFluxBypassSetup.HasAssets)

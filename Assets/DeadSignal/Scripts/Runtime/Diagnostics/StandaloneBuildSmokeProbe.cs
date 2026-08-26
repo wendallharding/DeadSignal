@@ -19,7 +19,7 @@ namespace DeadSignal.Diagnostics
         public const string COMMAND_LINE_ARGUMENT = "-deadSignalBuildSmoke";
         public const string PASS_MARKER = "[DEAD SIGNAL STANDALONE SMOKE] PASS";
 
-        private const int EXPECTED_AUTHORED_OBSTACLE_COUNT = 112;
+        private const int EXPECTED_AUTHORED_OBSTACLE_COUNT = 123;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         private static void _startWhenRequested()
@@ -155,7 +155,7 @@ namespace DeadSignal.Diagnostics
                                 Resources.Load<WardenThreatTelegraphTuning>("Tuning/WardenThreatTelegraphTuning") != null &&
                                 game.HasSecurityInterceptorAssets &&
                                 game.SecurityInterceptorPartCount == 4 &&
-                                game.AuthoredInterceptorEntranceCount == 8 &&
+                                game.AuthoredInterceptorEntranceCount == 9 &&
                                 Resources.Load<GameObject>("Actors/SecurityInterceptorAssembly") != null &&
                                 game.HasSecuritySuppressorAssets &&
                                 game.SecuritySuppressorPartCount == 4 &&
@@ -232,6 +232,16 @@ namespace DeadSignal.Diagnostics
                                 Resources.Load<Texture2D>("Environment/ConvergenceChamberRouteDecal") != null &&
                                 Resources.Load<Material>(
                                     "Materials/ConvergenceChamber/ConvergenceChamberRouteDecal") != null &&
+                                game.transform.Find(
+                                    "Spine Induction Gallery Region/Convergence Chamber Region/" +
+                                    "Convergence Breaker Gallery Region/Breaker Bank Assembly") != null &&
+                                game.transform.Find(
+                                    "Spine Induction Gallery Region/Convergence Chamber Region/" +
+                                    "Convergence Breaker Gallery Region/Breaker Gallery Reinforcement Gate") != null &&
+                                Resources.Load<GameObject>("Environment/ConvergenceBreakerGalleryRegion") != null &&
+                                Resources.Load<Texture2D>("Environment/ConvergenceBreakerGalleryRouteDecal") != null &&
+                                Resources.Load<Material>(
+                                    "Materials/ConvergenceBreakerGallery/ConvergenceBreakerGalleryRouteDecal") != null &&
                                 game.transform.Find(
                                     "Spine Induction Gallery Region/Flux Bypass Region/Flux Shunt Regulator") != null &&
                                 game.transform.Find(

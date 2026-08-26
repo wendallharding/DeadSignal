@@ -1,5 +1,16 @@
 # DEAD SIGNAL — Product Backlog
 
+## P0 — Convergence Breaker Gallery (Run 115)
+
+- [x] Add a scene-authored 7-by-8-metre lateral loop equal to 50 percent of the Convergence Chamber floor contract
+- [x] Open two independent east thresholds around a reused breaker-bank landmark and angled ceramic firing cover
+- [x] Keep the gallery a dead-zone commitment before Spine activation and make it a powered withdrawal foothold afterward
+- [x] Add one safe outer reinforcement gate that redirects chamber pressure without raising the four-response cap
+- [x] Package an original transparent cyan/amber route decal with a reproducible ArtSource record
+- [x] Preserve Signal economy, objectives, salvage, enemy statistics, extraction rules, existing world bounds, and collision authority
+- [x] Prove both thresholds, movement/projectile blocking, powered transition, entrance safety, Resources packaging, and complete regression
+- [ ] Compare the chamber centerline against both breaker-gallery approaches under matched live threats; record time, Signal, hits, cover use, gate recognition, and powered-return choice
+
 ## P0 — Spine Discharge Trench (Run 114)
 
 - [x] Add a scene-authored 60-square-metre south Spine loop, equal to 42.9 percent of the original Capacitor Spine floor contract

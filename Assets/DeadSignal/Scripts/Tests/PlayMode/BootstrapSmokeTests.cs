@@ -46,7 +46,7 @@ namespace DeadSignal.Tests
                 Assert.That(Resources.Load<Material>("Materials/RelayFoundry/RelayFoundryLockdownDecal"), Is.Not.Null);
                 Assert.That(foundry.Find("Foundry North Reinforcement Gate"), Is.Not.Null);
                 Assert.That(foundry.Find("Foundry South Reinforcement Gate"), Is.Not.Null);
-                Assert.That(game.AuthoredInterceptorEntranceCount, Is.EqualTo(8));
+                Assert.That(game.AuthoredInterceptorEntranceCount, Is.EqualTo(9));
 
                 player.position = new Vector3(-0.6f, 0f, 0.4f);
                 InputSystem.QueueStateEvent(gamepad, new GamepadState().WithButton(GamepadButton.West));
@@ -1043,7 +1043,7 @@ namespace DeadSignal.Tests
                 "The tower approach should be placed as scene-authored prefab content rather than runtime layout code.");
             var authoredObstacles = towerJunction.GetComponentsInChildren<AuthoredMapObstacle>();
             Assert.That(authoredObstacles.Length, Is.EqualTo(3));
-            Assert.That(game.AuthoredMapObstacleCount, Is.EqualTo(112),
+            Assert.That(game.AuthoredMapObstacleCount, Is.EqualTo(123),
                 "Every authored junction, salvage area, departure channel, and threat-bay obstacle should participate " +
                 "in movement resolution.");
             Assert.That(authoredObstacles.Sum(obstacle => obstacle.GetComponentsInChildren<Renderer>().Length), Is.EqualTo(6));
@@ -1383,7 +1383,7 @@ namespace DeadSignal.Tests
             Assert.That(game.HasSecurityInterceptorAssets, Is.True,
                 "The Interceptor should use its authored assembly rather than fallback primitives.");
             Assert.That(game.SecurityInterceptorPartCount, Is.EqualTo(4));
-            Assert.That(game.AuthoredInterceptorEntranceCount, Is.EqualTo(8),
+            Assert.That(game.AuthoredInterceptorEntranceCount, Is.EqualTo(9),
                 "The original and Relay Foundry flank gates should give the director safe route choices.");
             Assert.That(interceptor.gameObject.activeSelf, Is.False);
             Assert.That(game.transform.Find("Interceptor Charge Telegraph"), Is.Not.Null);

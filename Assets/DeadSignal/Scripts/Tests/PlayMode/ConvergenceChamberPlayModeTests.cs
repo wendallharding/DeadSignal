@@ -29,11 +29,11 @@ namespace DeadSignal.Tests
                 var territory = chamber.GetComponent<AuthoredPoweredTerritory>();
                 var entrances = chamber.GetComponentsInChildren<AuthoredInterceptorEntrance>();
                 var entrance = entrances.Single(item => item.Priority == 5);
-                var furnaceEntrance = entrances.Single(item => item.Priority == 6);
+                var breakerGalleryEntrance = entrances.Single(item => item.Priority == 16);
                 var routing = chamber.Find("Convergence Signal Lines").gameObject;
 
                 Assert.That(chamber.position, Is.EqualTo(new Vector3(42.5f, 0f, 17f)));
-                Assert.That(chamber.GetComponentsInChildren<AuthoredMapObstacle>().Length, Is.EqualTo(33));
+                Assert.That(chamber.GetComponentsInChildren<AuthoredMapObstacle>().Length, Is.EqualTo(44));
                 Assert.That(chamber.GetComponentsInChildren<Collider>().Length, Is.Zero);
                 Assert.That(chamber.Find("Convergence Busbar Assembly"), Is.Not.Null);
                 Assert.That(chamber.Find("West Convergence Baffle"), Is.Not.Null);
@@ -47,8 +47,8 @@ namespace DeadSignal.Tests
                 Assert.That(Resources.Load<Texture2D>("Environment/ConvergenceChamberRouteDecal"), Is.Not.Null);
                 Assert.That(Resources.Load<Material>(
                     "Materials/ConvergenceChamber/ConvergenceChamberRouteDecal"), Is.Not.Null);
-                Assert.That(game.AuthoredMapObstacleCount, Is.EqualTo(112));
-                Assert.That(game.AuthoredInterceptorEntranceCount, Is.EqualTo(8));
+                Assert.That(game.AuthoredMapObstacleCount, Is.EqualTo(123));
+                Assert.That(game.AuthoredInterceptorEntranceCount, Is.EqualTo(9));
                 Assert.That(gallery.Find("Induction Gallery North Bulkhead"), Is.Null);
                 Assert.That(gallery.Find("Induction Gallery North West"), Is.Not.Null);
                 Assert.That(gallery.Find("Induction Gallery North Center"), Is.Not.Null);
@@ -80,10 +80,10 @@ namespace DeadSignal.Tests
 
                 var chamberCenter = new Vector3(42.5f, 0f, 17f);
                 player.position = chamberCenter;
-                Assert.That(game.SafestReinforcementEntryPosition, Is.EqualTo(furnaceEntrance.Position),
-                    "Deep-route pressure should select the new far-side gate instead of a distant old lane.");
-                Assert.That(Vector3.Distance(player.position, furnaceEntrance.Position), Is.GreaterThan(6f),
-                    "The deeper gate should remain immediately safe while the player occupies the chamber.");
+                Assert.That(game.SafestReinforcementEntryPosition, Is.EqualTo(breakerGalleryEntrance.Position),
+                    "Deep-route pressure should select the new lateral gate instead of a distant old lane.");
+                Assert.That(Vector3.Distance(player.position, breakerGalleryEntrance.Position), Is.GreaterThan(6f),
+                    "The lateral gate should remain immediately safe while the player occupies the chamber.");
                 game.DebugActivateRelayTower();
                 Assert.That(game.DebugIsPoweredAt(chamberCenter), Is.False);
                 Assert.That(routing.activeSelf, Is.False);
