@@ -511,7 +511,11 @@ namespace DeadSignal.World
             _rebuildNavMesh();
         }
 
-        public void Dispose() => m_navMeshPlanner?.Dispose();
+        public void Dispose()
+        {
+            m_navMeshPlanner?.Dispose();
+            m_palette.Dispose();
+        }
 
         private void _rebuildNavMesh()
         {

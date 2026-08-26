@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace DeadSignal.Presentation
@@ -146,14 +147,34 @@ namespace DeadSignal.Presentation
                 enabled ? new Color(0.18f, 0.22f, 0.24f) : new Color(0.03f, 0.06f, 0.07f));
         }
 
-        private static Material _loadMaterial(string materialName)
+        public void Dispose()
         {
-            var material = Resources.Load<Material>($"Materials/WorldPalette/{materialName}");
-            if (material == null)
+            foreach (var material in m_runtimeMaterials)
+            {
+                if (material != null)
+                {
+                    Object.Destroy(material);
+                }
+            }
+
+            m_runtimeMaterials.Clear();
+        }
+
+        private Material _loadMaterial(string materialName)
+        {
+            var authoredMaterial = Resources.Load<Material>($"Materials/WorldPalette/{materialName}");
+            if (authoredMaterial == null)
             {
                 throw new MissingReferenceException($"Authored world material is missing: Materials/WorldPalette/{materialName}.");
             }
-            return material;
+
+            var runtimeMaterial = new Material(authoredMaterial)
+            {
+                name = authoredMaterial.name,
+                hideFlags = HideFlags.DontSave
+            };
+            m_runtimeMaterials.Add(runtimeMaterial);
+            return runtimeMaterial;
         }
 
         private static void _setMaterial(Material material, Color baseColor, Color emission)
@@ -171,5 +192,6 @@ namespace DeadSignal.Presentation
             }
         }
 
+        private readonly List<Material> m_runtimeMaterials = new List<Material>();
     }
 }
