@@ -35,6 +35,7 @@ namespace DeadSignal.Editor
             DeadSignalProjectileSetup.EnsureAssets();
             DeadSignalSapperTelegraphSetup.EnsureAssets();
             DeadSignalWardenTelegraphSetup.EnsureAssets();
+            DeadSignalSuppressorFieldSetup.EnsureAssets();
             DeadSignalTowerJunctionSetup.EnsureAssets();
             DeadSignalSalvageAnnexSetup.EnsureAssets();
             DeadSignalDepartureChannelSetup.EnsureAssets();

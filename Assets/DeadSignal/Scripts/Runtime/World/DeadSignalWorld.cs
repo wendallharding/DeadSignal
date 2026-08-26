@@ -54,6 +54,7 @@ namespace DeadSignal.World
         public Transform InterceptorCore { get; private set; }
         public Transform Suppressor { get; private set; }
         public Transform SuppressorCore { get; private set; }
+        public SuppressorFieldTelegraph SuppressorFieldTelegraph { get; private set; }
         public Transform TowerCore { get; private set; }
         public Transform RelayTowerCore { get; private set; }
         public Transform SpineTowerCore { get; private set; }
@@ -627,10 +628,7 @@ namespace DeadSignal.World
 
         public void SetSuppressorFieldAt(bool visible, bool active, float radius, Vector3 center)
         {
-            m_suppressorField.SetActive(visible);
-            m_suppressorField.transform.position = center + Vector3.up * 0.035f;
-            m_suppressorField.transform.localScale = new Vector3(radius * 2f, 0.025f, radius * 2f);
-            m_suppressorField.GetComponent<Renderer>().sharedMaterial = active ? m_palette.Magenta : m_palette.Amber;
+            SuppressorFieldTelegraph.SetState(visible, active, radius, center);
         }
 
         public void SetInterceptorTelegraph(bool visible, Vector3 target)
@@ -1224,10 +1222,10 @@ namespace DeadSignal.World
             m_interceptorTelegraph.receiveShadows = false;
             interceptorTelegraphRoot.SetActive(false);
 
-            m_suppressorField = _createPrimitive("Suppressor Field Warning", PrimitiveType.Cylinder, Vector3.zero,
-                Vector3.one, m_palette.Amber, m_root);
-            Object.Destroy(m_suppressorField.GetComponent<Collider>());
-            m_suppressorField.SetActive(false);
+            var suppressorFieldRoot = new GameObject("Suppressor Field Warning");
+            suppressorFieldRoot.transform.SetParent(m_root, false);
+            SuppressorFieldTelegraph = suppressorFieldRoot.AddComponent<SuppressorFieldTelegraph>();
+            SuppressorFieldTelegraph.Configure(m_palette.Amber);
         }
 
         private void _registerInterceptorEntrances()
@@ -1689,7 +1687,6 @@ namespace DeadSignal.World
         private readonly List<Vector3> m_machineSockets = new();
         private readonly List<Vector3> m_interceptorEntrances = new();
         private int m_deepRouteEntranceIndex = -1;
-        private GameObject m_suppressorField;
         private Vignette m_deadZoneVignette;
         private float m_environmentTime;
         private float m_boundaryPulse;

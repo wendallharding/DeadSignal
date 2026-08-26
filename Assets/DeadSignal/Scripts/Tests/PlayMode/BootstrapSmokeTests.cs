@@ -1390,7 +1390,13 @@ namespace DeadSignal.Tests
             Assert.That(game.HasSecuritySuppressorAssets, Is.True);
             Assert.That(game.SecuritySuppressorPartCount, Is.EqualTo(4));
             Assert.That(suppressor.gameObject.activeSelf, Is.False);
-            Assert.That(game.transform.Find("Suppressor Field Warning").gameObject.activeSelf, Is.False);
+            var suppressorField = game.transform.Find("Suppressor Field Warning");
+            Assert.That(suppressorField.gameObject.activeSelf, Is.False);
+            Assert.That(game.HasSuppressorFieldTexture, Is.True,
+                "The Suppressor should use its transparent edge texture instead of an opaque field primitive.");
+            Assert.That(suppressorField.GetComponent<SuppressorFieldTelegraph>(), Is.Not.Null);
+            Assert.That(suppressorField.GetComponent<Collider>(), Is.Null,
+                "The presentation-only field must not alter movement or projectile collision.");
             var telegraphRoot = game.transform.Find("Sapper Drain Telegraph");
             Assert.That(telegraphRoot, Is.Not.Null, "The Sapper telegraph should be constructed with the runtime arena.");
             var telegraph = telegraphRoot.GetComponent<SignalSapperTelegraph>();
@@ -2093,6 +2099,11 @@ namespace DeadSignal.Tests
 
                 Assert.That(game.IsSuppressorFieldWarningActive, Is.True,
                     "The promoted Suppressor should immediately telegraph its locked opening sweep after safe entry.");
+                var fieldTelegraph = game.transform.Find("Suppressor Field Warning").GetComponent<SuppressorFieldTelegraph>();
+                Assert.That(fieldTelegraph.IsWarningRing, Is.True,
+                    "The warning phase should expose only the thin amber boundary.");
+                Assert.That(fieldTelegraph.IsActiveField, Is.False,
+                    "The textured active edge should remain hidden during the escape warning.");
                 Assert.That(Vector2.Distance(
                         new Vector2(game.SuppressorFieldCenter.x, game.SuppressorFieldCenter.z),
                         new Vector2(player.position.x, player.position.z)), Is.LessThan(0.1f),
@@ -2125,6 +2136,11 @@ namespace DeadSignal.Tests
 
                 Assert.That(game.IsSuppressorFieldActive, Is.True,
                     "The locked amber warning should become an active field before the uplink completes.");
+                Assert.That(fieldTelegraph.IsWarningRing, Is.False);
+                Assert.That(fieldTelegraph.IsActiveField, Is.True,
+                    "The active phase should replace the warning line with the transparent textured edge.");
+                Assert.That(fieldTelegraph.ActiveMaximumAlpha, Is.LessThanOrEqualTo(0.62f),
+                    "The active field must preserve tactical visibility through its center and edge effects.");
                 Assert.That(game.IsPlayerSuppressed, Is.True,
                     "A drone that ignores the one-second warning should be caught by the active opening sweep.");
                 var reactiveArcDeadline = Time.time + 0.25f;

@@ -527,6 +527,7 @@ namespace DeadSignal.Combat
                 {
                     m_suppressorFieldCountdown = m_tuning.SuppressorFieldDuration;
                     m_suppressorPulseCountdown = 0f;
+                    m_world.SetSuppressorFieldAt(true, true, m_tuning.SuppressorFieldRadius, m_suppressorFieldCenter);
                     if (m_debugScenarioActive)
                     {
                         m_debugScenarioAttackMask |= 8;

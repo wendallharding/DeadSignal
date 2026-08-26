@@ -82,6 +82,9 @@ namespace DeadSignal.Diagnostics
                       $"salvage={game?.SalvageCacheInstanceCount ?? -1}");
             Debug.Log($"[DEAD SIGNAL STANDALONE SMOKE] EASTERN COMBAT LAB | " +
                       $"anchors={combatLabAnchorsReady} texture={combatLabTextureReady} material={combatLabMaterialReady}");
+            Debug.Log($"[DEAD SIGNAL STANDALONE SMOKE] SUPPRESSOR FIELD | " +
+                      $"runtime={game?.HasSuppressorFieldTexture ?? false} " +
+                      $"texture={Resources.Load<Texture2D>("VFX/SuppressorFieldActive") != null}");
             var runtimeReady = game != null &&
                                 game.transform.Find("Maintenance Drone") != null &&
                                 game.transform.Find("Shortcut Gate Assembly/Signal Shortcut Gate") != null &&
@@ -129,6 +132,8 @@ namespace DeadSignal.Diagnostics
                                 game.HasSecuritySuppressorAssets &&
                                 game.SecuritySuppressorPartCount == 4 &&
                                 Resources.Load<GameObject>("Actors/SecuritySuppressorAssembly") != null &&
+                                game.HasSuppressorFieldTexture &&
+                                Resources.Load<Texture2D>("VFX/SuppressorFieldActive") != null &&
                                 Resources.Load<GameObject>("Environment/InterceptorEntryGate") != null &&
                                 game.AuthoredMapObstacleCount == EXPECTED_AUTHORED_OBSTACLE_COUNT &&
                                 Resources.Load<GameObject>("Environment/CoolantManifoldAssembly") != null &&

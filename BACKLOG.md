@@ -1,5 +1,15 @@
 # DEAD SIGNAL — Product Backlog
 
+## P0 — Readable Suppressor denial field (Run 105)
+
+- [x] Replace the opaque full-radius field primitive with an amber warning boundary and a transparent-center active edge
+- [x] Preserve the established field radius, duration, cooldown, movement penalty, Signal drain, safe entrances, and collision rules
+- [x] Package the original active-edge texture and validate the warning-to-active transition in the extraction pursuit
+- [x] Pin commercial-journey tests to one matched route variant without leaking or overwriting the user's saved route preference
+- [ ] Capture the brief active phase directly in a foreground combat-lab session; batchmode cannot invoke frame-end screenshot capture
+- [ ] Continue the P0 combat-readability pass on the large gray/dark foreground faces visible in Spine/eastern routes
+- [ ] Rebuild the compressed terminal debrief after active-play visibility and camera-boundary blockers are corrected
+
 ## P0 — Matched live-balance combat routes (Run 104)
 
 - [x] Give assisted live routes conservative target selection, predictive Sapper aim, obstacle-aware intercept positions, and explicit Interceptor/Suppressor evasion

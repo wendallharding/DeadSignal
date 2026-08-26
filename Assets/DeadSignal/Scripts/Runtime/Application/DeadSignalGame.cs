@@ -190,6 +190,7 @@ namespace DeadSignal.Application
         public int SecurityInterceptorPartCount => m_world?.SecurityInterceptorPartCount ?? 0;
         public bool HasSecuritySuppressorAssets => m_world?.HasSecuritySuppressorAssets ?? false;
         public int SecuritySuppressorPartCount => m_world?.SecuritySuppressorPartCount ?? 0;
+        public bool HasSuppressorFieldTexture => m_world?.SuppressorFieldTelegraph?.HasTexture ?? false;
         public int AuthoredInterceptorEntranceCount => m_world?.AuthoredInterceptorEntranceCount ?? 0;
         public int AuthoredMapObstacleCount => m_world?.AuthoredMapObstacleCount ?? 0;
         public int AuthoredSalvageSocketCount => m_world?.AuthoredSalvageSocketCount ?? 0;

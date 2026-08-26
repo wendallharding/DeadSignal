@@ -12,6 +12,29 @@ namespace DeadSignal.Tests.PlayMode
 {
     public sealed class CommercialJourneyPlayModeTests
     {
+        [SetUp]
+        public void SetUp()
+        {
+            m_hadRouteVariant = PlayerPrefs.HasKey(ROUTE_VARIANT_KEY);
+            m_initialRouteVariant = PlayerPrefs.GetInt(ROUTE_VARIANT_KEY, 0);
+            PlayerPrefs.SetInt(ROUTE_VARIANT_KEY, 0);
+            PlayerPrefs.Save();
+        }
+
+        [TearDown]
+        public void TearDown()
+        {
+            if (m_hadRouteVariant)
+            {
+                PlayerPrefs.SetInt(ROUTE_VARIANT_KEY, m_initialRouteVariant);
+            }
+            else
+            {
+                PlayerPrefs.DeleteKey(ROUTE_VARIANT_KEY);
+            }
+            PlayerPrefs.Save();
+        }
+
         [UnityTest]
         public IEnumerator FullExtraction_TraversesThreeTowersOptionalCacheAndWeaponEvolution()
         {
@@ -166,5 +189,10 @@ namespace DeadSignal.Tests.PlayMode
             Assert.That(game.DebugRouteSequenceReport, Does.Contain("Journey OPTIONAL GREED"));
             game.DebugSetTimeScale(1f);
         }
+
+        private const string ROUTE_VARIANT_KEY = "DeadSignal.RouteVariant";
+
+        private bool m_hadRouteVariant;
+        private int m_initialRouteVariant;
     }
 }
