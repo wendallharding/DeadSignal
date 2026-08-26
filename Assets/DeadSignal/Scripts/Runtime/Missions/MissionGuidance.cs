@@ -36,8 +36,8 @@ namespace DeadSignal.Missions
                     return new MissionGuidanceState(3, "EXTEND THE NETWORK", "RESTORE THE RELAY FOUNDRY TOWER",
                         string.IsNullOrEmpty(urgent) ? $"SIGNAL -{RunModel.RelayTowerCost:0}  //  WEAPON CALIBRATION" : urgent);
                 case MissionStage.RelayPayload:
-                    return new MissionGuidanceState(4, "RELAY PAYLOAD", "CHOOSE A FOUNDRY PAYLOAD ROUTE",
-                        string.IsNullOrEmpty(urgent) ? "PROTECTED OR EXPOSED APPROACH  //  ONE REQUIRED" : urgent);
+                    return new MissionGuidanceState(4, "RELAY PAYLOAD", "CHOOSE FOUNDRY OR COOLING GANTRY",
+                        string.IsNullOrEmpty(urgent) ? "INNER COVER OR EXCHANGER LOOP  //  ONE REQUIRED" : urgent);
                 case MissionStage.SpineTower:
                     return new MissionGuidanceState(5, "POWER THE SPINE", "RESTORE THE CAPACITOR SPINE TOWER",
                         string.IsNullOrEmpty(urgent) ? $"SIGNAL -{RunModel.SpineTowerCost:0}  //  EVOLVE WEAPON" : urgent);

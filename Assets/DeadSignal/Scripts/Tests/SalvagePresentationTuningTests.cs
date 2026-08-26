@@ -1,5 +1,6 @@
 using NUnit.Framework;
 using UnityEngine;
+using DeadSignal.Missions;
 using DeadSignal.Salvage;
 using DeadSignal.World;
 
@@ -32,8 +33,11 @@ namespace DeadSignal.Tests
             {
                 socketObject.transform.position = new Vector3(18.7f, 0f, 0f);
                 var socket = socketObject.AddComponent<AuthoredSalvageSocket>();
+                socket.Configure(SignalRegion.Relay, false);
 
                 Assert.That(socket.Position, Is.EqualTo(socketObject.transform.position));
+                Assert.That(socket.Region, Is.EqualTo(SignalRegion.Relay));
+                Assert.That(socket.IsOptional, Is.False);
             }
             finally
             {

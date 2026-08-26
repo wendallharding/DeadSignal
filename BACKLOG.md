@@ -1,5 +1,15 @@
 # DEAD SIGNAL — Product Backlog
 
+## P0 — Relay gantry payload choice (Run 113)
+
+- [x] Keep one scene-authored Relay payload on the protected inner Foundry route
+- [x] Move the sibling Relay payload into the Cooling Gantry so its exchanger and angled cover shape the mission branch
+- [x] Spawn exactly two Relay candidates from authored prefab sockets; securing either retires the other and advances to the Spine
+- [x] Preserve seven total cache candidates, regional rewards, tower order, four-response cap, enemy stats, Signal economy, and extraction rules
+- [x] Preserve both gantry thresholds, object-aligned movement/projectile cover, Relay-powered return state, and existing route decal
+- [x] Prove socket ownership, route choice, sibling retirement, Resources packaging, full regression, Windows build, and packaged smoke
+- [ ] Compare inner-Foundry and Cooling-Gantry payload routes under matched live threats; record route time, hits, shots, Signal, and cover use
+
 ## P0 — Relay Cooling Gantry (Run 112)
 
 - [x] Add a scene-authored two-threshold cooling loop equal to roughly 40–45 percent of the Relay Foundry floor area

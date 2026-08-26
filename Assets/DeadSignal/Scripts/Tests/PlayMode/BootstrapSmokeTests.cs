@@ -1094,7 +1094,7 @@ namespace DeadSignal.Tests
                 "East-vault collision authoring should remain on identity-oriented, presentation-free transforms.");
             Assert.That(eastVaultSocket, Is.Null,
                 "The former fourth cache should move into the Arc Furnace instead of remaining in transit space.");
-            Assert.That(game.AuthoredSalvageSocketCount, Is.EqualTo(1));
+            Assert.That(game.AuthoredSalvageSocketCount, Is.EqualTo(3));
             Assert.That(eastVault.GetComponentsInChildren<Collider>().Length, Is.Zero,
                 "The optional room should use serialized object-aligned blockers without duplicate physics colliders.");
             var eastVaultMeshes = eastVault.GetComponentsInChildren<MeshFilter>()

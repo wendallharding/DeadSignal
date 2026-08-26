@@ -1155,20 +1155,32 @@ namespace DeadSignal.World
             var routeVariant = PlayerPrefs.GetInt("DeadSignal.RouteVariant", 0) % 3;
             var northCache = routeVariant == 1 ? new Vector3(8.7f, 0f, 6.5f) : new Vector3(9.7f, 0f, 6.3f);
             var southCache = routeVariant == 2 ? new Vector3(9.2f, 0f, -6.5f) : new Vector3(10.4f, 0f, -6.4f);
-            var relayNorthCache = RelayTowerPosition + new Vector3(3f, 0f, 4.8f);
-            var relaySouthCache = RelayTowerPosition + new Vector3(3f, 0f, -4.8f);
             var spineNorthCache = new Vector3(39f, 0f, 3f);
             var spineSouthCache = new Vector3(39f, 0f, -3f);
             _createSalvage(northCache, SignalRegion.Central);
             _createSalvage(southCache, SignalRegion.Central);
-            _createSalvage(relayNorthCache, SignalRegion.Relay);
-            _createSalvage(relaySouthCache, SignalRegion.Relay);
-            _createSalvage(spineNorthCache, SignalRegion.Spine);
-            _createSalvage(spineSouthCache, SignalRegion.Spine);
             var authoredSockets = Object.FindObjectsByType<AuthoredSalvageSocket>(FindObjectsSortMode.None);
+            System.Array.Sort(authoredSockets, (first, second) =>
+            {
+                var regionOrder = first.Region.CompareTo(second.Region);
+                return regionOrder != 0 ? regionOrder : second.Position.z.CompareTo(first.Position.z);
+            });
             foreach (var socket in authoredSockets)
             {
-                _createSalvage(socket.Position, SignalRegion.Spine, true);
+                if (!socket.IsOptional)
+                {
+                    _createSalvage(socket.Position, socket.Region);
+                }
+            }
+
+            _createSalvage(spineNorthCache, SignalRegion.Spine);
+            _createSalvage(spineSouthCache, SignalRegion.Spine);
+            foreach (var socket in authoredSockets)
+            {
+                if (socket.IsOptional)
+                {
+                    _createSalvage(socket.Position, socket.Region, true);
+                }
             }
 
             AuthoredSalvageSocketCount = authoredSockets.Length;

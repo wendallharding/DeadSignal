@@ -127,7 +127,7 @@ namespace DeadSignal.Diagnostics
                                 game.HasStationMachineAssets &&
                                 game.HasSalvageCacheAssets &&
                                 game.SalvageCacheInstanceCount == RunModel.SalvageRequired * 2 + 1 &&
-                                game.AuthoredSalvageSocketCount == 1 &&
+                                game.AuthoredSalvageSocketCount == 3 &&
                                 game.HasSalvagePresentationTuning &&
                                 game.HasPlayerDroneAssets &&
                                 game.HasPlayerMovementTuning &&
@@ -183,6 +183,10 @@ namespace DeadSignal.Diagnostics
                                     "Relay Foundry Region/Relay Cooling Gantry Region/Relay Heat Exchanger") != null &&
                                 game.transform.Find(
                                     "Relay Foundry Region/Relay Cooling Gantry Region/Cooling Gantry Reinforcement Gate") != null &&
+                                game.transform.Find("Relay Foundry Region/Protected Relay Payload Socket") != null &&
+                                game.transform.Find(
+                                    "Relay Foundry Region/Relay Cooling Gantry Region/" +
+                                    "Cooling Gantry Relay Payload Socket") != null &&
                                 Resources.Load<GameObject>("Environment/RelayCoolingGantryRegion") != null &&
                                 Resources.Load<GameObject>("Environment/RelayHeatExchanger") != null &&
                                 Resources.Load<Texture2D>("Environment/RelayCoolingGantryRouteDecal") != null &&

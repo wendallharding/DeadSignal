@@ -124,7 +124,7 @@ namespace DeadSignal.Presentation
                 MissionStage.CentralTower => "Bring the opening network online",
                 MissionStage.CentralPayload => "Choose one of two local payload routes",
                 MissionStage.RelayTower => "Push east and establish the Relay foothold",
-                MissionStage.RelayPayload => "Choose the protected or exposed Relay route",
+                MissionStage.RelayPayload => "Choose inner Foundry cover or the Cooling Gantry loop",
                 MissionStage.SpineTower => "Carry the network into the Capacitor Spine",
                 MissionStage.SpinePayload => "Secure the final extraction payload",
                 MissionStage.Extraction => "Three towers and regional payloads secured",

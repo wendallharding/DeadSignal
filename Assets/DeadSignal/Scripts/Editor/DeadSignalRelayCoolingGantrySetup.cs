@@ -1,6 +1,7 @@
 using System;
 using UnityEditor;
 using UnityEngine;
+using DeadSignal.Missions;
 using DeadSignal.World;
 
 namespace DeadSignal.Editor
@@ -43,9 +44,12 @@ namespace DeadSignal.Editor
                        AssetDatabase.LoadAssetAtPath<Texture2D>(DECAL_PATH) != null &&
                        AssetDatabase.LoadAssetAtPath<Material>(DECAL_MATERIAL_PATH) != null &&
                        foundry.transform.Find("Relay Cooling Gantry Region") != null &&
+                       foundry.transform.Find("Protected Relay Payload Socket") != null &&
                        foundry.transform.Find("Foundry South Bulkhead") == null &&
+                       foundry.GetComponentsInChildren<AuthoredSalvageSocket>().Length == 2 &&
                        region.GetComponentsInChildren<AuthoredMapObstacle>().Length == 6 &&
                        region.GetComponentsInChildren<AuthoredInterceptorEntrance>().Length == 1 &&
+                       region.GetComponentsInChildren<AuthoredSalvageSocket>().Length == 1 &&
                        region.GetComponent<AuthoredPoweredTerritory>() != null &&
                        landmark.GetComponent<AuthoredMapObstacle>() != null;
             }
@@ -217,6 +221,9 @@ namespace DeadSignal.Editor
                 entrance.transform.localPosition = new Vector3(0f, 0f, -3.7f);
                 entrance.AddComponent<AuthoredInterceptorEntrance>().Configure(14);
 
+                _salvageSocket(root.transform, "Cooling Gantry Relay Payload Socket",
+                    new Vector3(3.75f, 0f, -2.55f));
+
                 root.AddComponent<AuthoredPoweredTerritory>().Configure(
                     PoweredTerritorySource.RelayTower, new Vector2(5.7f, 4f), routing);
                 PrefabUtility.SaveAsPrefabAsset(root, REGION_PREFAB_PATH);
@@ -244,6 +251,10 @@ namespace DeadSignal.Editor
                     new Vector3(5.6f, 1f, 0.35f), materials.Armor);
                 _replaceWall(foundry.transform, "Foundry South East", new Vector3(7.1f, 0.5f, -7f),
                     new Vector3(1.8f, 1f, 0.35f), materials.Armor);
+
+                _remove(foundry.transform, "Protected Relay Payload Socket");
+                _salvageSocket(foundry.transform, "Protected Relay Payload Socket",
+                    new Vector3(7.25f, 0f, 4.8f));
 
                 _remove(foundry.transform, "Relay Cooling Gantry Region");
                 var regionPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(REGION_PREFAB_PATH);
@@ -282,6 +293,14 @@ namespace DeadSignal.Editor
         {
             _remove(parent, objectName);
             _wall(parent, objectName, position, scale, material, true);
+        }
+
+        private static void _salvageSocket(Transform parent, string objectName, Vector3 position)
+        {
+            var socket = new GameObject(objectName);
+            socket.transform.SetParent(parent, false);
+            socket.transform.localPosition = position;
+            socket.AddComponent<AuthoredSalvageSocket>().Configure(SignalRegion.Relay, false);
         }
 
         private static GameObject _wall(

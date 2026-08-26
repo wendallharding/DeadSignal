@@ -32,6 +32,13 @@ namespace DeadSignal.Tests
                 Assert.That(gantry.position, Is.EqualTo(new Vector3(27.5f, 0f, -11.25f)));
                 Assert.That(gantry.GetComponentsInChildren<AuthoredMapObstacle>().Length, Is.EqualTo(6));
                 Assert.That(gantry.GetComponentsInChildren<AuthoredInterceptorEntrance>().Length, Is.EqualTo(1));
+                var gantryPayloadSocket = gantry.GetComponentInChildren<AuthoredSalvageSocket>();
+                var protectedPayloadSocket = foundry.Find("Protected Relay Payload Socket")
+                    .GetComponent<AuthoredSalvageSocket>();
+                Assert.That(gantryPayloadSocket.Region, Is.EqualTo(DeadSignal.Missions.SignalRegion.Relay));
+                Assert.That(gantryPayloadSocket.IsOptional, Is.False);
+                Assert.That(protectedPayloadSocket.Region, Is.EqualTo(DeadSignal.Missions.SignalRegion.Relay));
+                Assert.That(protectedPayloadSocket.IsOptional, Is.False);
                 Assert.That(gantry.GetComponentsInChildren<Collider>().Length, Is.Zero);
                 Assert.That(gantry.Find("Relay Heat Exchanger"), Is.Not.Null);
                 Assert.That(gantry.Find("West Ceramic Deflector"), Is.Not.Null);
@@ -76,6 +83,25 @@ namespace DeadSignal.Tests
                 game.DebugActivateRelayTower();
                 Assert.That(game.DebugIsPoweredAt(gantryCenter), Is.True);
                 Assert.That(routing.activeSelf, Is.True);
+                Assert.That(game.AuthoredSalvageSocketCount, Is.EqualTo(3));
+
+                var relayCaches = game.transform.Cast<Transform>()
+                    .Where(child => child.name == "Salvage Cache" &&
+                                    (Vector3.Distance(child.position, gantryPayloadSocket.Position) < 0.1f ||
+                                     Vector3.Distance(child.position, protectedPayloadSocket.Position) < 0.1f))
+                    .ToArray();
+                Assert.That(relayCaches.Length, Is.EqualTo(2));
+                Assert.That(relayCaches.All(cache => cache.gameObject.activeSelf), Is.True);
+
+                player.position = gantryPayloadSocket.Position;
+                yield return null;
+                Assert.That(game.IsRelayPayloadSecured, Is.True,
+                    "The Cooling Gantry cache should satisfy the Relay payload branch.");
+                Assert.That(relayCaches.All(cache => !cache.gameObject.activeSelf), Is.True,
+                    "Securing either Relay payload must retire its authored sibling.");
+                yield return null;
+                Assert.That(game.CurrentMissionPhase, Is.EqualTo(5),
+                    "The gantry branch should advance the required journey to the Spine tower.");
             }
             finally
             {

@@ -786,6 +786,7 @@ Transform:
   - {fileID: 547073501614740078}
   - {fileID: 6149813504280236635}
   - {fileID: 4367488299456991694}
+  - {fileID: 3289331605481843687}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &3445029161578292472
@@ -2248,3 +2249,49 @@ Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 208eddf7edffb6c4ca8f1a06612ee707, type: 3}
   m_PrefabInstance: {fileID: 8279464164268164147}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &7319362699507717236
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 3289331605481843687}
+  - component: {fileID: 2023226193378431746}
+  m_Layer: 0
+  m_Name: Protected Relay Payload Socket
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &3289331605481843687
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7319362699507717236}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 7.25, y: 0, z: 4.8}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1639447717762871022}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2023226193378431746
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7319362699507717236}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 897a2aebfeff94e47a829331b819f0e5, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: DeadSignal.Runtime::DeadSignal.World.AuthoredSalvageSocket
+  m_region: 1
+  m_isOptional: 0
