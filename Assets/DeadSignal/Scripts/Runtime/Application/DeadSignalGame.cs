@@ -111,6 +111,12 @@ namespace DeadSignal.Application
         public Vector3 RelayTowerPosition => m_world?.RelayTowerPosition ?? Vector3.zero;
         public bool IsSpineTowerOnline => m_model?.SpineTowerOnline ?? false;
         public bool IsCentralPayloadSecured => m_model?.CentralPayloadSecured ?? false;
+        public bool IsCargoCouplingSecured => m_model?.CargoCouplingSecured ?? false;
+        public CargoCouplingRetrievalPhase CargoCouplingPhase =>
+            m_world?.CargoAnnexObjective?.Phase ?? CargoCouplingRetrievalPhase.AwaitingCommit;
+        public Vector3 CargoCommitmentPosition => m_world?.CargoAnnexObjective?.CommitmentPosition ?? Vector3.zero;
+        public Vector3 CargoCouplingPosition => m_world?.CargoAnnexObjective?.CouplingPosition ?? Vector3.zero;
+        public Vector3 CargoWithdrawalPosition => m_world?.CargoAnnexObjective?.WithdrawalPosition ?? Vector3.zero;
         public bool IsRelayPayloadSecured => m_model?.RelayPayloadSecured ?? false;
         public bool IsSpinePayloadSecured => m_model?.SpinePayloadSecured ?? false;
         public bool IsExtractionReady => m_model?.CanExtract ?? false;
@@ -788,8 +794,21 @@ namespace DeadSignal.Application
                         continue;
                     }
 
-                    m_world.Player.position = centralPickup.transform.position;
-                    m_salvage.Tick(0f);
+                    if (m_world.GetCentralComponent(centralPickup) == CentralComponentKind.PowerCoupling &&
+                        m_world.CargoAnnexObjective != null)
+                    {
+                        m_world.Player.position = m_world.CargoAnnexObjective.CommitmentPosition;
+                        m_salvage.Tick(0f);
+                        m_world.Player.position = centralPickup.transform.position;
+                        m_salvage.Tick(0f);
+                        m_world.Player.position = m_world.CargoAnnexObjective.WithdrawalPosition;
+                        m_salvage.Tick(0f);
+                    }
+                    else
+                    {
+                        m_world.Player.position = centralPickup.transform.position;
+                        m_salvage.Tick(0f);
+                    }
                 }
 
                 return;
@@ -2027,8 +2046,21 @@ namespace DeadSignal.Application
                 return;
             }
             var routePosition = m_world.Player.position;
-            m_world.Player.position = nearest.transform.position;
-            m_salvage.Tick(0f);
+            if (m_world.GetCentralComponent(nearest) == CentralComponentKind.PowerCoupling &&
+                m_world.CargoAnnexObjective != null)
+            {
+                m_world.Player.position = m_world.CargoAnnexObjective.CommitmentPosition;
+                m_salvage.Tick(0f);
+                m_world.Player.position = nearest.transform.position;
+                m_salvage.Tick(0f);
+                m_world.Player.position = m_world.CargoAnnexObjective.WithdrawalPosition;
+                m_salvage.Tick(0f);
+            }
+            else
+            {
+                m_world.Player.position = nearest.transform.position;
+                m_salvage.Tick(0f);
+            }
             m_world.Player.position = routePosition;
             if (m_overclockChoice.IsPending)
             {

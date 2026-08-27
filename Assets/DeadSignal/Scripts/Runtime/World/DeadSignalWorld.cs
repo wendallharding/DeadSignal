@@ -62,6 +62,7 @@ namespace DeadSignal.World
         public Transform RelayTowerCore { get; private set; }
         public Transform SpineTowerCore { get; private set; }
         public SignalSapperTelegraph SapperTelegraph { get; private set; }
+        public AuthoredCargoAnnexObjective CargoAnnexObjective { get; private set; }
         public IReadOnlyList<GameObject> SalvagePickups => m_salvagePickups;
 
         public SignalRegion GetPayloadRegion(GameObject pickup) => m_salvageRegions.TryGetValue(pickup, out var region)
@@ -147,6 +148,8 @@ namespace DeadSignal.World
             m_navMeshPlanner = new DeadSignalNavMeshPlanner();
             _rebuildNavMesh();
             _registerAuthoredPoweredTerritories();
+            CargoAnnexObjective = Object.FindFirstObjectByType<AuthoredCargoAnnexObjective>(FindObjectsInactive.Include);
+            CargoAnnexObjective?.ResetState();
             _buildActors(comfortSettings);
             m_palette.RebindHierarchy(m_root);
             _configurePlayerCamera();
@@ -1170,7 +1173,9 @@ namespace DeadSignal.World
             SapperTelegraph.Configure(Sapper, TowerPosition, m_palette.Magenta, m_palette.Magenta, comfortSettings);
 
             var routeVariant = PlayerPrefs.GetInt("DeadSignal.RouteVariant", 0) % 3;
-            var northCache = routeVariant == 1 ? new Vector3(8.7f, 0f, 6.5f) : new Vector3(9.7f, 0f, 6.3f);
+            var northCache = CargoAnnexObjective != null
+                ? CargoAnnexObjective.CouplingPosition
+                : routeVariant == 1 ? new Vector3(8.7f, 0f, 6.5f) : new Vector3(9.7f, 0f, 6.3f);
             var southCache = routeVariant == 2 ? new Vector3(9.2f, 0f, -6.5f) : new Vector3(10.4f, 0f, -6.4f);
             var spineNorthCache = new Vector3(39f, 0f, 3f);
             var spineSouthCache = new Vector3(39f, 0f, -3f);
@@ -1593,7 +1598,9 @@ namespace DeadSignal.World
                 case MissionObjectiveId.CentralPayload:
                     return _nearestPayloadTarget(SignalRegion.Central);
                 case MissionObjectiveId.CargoCoupling:
-                    return _centralComponentTarget(CentralComponentKind.PowerCoupling);
+                    return CargoAnnexObjective != null
+                        ? CargoAnnexObjective.CurrentTargetPosition
+                        : _centralComponentTarget(CentralComponentKind.PowerCoupling);
                 case MissionObjectiveId.CoolantSeal:
                     return _centralComponentTarget(CentralComponentKind.CoolantSeal);
                 case MissionObjectiveId.RelayPayload:

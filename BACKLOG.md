@@ -23,7 +23,7 @@ This is the controlling workstream for scheduled development. Complete it from t
 ### Phase 2 — Act I: restart the station
 
 - [x] Central Tower activation unlocks two distinct required jobs rather than interchangeable payloads
-- [ ] Cargo Annex supplies the power coupling through its commit-and-withdraw spatial verb
+- [x] Cargo Annex supplies the power coupling through its commit-and-withdraw spatial verb
 - [ ] Coolant Reclamation supplies the coolant seal through its baffle-threading spatial verb
 - [ ] Relay Fork routes both components into the transfer vault; the vault assembles the Central payload
 - [ ] Returning the assembled payload to the Central Tower installs it, changes the station state, and opens the Relay route

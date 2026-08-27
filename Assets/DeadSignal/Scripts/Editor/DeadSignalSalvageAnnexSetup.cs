@@ -34,7 +34,9 @@ namespace DeadSignal.Editor
                        AssetDatabase.LoadAssetAtPath<Material>(CONDUIT_MATERIAL_PATH) != null &&
                        _hasValidBarrier(barrier) &&
                        annex != null &&
-                       annex.GetComponentsInChildren<AuthoredMapObstacle>().Length == 3;
+                       annex.GetComponentsInChildren<AuthoredMapObstacle>().Length == 3 &&
+                       annex.TryGetComponent<AuthoredCargoAnnexObjective>(out var objective) &&
+                       objective.IsConfigured;
             }
         }
 
@@ -196,6 +198,25 @@ namespace DeadSignal.Editor
                     new Vector3(0.62f, 1f, 1f));
                 _ensureBarrier(annex.transform, barrierPrefab, "South Cargo Barrier", new Vector3(0.75f, 0f, -1.35f), 0f,
                     new Vector3(0.65f, 1f, 1f));
+                var commitmentAnchor = _ensureAnchor(annex.transform, "Cargo Commitment Anchor", new Vector3(-0.5f, 0f, 0f));
+                var couplingSocket = _ensureAnchor(annex.transform, "Power Coupling Socket", new Vector3(0.15f, 0f, 0f));
+                var withdrawalAnchor = _ensureAnchor(annex.transform, "Cargo Withdrawal Anchor", new Vector3(-1.3f, 0f, 0f));
+                var commitmentMarker = _ensureMarker(annex.transform, "Cargo Commitment Marker", PrimitiveType.Cube,
+                    commitmentAnchor.localPosition + new Vector3(0f, 0.025f, 0f), new Vector3(0.1f, 0.025f, 2.2f),
+                    HAZARD_MATERIAL_PATH);
+                var withdrawalMarker = _ensureMarker(annex.transform, "Cargo Withdrawal Marker", PrimitiveType.Cube,
+                    withdrawalAnchor.localPosition + new Vector3(0f, 0.025f, 0f), new Vector3(0.12f, 0.025f, 2.2f),
+                    CONDUIT_MATERIAL_PATH);
+                var securedMarker = _ensureMarker(annex.transform, "Power Coupling Secured Marker", PrimitiveType.Cylinder,
+                    couplingSocket.localPosition + new Vector3(0f, 0.025f, 0f), new Vector3(0.9f, 0.025f, 0.9f),
+                    CONDUIT_MATERIAL_PATH);
+                var objective = annex.GetComponent<AuthoredCargoAnnexObjective>();
+                if (objective == null)
+                {
+                    objective = annex.AddComponent<AuthoredCargoAnnexObjective>();
+                }
+                objective.Configure(commitmentAnchor, couplingSocket, withdrawalAnchor,
+                    commitmentMarker.gameObject, withdrawalMarker.gameObject, securedMarker.gameObject);
                 PrefabUtility.SaveAsPrefabAsset(annex, ANNEX_PREFAB_PATH);
             }
             finally
@@ -229,6 +250,55 @@ namespace DeadSignal.Editor
             barrier.localPosition = localPosition;
             barrier.localRotation = Quaternion.Euler(0f, rotationY, 0f);
             barrier.localScale = localScale;
+        }
+
+        private static Transform _ensureAnchor(Transform parent, string objectName, Vector3 localPosition)
+        {
+            var anchor = parent.Find(objectName);
+            if (anchor == null)
+            {
+                anchor = new GameObject(objectName).transform;
+                anchor.SetParent(parent, false);
+            }
+
+            anchor.localPosition = localPosition;
+            anchor.localRotation = Quaternion.identity;
+            anchor.localScale = Vector3.one;
+            return anchor;
+        }
+
+        private static Transform _ensureMarker(
+            Transform parent,
+            string objectName,
+            PrimitiveType primitiveType,
+            Vector3 localPosition,
+            Vector3 localScale,
+            string materialPath)
+        {
+            var marker = parent.Find(objectName);
+            if (marker == null)
+            {
+                marker = GameObject.CreatePrimitive(primitiveType).transform;
+                marker.name = objectName;
+                marker.SetParent(parent, false);
+            }
+
+            marker.localPosition = localPosition;
+            marker.localRotation = Quaternion.identity;
+            marker.localScale = localScale;
+            if (marker.TryGetComponent<Collider>(out var collider))
+            {
+                UnityEngine.Object.DestroyImmediate(collider);
+            }
+
+            var material = AssetDatabase.LoadAssetAtPath<Material>(materialPath);
+            if (!marker.TryGetComponent<Renderer>(out var renderer) || material == null)
+            {
+                throw new InvalidOperationException($"Could not configure {objectName} with {materialPath}.");
+            }
+
+            renderer.sharedMaterial = material;
+            return marker;
         }
 
         private static void _ensureScenePlacement()

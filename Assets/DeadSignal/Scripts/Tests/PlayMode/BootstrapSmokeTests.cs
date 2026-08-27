@@ -395,10 +395,7 @@ namespace DeadSignal.Tests
                 Assert.That(sapper.gameObject.activeSelf, Is.False,
                     "The route must purge a core role before its first salvage response is selected; " +
                     $"health was {game.SapperHealth:0.##}.");
-                var firstCache = game.transform.Cast<Transform>()
-                    .First(child => child.name == "Salvage Cache" && child.gameObject.activeSelf);
-                player.position = firstCache.position;
-                yield return null;
+                yield return _recoverCargoCoupling(game, player);
                 InputSystem.QueueStateEvent(gamepad, new GamepadState().WithButton(GamepadButton.West));
                 yield return null;
                 InputSystem.QueueStateEvent(gamepad, new GamepadState());
@@ -597,10 +594,7 @@ namespace DeadSignal.Tests
                 game.DebugActivateTower();
                 var baselineSpeed = game.CurrentPlayerMaximumSpeed;
                 var player = game.transform.Find("Maintenance Drone");
-                var cache = game.transform.Cast<Transform>()
-                    .First(child => child.name == "Salvage Cache" && child.gameObject.activeSelf);
-                player.position = cache.position;
-                yield return null;
+                yield return _recoverCargoCoupling(game, player);
 
                 Assert.That(game.IsOverclockChoicePending, Is.True);
                 InputSystem.QueueStateEvent(gamepad, new GamepadState().WithButton(GamepadButton.West));
@@ -667,10 +661,7 @@ namespace DeadSignal.Tests
                 var game = Object.FindFirstObjectByType<DeadSignalGame>();
                 game.DebugActivateTower();
                 var player = game.transform.Find("Maintenance Drone");
-                var firstCache = game.transform.Cast<Transform>()
-                    .First(child => child.name == "Salvage Cache" && child.gameObject.activeSelf);
-                player.position = firstCache.position;
-                yield return null;
+                yield return _recoverCargoCoupling(game, player);
                 InputSystem.QueueStateEvent(gamepad, new GamepadState().WithButton(GamepadButton.West));
                 yield return null;
                 InputSystem.QueueStateEvent(gamepad, new GamepadState());
@@ -1905,11 +1896,10 @@ namespace DeadSignal.Tests
                 Assert.That(game.CurrentMissionPhase, Is.EqualTo(2),
                     "The mission command strip should advance from network restoration to salvage recovery.");
                 var salvageTarget = game.CurrentObjectiveBeaconTarget;
-                var expectedSalvageTarget = salvageCaches.Where(cache => cache.gameObject.activeSelf)
-                    .OrderBy(cache => (cache.position - maintenanceDrone.position).sqrMagnitude).First().position;
+                var expectedSalvageTarget = game.CargoCommitmentPosition;
                 Assert.That(new Vector2(salvageTarget.x, salvageTarget.z),
                     Is.EqualTo(new Vector2(expectedSalvageTarget.x, expectedSalvageTarget.z)),
-                    "The beacon should select the closest remaining cache for every authored-safe route variant.");
+                    "The first Central job should guide to Cargo's authored inward commitment threshold.");
 
                 var signalBeforePulse = game.CurrentSignal;
                 player.position = new Vector3(5.4f, 0f, 0.4f);
@@ -1963,12 +1953,7 @@ namespace DeadSignal.Tests
 
                 var firstOverclockCache = game.transform.Cast<Transform>()
                     .First(child => child.name == "Salvage Cache" && child.gameObject.activeSelf);
-                player.position = firstOverclockCache.position;
-                var salvageCollectionDeadline = Time.realtimeSinceStartup + 0.4f;
-                while (game.CurrentSalvage == 0 && Time.realtimeSinceStartup < salvageCollectionDeadline)
-                {
-                    yield return null;
-                }
+                yield return _recoverCargoCoupling(game, player);
 
                 Assert.That(game.IsOverclockChoicePending, Is.True,
                     $"The first meaningful salvage event should offer one temporary build choice. " +
@@ -2307,6 +2292,32 @@ namespace DeadSignal.Tests
 
                 PlayerPrefs.Save();
                 InputSystem.RemoveDevice(gamepad);
+            }
+        }
+
+        private static IEnumerator _recoverCargoCoupling(DeadSignalGame game, Transform player)
+        {
+            player.position = game.CargoCommitmentPosition;
+            var deadline = Time.realtimeSinceStartup + 1f;
+            while (game.CargoCouplingPhase == CargoCouplingRetrievalPhase.AwaitingCommit &&
+                   Time.realtimeSinceStartup < deadline)
+            {
+                yield return null;
+            }
+
+            player.position = game.CargoCouplingPosition;
+            deadline = Time.realtimeSinceStartup + 1f;
+            while (game.CargoCouplingPhase != CargoCouplingRetrievalPhase.Withdrawing &&
+                   Time.realtimeSinceStartup < deadline)
+            {
+                yield return null;
+            }
+
+            player.position = game.CargoWithdrawalPosition;
+            deadline = Time.realtimeSinceStartup + 1f;
+            while (!game.IsCargoCouplingSecured && Time.realtimeSinceStartup < deadline)
+            {
+                yield return null;
             }
         }
     }

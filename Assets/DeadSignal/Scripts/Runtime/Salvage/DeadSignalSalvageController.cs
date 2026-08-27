@@ -23,6 +23,7 @@ namespace DeadSignal.Salvage
         private readonly SalvageChain m_chain = new();
         private float m_recoveryFieldSecondsRemaining;
         private Vector3 m_recoveryFieldPosition;
+        private GameObject m_carriedCargoCoupling;
 
         public int ChainCount => m_chain.Count;
         public float ChainSecondsRemaining => m_chain.SecondsRemaining;
@@ -57,6 +58,7 @@ namespace DeadSignal.Salvage
         {
             m_chain.Advance(dt);
             m_recoveryFieldSecondsRemaining = Mathf.Max(0f, m_recoveryFieldSecondsRemaining - dt);
+            _tickCargoCouplingWithdrawal();
             foreach (var pickup in m_world.SalvagePickups)
             {
                 if (!pickup.activeSelf)
@@ -95,6 +97,23 @@ namespace DeadSignal.Salvage
                     continue;
                 }
 
+                if (!isOptionalCache && region == SignalRegion.Central &&
+                    centralComponent == CentralComponentKind.PowerCoupling && m_world.CargoAnnexObjective != null)
+                {
+                    if (!m_world.CargoAnnexObjective.TryTakeCoupling(
+                            m_world.Player.position,
+                            m_model.CanCollectPayload(region, centralComponent)))
+                    {
+                        continue;
+                    }
+
+                    pickup.SetActive(false);
+                    m_carriedCargoCoupling = pickup;
+                    m_audio.Play(DeadSignalAudioCue.Salvage);
+                    m_showFeedback("POWER COUPLING RELEASED — WITHDRAW ACROSS THE CYAN THRESHOLD");
+                    continue;
+                }
+
                 pickup.SetActive(false);
                 if (isOptionalCache)
                 {
@@ -106,43 +125,89 @@ namespace DeadSignal.Salvage
                     continue;
                 }
 
-                var salvageBeforeCollection = m_model.Salvage;
-                if (!m_model.CollectPayload(region, centralComponent))
+                if (!_completeRequiredPayload(pickup, region, centralComponent, pickup.transform.position))
                 {
                     pickup.SetActive(true);
-                    continue;
                 }
-
-                if (region != SignalRegion.Central)
-                {
-                    m_world.RetirePayloadAlternatives(region, pickup);
-                }
-
-                if (m_model.Salvage == salvageBeforeCollection)
-                {
-                    m_audio.Play(DeadSignalAudioCue.Salvage);
-                    m_feedback.PlaySalvageChain(pickup.transform.position, 1);
-                    m_showFeedback("BOTH CENTRAL COMPONENTS SECURED — RELAY ROUTE READY");
-                    continue;
-                }
-
-                m_overclockChoice.NotifySalvageCollected(m_model.Salvage);
-                var reward = m_chain.RecordCollection(
-                    m_tuning.ChainWindow, m_tuning.SecondCacheSignalReward, m_tuning.ThirdCacheSignalReward);
-                var recovered = m_model.RestoreSignal(m_tuning.RequiredCacheSignalReward + reward);
-                m_recoveryFieldPosition = pickup.transform.position;
-                m_recoveryFieldSecondsRemaining = m_tuning.RecoveryFieldDuration;
-                m_metrics.RecordSalvageChain(m_chain.Count, recovered);
-                m_audio.Play(DeadSignalAudioCue.Salvage);
-                m_feedback.PlaySalvageChain(pickup.transform.position, m_chain.Count);
-                var rewardText = recovered > 0f ? $"  +{recovered:0} SIGNAL  //  SAFE FIELD {m_tuning.RecoveryFieldDuration:0}s" : string.Empty;
-                m_showFeedback(m_overclockChoice.IsPrimaryPending
-                    ? "SALVAGE CORE UNLOCKED — CHOOSE A PRIMARY OVERCLOCK"
-                    : m_overclockChoice.IsAuxiliaryPending
-                    ? "SALVAGE CORE SYNCED — CHOOSE AN AUXILIARY OVERCLOCK"
-                    : $"{region.ToString().ToUpperInvariant()} PAYLOAD SECURED{rewardText}  " +
-                      $"{m_model.Salvage}/{RunModel.SalvageRequired}");
             }
+        }
+
+        private void _tickCargoCouplingWithdrawal()
+        {
+            var objective = m_world.CargoAnnexObjective;
+            if (objective == null)
+            {
+                return;
+            }
+
+            var objectiveAvailable = m_model.CanCollectPayload(SignalRegion.Central, CentralComponentKind.PowerCoupling);
+            objective.ObservePlayer(m_world.Player.position, objectiveAvailable);
+            if (m_carriedCargoCoupling == null ||
+                !objective.CanCompleteWithdrawal(m_world.Player.position, objectiveAvailable))
+            {
+                return;
+            }
+
+            if (!_completeRequiredPayload(
+                    m_carriedCargoCoupling,
+                    SignalRegion.Central,
+                    CentralComponentKind.PowerCoupling,
+                    m_world.Player.position))
+            {
+                m_carriedCargoCoupling.SetActive(true);
+                m_carriedCargoCoupling = null;
+                objective.ResetState();
+                return;
+            }
+
+            m_carriedCargoCoupling = null;
+            objective.CompleteWithdrawal();
+        }
+
+        private bool _completeRequiredPayload(
+            GameObject pickup,
+            SignalRegion region,
+            CentralComponentKind centralComponent,
+            Vector3 completionPosition)
+        {
+            var salvageBeforeCollection = m_model.Salvage;
+            if (!m_model.CollectPayload(region, centralComponent))
+            {
+                return false;
+            }
+
+            if (region != SignalRegion.Central)
+            {
+                m_world.RetirePayloadAlternatives(region, pickup);
+            }
+
+            if (m_model.Salvage == salvageBeforeCollection)
+            {
+                m_audio.Play(DeadSignalAudioCue.Salvage);
+                m_feedback.PlaySalvageChain(completionPosition, 1);
+                m_showFeedback("BOTH CENTRAL COMPONENTS SECURED — RELAY ROUTE READY");
+                return true;
+            }
+
+            m_overclockChoice.NotifySalvageCollected(m_model.Salvage);
+            var reward = m_chain.RecordCollection(
+                m_tuning.ChainWindow, m_tuning.SecondCacheSignalReward, m_tuning.ThirdCacheSignalReward);
+            var recovered = m_model.RestoreSignal(m_tuning.RequiredCacheSignalReward + reward);
+            m_recoveryFieldPosition = completionPosition;
+            m_recoveryFieldSecondsRemaining = m_tuning.RecoveryFieldDuration;
+            m_metrics.RecordSalvageChain(m_chain.Count, recovered);
+            m_audio.Play(DeadSignalAudioCue.Salvage);
+            m_feedback.PlaySalvageChain(completionPosition, m_chain.Count);
+            var rewardText = recovered > 0f
+                ? $"  +{recovered:0} SIGNAL  //  SAFE FIELD {m_tuning.RecoveryFieldDuration:0}s"
+                : string.Empty;
+            m_showFeedback(m_overclockChoice.IsPrimaryPending
+                ? "SALVAGE CORE UNLOCKED — CHOOSE A PRIMARY OVERCLOCK"
+                : m_overclockChoice.IsAuxiliaryPending
+                ? "SALVAGE CORE SYNCED — CHOOSE AN AUXILIARY OVERCLOCK"
+                : $"{region.ToString().ToUpperInvariant()} PAYLOAD SECURED{rewardText}  " +
+                  $"{m_model.Salvage}/{RunModel.SalvageRequired}");
+            return true;
         }
 
         private bool _hasActiveOptionalCache()

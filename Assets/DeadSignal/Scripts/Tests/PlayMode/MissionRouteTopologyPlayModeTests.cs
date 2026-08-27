@@ -65,6 +65,16 @@ namespace DeadSignal.Tests
             Assert.That(quench.localPosition, Is.EqualTo(new Vector3(10.5f, 0f, 0f)));
             Assert.That(wing.localPosition, Is.EqualTo(new Vector3(0f, 0f, 7.5f)));
 
+            var cargoObjective = cargo.GetComponent<AuthoredCargoAnnexObjective>();
+            Assert.That(cargoObjective, Is.Not.Null);
+            Assert.That(cargoObjective.IsConfigured, Is.True);
+            Assert.That(cargoObjective.CommitmentPosition, Is.EqualTo(cargo.TransformPoint(-0.5f, 0f, 0f)));
+            Assert.That(cargoObjective.CouplingPosition, Is.EqualTo(cargo.TransformPoint(0.15f, 0f, 0f)));
+            Assert.That(cargoObjective.WithdrawalPosition, Is.EqualTo(cargo.TransformPoint(-1.3f, 0f, 0f)));
+            Assert.That(cargo.GetComponentsInChildren<AuthoredMapObstacle>().Length, Is.EqualTo(3));
+            Assert.That(cargo.GetComponentsInChildren<Collider>(true).Length, Is.Zero,
+                "Objective markers must not create collision outside the three authored obstacle contracts.");
+
             Assert.That(_require(wing, "Commitment Room").position.z,
                 Is.LessThan(_require(wing, "Lockdown Arena").position.z));
             Assert.That(_require(wing, "Lockdown Arena").position.z,

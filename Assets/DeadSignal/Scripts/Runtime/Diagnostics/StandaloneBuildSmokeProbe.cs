@@ -53,6 +53,9 @@ namespace DeadSignal.Diagnostics
                                           game.CurrentMissionObjectiveId == MissionObjectiveId.CentralTower &&
                                           game.CurrentMissionGuidanceTitle == "RESTORE CENTRAL" &&
                                           game.CurrentObjectiveBeaconLabel == game.CurrentMissionGuidanceAction;
+            var cargoAnnexObjective = FindFirstObjectByType<AuthoredCargoAnnexObjective>(FindObjectsInactive.Include);
+            var cargoAnnexReady = cargoAnnexObjective != null && cargoAnnexObjective.IsConfigured &&
+                                  cargoAnnexObjective.Phase == CargoCouplingRetrievalPhase.AwaitingCommit;
             var weaponTextureReady = Resources.Load<Texture2D>("Environment/RelayFoundryWeaponCalibrationDecal") != null;
             var weaponMaterialReady =
                 Resources.Load<Material>("Materials/RelayFoundry/RelayFoundryWeaponCalibrationDecal") != null;
@@ -131,9 +134,12 @@ namespace DeadSignal.Diagnostics
             Debug.Log($"[DEAD SIGNAL STANDALONE SMOKE] MISSION OBJECTIVES | " +
                       $"resource={missionObjectives != null} objectives={missionObjectives?.ObjectiveCount ?? 0} " +
                       $"consumers={objectiveConsumersReady} current={game?.CurrentMissionObjectiveId}");
+            Debug.Log($"[DEAD SIGNAL STANDALONE SMOKE] CARGO ANNEX | " +
+                      $"configured={cargoAnnexObjective?.IsConfigured ?? false} phase={cargoAnnexObjective?.Phase}");
             var runtimeReady = game != null &&
                                 missionObjectivesReady &&
                                 objectiveConsumersReady &&
+                                cargoAnnexReady &&
                                 game.transform.Find("Maintenance Drone") != null &&
                                 game.transform.Find("Shortcut Gate Assembly/Signal Shortcut Gate") != null &&
                                 game.transform.Find("Tower Signal Lines/Signal Trunk West") != null &&
