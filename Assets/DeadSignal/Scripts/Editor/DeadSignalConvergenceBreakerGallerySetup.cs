@@ -41,7 +41,7 @@ namespace DeadSignal.Editor
                 return gallery != null && chamber != null && region != null &&
                        AssetDatabase.LoadAssetAtPath<Texture2D>(DECAL_PATH) != null &&
                        AssetDatabase.LoadAssetAtPath<Material>(DECAL_MATERIAL_PATH) != null &&
-                       region.GetComponentsInChildren<AuthoredMapObstacle>().Length == 9 &&
+                       region.GetComponentsInChildren<AuthoredMapObstacle>().Length == 8 &&
                        region.GetComponentsInChildren<AuthoredInterceptorEntrance>().Length == 1 &&
                        region.GetComponent<AuthoredPoweredTerritory>() != null &&
                        chamber.transform.Find("Convergence East Bulkhead") == null &&
@@ -135,8 +135,6 @@ namespace DeadSignal.Editor
                 _wall(root.transform, "Breaker Gallery East Bulkhead", new Vector3(3.5f, 0.5f, 0f),
                     new Vector3(0.35f, 1f, 8f), materials.Armor, true);
                 _wall(root.transform, "Breaker Gallery South Bulkhead", new Vector3(0f, 0.5f, -4f),
-                    new Vector3(7f, 1f, 0.35f), materials.Armor, true);
-                _wall(root.transform, "Breaker Gallery North Bulkhead", new Vector3(0f, 0.5f, 4f),
                     new Vector3(7f, 1f, 0.35f), materials.Armor, true);
                 _wall(root.transform, "Breaker Gallery West South", new Vector3(-3.5f, 0.5f, -3.55f),
                     new Vector3(0.35f, 1f, 0.9f), materials.Armor, true);

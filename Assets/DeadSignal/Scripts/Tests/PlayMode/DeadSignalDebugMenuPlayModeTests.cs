@@ -357,7 +357,7 @@ namespace DeadSignal.Tests.PlayMode
                     game.DebugThreatPosition(SecurityReinforcement.Sapper) + Vector3.up * 0.5f);
                 Assert.That(game.AreTacticalWindowActorsInSafeViewport, Is.True,
                     $"{scenario} viewport framing: player={playerViewport}, sapper={sapperViewport}.");
-                Assert.That(game.AuthoredMapObstacleCount, Is.EqualTo(135));
+                Assert.That(game.AuthoredMapObstacleCount, Is.EqualTo(137));
                 if (scenario == DebugScenario.OpeningTacticalWindow)
                 {
                     Assert.That(game.IsExtractionReady, Is.True,

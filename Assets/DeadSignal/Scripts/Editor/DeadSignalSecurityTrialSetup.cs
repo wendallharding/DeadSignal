@@ -43,6 +43,10 @@ namespace DeadSignal.Editor
                 return authored != null && authored.IsComplete &&
                        region.transform.Find("Commitment Room") != null &&
                        region.transform.Find("Lockdown Arena") != null &&
+                       region.transform.Find("Lockdown Arena/Arena South West Bulkhead") != null &&
+                       region.transform.Find("Lockdown Arena/Arena South East Bulkhead") != null &&
+                       region.transform.Find("Lockdown Arena/Arena North West Bulkhead") != null &&
+                       region.transform.Find("Lockdown Arena/Arena North East Bulkhead") != null &&
                        region.transform.Find("Reward Vault") != null &&
                        furnace != null && furnace.transform.Find("Security Trial Wing Region") != null &&
                        chamber != null && chamber.transform.Find("Arc Furnace Region/Security Trial Wing Region") != null &&
@@ -117,6 +121,14 @@ namespace DeadSignal.Editor
                     new Vector3(0.35f, 1f, 36f), materials.Armor, true);
                 _wall(arena.transform, "Arena East Bulkhead", new Vector3(17.5f, 0.5f, 0f),
                     new Vector3(0.35f, 1f, 36f), materials.Armor, true);
+                _wall(arena.transform, "Arena South West Bulkhead", new Vector3(-9.55f, 0.5f, -18f),
+                    new Vector3(15.9f, 1f, 0.35f), materials.Armor, true);
+                _wall(arena.transform, "Arena South East Bulkhead", new Vector3(9.55f, 0.5f, -18f),
+                    new Vector3(15.9f, 1f, 0.35f), materials.Armor, true);
+                _wall(arena.transform, "Arena North West Bulkhead", new Vector3(-9.55f, 0.5f, 18f),
+                    new Vector3(15.9f, 1f, 0.35f), materials.Armor, true);
+                _wall(arena.transform, "Arena North East Bulkhead", new Vector3(9.55f, 0.5f, 18f),
+                    new Vector3(15.9f, 1f, 0.35f), materials.Armor, true);
                 _wall(arena.transform, "Arena West Deflector", new Vector3(-7f, 0.5f, 6f),
                     new Vector3(4.5f, 1f, 0.45f), materials.White, true).transform.localRotation =
                     Quaternion.Euler(0f, 28f, 0f);

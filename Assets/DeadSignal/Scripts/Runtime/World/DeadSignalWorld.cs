@@ -24,6 +24,9 @@ namespace DeadSignal.World
         public Vector3 ShortcutPosition => m_scene.ShortcutPosition;
         public Vector3 RelayTowerPosition => m_scene.RelayTowerPosition;
         public Vector3 SpineTowerPosition => m_scene.SpineTowerPosition;
+        public Vector3 SpineTowerInteractionPosition => m_spineTowerInteractionAnchor != null
+            ? m_spineTowerInteractionAnchor.position
+            : SpineTowerPosition;
         public Vector2 ArenaHalfExtents => m_scene.ArenaHalfExtents;
 
         public Vector3 GetSalvagePosition(int index)
@@ -788,13 +791,8 @@ namespace DeadSignal.World
             float dt,
             RunModel model,
             DeadSignalThreatController threats,
-            Vector3 aimDirection,
-            float guidanceStrength)
+            Vector3 aimDirection)
         {
-            var target = GetObjectiveGuidanceWaypoint(model, 0.48f);
-            _updateGuideLine(m_routeGuide, Player.position, target, m_palette.Amber, 0.045f + guidanceStrength * 0.055f);
-            m_routeGuide.enabled = guidanceStrength > 0.01f;
-
             var aimEnd = Player.position + aimDirection.normalized * 4.2f;
             _updateGuideLine(m_aimGuide, Player.position + Vector3.up * 0.18f, aimEnd + Vector3.up * 0.18f,
                 m_palette.White, 0.025f);
@@ -864,6 +862,11 @@ namespace DeadSignal.World
             a.y = 0f;
             b.y = 0f;
             return Vector3.Distance(a, b);
+        }
+
+        public bool IsSpineTowerInteractionInRange(Vector3 position)
+        {
+            return FlatDistance(position, SpineTowerInteractionPosition) < SPINE_TOWER_INTERACTION_RADIUS;
         }
 
         private static DeadSignalSceneReferences _findSceneReferences()
@@ -1007,6 +1010,7 @@ namespace DeadSignal.World
 
             var spineTower = m_scene.SpineTower.transform;
             SpineTowerCore = spineTower.Find("Tower Core");
+            m_spineTowerInteractionAnchor = m_scene.CapacitorSpine.transform.Find("Capacitor Spine Activation Decal");
             m_environmentAnimators.Add(SpineTowerCore);
             m_spineSignalLines = m_scene.SpineSignalRouting;
             m_spineSignalLines.SetActive(false);
@@ -1031,9 +1035,6 @@ namespace DeadSignal.World
             {
                 m_departureSurgeSignal.SetActive(false);
             }
-            m_movementBlockers.Add(new MovementBlocker(
-                new Vector2(SpineTowerPosition.x, SpineTowerPosition.z), Vector2.one * TOWER_BLOCKER_HALF_SIZE, false));
-
             foreach (Transform machine in m_scene.StationMachines.transform)
             {
                 StationMachineInstanceCount++;
@@ -1526,7 +1527,6 @@ namespace DeadSignal.World
 
         private void _buildGameplayAssists()
         {
-            m_routeGuide = _createGuideLine("Objective Route Pulse", 18);
             m_aimGuide = _createGuideLine("Projected Aim Guide", 2);
             m_emergencyGuide = _createGuideLine("Critical Signal Route", 12);
         }
@@ -1576,7 +1576,7 @@ namespace DeadSignal.World
                 case MissionStage.RelayTower:
                     return RelayTowerPosition;
                 case MissionStage.SpineTower:
-                    return SpineTowerPosition;
+                    return SpineTowerInteractionPosition;
                 case MissionStage.Extraction:
                     return ExtractionPosition;
                 case MissionStage.CentralPayload:
@@ -1685,6 +1685,7 @@ namespace DeadSignal.World
         private const string SALVAGE_CACHE_PREFAB_RESOURCE = "Environment/SalvageCacheAssembly";
         private const string SIGNAL_BOLT_PREFAB_RESOURCE = "Projectiles/SignalBoltAssembly";
         private const string PLAYER_CAMERA_TUNING_RESOURCE = "Tuning/PlayerCameraTuning";
+        private const float SPINE_TOWER_INTERACTION_RADIUS = 1.6f;
         private const float TOWER_BLOCKER_HALF_SIZE = 0.62f;
         private const float NAVIGATION_CLEARANCE = 0.08f;
         private const float NAVIGATION_BLOCKED_ROUTE_PENALTY = 20f;
@@ -1717,7 +1718,6 @@ namespace DeadSignal.World
         private float m_environmentTime;
         private float m_boundaryPulse;
         private float m_collisionPulse;
-        private LineRenderer m_routeGuide;
         private LineRenderer m_aimGuide;
         private LineRenderer m_emergencyGuide;
 
@@ -1725,6 +1725,7 @@ namespace DeadSignal.World
         private GameObject m_towerSignalLines;
         private GameObject m_relayTerritory;
         private GameObject m_spineTerritory;
+        private Transform m_spineTowerInteractionAnchor;
         private GameObject m_relaySignalLines;
         private GameObject m_spineSignalLines;
         private GameObject m_spineReturnGate;

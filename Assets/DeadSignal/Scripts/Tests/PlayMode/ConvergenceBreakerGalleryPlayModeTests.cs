@@ -30,7 +30,7 @@ namespace DeadSignal.Tests
                 var entrance = gallery.GetComponentInChildren<AuthoredInterceptorEntrance>();
 
                 Assert.That(gallery.position, Is.EqualTo(new Vector3(53f, 0f, 17f)));
-                Assert.That(gallery.GetComponentsInChildren<AuthoredMapObstacle>().Length, Is.EqualTo(9));
+                Assert.That(gallery.GetComponentsInChildren<AuthoredMapObstacle>().Length, Is.EqualTo(8));
                 Assert.That(gallery.GetComponentsInChildren<Collider>().Length, Is.Zero);
                 Assert.That(gallery.Find("Breaker Bank Assembly"), Is.Not.Null);
                 Assert.That(gallery.Find("South Ceramic Breaker Shield"), Is.Not.Null);
@@ -41,7 +41,7 @@ namespace DeadSignal.Tests
                 Assert.That(Resources.Load<Texture2D>("Environment/ConvergenceBreakerGalleryRouteDecal"), Is.Not.Null);
                 Assert.That(Resources.Load<Material>(
                     "Materials/ConvergenceBreakerGallery/ConvergenceBreakerGalleryRouteDecal"), Is.Not.Null);
-                Assert.That(game.AuthoredMapObstacleCount, Is.EqualTo(135));
+                Assert.That(game.AuthoredMapObstacleCount, Is.EqualTo(137));
                 Assert.That(game.AuthoredInterceptorEntranceCount, Is.EqualTo(9));
                 Assert.That(chamber.Find("Convergence East Bulkhead"), Is.Null);
 

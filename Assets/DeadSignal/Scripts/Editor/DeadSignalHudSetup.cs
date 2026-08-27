@@ -10,11 +10,14 @@ namespace DeadSignal.Editor
         private const string TEXTURE_PATH = "Assets/DeadSignal/Resources/UI/SignalReserveConduit.png";
         private const string TUNING_PATH = "Assets/DeadSignal/Resources/Tuning/SignalHudTuning.asset";
         private const string DEBRIEF_TEXTURE_PATH = "Assets/DeadSignal/Resources/UI/RunDebriefInsignia.png";
+        private const string EDGE_INDICATOR_TUNING_PATH =
+            "Assets/DeadSignal/Resources/Tuning/EdgeIndicatorTuning.asset";
 
         public static bool HasAssets =>
             AssetDatabase.LoadAssetAtPath<Sprite>(TEXTURE_PATH) != null &&
             AssetDatabase.LoadAssetAtPath<Texture2D>(DEBRIEF_TEXTURE_PATH) != null &&
-            AssetDatabase.LoadAssetAtPath<SignalHudTuning>(TUNING_PATH) != null;
+            AssetDatabase.LoadAssetAtPath<SignalHudTuning>(TUNING_PATH) != null &&
+            AssetDatabase.LoadAssetAtPath<EdgeIndicatorTuning>(EDGE_INDICATOR_TUNING_PATH) != null;
 
         public static void EnsureAssets()
         {
@@ -50,6 +53,12 @@ namespace DeadSignal.Editor
             {
                 var tuning = ScriptableObject.CreateInstance<SignalHudTuning>();
                 AssetDatabase.CreateAsset(tuning, TUNING_PATH);
+            }
+
+            if (AssetDatabase.LoadAssetAtPath<EdgeIndicatorTuning>(EDGE_INDICATOR_TUNING_PATH) == null)
+            {
+                var tuning = ScriptableObject.CreateInstance<EdgeIndicatorTuning>();
+                AssetDatabase.CreateAsset(tuning, EDGE_INDICATOR_TUNING_PATH);
             }
 
             AssetDatabase.SaveAssets();

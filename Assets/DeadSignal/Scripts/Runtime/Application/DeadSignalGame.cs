@@ -116,6 +116,7 @@ namespace DeadSignal.Application
         public bool IsDepartureSurgeConsumed => m_world?.IsDepartureSurgeConsumed ?? false;
         public MissionStage CurrentMissionStage => m_model?.CurrentMissionStage ?? MissionStage.CentralTower;
         public Vector3 SpineTowerPosition => m_world?.SpineTowerPosition ?? Vector3.zero;
+        public Vector3 SpineTowerInteractionPosition => m_world?.SpineTowerInteractionPosition ?? Vector3.zero;
         public bool IsWeaponEvolved => m_overclockChoice?.IsWeaponEvolved ?? false;
         public Vector3 SafestReinforcementEntryPosition => m_world == null
             ? Vector3.zero
@@ -164,6 +165,8 @@ namespace DeadSignal.Application
         public bool HasReducedFlashesIcon => m_hud?.HasReducedFlashesIcon ?? false;
         public bool HasHighContrastIcon => m_hud?.HasHighContrastIcon ?? false;
         public bool HasObjectiveBeaconIcon => m_objectiveBeacon?.HasIcon ?? false;
+        public bool IsObjectiveEdgeIndicatorVisible => m_objectiveBeacon?.IsObjectiveIndicatorVisible ?? false;
+        public int ActiveEnemyEdgeIndicatorCount => m_objectiveBeacon?.ActiveEnemyIndicatorCount ?? 0;
         public bool HasInputLinkIcon => m_hud?.HasInputLinkIcon ?? false;
         public bool HasAudioLinkIcon => m_hud?.HasAudioLinkIcon ?? false;
         public bool HasGeneratedAudio => m_audio?.HasGeneratedClips ?? false;
@@ -1112,7 +1115,8 @@ namespace DeadSignal.Application
             m_hud.Configure(m_model, m_metrics, m_world, m_threats, m_salvage, m_extractionUplink, m_overclockChoice);
             m_missionClarityHud = gameObject.AddComponent<MissionClarityHud>();
             m_missionClarityHud.Configure(m_model, m_metrics, m_world, m_overclockChoice);
-            m_objectiveBeacon.Configure(m_model, m_world);
+            m_objectiveBeacon.Configure(m_model, m_world, m_threats);
+            m_objectiveBeacon.SetGuidanceStrength(m_routeGuidanceStrength);
             m_lastPoweredState = m_world.IsPowered(
                 m_world.Player.position, m_model.TowerOnline, m_model.RelayTowerOnline, m_model.SpineTowerOnline);
             m_signalDust.Configure();
@@ -1188,7 +1192,7 @@ namespace DeadSignal.Application
             var powered = _isPlayerPowered();
             m_world.TickEnvironmentPresentation(dt, m_model.TowerOnline, powered);
             m_world.PlayerSignalWake.Tick(m_playerMovement.Velocity);
-            m_world.TickGameplayAssists(dt, m_model, m_threats, aimDirection, m_routeGuidanceStrength);
+            m_world.TickGameplayAssists(dt, m_model, m_threats, aimDirection);
 
             var moving = movement.sqrMagnitude > 0.01f;
             m_audio.Tick(powered, m_model.TowerOnline, m_model.Signal / RunModel.MaximumSignal);
@@ -1486,6 +1490,7 @@ namespace DeadSignal.Application
             if (m_input.PressedGuidanceToggle())
             {
                 m_routeGuidanceStrength = m_routeGuidanceStrength < 0.1f ? 0.7f : m_routeGuidanceStrength < 0.9f ? 1f : 0f;
+                m_objectiveBeacon.SetGuidanceStrength(m_routeGuidanceStrength);
                 PlayerPrefs.SetFloat("DeadSignal.RouteGuidance", m_routeGuidanceStrength);
                 PlayerPrefs.Save();
             }
@@ -1531,7 +1536,7 @@ namespace DeadSignal.Application
             }
 
             if (!m_model.SpineTowerOnline &&
-                DeadSignalWorld.FlatDistance(m_world.Player.position, m_world.SpineTowerPosition) < TOWER_INTERACTION_RADIUS)
+                m_world.IsSpineTowerInteractionInRange(m_world.Player.position))
             {
                 if (m_model.TryActivateSpineTower())
                 {

@@ -31,7 +31,7 @@ namespace DeadSignal.Tests
                 var routing = bypass.Find("Flux Bypass Signal Lines").gameObject;
 
                 Assert.That(bypass.position, Is.EqualTo(new Vector3(32f, 0f, 12.75f)));
-                Assert.That(bypass.GetComponentsInChildren<AuthoredMapObstacle>().Length, Is.EqualTo(9));
+                Assert.That(bypass.GetComponentsInChildren<AuthoredMapObstacle>().Length, Is.EqualTo(8));
                 Assert.That(bypass.GetComponentsInChildren<Collider>().Length, Is.Zero);
                 Assert.That(bypass.Find("Flux Shunt Regulator"), Is.Not.Null);
                 Assert.That(bypass.Find("South Flux Deflector"), Is.Not.Null);
@@ -42,7 +42,7 @@ namespace DeadSignal.Tests
                 Assert.That(Resources.Load<GameObject>("Environment/FluxBypassRegion"), Is.Not.Null);
                 Assert.That(Resources.Load<Texture2D>("Environment/FluxBypassRouteDecal"), Is.Not.Null);
                 Assert.That(Resources.Load<Material>("Materials/FluxBypass/FluxBypassRouteDecal"), Is.Not.Null);
-                Assert.That(game.AuthoredMapObstacleCount, Is.EqualTo(135));
+                Assert.That(game.AuthoredMapObstacleCount, Is.EqualTo(137));
                 Assert.That(game.AuthoredInterceptorEntranceCount, Is.EqualTo(9));
                 Assert.That(gallery.Find("Induction Gallery West Bulkhead"), Is.Null);
                 Assert.That(chamber.Find("Convergence West Bulkhead"), Is.Null);

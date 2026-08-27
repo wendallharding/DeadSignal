@@ -36,7 +36,7 @@ namespace DeadSignal.Editor
                 return region != null && gallery != null && chamber != null &&
                        AssetDatabase.LoadAssetAtPath<Texture2D>(DECAL_PATH) != null &&
                        AssetDatabase.LoadAssetAtPath<Material>(DECAL_MATERIAL_PATH) != null &&
-                       region.GetComponentsInChildren<AuthoredMapObstacle>().Length == 9 &&
+                       region.GetComponentsInChildren<AuthoredMapObstacle>().Length == 8 &&
                        region.GetComponent<AuthoredPoweredTerritory>() != null &&
                        gallery.transform.Find("Flux Bypass Region") != null &&
                        gallery.GetComponentsInChildren<AuthoredMapObstacle>().Length >= 28 &&
@@ -127,8 +127,6 @@ namespace DeadSignal.Editor
                     new Vector3(7f, 0.55f, 11.5f), materials.Deck, false);
                 _wall(root.transform, "Flux West Bulkhead", new Vector3(-3.5f, 0.5f, 0f),
                     new Vector3(0.35f, 1f, 11.5f), materials.Armor, true);
-                _wall(root.transform, "Flux South Bulkhead", new Vector3(0f, 0.5f, -5.75f),
-                    new Vector3(7f, 1f, 0.35f), materials.Armor, true);
                 _wall(root.transform, "Flux North Bulkhead", new Vector3(0f, 0.5f, 5.75f),
                     new Vector3(7f, 1f, 0.35f), materials.Armor, true);
                 _wall(root.transform, "Flux East South", new Vector3(3.5f, 0.5f, -5.125f),

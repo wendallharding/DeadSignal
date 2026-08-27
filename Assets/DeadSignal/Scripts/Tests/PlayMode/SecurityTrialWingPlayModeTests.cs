@@ -36,10 +36,10 @@ namespace DeadSignal.Tests
             Assert.That(wing.Find("Cleared Return Signal").gameObject.activeSelf, Is.False);
             Assert.That(chamber.IsComplete, Is.True);
             Assert.That(chamber.RewardSignal, Is.EqualTo(20f));
-            Assert.That(wing.GetComponentsInChildren<AuthoredMapObstacle>().Length, Is.EqualTo(11));
+            Assert.That(wing.GetComponentsInChildren<AuthoredMapObstacle>().Length, Is.EqualTo(15));
             Assert.That(wing.GetComponentsInChildren<Collider>().Length, Is.Zero);
             Assert.That(Resources.Load<GameObject>("Environment/SecurityTrialWingRegion"), Is.Not.Null);
-            Assert.That(game.AuthoredMapObstacleCount, Is.EqualTo(135));
+            Assert.That(game.AuthoredMapObstacleCount, Is.EqualTo(137));
         }
 
         [UnityTest]
@@ -65,6 +65,32 @@ namespace DeadSignal.Tests
             Assert.That(entryDoor.activeSelf, Is.True);
             Assert.That(game.ActiveSwarmerCount, Is.EqualTo(3));
             Assert.That(game.PeakSwarmerCount, Is.EqualTo(3));
+        }
+
+        [UnityTest]
+        public IEnumerator DoorBoundaries_SealEveryFlankAndOpenOnlyTheCenterPassages()
+        {
+            yield return SceneManager.LoadSceneAsync("SampleScene");
+            yield return null;
+
+            var chamber = Object.FindFirstObjectByType<AuthoredCombatChamber>();
+            var wing = chamber.transform;
+            const float entryBoundaryZ = 3f;
+            const float rewardBoundaryZ = 39f;
+
+            _assertBoundarySealed(wing, entryBoundaryZ, "The dormant entry boundary must be fully sealed.");
+            _assertBoundarySealed(wing, rewardBoundaryZ, "Room C must be inaccessible before clearance.");
+
+            Assert.That(chamber.TryArm(chamber.CommitmentSwitch.position), Is.True);
+            Assert.That(_isBlockedAt(wing, new Vector3(0f, 0f, entryBoundaryZ)), Is.False,
+                "Arming should open only the centered A-to-B passage.");
+            _assertBoundaryFlanksSealed(wing, entryBoundaryZ);
+            _assertBoundarySealed(wing, rewardBoundaryZ, "Arming must not expose Room C.");
+
+            chamber.Complete();
+            Assert.That(_isBlockedAt(wing, new Vector3(0f, 0f, rewardBoundaryZ)), Is.False,
+                "Clearing should open only the centered B-to-C passage.");
+            _assertBoundaryFlanksSealed(wing, rewardBoundaryZ);
         }
 
         [UnityTest]
@@ -134,6 +160,39 @@ namespace DeadSignal.Tests
             TestContext.WriteLine(
                 $"Security trial peak={game.PeakThreatConcurrency} spawned={game.SwarmersSpawned} " +
                 $"purged={game.SwarmersPurged} contacts={game.SwarmerContacts}");
+        }
+
+        private static void _assertBoundarySealed(Transform wing, float localZ, string message)
+        {
+            for (var localX = -17f; localX <= 17f; localX += 0.5f)
+            {
+                Assert.That(_isBlockedAt(wing, new Vector3(localX, 0f, localZ)), Is.True,
+                    $"{message} Gap detected at local x={localX:0.0}, z={localZ:0.0}.");
+            }
+        }
+
+        private static void _assertBoundaryFlanksSealed(Transform wing, float localZ)
+        {
+            for (var localX = 2f; localX <= 17f; localX += 0.5f)
+            {
+                Assert.That(_isBlockedAt(wing, new Vector3(localX, 0f, localZ)), Is.True,
+                    $"Positive flank gap detected at local x={localX:0.0}, z={localZ:0.0}.");
+                Assert.That(_isBlockedAt(wing, new Vector3(-localX, 0f, localZ)), Is.True,
+                    $"Negative flank gap detected at local x={-localX:0.0}, z={localZ:0.0}.");
+            }
+        }
+
+        private static bool _isBlockedAt(Transform wing, Vector3 localPosition)
+        {
+            var worldPosition = wing.TransformPoint(localPosition);
+            foreach (var obstacle in wing.GetComponentsInChildren<AuthoredMapObstacle>(true))
+            {
+                if (obstacle.gameObject.activeInHierarchy && obstacle.OverlapsCircle(worldPosition, 0.3f))
+                {
+                    return true;
+                }
+            }
+            return false;
         }
     }
 }

@@ -15,6 +15,8 @@ The hook is a readable risk loop: **power territory, provoke danger, raid the da
 5. **Short runs, immediate mastery.** Responsive controls, clear failures, rapid restarts, and deterministic core rules support learning without friction.
 6. **Movement is defense.** Geometry Wars-inspired immediacy, readable pressure, complementary enemy roles, and build-changing weapons should create short tactical loops without copying that game's aesthetic or abandoning Signal costs and extraction decisions.
 
+Navigation and peripheral threat awareness should live at the screen edge rather than drawing persistent lines through the combat field. The current objective uses one clamped amber indicator with a short inward directional tail, label, and distance, fading when the target is comfortably visible. Off-screen specialists use prioritized red indicators; imminent role actions pulse more strongly, and off-screen Swarmers collapse into one counted group. Enemy indicators are capped at three so projectiles, movement lanes, and authored telegraphs remain visually dominant.
+
 ## Current product strategy — combat-first proof
 
 The three-region journey now provides enough authored space to prove the core combat. Further map growth, additional towers, and the station guardian are gated behind matched playtest evidence that the existing rooms or roster cannot sustain the intended pressure arc. Development proceeds through four gates:

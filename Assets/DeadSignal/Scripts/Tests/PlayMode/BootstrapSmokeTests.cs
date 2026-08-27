@@ -1081,7 +1081,7 @@ namespace DeadSignal.Tests
                 "The tower approach should be placed as scene-authored prefab content rather than runtime layout code.");
             var authoredObstacles = towerJunction.GetComponentsInChildren<AuthoredMapObstacle>();
             Assert.That(authoredObstacles.Length, Is.EqualTo(3));
-            Assert.That(game.AuthoredMapObstacleCount, Is.EqualTo(135),
+            Assert.That(game.AuthoredMapObstacleCount, Is.EqualTo(137),
                 "Every authored junction, salvage area, departure channel, and threat-bay obstacle should participate " +
                 "in movement resolution.");
             Assert.That(authoredObstacles.Sum(obstacle => obstacle.GetComponentsInChildren<Renderer>().Length), Is.EqualTo(6));
@@ -1575,7 +1575,8 @@ namespace DeadSignal.Tests
             Assert.That(game.transform.Find("Salvage Annex Worklight")?.GetComponent<Light>(), Is.Not.Null);
             Assert.That(game.transform.Find("Security Bay Alarm")?.GetComponent<Light>(), Is.Not.Null,
                 "Each major station zone should receive a distinct localized light pool.");
-            Assert.That(game.transform.Find("Objective Route Pulse")?.GetComponent<LineRenderer>(), Is.Not.Null);
+            Assert.That(game.transform.Find("Objective Route Pulse"), Is.Null,
+                "The world-spanning objective line should be replaced by edge indicators.");
             Assert.That(game.transform.Find("Projected Aim Guide")?.GetComponent<LineRenderer>(), Is.Not.Null);
             Assert.That(game.transform.Find("Critical Signal Route")?.GetComponent<LineRenderer>(), Is.Not.Null);
             Assert.That(game.transform.Find("Extraction Approach Lane")?.childCount, Is.EqualTo(14),

@@ -8,6 +8,7 @@ Work through these gates in order. Authorize one bounded combat advancement per 
 
 - [ ] Baseline keyboard/mouse and controller movement, aiming, continuous fire, collision, camera framing, projectile cadence, and Signal spend in the eastern combat laboratory and one live-balance route
 - [ ] Make aim, shot paths, impacts, purges, incoming danger, and escape lanes readable during dense mixed-role combat at 1280x720 and 1600x900
+- [x] Replace the persistent objective route line with a fading screen-edge objective indicator; add capped off-screen specialist indicators and one grouped Swarmer marker
 - [ ] Improve the smallest demonstrated weakness in firing, hit, purge, damage, or near-danger feedback without expanding the HUD or weakening Signal commitment
 - [ ] Reject the change if it harms input parity, collision authority, readability, performance, or the Signal economy
 
