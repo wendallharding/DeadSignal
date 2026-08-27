@@ -1,5 +1,70 @@
 # DEAD SIGNAL — Product Backlog
 
+## P0 — Cohesive station mission restructuring
+
+This is the controlling workstream for scheduled development. Complete it from top to bottom, one playable slice per run. Do not add rooms, enemies, upgrades, isolated polish, or optional rewards unless the active slice demonstrates they are necessary to close a specific mission-flow gap.
+
+### Phase 0 — Authoritative map and objective contract
+
+- [ ] Inventory every major room, its actual adjacency, current gameplay authority, objective/pickup/enemy ownership, powered/dead state, doors, shortcuts, collision, NavMesh links, and return-route value
+- [ ] Classify each space as mission room, traversal connector, combat landmark, or decorative pocket; do not force decorative pockets to masquerade as objectives
+- [ ] Give every mission room an entry condition, player verb, completion condition, persistent world-state change, guidance target/copy, and reason to revisit or pass through
+- [ ] Add a schematic route and ordered room-purpose ledger to the project documentation and protect critical adjacency/anchor assumptions with focused tests
+- [ ] Establish measured current-route baselines for completion time, objective recognition, wrong turns, backtracking, dead-zone time, combat time, Signal minimum/final reserve, and rooms never entered
+
+### Phase 1 — Objective graph foundation
+
+- [ ] Introduce a deterministic objective graph that can express prerequisites, owning room/anchor, completion rules, world mutations, rewards, guidance, and successor objectives without expanding `DeadSignalGame` into a room-specific state machine
+- [ ] Keep designer-facing objective and encounter values in focused authored configuration; keep scene layout, anchors, doors, and hazards scene-authored
+- [ ] Reproduce the current seven-stage journey through the new graph before changing mission order
+- [ ] Update the objective indicator, command strip, tactical map, debug routes, restart/reset, and run-report telemetry from the same authoritative objective state
+- [ ] Gate migration on EditMode rule tests, PlayMode route parity, death/restart/re-entry coverage, complete-run regression, and a Windows build/smoke when integration changes
+
+### Phase 2 — Act I: restart the station
+
+- [ ] Central Tower activation unlocks two distinct required jobs rather than interchangeable payloads
+- [ ] Cargo Annex supplies the power coupling through its commit-and-withdraw spatial verb
+- [ ] Coolant Reclamation supplies the coolant seal through its baffle-threading spatial verb
+- [ ] Relay Fork routes both components into the transfer vault; the vault assembles the Central payload
+- [ ] Returning the assembled payload to the Central Tower installs it, changes the station state, and opens the Relay route
+- [ ] Keep the act concise, permit the two component rooms in either order, and reject repetitive pickup-only interactions
+
+### Phase 3 — Act II: extend the network
+
+- [ ] Relay Foundry activation creates the second powered foothold and unlocks payload processing
+- [ ] Cooling Gantry stabilizes the Relay payload; Foundry calibration installs it and owns the weapon-transformation choice
+- [ ] Capacitor Spine establishes the third-tower objective; Spine Discharge Trench vents the berth before interaction
+- [ ] Spine Tower activation installs the Relay result, evolves the weapon, powers the deep return network, and opens the core-rebuild act
+- [ ] Prove that every room changes traversal, power, build state, or combat pressure and that only one meaningful installation return is required
+
+### Phase 4 — Act III: rebuild the Signal core
+
+- [ ] Induction Gallery charges the empty lattice
+- [ ] Flux Bypass throws the shunt that makes Convergence calibration possible and changes the later return route
+- [ ] Convergence Chamber runs one bounded, shorter calibration holdout distinct from the full lockdown trial
+- [ ] Breaker Gallery resets distribution and unlocks the Furnace process
+- [ ] Arc Furnace forges the charged lattice; Quench Loop stabilizes it while opening its existing return shortcut
+- [ ] Room A commits the player to the final trial, Room B provides the required Geometry Wars-inspired combat climax, and Room C supplies the mission-critical station capacitor
+- [ ] Returning the completed core to the Spine Tower installs the final payload and enables withdrawal
+- [ ] Do not replicate the Room B wave structure in the other deep rooms; use routing, processing, short defense, or mixed-role pressure instead
+
+### Phase 5 — Act IV: changed-station withdrawal
+
+- [ ] Route the required withdrawal through visibly powered territory and shortcuts opened by earlier objectives rather than retracing the outbound path unchanged
+- [ ] Give Warden Bay and Sapper Cradle explicit return-pursuit functions using their established enemy identities and counterplay
+- [ ] Preserve the Departure Channel cargo release and one-shot surge as the final recovery/readability beat
+- [ ] Complete the live extraction uplink at the Dock with movement, combat, and chosen build still relevant
+- [ ] Retune whole-run Signal, rewards, enemy density, spawn timing, and encounter mix only after the complete route exists
+
+### Cohesive-mission Definition of Done
+
+- [ ] Every major mission room is entered on the required route and has a distinct legible purpose; decorative pockets are identified rather than padded with fake objectives
+- [ ] No required interaction exists solely to add travel time, and no two consecutive rooms repeat the same pickup, switch, or wave verb
+- [ ] Required backtracking is limited to one meaningful installation return per act and every return demonstrates a changed station state
+- [ ] A first successful human run completes in approximately 20–25 minutes with understandable objectives, manageable Signal pressure, and no filler-room feedback
+- [ ] Keyboard/mouse and controller routes, objective guidance, collision/projectile authority, NavMesh, death/restart/re-entry, doors, rewards, combat states, extraction, Windows build, and packaged smoke remain valid
+- [ ] Do not resume general map expansion until this definition is met or measured play shows a specific missing spatial function
+
 ## P0 — Geometry Wars-inspired combat proof
 
 Work through these gates in order. Authorize one bounded combat advancement per development pass and require matched before/after evidence.
