@@ -18,7 +18,7 @@ This is the controlling workstream for scheduled development. Complete it from t
 - [x] Keep designer-facing objective and encounter values in focused authored configuration; keep scene layout, anchors, doors, and hazards scene-authored
 - [x] Reproduce the current seven-stage journey through the new graph before changing mission order
 - [x] Update the objective indicator, command strip, tactical map, debug routes, restart/reset, and run-report telemetry from the same authoritative objective state
-- [ ] Gate migration on EditMode rule tests, PlayMode route parity, death/restart/re-entry coverage, complete-run regression, and a Windows build/smoke when integration changes
+- [x] Gate migration on EditMode rule tests, PlayMode route parity, death/restart/re-entry coverage, complete-run regression, and a Windows build/smoke when integration changes
 
 ### Phase 2 — Act I: restart the station
 

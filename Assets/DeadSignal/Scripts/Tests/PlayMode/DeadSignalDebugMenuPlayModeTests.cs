@@ -10,6 +10,8 @@ using DeadSignal.Missions;
 using DeadSignal.Combat;
 using DeadSignal.Presentation;
 using DeadSignal.World;
+using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.LowLevel;
 using UnityEngine.UI;
 
 namespace DeadSignal.Tests.PlayMode
@@ -228,6 +230,66 @@ namespace DeadSignal.Tests.PlayMode
             Assert.That(restartedGame.CurrentObjectiveBeaconLabel, Is.EqualTo(restartedGame.CurrentMissionGuidanceAction));
             Assert.That(restartedGame.IsDebugRouteDriving, Is.False);
             Assert.That(restartedGame.IsDebugMenuOpen, Is.False);
+        }
+
+        [UnityTest]
+        public IEnumerator DestroyedRun_KeyboardRestartReentersAuthoredObjectiveGraphFromCentral()
+        {
+            SceneManager.LoadScene("SampleScene");
+            yield return null;
+            yield return null;
+
+            var keyboard = InputSystem.AddDevice<Keyboard>();
+            try
+            {
+                var game = Object.FindFirstObjectByType<DeadSignalGame>();
+                Assert.That(game, Is.Not.Null);
+
+                game.DebugActivateTower();
+                Assert.That(game.CurrentMissionObjectiveId, Is.EqualTo(MissionObjectiveId.CentralPayload));
+                game.DebugApplyScenario(DebugScenario.Failure);
+                Assert.That(game.CurrentRunOutcome, Is.EqualTo(RunOutcome.Destroyed));
+
+                var destroyedRunInstanceId = game.GetInstanceID();
+                InputState.Change(keyboard, new KeyboardState(Key.R), InputUpdateType.Dynamic);
+                Assert.That(keyboard.rKey.wasPressedThisFrame, Is.True);
+                game.SendMessage("Update");
+                InputState.Change(keyboard, new KeyboardState(), InputUpdateType.Dynamic);
+
+                var restartDeadline = Time.realtimeSinceStartup + 5f;
+                DeadSignalGame restartedGame = null;
+                while (Time.realtimeSinceStartup < restartDeadline)
+                {
+                    restartedGame = Object.FindFirstObjectByType<DeadSignalGame>();
+                    if (restartedGame != null && restartedGame.GetInstanceID() != destroyedRunInstanceId)
+                    {
+                        break;
+                    }
+
+                    yield return null;
+                }
+
+                Assert.That(restartedGame, Is.Not.Null);
+                Assert.That(restartedGame.GetInstanceID(), Is.Not.EqualTo(destroyedRunInstanceId));
+                Assert.That(restartedGame.CurrentRunOutcome, Is.EqualTo(RunOutcome.Running));
+                Assert.That(restartedGame.IsTowerOnline, Is.False);
+                Assert.That(restartedGame.IsCentralPayloadSecured, Is.False);
+                Assert.That(restartedGame.CurrentMissionObjectiveId, Is.EqualTo(MissionObjectiveId.CentralTower));
+                Assert.That(restartedGame.CurrentMissionGuidanceTitle, Is.EqualTo("RESTORE CENTRAL"));
+                Assert.That(restartedGame.CurrentObjectiveBeaconLabel,
+                    Is.EqualTo(restartedGame.CurrentMissionGuidanceAction));
+
+                restartedGame.DebugActivateTower();
+                Assert.That(restartedGame.IsTowerOnline, Is.True);
+                Assert.That(restartedGame.CurrentMissionObjectiveId, Is.EqualTo(MissionObjectiveId.CentralPayload));
+                Assert.That(restartedGame.CurrentMissionGuidanceTitle, Is.EqualTo("CENTRAL PAYLOAD"));
+                Assert.That(restartedGame.CurrentObjectiveBeaconLabel,
+                    Is.EqualTo(restartedGame.CurrentMissionGuidanceAction));
+            }
+            finally
+            {
+                InputSystem.RemoveDevice(keyboard);
+            }
         }
 
         [UnityTest]
