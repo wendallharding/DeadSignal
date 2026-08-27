@@ -84,7 +84,8 @@ namespace DeadSignal.Salvage
                 }
 
                 var region = m_world.GetPayloadRegion(pickup);
-                if (!isOptionalCache && !m_model.CanCollectPayload(region))
+                var centralComponent = m_world.GetCentralComponent(pickup);
+                if (!isOptionalCache && !m_model.CanCollectPayload(region, centralComponent))
                 {
                     continue;
                 }
@@ -105,13 +106,26 @@ namespace DeadSignal.Salvage
                     continue;
                 }
 
-                if (!m_model.CollectPayload(region))
+                var salvageBeforeCollection = m_model.Salvage;
+                if (!m_model.CollectPayload(region, centralComponent))
                 {
                     pickup.SetActive(true);
                     continue;
                 }
 
-                m_world.RetirePayloadAlternatives(region, pickup);
+                if (region != SignalRegion.Central)
+                {
+                    m_world.RetirePayloadAlternatives(region, pickup);
+                }
+
+                if (m_model.Salvage == salvageBeforeCollection)
+                {
+                    m_audio.Play(DeadSignalAudioCue.Salvage);
+                    m_feedback.PlaySalvageChain(pickup.transform.position, 1);
+                    m_showFeedback("BOTH CENTRAL COMPONENTS SECURED — RELAY ROUTE READY");
+                    continue;
+                }
+
                 m_overclockChoice.NotifySalvageCollected(m_model.Salvage);
                 var reward = m_chain.RecordCollection(
                     m_tuning.ChainWindow, m_tuning.SecondCacheSignalReward, m_tuning.ThirdCacheSignalReward);

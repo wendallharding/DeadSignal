@@ -68,6 +68,9 @@ namespace DeadSignal.World
             ? region
             : SignalRegion.Central;
 
+        public CentralComponentKind GetCentralComponent(GameObject pickup) =>
+            m_centralComponents.TryGetValue(pickup, out var component) ? component : CentralComponentKind.None;
+
         public bool IsOptionalCache(GameObject pickup) => m_optionalSalvagePickups.Contains(pickup);
 
         public void RetirePayloadAlternatives(SignalRegion securedRegion, GameObject securedPickup)
@@ -1171,8 +1174,8 @@ namespace DeadSignal.World
             var southCache = routeVariant == 2 ? new Vector3(9.2f, 0f, -6.5f) : new Vector3(10.4f, 0f, -6.4f);
             var spineNorthCache = new Vector3(39f, 0f, 3f);
             var spineSouthCache = new Vector3(39f, 0f, -3f);
-            _createSalvage(northCache, SignalRegion.Central);
-            _createSalvage(southCache, SignalRegion.Central);
+            _createSalvage(northCache, SignalRegion.Central, centralComponent: CentralComponentKind.PowerCoupling);
+            _createSalvage(southCache, SignalRegion.Central, centralComponent: CentralComponentKind.CoolantSeal);
             var authoredSockets = Object.FindObjectsByType<AuthoredSalvageSocket>(FindObjectsSortMode.None);
             System.Array.Sort(authoredSockets, (first, second) =>
             {
@@ -1303,7 +1306,11 @@ namespace DeadSignal.World
             }
         }
 
-        private void _createSalvage(Vector3 position, SignalRegion region, bool isOptional = false)
+        private void _createSalvage(
+            Vector3 position,
+            SignalRegion region,
+            bool isOptional = false,
+            CentralComponentKind centralComponent = CentralComponentKind.None)
         {
             var salvagePrefab = Resources.Load<GameObject>(SALVAGE_CACHE_PREFAB_RESOURCE);
             var hasValidPrefab = salvagePrefab != null &&
@@ -1338,6 +1345,10 @@ namespace DeadSignal.World
 
             m_salvagePickups.Add(root);
             m_salvageRegions.Add(root, region);
+            if (centralComponent != CentralComponentKind.None)
+            {
+                m_centralComponents.Add(root, centralComponent);
+            }
             if (isOptional)
             {
                 m_optionalSalvagePickups.Add(root);
@@ -1581,6 +1592,10 @@ namespace DeadSignal.World
                     return ExtractionPosition;
                 case MissionObjectiveId.CentralPayload:
                     return _nearestPayloadTarget(SignalRegion.Central);
+                case MissionObjectiveId.CargoCoupling:
+                    return _centralComponentTarget(CentralComponentKind.PowerCoupling);
+                case MissionObjectiveId.CoolantSeal:
+                    return _centralComponentTarget(CentralComponentKind.CoolantSeal);
                 case MissionObjectiveId.RelayPayload:
                     return _nearestPayloadTarget(SignalRegion.Relay);
                 case MissionObjectiveId.SpinePayload:
@@ -1612,6 +1627,19 @@ namespace DeadSignal.World
             }
 
             return nearest;
+        }
+
+        private Vector3 _centralComponentTarget(CentralComponentKind component)
+        {
+            foreach (var cache in m_salvagePickups)
+            {
+                if (cache.activeSelf && GetCentralComponent(cache) == component)
+                {
+                    return cache.transform.position;
+                }
+            }
+
+            return TowerPosition;
         }
 
         private void _updateThreatHealth(Transform threat, float health, float maximum)
@@ -1704,6 +1732,7 @@ namespace DeadSignal.World
         private readonly List<MovementBlocker> m_movementBlockers = new();
         private readonly List<GameObject> m_salvagePickups = new();
         private readonly Dictionary<GameObject, SignalRegion> m_salvageRegions = new();
+        private readonly Dictionary<GameObject, CentralComponentKind> m_centralComponents = new();
         private readonly HashSet<GameObject> m_optionalSalvagePickups = new();
         private readonly List<AuthoredPoweredTerritory> m_authoredPoweredTerritories = new();
         private readonly List<GameObject> m_towerTerritoryMarkers = new();

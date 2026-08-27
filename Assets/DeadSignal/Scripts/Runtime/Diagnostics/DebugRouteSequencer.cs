@@ -399,7 +399,10 @@ namespace DeadSignal.Diagnostics
                 case DebugRoutePreset.FullExtraction:
                     yield return new DebugRouteStep("Central tower", DebugLocation.CentralTower, 2f,
                         DebugRouteAction.ActivateCentralTower, roomName: "Central Chamber");
-                    yield return new DebugRouteStep("Central payload", DebugLocation.CurrentObjective, 2.3f, DebugRouteAction.CollectCache);
+                    yield return new DebugRouteStep("Cargo coupling", DebugLocation.CurrentObjective, 2.3f,
+                        DebugRouteAction.CollectCache, roomName: "Cargo Annex");
+                    yield return new DebugRouteStep("Coolant seal", DebugLocation.CurrentObjective, 2.3f,
+                        DebugRouteAction.CollectCache, roomName: "Coolant Reclamation");
                     yield return new DebugRouteStep("Relay tower", DebugLocation.RelayTower, 2f,
                         DebugRouteAction.ActivateRelayTower, roomName: "Relay Foundry");
                     yield return new DebugRouteStep("Piercing calibration", DebugLocation.RelayTower, 2f,

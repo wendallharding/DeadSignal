@@ -27,19 +27,45 @@ MonoBehaviour:
     m_guidanceAction: ACTIVATE THE CENTRAL SIGNAL TOWER
     m_guidanceAdvisory: SIGNAL -10  //  REFILL +62
     m_prerequisites:
+    m_successors: 0700000008000000
+  - m_id: 7
+    m_legacyStage: 1
+    m_owningRoom: Cargo Annex
+    m_anchorId: Power Coupling Socket
+    m_completionRule: 7
+    m_worldMutations: 128
+    m_rewards: []
+    m_guidancePhase: 2
+    m_guidanceTitle: RESTART CENTRAL
+    m_guidanceAction: RECOVER THE CARGO POWER COUPLING
+    m_guidanceAdvisory: COUPLING + COOLANT SEAL REQUIRED  //  EITHER ORDER
+    m_prerequisites: 00000000
+    m_successors: 01000000
+  - m_id: 8
+    m_legacyStage: 1
+    m_owningRoom: Coolant Reclamation
+    m_anchorId: Coolant Seal Socket
+    m_completionRule: 8
+    m_worldMutations: 256
+    m_rewards: []
+    m_guidancePhase: 2
+    m_guidanceTitle: 'RESTART CENTRAL: 1/2'
+    m_guidanceAction: THREAD THE BAFFLES FOR THE COOLANT SEAL
+    m_guidanceAdvisory: ONE CENTRAL COMPONENT REMAINS
+    m_prerequisites: 00000000
     m_successors: 01000000
   - m_id: 1
     m_legacyStage: 1
-    m_owningRoom: Cargo Annex / Coolant Reclamation
-    m_anchorId: Regional Payload Socket
+    m_owningRoom: Central Maintenance Concourse
+    m_anchorId: Central Component Readiness
     m_completionRule: 1
     m_worldMutations: 2
     m_rewards: []
     m_guidancePhase: 2
-    m_guidanceTitle: CENTRAL PAYLOAD
-    m_guidanceAction: CHOOSE ONE LOCAL AMBER ROUTE
-    m_guidanceAdvisory: ANNEX OR COOLANT CACHE  //  ONE REQUIRED
-    m_prerequisites: 00000000
+    m_guidanceTitle: CENTRAL COMPONENTS READY
+    m_guidanceAction: CONTINUE TO THE RELAY FOUNDRY
+    m_guidanceAdvisory: POWER COUPLING + COOLANT SEAL SECURED
+    m_prerequisites: 0700000008000000
     m_successors: 02000000
   - m_id: 2
     m_legacyStage: 2

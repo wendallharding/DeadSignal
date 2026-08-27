@@ -93,7 +93,7 @@ namespace DeadSignal.Presentation
         private void _drawAbilityStatus()
         {
             var primary = m_overclocks.Selected == SignalOverclock.None
-                ? "PRIMARY  LOCKED — CENTRAL PAYLOAD"
+                ? "PRIMARY  LOCKED — CENTRAL COMPONENTS"
                 : $"PRIMARY  {m_overclocks.Selected.ToString().ToUpperInvariant()}";
             var auxiliary = m_overclocks.SelectedAuxiliary == SignalAuxiliaryOverclock.None
                 ? "AUXILIARY  LOCKED — RELAY PAYLOAD"
@@ -191,7 +191,9 @@ namespace DeadSignal.Presentation
                 if (cache.activeSelf)
                 {
                     var optional = m_world.IsOptionalCache(cache);
-                    var available = optional ? m_model.CanExtract : m_model.CanCollectPayload(m_world.GetPayloadRegion(cache));
+                    var available = optional
+                        ? m_model.CanExtract
+                        : m_model.CanCollectPayload(m_world.GetPayloadRegion(cache), m_world.GetCentralComponent(cache));
                     var color = available ? new Color(1f, 0.66f, 0.12f) : new Color(0.32f, 0.27f, 0.2f);
                     _drawMapPoint(map, cache.transform.position, color, optional ? 10f : 12f,
                         optional ? "GREED" : available ? "PAYLOAD" : "LOCKED");

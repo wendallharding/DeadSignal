@@ -246,7 +246,7 @@ namespace DeadSignal.Tests.PlayMode
                 Assert.That(game, Is.Not.Null);
 
                 game.DebugActivateTower();
-                Assert.That(game.CurrentMissionObjectiveId, Is.EqualTo(MissionObjectiveId.CentralPayload));
+                Assert.That(game.CurrentMissionObjectiveId, Is.EqualTo(MissionObjectiveId.CargoCoupling));
                 game.DebugApplyScenario(DebugScenario.Failure);
                 Assert.That(game.CurrentRunOutcome, Is.EqualTo(RunOutcome.Destroyed));
 
@@ -281,8 +281,8 @@ namespace DeadSignal.Tests.PlayMode
 
                 restartedGame.DebugActivateTower();
                 Assert.That(restartedGame.IsTowerOnline, Is.True);
-                Assert.That(restartedGame.CurrentMissionObjectiveId, Is.EqualTo(MissionObjectiveId.CentralPayload));
-                Assert.That(restartedGame.CurrentMissionGuidanceTitle, Is.EqualTo("CENTRAL PAYLOAD"));
+                Assert.That(restartedGame.CurrentMissionObjectiveId, Is.EqualTo(MissionObjectiveId.CargoCoupling));
+                Assert.That(restartedGame.CurrentMissionGuidanceTitle, Is.EqualTo("RESTART CENTRAL"));
                 Assert.That(restartedGame.CurrentObjectiveBeaconLabel,
                     Is.EqualTo(restartedGame.CurrentMissionGuidanceAction));
             }

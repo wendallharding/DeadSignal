@@ -705,7 +705,7 @@ namespace DeadSignal.Application
         public void DebugActivateRelayTower()
         {
             DebugActivateTower();
-            if (!m_model.CentralPayloadSecured)
+            for (var attempts = 0; attempts < 2 && !m_model.CentralPayloadSecured; attempts++)
             {
                 DebugCollectNextCache();
             }
@@ -777,10 +777,28 @@ namespace DeadSignal.Application
                 return;
             }
 
+            if (m_model.TowerOnline && !m_model.CentralPayloadSecured)
+            {
+                foreach (var centralPickup in m_world.SalvagePickups)
+                {
+                    if (!centralPickup.activeSelf || m_world.IsOptionalCache(centralPickup) ||
+                        m_world.GetPayloadRegion(centralPickup) != SignalRegion.Central ||
+                        !m_model.CanCollectPayload(SignalRegion.Central, m_world.GetCentralComponent(centralPickup)))
+                    {
+                        continue;
+                    }
+
+                    m_world.Player.position = centralPickup.transform.position;
+                    m_salvage.Tick(0f);
+                }
+
+                return;
+            }
+
             foreach (var pickup in m_world.SalvagePickups)
             {
                 if (!pickup.activeSelf || m_world.IsOptionalCache(pickup) ||
-                    !m_model.CanCollectPayload(m_world.GetPayloadRegion(pickup)))
+                    !m_model.CanCollectPayload(m_world.GetPayloadRegion(pickup), m_world.GetCentralComponent(pickup)))
                 {
                     continue;
                 }
@@ -1603,7 +1621,7 @@ namespace DeadSignal.Application
                 }
                 else if (!m_model.CentralPayloadSecured)
                 {
-                    _showFeedback("RELAY LOCKED — SECURE A CENTRAL PAYLOAD");
+                    _showFeedback("RELAY LOCKED — SECURE BOTH CENTRAL COMPONENTS");
                 }
                 else
                 {
@@ -1621,7 +1639,7 @@ namespace DeadSignal.Application
                     m_world.ActivateTower(m_threats.SapperPulseInterval);
                     m_towerActivationSweep.Play();
                     m_audio.Play(DeadSignalAudioCue.TowerOnline);
-                    _showFeedback("TOWER ONLINE - TWO THREATS AWAKENED");
+                    _showFeedback("CENTRAL ONLINE — CARGO COUPLING + COOLANT SEAL REQUIRED");
                 }
                 else
                 {
@@ -1981,6 +1999,8 @@ namespace DeadSignal.Application
                 DebugRouteAction.ActivateCentralTower => m_model.TowerOnline && _debugObjectiveAdvanced(),
                 DebugRouteAction.CollectCache =>
                     (m_model.Salvage > m_debugSalvageBeforeRouteAction && _debugObjectiveAdvanced()) ||
+                    (m_debugObjectiveBeforeRouteAction is MissionObjectiveId.CargoCoupling or MissionObjectiveId.CoolantSeal &&
+                     _debugObjectiveAdvanced()) ||
                     m_model.OptionalSalvageSecured != m_debugOptionalBeforeRouteAction,
                 DebugRouteAction.SelectPrimaryOverclock => m_overclockChoice.Selected != SignalOverclock.None,
                 DebugRouteAction.ActivateRelayTower => m_model.RelayTowerOnline && _debugObjectiveAdvanced(),

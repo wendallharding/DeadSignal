@@ -160,6 +160,8 @@ Ledger constraints: the 19 mission rooms appear at least once; the connector and
 
 ## Opening and Central inventory
 
+Phase 2 implementation note (Run 135): the Cargo and Coolant rows below preserve the Phase 0 baseline wording for comparison. Current behavior supersedes their one-of-two authority: Central activation exposes both existing caches as required jobs, Cargo owns the power coupling, Coolant owns the seal, neither completion retires the sibling, and Relay remains locked until both are secured. The first completed job preserves the established single regional-salvage reward and primary-overclock timing; the second completes Central readiness without adding economy or escalation.
+
 | Space and authored evidence | Actual adjacency | Current gameplay authority and ownership | Power state | Doors, collision, NavMesh, and return value |
 | --- | --- | --- | --- | --- |
 | **Extraction Dock** — `DEAD SIGNAL — Authored World/Environment/Extraction Pad Assembly`; anchor `(-9.2, -5.6)` | Departure Channel and Central Maintenance Concourse | Stage 7 extraction target. `ExtractionUplink` plus `DeadSignalGame` own stable/overdrive interaction and completion pressure. No pickup; initial player spawn is here. | Always powered inside the 3.6 m starting radius. | No dock door. The Departure cargo shutter is the readiness gate on its approach. Required return destination and final live uplink. |
@@ -200,14 +202,14 @@ Ledger constraints: the 19 mission rooms appear at least once; the connector and
 This is the progression that Phase 1 must reproduce before mission order changes:
 
 1. Activate Central Tower.
-2. Collect exactly one Central payload: Cargo Annex or Coolant Reclamation; the other retires.
+2. Complete both Central jobs in either order: recover the Cargo Annex power coupling and thread Coolant Reclamation for the seal.
 3. Activate Relay Tower and choose the weapon calibration.
 4. Collect exactly one Relay payload: Relay Foundry or Cooling Gantry; the other retires.
 5. Activate Spine Tower and choose the auxiliary evolution.
 6. Collect exactly one Spine payload from the hard-coded north/south sockets within Capacitor Spine.
 7. Return through Relay and Central powered footholds to the Dock; optionally collect the Furnace-side cache to open the Quench return, cross the Departure surge lane, then complete the live extraction uplink.
 
-The current model requires three towers and three regional payloads, but it does **not** require Relay Fork, Discharge Trench, Induction, Flux, Convergence, Breaker, Furnace processing, Quench processing, or Rooms A–C. This is the central mission-flow gap that the later phases must close without breaking compatibility first.
+The current model requires three towers and three regional payload completions; Central's regional completion now joins its two required component jobs. It still does **not** require Relay Fork, Discharge Trench, Induction, Flux, Convergence, Breaker, Furnace processing, Quench processing, or Rooms A–C. These are the remaining mission-flow gaps that later slices must close without breaking the playable route.
 
 ## Measured current-route baseline
 

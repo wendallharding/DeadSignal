@@ -19,15 +19,16 @@ namespace DeadSignal.Tests
         }
 
         [Test]
-        public void Evaluate_CentralPayloadPhase_OffersOneOfTwoRoutes()
+        public void Evaluate_CentralRestartPhase_RequiresBothDistinctJobs()
         {
             var model = _createOnlineModel();
 
             var guidance = MissionGuidance.Evaluate(model, true, false, 0f);
 
             Assert.That(guidance.Phase, Is.EqualTo(2));
-            Assert.That(guidance.Title, Is.EqualTo("CENTRAL PAYLOAD"));
-            Assert.That(guidance.Advisory, Does.Contain("ONE REQUIRED"));
+            Assert.That(guidance.Title, Is.EqualTo("RESTART CENTRAL"));
+            Assert.That(guidance.Action, Does.Contain("POWER COUPLING"));
+            Assert.That(guidance.Advisory, Does.Contain("EITHER ORDER"));
         }
 
         [Test]

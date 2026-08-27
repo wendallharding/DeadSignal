@@ -48,7 +48,7 @@ namespace DeadSignal.Diagnostics
 
             var game = FindFirstObjectByType<DeadSignalGame>();
             var missionObjectives = Resources.Load<MissionObjectiveGraphConfiguration>("Tuning/CompatibilityMissionObjectives");
-            var missionObjectivesReady = missionObjectives != null && missionObjectives.ObjectiveCount == 7;
+            var missionObjectivesReady = missionObjectives != null && missionObjectives.ObjectiveCount == 9;
             var objectiveConsumersReady = game != null &&
                                           game.CurrentMissionObjectiveId == MissionObjectiveId.CentralTower &&
                                           game.CurrentMissionGuidanceTitle == "RESTORE CENTRAL" &&

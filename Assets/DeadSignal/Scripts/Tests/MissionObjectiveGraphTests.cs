@@ -13,7 +13,7 @@ namespace DeadSignal.Tests
         {
             var definitions = CompatibilityMissionObjectiveGraph.Instance.Definitions;
 
-            Assert.That(definitions.Count, Is.EqualTo(7));
+            Assert.That(definitions.Count, Is.EqualTo(9));
             Assert.That(definitions.Select(definition => definition.Id), Is.Unique);
             Assert.That(definitions.All(definition => !string.IsNullOrWhiteSpace(definition.OwningRoom)), Is.True);
             Assert.That(definitions.All(definition => !string.IsNullOrWhiteSpace(definition.AnchorId)), Is.True);
@@ -22,11 +22,11 @@ namespace DeadSignal.Tests
             Assert.That(definitions.Select(definition => definition.CompletionRule), Is.Unique);
             Assert.That(definitions[0].WorldMutations.HasFlag(MissionWorldMutation.CentralTerritoryPowered), Is.True);
             Assert.That(definitions[0].Rewards.Single().Kind, Is.EqualTo(MissionRewardKind.SignalRefill));
-            Assert.That(definitions[2].Rewards.Select(reward => reward.Kind),
-                Is.EquivalentTo(new[] { MissionRewardKind.SignalRefill, MissionRewardKind.WeaponCalibration }));
             Assert.That(definitions[4].Rewards.Select(reward => reward.Kind),
+                Is.EquivalentTo(new[] { MissionRewardKind.SignalRefill, MissionRewardKind.WeaponCalibration }));
+            Assert.That(definitions[6].Rewards.Select(reward => reward.Kind),
                 Is.EquivalentTo(new[] { MissionRewardKind.SignalRefill, MissionRewardKind.WeaponEvolution }));
-            Assert.That(definitions[6].Rewards.Single().Kind, Is.EqualTo(MissionRewardKind.Victory));
+            Assert.That(definitions[8].Rewards.Single().Kind, Is.EqualTo(MissionRewardKind.Victory));
         }
 
         [Test]
@@ -35,7 +35,7 @@ namespace DeadSignal.Tests
             var configuration = Resources.Load<MissionObjectiveGraphConfiguration>("Tuning/CompatibilityMissionObjectives");
 
             Assert.That(configuration, Is.Not.Null);
-            Assert.That(configuration.ObjectiveCount, Is.EqualTo(7));
+            Assert.That(configuration.ObjectiveCount, Is.EqualTo(9));
             var authored = configuration.BuildGraph().Definitions;
             var fallback = CompatibilityMissionObjectiveGraph.Instance.Definitions;
             Assert.That(authored.Count, Is.EqualTo(fallback.Count));
@@ -74,9 +74,9 @@ namespace DeadSignal.Tests
             Assert.That(run.TryActivateTower(), Is.True);
             Assert.That(run.Signal, Is.EqualTo(Math.Min(RunModel.MaximumSignal,
                 signalBeforeCentral - RunModel.TowerCost + RunModel.TowerRefill)));
-            _assertObjective(run, MissionObjectiveId.CentralPayload, MissionStage.CentralPayload,
-                MissionCompletionRule.CentralPayloadSecured, MissionWorldMutation.CentralPayloadSecured,
-                "CENTRAL PAYLOAD");
+            _assertObjective(run, MissionObjectiveId.CargoCoupling, MissionStage.CentralPayload,
+                MissionCompletionRule.CargoCouplingSecured, MissionWorldMutation.CargoCouplingSecured,
+                "RESTART CENTRAL");
             Assert.That(run.TryActivateTower(), Is.False);
             Assert.That(run.CollectPayload(SignalRegion.Relay), Is.False);
             Assert.That(run.CollectPayload(SignalRegion.Central), Is.True);
@@ -116,6 +116,30 @@ namespace DeadSignal.Tests
             Assert.That(run.Outcome, Is.EqualTo(RunOutcome.Victory));
             Assert.That(run.CurrentMissionStage, Is.EqualTo(MissionStage.Extraction));
             Assert.That(run.TryExtract(), Is.False);
+        }
+
+
+        [Test]
+        public void CentralJobs_AreBothAvailableAndCompleteInEitherOrder()
+        {
+            var run = new RunModel();
+            Assert.That(run.TryActivateTower(), Is.True);
+            Assert.That(run.CanCollectPayload(SignalRegion.Central, CentralComponentKind.PowerCoupling), Is.True);
+            Assert.That(run.CanCollectPayload(SignalRegion.Central, CentralComponentKind.CoolantSeal), Is.True);
+
+            Assert.That(run.CollectPayload(SignalRegion.Central, CentralComponentKind.CoolantSeal), Is.True);
+            Assert.That(run.CoolantSealSecured, Is.True);
+            Assert.That(run.CargoCouplingSecured, Is.False);
+            Assert.That(run.CentralPayloadSecured, Is.False);
+            Assert.That(run.Salvage, Is.EqualTo(1));
+            Assert.That(run.TryActivateRelayTower(), Is.False);
+            Assert.That(run.CurrentObjective.Id, Is.EqualTo(MissionObjectiveId.CargoCoupling));
+
+            Assert.That(run.CollectPayload(SignalRegion.Central, CentralComponentKind.PowerCoupling), Is.True);
+            Assert.That(run.CentralPayloadSecured, Is.True);
+            Assert.That(run.Salvage, Is.EqualTo(1));
+            Assert.That(run.CurrentObjective.Id, Is.EqualTo(MissionObjectiveId.RelayTower));
+            Assert.That(run.CanCollectPayload(SignalRegion.Central, CentralComponentKind.CoolantSeal), Is.False);
         }
 
         [Test]

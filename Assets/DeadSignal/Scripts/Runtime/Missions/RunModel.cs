@@ -16,6 +16,13 @@ namespace DeadSignal.Missions
         Spine
     }
 
+    public enum CentralComponentKind
+    {
+        None,
+        PowerCoupling,
+        CoolantSeal
+    }
+
     public enum MissionStage
     {
         CentralTower,
@@ -174,6 +181,8 @@ namespace DeadSignal.Missions
         public bool ShortcutOpen { get; private set; }
         public bool OptionalSalvageSecured { get; private set; }
         public bool CentralPayloadSecured { get; private set; }
+        public bool CargoCouplingSecured { get; private set; }
+        public bool CoolantSealSecured { get; private set; }
         public bool RelayPayloadSecured { get; private set; }
         public bool SpinePayloadSecured { get; private set; }
         public RunOutcome Outcome { get; private set; } = RunOutcome.Running;
@@ -307,7 +316,7 @@ namespace DeadSignal.Missions
             _evaluateSignal();
         }
 
-        public bool CanCollectPayload(SignalRegion region)
+        public bool CanCollectPayload(SignalRegion region, CentralComponentKind centralComponent = CentralComponentKind.None)
         {
             if (Outcome != RunOutcome.Running)
             {
@@ -316,8 +325,7 @@ namespace DeadSignal.Missions
 
             return region switch
             {
-                SignalRegion.Central => _isCurrentObjective(MissionObjectiveId.CentralPayload) && TowerOnline &&
-                                        !CentralPayloadSecured,
+                SignalRegion.Central => _canCollectCentralComponent(centralComponent),
                 SignalRegion.Relay => _isCurrentObjective(MissionObjectiveId.RelayPayload) && RelayTowerOnline &&
                                       CentralPayloadSecured && !RelayPayloadSecured,
                 SignalRegion.Spine => _isCurrentObjective(MissionObjectiveId.SpinePayload) && SpineTowerOnline &&
@@ -326,9 +334,9 @@ namespace DeadSignal.Missions
             };
         }
 
-        public bool CollectPayload(SignalRegion region)
+        public bool CollectPayload(SignalRegion region, CentralComponentKind centralComponent = CentralComponentKind.None)
         {
-            if (!CanCollectPayload(region))
+            if (!CanCollectPayload(region, centralComponent))
             {
                 return false;
             }
@@ -336,7 +344,21 @@ namespace DeadSignal.Missions
             switch (region)
             {
                 case SignalRegion.Central:
-                    CentralPayloadSecured = true;
+                    if (centralComponent == CentralComponentKind.None)
+                    {
+                        CargoCouplingSecured = true;
+                        CoolantSealSecured = true;
+                    }
+                    else if (centralComponent == CentralComponentKind.CoolantSeal)
+                    {
+                        CoolantSealSecured = true;
+                    }
+                    else
+                    {
+                        CargoCouplingSecured = true;
+                    }
+
+                    CentralPayloadSecured = CargoCouplingSecured && CoolantSealSecured;
                     break;
                 case SignalRegion.Relay:
                     RelayPayloadSecured = true;
@@ -348,7 +370,10 @@ namespace DeadSignal.Missions
                     return false;
             }
 
-            Salvage++;
+            if (region != SignalRegion.Central || Salvage == 0)
+            {
+                Salvage++;
+            }
             return true;
         }
 
@@ -428,6 +453,33 @@ namespace DeadSignal.Missions
                 MissionCompletionRule.SpineTowerOnline => SpineTowerOnline,
                 MissionCompletionRule.SpinePayloadSecured => SpinePayloadSecured,
                 MissionCompletionRule.ExtractionComplete => Outcome == RunOutcome.Victory,
+                MissionCompletionRule.CargoCouplingSecured => CargoCouplingSecured,
+                MissionCompletionRule.CoolantSealSecured => CoolantSealSecured,
+                _ => false
+            };
+        }
+
+        private bool _canCollectCentralComponent(CentralComponentKind component)
+        {
+            if (!TowerOnline || CentralPayloadSecured)
+            {
+                return false;
+            }
+
+            if (component == CentralComponentKind.None)
+            {
+                return m_objectiveGraph.IsAvailable(MissionObjectiveId.CargoCoupling, _isObjectiveComplete) ||
+                       m_objectiveGraph.IsAvailable(MissionObjectiveId.CoolantSeal, _isObjectiveComplete);
+            }
+
+            return component switch
+            {
+                CentralComponentKind.PowerCoupling => !CargoCouplingSecured &&
+                                                      m_objectiveGraph.IsAvailable(MissionObjectiveId.CargoCoupling,
+                                                          _isObjectiveComplete),
+                CentralComponentKind.CoolantSeal => !CoolantSealSecured &&
+                                                   m_objectiveGraph.IsAvailable(MissionObjectiveId.CoolantSeal,
+                                                       _isObjectiveComplete),
                 _ => false
             };
         }

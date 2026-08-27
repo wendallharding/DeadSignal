@@ -11,7 +11,9 @@ namespace DeadSignal.Missions
         RelayPayload,
         SpineTower,
         SpinePayload,
-        Extraction
+        Extraction,
+        CargoCoupling,
+        CoolantSeal
     }
 
     public enum MissionCompletionRule
@@ -22,7 +24,9 @@ namespace DeadSignal.Missions
         RelayPayloadSecured,
         SpineTowerOnline,
         SpinePayloadSecured,
-        ExtractionComplete
+        ExtractionComplete,
+        CargoCouplingSecured,
+        CoolantSealSecured
     }
 
     [Flags]
@@ -35,7 +39,9 @@ namespace DeadSignal.Missions
         RelayPayloadSecured = 1 << 3,
         SpineTerritoryPowered = 1 << 4,
         SpinePayloadSecured = 1 << 5,
-        RunCompleted = 1 << 6
+        RunCompleted = 1 << 6,
+        CargoCouplingSecured = 1 << 7,
+        CoolantSealSecured = 1 << 8
     }
 
     public enum MissionRewardKind
@@ -161,6 +167,18 @@ namespace DeadSignal.Missions
             return m_definitions[m_definitions.Length - 1];
         }
 
+        public bool IsAvailable(MissionObjectiveId id, Func<MissionCompletionRule, bool> isComplete)
+        {
+            if (isComplete == null)
+            {
+                throw new ArgumentNullException(nameof(isComplete));
+            }
+
+            return m_byId.TryGetValue(id, out var definition) &&
+                   !isComplete(definition.CompletionRule) &&
+                   _arePrerequisitesComplete(definition, isComplete);
+        }
+
         private bool _arePrerequisitesComplete(MissionObjectiveDefinition definition,
             Func<MissionCompletionRule, bool> isComplete)
         {
@@ -261,13 +279,26 @@ namespace DeadSignal.Missions
                 new[] { new MissionReward(MissionRewardKind.SignalRefill, RunModel.TowerRefill) },
                 new MissionGuidanceState(1, "RESTORE CENTRAL", "ACTIVATE THE CENTRAL SIGNAL TOWER",
                     $"SIGNAL -{RunModel.TowerCost:0}  //  REFILL +{RunModel.TowerRefill:0}"),
-                Array.Empty<MissionObjectiveId>(), new[] { MissionObjectiveId.CentralPayload }),
+                Array.Empty<MissionObjectiveId>(), new[] { MissionObjectiveId.CargoCoupling, MissionObjectiveId.CoolantSeal }),
+            _definition(MissionObjectiveId.CargoCoupling, MissionStage.CentralPayload, "Cargo Annex", "Power Coupling Socket",
+                MissionCompletionRule.CargoCouplingSecured, MissionWorldMutation.CargoCouplingSecured,
+                Array.Empty<MissionReward>(),
+                new MissionGuidanceState(2, "RESTART CENTRAL", "RECOVER THE CARGO POWER COUPLING",
+                    "COUPLING + COOLANT SEAL REQUIRED  //  EITHER ORDER"),
+                new[] { MissionObjectiveId.CentralTower }, new[] { MissionObjectiveId.CentralPayload }),
+            _definition(MissionObjectiveId.CoolantSeal, MissionStage.CentralPayload, "Coolant Reclamation", "Coolant Seal Socket",
+                MissionCompletionRule.CoolantSealSecured, MissionWorldMutation.CoolantSealSecured,
+                Array.Empty<MissionReward>(),
+                new MissionGuidanceState(2, "RESTART CENTRAL: 1/2", "THREAD THE BAFFLES FOR THE COOLANT SEAL",
+                    "ONE CENTRAL COMPONENT REMAINS"),
+                new[] { MissionObjectiveId.CentralTower }, new[] { MissionObjectiveId.CentralPayload }),
             _definition(MissionObjectiveId.CentralPayload, MissionStage.CentralPayload,
-                "Cargo Annex / Coolant Reclamation", "Regional Payload Socket",
+                "Central Maintenance Concourse", "Central Component Readiness",
                 MissionCompletionRule.CentralPayloadSecured, MissionWorldMutation.CentralPayloadSecured,
                 Array.Empty<MissionReward>(),
-                new MissionGuidanceState(2, "CENTRAL PAYLOAD", "CHOOSE ONE LOCAL AMBER ROUTE", "ANNEX OR COOLANT CACHE  //  ONE REQUIRED"),
-                new[] { MissionObjectiveId.CentralTower }, new[] { MissionObjectiveId.RelayTower }),
+                new MissionGuidanceState(2, "CENTRAL COMPONENTS READY", "CONTINUE TO THE RELAY FOUNDRY",
+                    "POWER COUPLING + COOLANT SEAL SECURED"),
+                new[] { MissionObjectiveId.CargoCoupling, MissionObjectiveId.CoolantSeal }, new[] { MissionObjectiveId.RelayTower }),
             _definition(MissionObjectiveId.RelayTower, MissionStage.RelayTower, "Relay Foundry", "Relay Tower",
                 MissionCompletionRule.RelayTowerOnline, MissionWorldMutation.RelayTerritoryPowered,
                 new[]

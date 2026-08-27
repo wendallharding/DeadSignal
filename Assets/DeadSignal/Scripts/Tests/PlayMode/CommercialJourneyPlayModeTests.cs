@@ -145,8 +145,10 @@ namespace DeadSignal.Tests.PlayMode
             Assert.That(report, Does.Contain("Combat "));
             Assert.That(report, Does.Contain("Guidance response proxy"));
             Assert.That(report, Does.Contain("Wrong-turn proxies 0  Backtrack legs 4"));
-            Assert.That(report, Does.Contain("Objective-room coverage 5/19"));
-            Assert.That(report, Does.Contain("Rooms without a compatibility-route objective 14"));
+            Assert.That(report, Does.Contain("PASS Cargo coupling"));
+            Assert.That(report, Does.Contain("PASS Coolant seal"));
+            Assert.That(report, Does.Contain("Objective-room coverage 6/19"));
+            Assert.That(report, Does.Contain("Rooms without a compatibility-route objective 13"));
             game.DebugSetTimeScale(1f);
         }
 
