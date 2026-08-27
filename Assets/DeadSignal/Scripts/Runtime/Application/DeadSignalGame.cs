@@ -1047,7 +1047,24 @@ namespace DeadSignal.Application
             Time.timeScale = 1f;
             UnityEngine.Application.targetFrameRate = 120;
 
-            m_model = new RunModel();
+            var objectiveConfiguration = Resources.Load<MissionObjectiveGraphConfiguration>("Tuning/CompatibilityMissionObjectives");
+            if (objectiveConfiguration == null)
+            {
+                Debug.LogError("Compatibility mission objective configuration is missing from Resources/Tuning.", this);
+                enabled = false;
+                return;
+            }
+
+            try
+            {
+                m_model = new RunModel(objectiveConfiguration.BuildGraph());
+            }
+            catch (System.Exception exception)
+            {
+                Debug.LogError($"Compatibility mission objective configuration is invalid: {exception.Message}", this);
+                enabled = false;
+                return;
+            }
             m_metrics = new RunMetrics();
             m_salvageTuning = Resources.Load<SalvagePresentationTuning>("Tuning/SalvagePresentationTuning");
             if (m_salvageTuning == null)

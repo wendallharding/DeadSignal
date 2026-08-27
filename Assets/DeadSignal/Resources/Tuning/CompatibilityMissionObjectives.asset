@@ -1,0 +1,118 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2100c1bea7078f94cb19a12248185afc, type: 3}
+  m_Name: CompatibilityMissionObjectives
+  m_EditorClassIdentifier: DeadSignal.Runtime::DeadSignal.Missions.MissionObjectiveGraphConfiguration
+  m_objectives:
+  - m_id: 0
+    m_legacyStage: 0
+    m_owningRoom: Central Maintenance Concourse
+    m_anchorId: Central Tower
+    m_completionRule: 0
+    m_worldMutations: 1
+    m_rewards:
+    - m_kind: 1
+      m_amount: 62
+    m_guidancePhase: 1
+    m_guidanceTitle: RESTORE CENTRAL
+    m_guidanceAction: ACTIVATE THE CENTRAL SIGNAL TOWER
+    m_guidanceAdvisory: SIGNAL -10  //  REFILL +62
+    m_prerequisites:
+    m_successors: 01000000
+  - m_id: 1
+    m_legacyStage: 1
+    m_owningRoom: Cargo Annex / Coolant Reclamation
+    m_anchorId: Regional Payload Socket
+    m_completionRule: 1
+    m_worldMutations: 2
+    m_rewards: []
+    m_guidancePhase: 2
+    m_guidanceTitle: CENTRAL PAYLOAD
+    m_guidanceAction: CHOOSE ONE LOCAL AMBER ROUTE
+    m_guidanceAdvisory: ANNEX OR COOLANT CACHE  //  ONE REQUIRED
+    m_prerequisites: 00000000
+    m_successors: 02000000
+  - m_id: 2
+    m_legacyStage: 2
+    m_owningRoom: Relay Foundry
+    m_anchorId: Relay Tower
+    m_completionRule: 2
+    m_worldMutations: 4
+    m_rewards:
+    - m_kind: 1
+      m_amount: 44
+    - m_kind: 2
+      m_amount: 0
+    m_guidancePhase: 3
+    m_guidanceTitle: EXTEND THE NETWORK
+    m_guidanceAction: RESTORE THE RELAY FOUNDRY TOWER
+    m_guidanceAdvisory: SIGNAL -14  //  WEAPON CALIBRATION
+    m_prerequisites: 01000000
+    m_successors: 03000000
+  - m_id: 3
+    m_legacyStage: 3
+    m_owningRoom: Relay Foundry / Cooling Gantry
+    m_anchorId: Relay Payload Socket
+    m_completionRule: 3
+    m_worldMutations: 8
+    m_rewards: []
+    m_guidancePhase: 4
+    m_guidanceTitle: RELAY PAYLOAD
+    m_guidanceAction: CHOOSE FOUNDRY OR COOLING GANTRY
+    m_guidanceAdvisory: INNER COVER OR EXCHANGER LOOP  //  ONE REQUIRED
+    m_prerequisites: 02000000
+    m_successors: 04000000
+  - m_id: 4
+    m_legacyStage: 4
+    m_owningRoom: Capacitor Spine
+    m_anchorId: Capacitor Spine Activation Decal
+    m_completionRule: 4
+    m_worldMutations: 16
+    m_rewards:
+    - m_kind: 1
+      m_amount: 34
+    - m_kind: 3
+      m_amount: 0
+    m_guidancePhase: 5
+    m_guidanceTitle: POWER THE SPINE
+    m_guidanceAction: RESTORE THE CAPACITOR SPINE TOWER
+    m_guidanceAdvisory: SIGNAL -18  //  EVOLVE WEAPON
+    m_prerequisites: 03000000
+    m_successors: 05000000
+  - m_id: 5
+    m_legacyStage: 5
+    m_owningRoom: Capacitor Spine
+    m_anchorId: Spine Payload Socket
+    m_completionRule: 5
+    m_worldMutations: 32
+    m_rewards: []
+    m_guidancePhase: 6
+    m_guidanceTitle: FINAL PAYLOAD
+    m_guidanceAction: SECURE ONE SPINE PAYLOAD
+    m_guidanceAdvisory: GALLERY OR FURNACE-SIDE ROUTE  //  ONE REQUIRED
+    m_prerequisites: 04000000
+    m_successors: 06000000
+  - m_id: 6
+    m_legacyStage: 6
+    m_owningRoom: Extraction Dock
+    m_anchorId: Dock Uplink
+    m_completionRule: 6
+    m_worldMutations: 64
+    m_rewards:
+    - m_kind: 4
+      m_amount: 0
+    m_guidancePhase: 7
+    m_guidanceTitle: EXTRACT OR GREED
+    m_guidanceAction: RETURN TO THE CYAN DOCK
+    m_guidanceAdvisory: THREE TOWERS + THREE PAYLOADS SECURED  //  QUENCH CACHE OPTIONAL
+    m_prerequisites: 05000000
+    m_successors:

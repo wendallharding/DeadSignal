@@ -47,6 +47,8 @@ namespace DeadSignal.Diagnostics
             yield return null;
 
             var game = FindFirstObjectByType<DeadSignalGame>();
+            var missionObjectives = Resources.Load<MissionObjectiveGraphConfiguration>("Tuning/CompatibilityMissionObjectives");
+            var missionObjectivesReady = missionObjectives != null && missionObjectives.ObjectiveCount == 7;
             var weaponTextureReady = Resources.Load<Texture2D>("Environment/RelayFoundryWeaponCalibrationDecal") != null;
             var weaponMaterialReady =
                 Resources.Load<Material>("Materials/RelayFoundry/RelayFoundryWeaponCalibrationDecal") != null;
@@ -122,7 +124,10 @@ namespace DeadSignal.Diagnostics
                       $"material={foregroundCutawayMaterialReady} authoredTexture={authoredCutawayTextureReady} " +
                       $"authoredMaterial={authoredCutawayMaterialReady} wideTexture={wideCutawayTextureReady} " +
                       $"wideMaterial={wideCutawayMaterialReady} bindings={authoredCutawayBindingCount}");
+            Debug.Log($"[DEAD SIGNAL STANDALONE SMOKE] MISSION OBJECTIVES | " +
+                      $"resource={missionObjectives != null} objectives={missionObjectives?.ObjectiveCount ?? 0}");
             var runtimeReady = game != null &&
+                                missionObjectivesReady &&
                                 game.transform.Find("Maintenance Drone") != null &&
                                 game.transform.Find("Shortcut Gate Assembly/Signal Shortcut Gate") != null &&
                                 game.transform.Find("Tower Signal Lines/Signal Trunk West") != null &&

@@ -161,6 +161,11 @@ namespace DeadSignal.Missions
         public const int SalvageRequired = 3;
         public const float CriticalRecoveryDuration = 5f;
 
+        public RunModel(MissionObjectiveGraph objectiveGraph = null)
+        {
+            m_objectiveGraph = objectiveGraph ?? CompatibilityMissionObjectiveGraph.Instance;
+        }
+
         public float Signal { get; private set; } = StartingSignal;
         public int Salvage { get; private set; }
         public bool TowerOnline { get; private set; }
@@ -178,7 +183,7 @@ namespace DeadSignal.Missions
         public bool HasAllRegionalPayloads => CentralPayloadSecured && RelayPayloadSecured && SpinePayloadSecured;
         public bool CanExtract => Outcome == RunOutcome.Running && TowerOnline && RelayTowerOnline && SpineTowerOnline &&
                                   HasAllRegionalPayloads;
-        public MissionObjectiveDefinition CurrentObjective => CompatibilityMissionObjectiveGraph.Instance.Evaluate(_isObjectiveComplete);
+        public MissionObjectiveDefinition CurrentObjective => m_objectiveGraph.Evaluate(_isObjectiveComplete);
         public MissionStage CurrentMissionStage => CurrentObjective.LegacyStage;
 
         public static float PassiveDrainRate(bool isPowered) => isPowered ? 0f : 2.8f;
@@ -447,5 +452,7 @@ namespace DeadSignal.Missions
                 Outcome = RunOutcome.Destroyed;
             }
         }
+
+        private readonly MissionObjectiveGraph m_objectiveGraph;
     }
 }

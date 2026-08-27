@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Linq;
+using DeadSignal.Missions;
 using UnityEditor;
 using UnityEditor.Build;
 using UnityEditor.Build.Reporting;
@@ -118,6 +119,13 @@ namespace DeadSignal.Editor
             if (!DeadSignalProjectSetup.HasRuntimeMaterialTemplates)
             {
                 throw new BuildFailedException("Runtime material templates are missing.");
+            }
+
+            var missionObjectives = AssetDatabase.LoadAssetAtPath<MissionObjectiveGraphConfiguration>(
+                "Assets/DeadSignal/Resources/Tuning/CompatibilityMissionObjectives.asset");
+            if (missionObjectives == null || missionObjectives.ObjectiveCount != 7)
+            {
+                throw new BuildFailedException("The seven-stage compatibility mission objective configuration is missing or incomplete.");
             }
 
             if (!DeadSignalHudSetup.HasAssets)

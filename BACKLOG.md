@@ -15,7 +15,7 @@ This is the controlling workstream for scheduled development. Complete it from t
 ### Phase 1 — Objective graph foundation
 
 - [x] Introduce a deterministic objective graph that can express prerequisites, owning room/anchor, completion rules, world mutations, rewards, guidance, and successor objectives without expanding `DeadSignalGame` into a room-specific state machine
-- [ ] Keep designer-facing objective and encounter values in focused authored configuration; keep scene layout, anchors, doors, and hazards scene-authored
+- [x] Keep designer-facing objective and encounter values in focused authored configuration; keep scene layout, anchors, doors, and hazards scene-authored
 - [ ] Reproduce the current seven-stage journey through the new graph before changing mission order
 - [ ] Update the objective indicator, command strip, tactical map, debug routes, restart/reset, and run-report telemetry from the same authoritative objective state
 - [ ] Gate migration on EditMode rule tests, PlayMode route parity, death/restart/re-entry coverage, complete-run regression, and a Windows build/smoke when integration changes
