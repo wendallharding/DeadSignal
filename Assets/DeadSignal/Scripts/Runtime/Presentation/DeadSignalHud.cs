@@ -515,6 +515,10 @@ namespace DeadSignal.Presentation
             if (m_model.CurrentObjective.Id == MissionObjectiveId.CentralAssembly && m_world.TransferVaultObjective != null &&
                 DeadSignalWorld.FlatDistance(m_world.Player.position, m_world.TransferVaultObjective.Position) < 1.8f)
                 return $"[{_binding("E", "GAMEPAD X")}]  ASSEMBLE CENTRAL PAYLOAD";
+            if (m_model.CurrentObjective.Id == MissionObjectiveId.CentralInstallation &&
+                m_world.CentralInstallationObjective != null &&
+                DeadSignalWorld.FlatDistance(m_world.Player.position, m_world.CentralInstallationObjective.Position) < 1.8f)
+                return $"[{_binding("E", "GAMEPAD X")}]  INSTALL CENTRAL PAYLOAD";
             if (!m_model.SpineTowerOnline &&
                 m_world.IsSpineTowerInteractionInRange(m_world.Player.position))
                 return m_model.RelayTowerOnline

@@ -42,7 +42,7 @@ namespace DeadSignal.Tests
                 Assert.That(Resources.Load<GameObject>("Environment/FluxBypassRegion"), Is.Not.Null);
                 Assert.That(Resources.Load<Texture2D>("Environment/FluxBypassRouteDecal"), Is.Not.Null);
                 Assert.That(Resources.Load<Material>("Materials/FluxBypass/FluxBypassRouteDecal"), Is.Not.Null);
-                Assert.That(game.AuthoredMapObstacleCount, Is.EqualTo(137));
+                Assert.That(game.AuthoredMapObstacleCount, Is.EqualTo(138));
                 Assert.That(game.AuthoredInterceptorEntranceCount, Is.EqualTo(9));
                 Assert.That(gallery.Find("Induction Gallery West Bulkhead"), Is.Null);
                 Assert.That(chamber.Find("Convergence West Bulkhead"), Is.Null);

@@ -79,6 +79,19 @@ MonoBehaviour:
     m_guidanceAction: ASSEMBLE THE CENTRAL PAYLOAD IN THE TRANSFER VAULT
     m_guidanceAdvisory: TRANSFER CYCLE READY  //  ASSEMBLE
     m_prerequisites: 09000000
+    m_successors: 0b000000
+  - m_id: 11
+    m_legacyStage: 1
+    m_owningRoom: Central Maintenance Concourse
+    m_anchorId: Central Payload Installation Anchor
+    m_completionRule: 11
+    m_worldMutations: 2048
+    m_rewards: []
+    m_guidancePhase: 2
+    m_guidanceTitle: CENTRAL PAYLOAD ASSEMBLED
+    m_guidanceAction: RETURN TO CENTRAL AND INSTALL THE PAYLOAD
+    m_guidanceAdvisory: ONE INSTALLATION RETURN  //  OPENS RELAY ROUTE
+    m_prerequisites: 0a000000
     m_successors: 02000000
   - m_id: 2
     m_legacyStage: 2
@@ -95,7 +108,7 @@ MonoBehaviour:
     m_guidanceTitle: EXTEND THE NETWORK
     m_guidanceAction: RESTORE THE RELAY FOUNDRY TOWER
     m_guidanceAdvisory: SIGNAL -14  //  WEAPON CALIBRATION
-    m_prerequisites: 0a000000
+    m_prerequisites: 0b000000
     m_successors: 03000000
   - m_id: 3
     m_legacyStage: 3

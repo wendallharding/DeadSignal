@@ -103,6 +103,7 @@ namespace DeadSignal.Tests
                 game.DebugSelectOverclock(SignalOverclock.ChainArc);
                 game.DebugRouteCentralComponents();
                 game.DebugAssembleCentralPayload();
+                game.DebugInstallCentralPayload();
 
                 player.position = game.RelayTowerPosition;
                 Assert.That(game.SafestReinforcementEntryPosition.x, Is.GreaterThan(34f),
@@ -192,6 +193,7 @@ namespace DeadSignal.Tests
                 game.DebugSelectOverclock(SignalOverclock.OverdriveThrusters);
                 game.DebugRouteCentralComponents();
                 game.DebugAssembleCentralPayload();
+                game.DebugInstallCentralPayload();
                 player.position = game.RelayTowerPosition;
                 InputSystem.QueueStateEvent(gamepad, new GamepadState().WithButton(GamepadButton.West));
                 yield return null;
@@ -248,6 +250,7 @@ namespace DeadSignal.Tests
                 game.DebugSelectOverclock(SignalOverclock.OverdriveThrusters);
                 game.DebugRouteCentralComponents();
                 game.DebugAssembleCentralPayload();
+                game.DebugInstallCentralPayload();
                 player.position = game.RelayTowerPosition;
                 InputSystem.QueueStateEvent(gamepad, new GamepadState().WithButton(GamepadButton.West));
                 yield return null;
@@ -1078,7 +1081,7 @@ namespace DeadSignal.Tests
                 "The tower approach should be placed as scene-authored prefab content rather than runtime layout code.");
             var authoredObstacles = towerJunction.GetComponentsInChildren<AuthoredMapObstacle>();
             Assert.That(authoredObstacles.Length, Is.EqualTo(3));
-            Assert.That(game.AuthoredMapObstacleCount, Is.EqualTo(137),
+            Assert.That(game.AuthoredMapObstacleCount, Is.EqualTo(138),
                 "Every authored junction, salvage area, departure channel, and threat-bay obstacle should participate " +
                 "in movement resolution.");
             Assert.That(authoredObstacles.Sum(obstacle => obstacle.GetComponentsInChildren<Renderer>().Length), Is.EqualTo(6));
@@ -1120,7 +1123,7 @@ namespace DeadSignal.Tests
                 "The imported vault must face its split doorway toward the original arena.");
             var eastVaultObstacles = eastVault.GetComponentsInChildren<AuthoredMapObstacle>();
             var eastVaultSocket = eastVault.GetComponentInChildren<AuthoredSalvageSocket>();
-            Assert.That(eastVaultObstacles.Length, Is.EqualTo(7));
+            Assert.That(eastVaultObstacles.Length, Is.EqualTo(8));
             Assert.That(eastVaultObstacles.All(obstacle =>
                     obstacle.RightAxis.sqrMagnitude > 0.99f && obstacle.ForwardAxis.sqrMagnitude > 0.99f), Is.True,
                 "Imported render transforms must not own navigation bounds because FBX basis rotation can make an axis vertical.");
@@ -1135,7 +1138,7 @@ namespace DeadSignal.Tests
             var eastVaultMeshes = eastVault.GetComponentsInChildren<MeshFilter>()
                 .Select(filter => filter.sharedMesh)
                 .ToArray();
-            Assert.That(eastVaultMeshes.Length, Is.EqualTo(9));
+            Assert.That(eastVaultMeshes.Length, Is.EqualTo(10));
             Assert.That(eastVaultMeshes.All(mesh => mesh != null && mesh.vertexCount >= 24), Is.True,
                 "Every east-vault part should use authored beveled geometry instead of a primitive placeholder.");
             Assert.That(eastVaultMeshes.All(mesh =>

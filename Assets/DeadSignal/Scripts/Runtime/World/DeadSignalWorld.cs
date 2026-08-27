@@ -66,6 +66,7 @@ namespace DeadSignal.World
         public AuthoredCoolantReclamationObjective CoolantReclamationObjective { get; private set; }
         public AuthoredRelayForkObjective RelayForkObjective { get; private set; }
         public AuthoredTransferVaultObjective TransferVaultObjective { get; private set; }
+        public AuthoredCentralInstallationObjective CentralInstallationObjective { get; private set; }
         public IReadOnlyList<GameObject> SalvagePickups => m_salvagePickups;
 
         public SignalRegion GetPayloadRegion(GameObject pickup) => m_salvageRegions.TryGetValue(pickup, out var region)
@@ -157,6 +158,8 @@ namespace DeadSignal.World
             CoolantReclamationObjective?.ResetState();
             RelayForkObjective = Object.FindFirstObjectByType<AuthoredRelayForkObjective>(FindObjectsInactive.Include);
             TransferVaultObjective = Object.FindFirstObjectByType<AuthoredTransferVaultObjective>(FindObjectsInactive.Include);
+            CentralInstallationObjective =
+                Object.FindFirstObjectByType<AuthoredCentralInstallationObjective>(FindObjectsInactive.Include);
             _buildActors(comfortSettings);
             m_palette.RebindHierarchy(m_root);
             _configurePlayerCamera();
@@ -314,7 +317,17 @@ namespace DeadSignal.World
             RelayForkObjective?.SetState(model.CurrentObjective.Id == MissionObjectiveId.RelayFork, model.RelayFeedsRouted);
             TransferVaultObjective?.SetState(
                 model.CurrentObjective.Id == MissionObjectiveId.CentralAssembly,
+                model.CentralPayloadAssembled);
+            CentralInstallationObjective?.SetState(
+                model.CurrentObjective.Id == MissionObjectiveId.CentralInstallation,
                 model.CentralPayloadSecured);
+        }
+
+        public void CompleteCentralInstallation()
+        {
+            CentralInstallationObjective?.SetState(false, true);
+            TransferVaultObjective?.SetRouteOpen(true);
+            _rebuildNavMesh();
         }
 
         public Vector3 GetObjectiveGuidanceWaypoint(RunModel model, float radius)
@@ -1626,6 +1639,8 @@ namespace DeadSignal.World
                     return RelayForkObjective != null ? RelayForkObjective.Position : TowerPosition;
                 case MissionObjectiveId.CentralAssembly:
                     return TransferVaultObjective != null ? TransferVaultObjective.Position : RelayTowerPosition;
+                case MissionObjectiveId.CentralInstallation:
+                    return CentralInstallationObjective != null ? CentralInstallationObjective.Position : TowerPosition;
                 case MissionObjectiveId.RelayPayload:
                     return _nearestPayloadTarget(SignalRegion.Relay);
                 case MissionObjectiveId.SpinePayload:

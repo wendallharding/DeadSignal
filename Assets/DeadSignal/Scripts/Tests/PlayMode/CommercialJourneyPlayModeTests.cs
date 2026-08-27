@@ -144,11 +144,12 @@ namespace DeadSignal.Tests.PlayMode
             Assert.That(report, Does.Contain("Journey REQUIRED WITHDRAWAL"));
             Assert.That(report, Does.Contain("Combat "));
             Assert.That(report, Does.Contain("Guidance response proxy"));
-            Assert.That(report, Does.Contain("Wrong-turn proxies 0  Backtrack legs 4"));
+            Assert.That(report, Does.Contain("Wrong-turn proxies 0  Backtrack legs 5"));
             Assert.That(report, Does.Contain("PASS Cargo coupling"));
             Assert.That(report, Does.Contain("PASS Coolant seal"));
             Assert.That(report, Does.Contain("PASS Relay Fork routing"));
             Assert.That(report, Does.Contain("PASS Transfer-vault assembly"));
+            Assert.That(report, Does.Contain("PASS Central payload installation"));
             Assert.That(report, Does.Contain("Objective-room coverage 8/19"));
             Assert.That(report, Does.Contain("Rooms without a compatibility-route objective 11"));
             game.DebugSetTimeScale(1f);
@@ -202,7 +203,7 @@ namespace DeadSignal.Tests.PlayMode
             game.DebugStartRouteSequence(DebugRoutePreset.RequiredExtraction,
                 DebugAutomationMode.AssistedPlaythrough, DebugAutomationProfile.LiveBalance);
 
-            var timeout = Time.realtimeSinceStartup + 55f;
+            var timeout = Time.realtimeSinceStartup + 85f;
             while (game.CurrentRunOutcome == RunOutcome.Running && Time.realtimeSinceStartup < timeout)
             {
                 yield return null;

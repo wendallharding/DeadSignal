@@ -39,6 +39,7 @@ namespace DeadSignal.Diagnostics
         SelectPrimaryOverclock,
         RouteCentralComponents,
         AssembleCentralPayload,
+        InstallCentralPayload,
         ActivateRelayTower,
         SelectWeaponOverclock,
         ActivateSpineTower,
@@ -409,6 +410,8 @@ namespace DeadSignal.Diagnostics
                         DebugRouteAction.RouteCentralComponents, roomName: "Relay Fork");
                     yield return new DebugRouteStep("Transfer-vault assembly", DebugLocation.TransferVault, 1.7f,
                         DebugRouteAction.AssembleCentralPayload, roomName: "East Transfer Vault");
+                    yield return new DebugRouteStep("Central payload installation", DebugLocation.CentralTower, 2f,
+                        DebugRouteAction.InstallCentralPayload, roomName: "Central Chamber", isBacktrack: true);
                     yield return new DebugRouteStep("Relay tower", DebugLocation.RelayTower, 2f,
                         DebugRouteAction.ActivateRelayTower, roomName: "Relay Foundry");
                     yield return new DebugRouteStep("Piercing calibration", DebugLocation.RelayTower, 2f,

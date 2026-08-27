@@ -21,11 +21,15 @@ namespace DeadSignal.Tests.PlayMode
             var game = Object.FindFirstObjectByType<DeadSignalGame>();
             var relayFork = Object.FindFirstObjectByType<AuthoredRelayForkObjective>(FindObjectsInactive.Include);
             var transferVault = Object.FindFirstObjectByType<AuthoredTransferVaultObjective>(FindObjectsInactive.Include);
+            var centralInstallation =
+                Object.FindFirstObjectByType<AuthoredCentralInstallationObjective>(FindObjectsInactive.Include);
             Assert.That(game, Is.Not.Null);
             Assert.That(relayFork, Is.Not.Null);
             Assert.That(transferVault, Is.Not.Null);
+            Assert.That(centralInstallation, Is.Not.Null);
             Assert.That(relayFork.IsConfigured, Is.True);
             Assert.That(transferVault.IsConfigured, Is.True);
+            Assert.That(centralInstallation.IsConfigured, Is.True);
 
             game.DebugActivateTower();
             game.DebugAssembleCentralPayload();
@@ -49,10 +53,44 @@ namespace DeadSignal.Tests.PlayMode
             game.DebugAssembleCentralPayload();
             game.DebugAssembleCentralPayload();
             yield return null;
+            Assert.That(game.IsCentralPayloadAssembled, Is.True);
+            Assert.That(game.IsCentralPayloadSecured, Is.False);
+            Assert.That(game.CurrentMissionObjectiveId, Is.EqualTo(MissionObjectiveId.CentralInstallation));
+            Assert.That(transferVault.transform.Find("Central Payload Assembled").gameObject.activeSelf, Is.True);
+            Assert.That(transferVault.IsRouteConfigured, Is.True);
+            Assert.That(transferVault.IsRelayRouteOpen, Is.False);
+            var relayRouteGate = transferVault.transform.Find("Central Relay Route Gate");
+            Assert.That(relayRouteGate, Is.Not.Null);
+            Assert.That(relayRouteGate.gameObject.activeSelf, Is.True);
+            Assert.That(relayRouteGate.GetComponent<AuthoredMapObstacle>().OverlapsCircle(relayRouteGate.position, 0.2f),
+                Is.True);
+
+            game.DebugActivateRelayTower();
+            Assert.That(game.IsRelayTowerOnline, Is.True,
+                "Compatibility debug setup may complete installation before activating Relay.");
+
+            SceneManager.LoadScene("SampleScene");
+            yield return null;
+            yield return null;
+            game = Object.FindFirstObjectByType<DeadSignalGame>();
+            game.DebugActivateTower();
+            game.DebugCollectNextCache();
+            game.DebugCollectNextCache();
+            game.DebugRouteCentralComponents();
+            game.DebugAssembleCentralPayload();
+            game.DebugInstallCentralPayload();
+            game.DebugInstallCentralPayload();
+            yield return null;
+            centralInstallation =
+                Object.FindFirstObjectByType<AuthoredCentralInstallationObjective>(FindObjectsInactive.Include);
+            transferVault = Object.FindFirstObjectByType<AuthoredTransferVaultObjective>(FindObjectsInactive.Include);
+            relayRouteGate = transferVault.transform.Find("Central Relay Route Gate");
             Assert.That(game.IsCentralPayloadSecured, Is.True);
             Assert.That(game.CurrentMissionObjectiveId, Is.EqualTo(MissionObjectiveId.RelayTower));
-            Assert.That(transferVault.transform.Find("Central Payload Assembled").gameObject.activeSelf, Is.True);
-            Assert.That(Object.FindObjectsByType<AuthoredMapObstacle>(FindObjectsSortMode.None).Length, Is.EqualTo(137));
+            Assert.That(transferVault.IsRelayRouteOpen, Is.True);
+            Assert.That(relayRouteGate.gameObject.activeSelf, Is.False);
+            Assert.That(centralInstallation.transform.Find("Central Payload Installed").gameObject.activeSelf, Is.True);
+            Assert.That(game.AuthoredMapObstacleCount, Is.EqualTo(138));
 
             SceneManager.LoadScene("SampleScene");
             yield return null;

@@ -49,7 +49,12 @@ namespace DeadSignal.Editor
             AssetDatabase.Refresh();
             if (!HasAssets)
             {
-                throw new InvalidOperationException("The optional east salvage-vault assets are incomplete.");
+                throw new InvalidOperationException(
+                    $"The optional east salvage-vault assets are incomplete: " +
+                    $"texture={AssetDatabase.LoadAssetAtPath<Texture2D>(TEXTURE_PATH) != null}, " +
+                    $"model={AssetDatabase.LoadAssetAtPath<GameObject>(MODEL_PATH) != null}, " +
+                    $"tuning={AssetDatabase.LoadAssetAtPath<SalvagePresentationTuning>(TUNING_PATH) != null}, " +
+                    $"prefab={_hasValidPrefab()}, doorway={_hasOpenEastDoorway()}.");
             }
         }
 
@@ -321,7 +326,7 @@ namespace DeadSignal.Editor
             EditorSceneManager.SaveScene(scene);
 
             var obstacleCount = existing.GetComponentsInChildren<AuthoredMapObstacle>().Length;
-            if (obstacleCount < 6 || obstacleCount > 7 ||
+            if (!_hasRecognizedObstacleContract(existing.transform, obstacleCount) ||
                 existing.GetComponentsInChildren<AuthoredSalvageSocket>().Length != 0)
             {
                 throw new InvalidOperationException(
@@ -407,7 +412,7 @@ namespace DeadSignal.Editor
         {
             var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(PREFAB_PATH);
             var obstacleCount = prefab != null ? prefab.GetComponentsInChildren<AuthoredMapObstacle>().Length : 0;
-            if (prefab == null || obstacleCount < 6 || obstacleCount > 7 ||
+            if (prefab == null || !_hasRecognizedObstacleContract(prefab.transform, obstacleCount) ||
                 prefab.GetComponentsInChildren<AuthoredSalvageSocket>().Length != 0 ||
                 !prefab.TryGetComponent<AuthoredTransferVaultObjective>(out var objective) || !objective.IsConfigured)
             {
@@ -415,8 +420,22 @@ namespace DeadSignal.Editor
             }
 
             var meshes = prefab.GetComponentsInChildren<MeshFilter>();
-            return meshes.Length is 8 or 9 && meshes.All(filter => filter.sharedMesh != null) &&
+            var hasCentralRouteGate = prefab.GetComponentsInChildren<AuthoredMapObstacle>(true)
+                .Any(obstacle => obstacle.name == "Central Relay Route Gate");
+            var hasExpectedMeshCount = hasCentralRouteGate ? meshes.Length is 9 or 10 : meshes.Length is 8 or 9;
+            return hasExpectedMeshCount && meshes.All(filter => filter.sharedMesh != null) &&
                    prefab.GetComponentsInChildren<Collider>().Length == 0;
+        }
+
+        private static bool _hasRecognizedObstacleContract(Transform root, int obstacleCount)
+        {
+            if (obstacleCount is >= 6 and <= 7)
+            {
+                return true;
+            }
+
+            return obstacleCount == 8 && root.GetComponentsInChildren<AuthoredMapObstacle>(true)
+                .Any(obstacle => obstacle.name == "Central Relay Route Gate");
         }
 
         private static bool _hasOpenEastDoorway()

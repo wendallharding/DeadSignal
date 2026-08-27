@@ -39,7 +39,7 @@ namespace DeadSignal.Tests
             Assert.That(wing.GetComponentsInChildren<AuthoredMapObstacle>().Length, Is.EqualTo(15));
             Assert.That(wing.GetComponentsInChildren<Collider>().Length, Is.Zero);
             Assert.That(Resources.Load<GameObject>("Environment/SecurityTrialWingRegion"), Is.Not.Null);
-            Assert.That(game.AuthoredMapObstacleCount, Is.EqualTo(137));
+            Assert.That(game.AuthoredMapObstacleCount, Is.EqualTo(138));
         }
 
         [UnityTest]

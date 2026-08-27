@@ -111,11 +111,14 @@ namespace DeadSignal.Application
         public Vector3 RelayTowerPosition => m_world?.RelayTowerPosition ?? Vector3.zero;
         public bool IsSpineTowerOnline => m_model?.SpineTowerOnline ?? false;
         public bool IsCentralPayloadSecured => m_model?.CentralPayloadSecured ?? false;
+        public bool IsCentralPayloadAssembled => m_model?.CentralPayloadAssembled ?? false;
         public bool IsCargoCouplingSecured => m_model?.CargoCouplingSecured ?? false;
         public bool IsCoolantSealSecured => m_model?.CoolantSealSecured ?? false;
         public bool AreRelayFeedsRouted => m_model?.RelayFeedsRouted ?? false;
         public Vector3 RelayForkPosition => m_world?.RelayForkObjective?.Position ?? Vector3.zero;
         public Vector3 TransferVaultPosition => m_world?.TransferVaultObjective?.Position ?? Vector3.zero;
+        public Vector3 CentralInstallationPosition => m_world?.CentralInstallationObjective?.Position ?? Vector3.zero;
+        public bool IsCentralRelayRouteOpen => m_world?.TransferVaultObjective?.IsRelayRouteOpen ?? false;
         public CargoCouplingRetrievalPhase CargoCouplingPhase =>
             m_world?.CargoAnnexObjective?.Phase ?? CargoCouplingRetrievalPhase.AwaitingCommit;
         public Vector3 CargoCommitmentPosition => m_world?.CargoAnnexObjective?.CommitmentPosition ?? Vector3.zero;
@@ -733,6 +736,11 @@ namespace DeadSignal.Application
             {
                 m_model.TryAssembleCentralPayload();
             }
+            if (!m_model.CentralPayloadSecured)
+            {
+                m_model.TryInstallCentralPayload();
+                m_world.CompleteCentralInstallation();
+            }
             m_world.UpdateCentralTransferPresentation(m_model);
             if (m_model.RelayTowerOnline)
             {
@@ -768,6 +776,17 @@ namespace DeadSignal.Application
 
             m_world.UpdateCentralTransferPresentation(m_model);
             _showFeedback("DEBUG — CENTRAL PAYLOAD ASSEMBLED");
+        }
+
+        public void DebugInstallCentralPayload()
+        {
+            if (m_model?.TryInstallCentralPayload() != true)
+            {
+                return;
+            }
+
+            m_world.CompleteCentralInstallation();
+            _showFeedback("DEBUG — CENTRAL PAYLOAD INSTALLED  //  RELAY ROUTE OPEN");
         }
 
         public void DebugActivateSpineTower()
@@ -1675,11 +1694,25 @@ namespace DeadSignal.Application
                 {
                     m_world.UpdateCentralTransferPresentation(m_model);
                     m_audio.Play(DeadSignalAudioCue.TowerOnline);
-                    _showFeedback("CENTRAL PAYLOAD ASSEMBLED — COMPATIBILITY ROUTE TO RELAY FOUNDRY OPEN");
+                    _showFeedback("CENTRAL PAYLOAD ASSEMBLED — RETURN TO CENTRAL FOR INSTALLATION");
                 }
                 else if (!m_model.RelayFeedsRouted)
                 {
                     _showFeedback("TRANSFER VAULT LOCKED — ROUTE BOTH FEEDS AT THE RELAY FORK");
+                }
+
+                return;
+            }
+
+            if (m_world.CentralInstallationObjective != null &&
+                DeadSignalWorld.FlatDistance(m_world.Player.position, m_world.CentralInstallationObjective.Position) <
+                TOWER_INTERACTION_RADIUS && m_model.CurrentObjective.Id == MissionObjectiveId.CentralInstallation)
+            {
+                if (m_model.TryInstallCentralPayload())
+                {
+                    m_world.CompleteCentralInstallation();
+                    m_audio.Play(DeadSignalAudioCue.Shortcut);
+                    _showFeedback("CENTRAL PAYLOAD INSTALLED — RELAY ROUTE OPEN");
                 }
 
                 return;
@@ -2070,6 +2103,7 @@ namespace DeadSignal.Application
                 case DebugRouteAction.SelectPrimaryOverclock: DebugSelectOverclock(SignalOverclock.ChainArc); break;
                 case DebugRouteAction.RouteCentralComponents: DebugRouteCentralComponents(); break;
                 case DebugRouteAction.AssembleCentralPayload: DebugAssembleCentralPayload(); break;
+                case DebugRouteAction.InstallCentralPayload: DebugInstallCentralPayload(); break;
                 case DebugRouteAction.ActivateRelayTower: DebugActivateRelayTower(); break;
                 case DebugRouteAction.SelectWeaponOverclock: DebugSelectWeapon(SignalWeaponOverclock.PiercingPulse); break;
                 case DebugRouteAction.ActivateSpineTower: DebugActivateSpineTower(); break;
@@ -2115,7 +2149,10 @@ namespace DeadSignal.Application
                     m_model.OptionalSalvageSecured != m_debugOptionalBeforeRouteAction,
                 DebugRouteAction.SelectPrimaryOverclock => m_overclockChoice.Selected != SignalOverclock.None,
                 DebugRouteAction.RouteCentralComponents => m_model.RelayFeedsRouted && _debugObjectiveAdvanced(),
-                DebugRouteAction.AssembleCentralPayload => m_model.CentralPayloadSecured && _debugObjectiveAdvanced(),
+                DebugRouteAction.AssembleCentralPayload => m_model.CentralPayloadAssembled && _debugObjectiveAdvanced(),
+                DebugRouteAction.InstallCentralPayload => m_model.CentralPayloadSecured &&
+                                                          m_world.TransferVaultObjective.IsRelayRouteOpen &&
+                                                          _debugObjectiveAdvanced(),
                 DebugRouteAction.ActivateRelayTower => m_model.RelayTowerOnline && _debugObjectiveAdvanced(),
                 DebugRouteAction.SelectWeaponOverclock => m_overclockChoice.SelectedWeapon != SignalWeaponOverclock.None,
                 DebugRouteAction.ActivateSpineTower => m_model.SpineTowerOnline && _debugObjectiveAdvanced(),

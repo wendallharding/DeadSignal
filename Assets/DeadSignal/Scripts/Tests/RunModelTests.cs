@@ -211,6 +211,7 @@ namespace DeadSignal.Tests
             Assert.That(run.CollectPayload(SignalRegion.Central), Is.True);
             Assert.That(run.TryRouteCentralComponents(), Is.True);
             Assert.That(run.TryAssembleCentralPayload(), Is.True);
+            Assert.That(run.TryInstallCentralPayload(), Is.True);
         }
 
         [Test]

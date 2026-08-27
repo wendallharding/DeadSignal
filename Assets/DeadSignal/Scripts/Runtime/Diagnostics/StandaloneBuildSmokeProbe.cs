@@ -19,7 +19,7 @@ namespace DeadSignal.Diagnostics
         public const string COMMAND_LINE_ARGUMENT = "-deadSignalBuildSmoke";
         public const string PASS_MARKER = "[DEAD SIGNAL STANDALONE SMOKE] PASS";
 
-        private const int EXPECTED_AUTHORED_OBSTACLE_COUNT = 137;
+        private const int EXPECTED_AUTHORED_OBSTACLE_COUNT = 138;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         private static void _startWhenRequested()
@@ -48,7 +48,7 @@ namespace DeadSignal.Diagnostics
 
             var game = FindFirstObjectByType<DeadSignalGame>();
             var missionObjectives = Resources.Load<MissionObjectiveGraphConfiguration>("Tuning/CompatibilityMissionObjectives");
-            var missionObjectivesReady = missionObjectives != null && missionObjectives.ObjectiveCount == 10;
+            var missionObjectivesReady = missionObjectives != null && missionObjectives.ObjectiveCount == 11;
             var objectiveConsumersReady = game != null &&
                                           game.CurrentMissionObjectiveId == MissionObjectiveId.CentralTower &&
                                           game.CurrentMissionGuidanceTitle == "RESTORE CENTRAL" &&
@@ -61,8 +61,12 @@ namespace DeadSignal.Diagnostics
                                coolantObjective.Phase == CoolantSealThreadingPhase.AwaitingFirstBaffle;
             var relayForkObjective = FindFirstObjectByType<AuthoredRelayForkObjective>(FindObjectsInactive.Include);
             var transferVaultObjective = FindFirstObjectByType<AuthoredTransferVaultObjective>(FindObjectsInactive.Include);
+            var centralInstallationObjective =
+                FindFirstObjectByType<AuthoredCentralInstallationObjective>(FindObjectsInactive.Include);
             var centralTransferReady = relayForkObjective != null && relayForkObjective.IsConfigured &&
-                                       transferVaultObjective != null && transferVaultObjective.IsConfigured;
+                                       transferVaultObjective != null && transferVaultObjective.IsConfigured &&
+                                       centralInstallationObjective != null && centralInstallationObjective.IsConfigured &&
+                                       transferVaultObjective.IsRouteConfigured && !transferVaultObjective.IsRelayRouteOpen;
             var weaponTextureReady = Resources.Load<Texture2D>("Environment/RelayFoundryWeaponCalibrationDecal") != null;
             var weaponMaterialReady =
                 Resources.Load<Material>("Materials/RelayFoundry/RelayFoundryWeaponCalibrationDecal") != null;
@@ -146,7 +150,10 @@ namespace DeadSignal.Diagnostics
             Debug.Log($"[DEAD SIGNAL STANDALONE SMOKE] COOLANT RECLAMATION | " +
                       $"configured={coolantObjective?.IsConfigured ?? false} phase={coolantObjective?.Phase}");
             Debug.Log($"[DEAD SIGNAL STANDALONE SMOKE] CENTRAL TRANSFER | " +
-                      $"fork={relayForkObjective?.IsConfigured ?? false} vault={transferVaultObjective?.IsConfigured ?? false}");
+                      $"fork={relayForkObjective?.IsConfigured ?? false} vault={transferVaultObjective?.IsConfigured ?? false} " +
+                      $"install={centralInstallationObjective?.IsConfigured ?? false} " +
+                      $"routeConfigured={transferVaultObjective?.IsRouteConfigured ?? false} " +
+                      $"routeOpen={transferVaultObjective?.IsRelayRouteOpen ?? false}");
             var runtimeReady = game != null &&
                                 missionObjectivesReady &&
                                 objectiveConsumersReady &&

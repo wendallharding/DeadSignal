@@ -82,7 +82,7 @@ namespace DeadSignal.Tests
             sequencer.Start(DebugRoutePreset.FullExtraction, DebugAutomationMode.DeterministicValidation,
                 DebugAutomationProfile.SafeNavigation, 72f);
 
-            Assert.That(sequencer.StepCount, Is.EqualTo(15));
+            Assert.That(sequencer.StepCount, Is.EqualTo(16));
             Assert.That(sequencer.CurrentStep.Action, Is.EqualTo(DebugRouteAction.ActivateCentralTower));
             _completeCurrentStep(sequencer);
             Assert.That(sequencer.CurrentStep.Action, Is.EqualTo(DebugRouteAction.CollectCache));
@@ -92,6 +92,9 @@ namespace DeadSignal.Tests
             Assert.That(sequencer.CurrentStep.Action, Is.EqualTo(DebugRouteAction.RouteCentralComponents));
             _completeCurrentStep(sequencer);
             Assert.That(sequencer.CurrentStep.Action, Is.EqualTo(DebugRouteAction.AssembleCentralPayload));
+            _completeCurrentStep(sequencer);
+            Assert.That(sequencer.CurrentStep.Action, Is.EqualTo(DebugRouteAction.InstallCentralPayload));
+            Assert.That(sequencer.CurrentStep.Location, Is.EqualTo(DebugLocation.CentralTower));
             _completeCurrentStep(sequencer);
             Assert.That(sequencer.CurrentStep.Action, Is.EqualTo(DebugRouteAction.ActivateRelayTower));
             _completeCurrentStep(sequencer);
@@ -120,8 +123,8 @@ namespace DeadSignal.Tests
             sequencer.Start(DebugRoutePreset.RequiredExtraction, DebugAutomationMode.DeterministicValidation,
                 DebugAutomationProfile.SafeNavigation, 72f);
 
-            Assert.That(sequencer.StepCount, Is.EqualTo(14));
-            for (var step = 0; step < 10; step++)
+            Assert.That(sequencer.StepCount, Is.EqualTo(15));
+            for (var step = 0; step < 11; step++)
             {
                 Assert.That(sequencer.CurrentStep.Location, Is.Not.EqualTo(DebugLocation.CacheFour));
                 _completeCurrentStep(sequencer);
@@ -191,7 +194,7 @@ namespace DeadSignal.Tests
             var report = sequencer.FinishReport(72f, metrics, false, false, Vector3.zero, RunOutcome.Victory);
 
             Assert.That(report, Does.Contain("Guidance response proxy avg 0.30s"));
-            Assert.That(report, Does.Contain("Wrong-turn proxies 0  Backtrack legs 4"));
+            Assert.That(report, Does.Contain("Wrong-turn proxies 0  Backtrack legs 5"));
             Assert.That(report, Does.Contain("Extraction Dock"));
             Assert.That(report, Does.Contain("Central Chamber"));
             Assert.That(report, Does.Contain("Relay Foundry"));

@@ -26,7 +26,7 @@ This is the controlling workstream for scheduled development. Complete it from t
 - [x] Cargo Annex supplies the power coupling through its commit-and-withdraw spatial verb
 - [x] Coolant Reclamation supplies the coolant seal through its baffle-threading spatial verb
 - [x] Relay Fork routes both components into the transfer vault; the vault assembles the Central payload
-- [ ] Returning the assembled payload to the Central Tower installs it, changes the station state, and opens the Relay route
+- [x] Returning the assembled payload to the Central Tower installs it, changes the station state, and opens the Relay route
 - [ ] Keep the act concise, permit the two component rooms in either order, and reject repetitive pickup-only interactions
 
 ### Phase 3 — Act II: extend the network

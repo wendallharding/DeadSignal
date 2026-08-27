@@ -181,6 +181,7 @@ namespace DeadSignal.Missions
         public bool ShortcutOpen { get; private set; }
         public bool OptionalSalvageSecured { get; private set; }
         public bool CentralPayloadSecured { get; private set; }
+        public bool CentralPayloadAssembled { get; private set; }
         public bool CargoCouplingSecured { get; private set; }
         public bool CoolantSealSecured { get; private set; }
         public bool RelayFeedsRouted { get; private set; }
@@ -285,6 +286,18 @@ namespace DeadSignal.Missions
         public bool TryAssembleCentralPayload()
         {
             if (!_isCurrentObjective(MissionObjectiveId.CentralAssembly) || !RelayFeedsRouted ||
+                CentralPayloadAssembled || Outcome != RunOutcome.Running)
+            {
+                return false;
+            }
+
+            CentralPayloadAssembled = true;
+            return true;
+        }
+
+        public bool TryInstallCentralPayload()
+        {
+            if (!_isCurrentObjective(MissionObjectiveId.CentralInstallation) || !CentralPayloadAssembled ||
                 CentralPayloadSecured || Outcome != RunOutcome.Running)
             {
                 return false;
@@ -480,7 +493,8 @@ namespace DeadSignal.Missions
                 MissionCompletionRule.CargoCouplingSecured => CargoCouplingSecured,
                 MissionCompletionRule.CoolantSealSecured => CoolantSealSecured,
                 MissionCompletionRule.RelayFeedsRouted => RelayFeedsRouted,
-                MissionCompletionRule.CentralPayloadAssembled => CentralPayloadSecured,
+                MissionCompletionRule.CentralPayloadAssembled => CentralPayloadAssembled,
+                MissionCompletionRule.CentralPayloadInstalled => CentralPayloadSecured,
                 _ => false
             };
         }

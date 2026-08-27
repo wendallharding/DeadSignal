@@ -13,7 +13,7 @@ namespace DeadSignal.Tests
         {
             var definitions = CompatibilityMissionObjectiveGraph.Instance.Definitions;
 
-            Assert.That(definitions.Count, Is.EqualTo(10));
+            Assert.That(definitions.Count, Is.EqualTo(11));
             Assert.That(definitions.Select(definition => definition.Id), Is.Unique);
             Assert.That(definitions.All(definition => !string.IsNullOrWhiteSpace(definition.OwningRoom)), Is.True);
             Assert.That(definitions.All(definition => !string.IsNullOrWhiteSpace(definition.AnchorId)), Is.True);
@@ -22,11 +22,11 @@ namespace DeadSignal.Tests
             Assert.That(definitions.Select(definition => definition.CompletionRule), Is.Unique);
             Assert.That(definitions[0].WorldMutations.HasFlag(MissionWorldMutation.CentralTerritoryPowered), Is.True);
             Assert.That(definitions[0].Rewards.Single().Kind, Is.EqualTo(MissionRewardKind.SignalRefill));
-            Assert.That(definitions[5].Rewards.Select(reward => reward.Kind),
+            Assert.That(definitions[6].Rewards.Select(reward => reward.Kind),
                 Is.EquivalentTo(new[] { MissionRewardKind.SignalRefill, MissionRewardKind.WeaponCalibration }));
-            Assert.That(definitions[7].Rewards.Select(reward => reward.Kind),
+            Assert.That(definitions[8].Rewards.Select(reward => reward.Kind),
                 Is.EquivalentTo(new[] { MissionRewardKind.SignalRefill, MissionRewardKind.WeaponEvolution }));
-            Assert.That(definitions[9].Rewards.Single().Kind, Is.EqualTo(MissionRewardKind.Victory));
+            Assert.That(definitions[10].Rewards.Single().Kind, Is.EqualTo(MissionRewardKind.Victory));
         }
 
         [Test]
@@ -35,7 +35,7 @@ namespace DeadSignal.Tests
             var configuration = Resources.Load<MissionObjectiveGraphConfiguration>("Tuning/CompatibilityMissionObjectives");
 
             Assert.That(configuration, Is.Not.Null);
-            Assert.That(configuration.ObjectiveCount, Is.EqualTo(10));
+            Assert.That(configuration.ObjectiveCount, Is.EqualTo(11));
             var authored = configuration.BuildGraph().Definitions;
             var fallback = CompatibilityMissionObjectiveGraph.Instance.Definitions;
             Assert.That(authored.Count, Is.EqualTo(fallback.Count));
@@ -90,6 +90,11 @@ namespace DeadSignal.Tests
                 MissionCompletionRule.CentralPayloadAssembled, MissionWorldMutation.CentralPayloadAssembled,
                 "FEEDS ROUTED");
             Assert.That(run.TryAssembleCentralPayload(), Is.True);
+            _assertObjective(run, MissionObjectiveId.CentralInstallation, MissionStage.CentralPayload,
+                MissionCompletionRule.CentralPayloadInstalled, MissionWorldMutation.CentralPayloadInstalled,
+                "CENTRAL PAYLOAD ASSEMBLED");
+            Assert.That(run.TryActivateRelayTower(), Is.False);
+            Assert.That(run.TryInstallCentralPayload(), Is.True);
             _assertObjective(run, MissionObjectiveId.RelayTower, MissionStage.RelayTower,
                 MissionCompletionRule.RelayTowerOnline, MissionWorldMutation.RelayTerritoryPowered,
                 "EXTEND THE NETWORK");
@@ -155,6 +160,12 @@ namespace DeadSignal.Tests
             Assert.That(run.CurrentObjective.Id, Is.EqualTo(MissionObjectiveId.CentralAssembly));
             Assert.That(run.TryAssembleCentralPayload(), Is.True);
             Assert.That(run.TryAssembleCentralPayload(), Is.False);
+            Assert.That(run.CentralPayloadAssembled, Is.True);
+            Assert.That(run.CentralPayloadSecured, Is.False);
+            Assert.That(run.CurrentObjective.Id, Is.EqualTo(MissionObjectiveId.CentralInstallation));
+            Assert.That(run.TryActivateRelayTower(), Is.False);
+            Assert.That(run.TryInstallCentralPayload(), Is.True);
+            Assert.That(run.TryInstallCentralPayload(), Is.False);
             Assert.That(run.CentralPayloadSecured, Is.True);
             Assert.That(run.CurrentObjective.Id, Is.EqualTo(MissionObjectiveId.RelayTower));
         }
