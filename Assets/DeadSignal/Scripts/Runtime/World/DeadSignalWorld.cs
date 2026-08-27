@@ -67,6 +67,7 @@ namespace DeadSignal.World
         public AuthoredRelayForkObjective RelayForkObjective { get; private set; }
         public AuthoredTransferVaultObjective TransferVaultObjective { get; private set; }
         public AuthoredCentralInstallationObjective CentralInstallationObjective { get; private set; }
+        public AuthoredRelayPayloadObjective RelayPayloadObjective { get; private set; }
         public IReadOnlyList<GameObject> SalvagePickups => m_salvagePickups;
 
         public SignalRegion GetPayloadRegion(GameObject pickup) => m_salvageRegions.TryGetValue(pickup, out var region)
@@ -160,6 +161,8 @@ namespace DeadSignal.World
             TransferVaultObjective = Object.FindFirstObjectByType<AuthoredTransferVaultObjective>(FindObjectsInactive.Include);
             CentralInstallationObjective =
                 Object.FindFirstObjectByType<AuthoredCentralInstallationObjective>(FindObjectsInactive.Include);
+            RelayPayloadObjective =
+                Object.FindFirstObjectByType<AuthoredRelayPayloadObjective>(FindObjectsInactive.Include);
             _buildActors(comfortSettings);
             m_palette.RebindHierarchy(m_root);
             _configurePlayerCamera();
@@ -328,6 +331,14 @@ namespace DeadSignal.World
             CentralInstallationObjective?.SetState(false, true);
             TransferVaultObjective?.SetRouteOpen(true);
             _rebuildNavMesh();
+        }
+
+        public void UpdateRelayPayloadPresentation(RunModel model)
+        {
+            RelayPayloadObjective?.SetState(
+                model.RelayPayloadStabilized,
+                model.CurrentObjective.Id == MissionObjectiveId.RelayInstallation,
+                model.RelayPayloadSecured);
         }
 
         public Vector3 GetObjectiveGuidanceWaypoint(RunModel model, float radius)
@@ -1643,6 +1654,8 @@ namespace DeadSignal.World
                     return CentralInstallationObjective != null ? CentralInstallationObjective.Position : TowerPosition;
                 case MissionObjectiveId.RelayPayload:
                     return _nearestPayloadTarget(SignalRegion.Relay);
+                case MissionObjectiveId.RelayInstallation:
+                    return RelayPayloadObjective != null ? RelayPayloadObjective.Position : RelayTowerPosition;
                 case MissionObjectiveId.SpinePayload:
                     return _nearestPayloadTarget(SignalRegion.Spine);
                 default:

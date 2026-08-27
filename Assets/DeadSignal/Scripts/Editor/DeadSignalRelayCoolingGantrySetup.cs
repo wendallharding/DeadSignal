@@ -27,6 +27,8 @@ namespace DeadSignal.Editor
             "Assets/DeadSignal/Resources/Materials/RelayFoundry/RelayFoundryDeck.mat";
         private const string CYAN_MATERIAL_PATH =
             "Assets/DeadSignal/Resources/Materials/RelayFoundry/RelayFoundryCyan.mat";
+        private const string AMBER_MATERIAL_PATH =
+            "Assets/DeadSignal/Resources/Materials/RelayFoundry/RelayFoundryAmber.mat";
         private const string CERAMIC_MATERIAL_PATH =
             "Assets/DeadSignal/Resources/Materials/SapperCradleCeramic.mat";
         private const string COPPER_MATERIAL_PATH =
@@ -44,9 +46,10 @@ namespace DeadSignal.Editor
                        AssetDatabase.LoadAssetAtPath<Texture2D>(DECAL_PATH) != null &&
                        AssetDatabase.LoadAssetAtPath<Material>(DECAL_MATERIAL_PATH) != null &&
                        foundry.transform.Find("Relay Cooling Gantry Region") != null &&
-                       foundry.transform.Find("Protected Relay Payload Socket") != null &&
+                       foundry.transform.Find("Protected Relay Payload Socket") == null &&
+                       foundry.GetComponent<AuthoredRelayPayloadObjective>()?.IsConfigured == true &&
                        foundry.transform.Find("Foundry South Bulkhead") == null &&
-                       foundry.GetComponentsInChildren<AuthoredSalvageSocket>().Length == 2 &&
+                       foundry.GetComponentsInChildren<AuthoredSalvageSocket>().Length == 1 &&
                        region.GetComponentsInChildren<AuthoredMapObstacle>().Length == 6 &&
                        region.GetComponentsInChildren<AuthoredInterceptorEntrance>().Length == 1 &&
                        region.GetComponentsInChildren<AuthoredSalvageSocket>().Length == 1 &&
@@ -139,6 +142,7 @@ namespace DeadSignal.Editor
                 Armor = AssetDatabase.LoadAssetAtPath<Material>(ARMOR_MATERIAL_PATH),
                 Deck = AssetDatabase.LoadAssetAtPath<Material>(DECK_MATERIAL_PATH),
                 Cyan = AssetDatabase.LoadAssetAtPath<Material>(CYAN_MATERIAL_PATH),
+                Amber = AssetDatabase.LoadAssetAtPath<Material>(AMBER_MATERIAL_PATH),
                 Ceramic = AssetDatabase.LoadAssetAtPath<Material>(CERAMIC_MATERIAL_PATH),
                 Copper = AssetDatabase.LoadAssetAtPath<Material>(COPPER_MATERIAL_PATH),
                 Decal = decal
@@ -253,14 +257,29 @@ namespace DeadSignal.Editor
                     new Vector3(1.8f, 1f, 0.35f), materials.Armor);
 
                 _remove(foundry.transform, "Protected Relay Payload Socket");
-                _salvageSocket(foundry.transform, "Protected Relay Payload Socket",
-                    new Vector3(7.25f, 0f, 4.8f));
 
                 _remove(foundry.transform, "Relay Cooling Gantry Region");
                 var regionPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(REGION_PREFAB_PATH);
                 var region = (GameObject)PrefabUtility.InstantiatePrefab(regionPrefab, foundry.transform);
                 region.name = "Relay Cooling Gantry Region";
                 region.transform.localPosition = new Vector3(0f, 0f, -11.25f);
+
+                _remove(foundry.transform, "Relay Payload Calibration Anchor");
+                _remove(foundry.transform, "Relay Payload Stabilized Marker");
+                _remove(foundry.transform, "Relay Payload Install Available");
+                _remove(foundry.transform, "Relay Payload Installed");
+                var installAnchor = new GameObject("Relay Payload Calibration Anchor").transform;
+                installAnchor.SetParent(foundry.transform, false);
+                installAnchor.localPosition = new Vector3(3.75f, 0f, -3.25f);
+                var stabilizedMarker = _marker(foundry.transform, "Relay Payload Stabilized Marker",
+                    new Vector3(3.75f, 0.06f, -13.8f), new Vector3(2.1f, 0.08f, 2.1f), materials.Cyan);
+                var installAvailable = _marker(foundry.transform, "Relay Payload Install Available",
+                    new Vector3(3.75f, 0.06f, -3.25f), new Vector3(2.6f, 0.08f, 2.6f), materials.Amber);
+                var installed = _marker(foundry.transform, "Relay Payload Installed",
+                    new Vector3(3.75f, 0.08f, -3.25f), new Vector3(1.8f, 0.12f, 1.8f), materials.Cyan);
+                var objective = foundry.GetComponent<AuthoredRelayPayloadObjective>() ??
+                                foundry.AddComponent<AuthoredRelayPayloadObjective>();
+                objective.Configure(installAnchor, stabilizedMarker, installAvailable, installed);
                 PrefabUtility.SaveAsPrefabAsset(foundry, FOUNDRY_PREFAB_PATH);
             }
             finally
@@ -303,6 +322,29 @@ namespace DeadSignal.Editor
             socket.AddComponent<AuthoredSalvageSocket>().Configure(SignalRegion.Relay, false);
         }
 
+        private static GameObject _marker(
+            Transform parent,
+            string objectName,
+            Vector3 position,
+            Vector3 scale,
+            Material material)
+        {
+            var marker = new GameObject(objectName);
+            marker.transform.SetParent(parent, false);
+            marker.transform.localPosition = position;
+            var railThickness = 0.12f;
+            _wall(marker.transform, "North Rail", new Vector3(0f, 0f, scale.z * 0.5f),
+                new Vector3(scale.x, scale.y, railThickness), material, false);
+            _wall(marker.transform, "South Rail", new Vector3(0f, 0f, scale.z * -0.5f),
+                new Vector3(scale.x, scale.y, railThickness), material, false);
+            _wall(marker.transform, "East Rail", new Vector3(scale.x * 0.5f, 0f, 0f),
+                new Vector3(railThickness, scale.y, scale.z), material, false);
+            _wall(marker.transform, "West Rail", new Vector3(scale.x * -0.5f, 0f, 0f),
+                new Vector3(railThickness, scale.y, scale.z), material, false);
+            marker.SetActive(false);
+            return marker;
+        }
+
         private static GameObject _wall(
             Transform parent,
             string objectName,
@@ -331,6 +373,7 @@ namespace DeadSignal.Editor
             public Material Armor;
             public Material Deck;
             public Material Cyan;
+            public Material Amber;
             public Material Ceramic;
             public Material Copper;
             public Material Decal;

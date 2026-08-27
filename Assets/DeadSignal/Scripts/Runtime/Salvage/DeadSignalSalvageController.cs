@@ -231,6 +231,11 @@ namespace DeadSignal.Salvage
                 m_world.RetirePayloadAlternatives(region, pickup);
             }
 
+            if (region == SignalRegion.Relay)
+            {
+                m_world.UpdateRelayPayloadPresentation(m_model);
+            }
+
             if (m_model.Salvage == salvageBeforeCollection)
             {
                 m_audio.Play(DeadSignalAudioCue.Salvage);
@@ -251,7 +256,9 @@ namespace DeadSignal.Salvage
             var rewardText = recovered > 0f
                 ? $"  +{recovered:0} SIGNAL  //  SAFE FIELD {m_tuning.RecoveryFieldDuration:0}s"
                 : string.Empty;
-            m_showFeedback(m_overclockChoice.IsPrimaryPending
+            m_showFeedback(region == SignalRegion.Relay
+                ? "RELAY PAYLOAD STABILIZED — RETURN TO FOUNDRY CALIBRATION"
+                : m_overclockChoice.IsPrimaryPending
                 ? "SALVAGE CORE UNLOCKED — CHOOSE A PRIMARY OVERCLOCK"
                 : m_overclockChoice.IsAuxiliaryPending
                 ? "SALVAGE CORE SYNCED — CHOOSE AN AUXILIARY OVERCLOCK"

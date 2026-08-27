@@ -137,8 +137,8 @@ namespace DeadSignal.Tests
                 Assert.That(game.IsWeaponOverclockChoicePending, Is.False,
                     "Foundry commissioning should unlock payload processing without awarding calibration early.");
                 Assert.That(game.CurrentMissionObjectiveId, Is.EqualTo(MissionObjectiveId.RelayPayload));
-                Assert.That(game.CurrentMissionGuidanceAction, Does.Contain("FOUNDRY OR COOLING GANTRY"),
-                    "The compatibility payload step must remain completable until Gantry processing replaces it.");
+                Assert.That(game.CurrentMissionGuidanceAction, Does.Contain("COOLING GANTRY"),
+                    "Foundry commissioning should guide the player to the required processing room.");
                 Assert.That(game.PendingSecurityReinforcement, Is.EqualTo(SecurityReinforcement.Suppressor),
                     "The second powered territory should promote the existing final response into a Relay lockdown.");
                 Assert.That(game.SecurityReinforcementsRemaining, Is.EqualTo(2),
@@ -1138,7 +1138,7 @@ namespace DeadSignal.Tests
                 "East-vault collision authoring should remain on identity-oriented, presentation-free transforms.");
             Assert.That(eastVaultSocket, Is.Null,
                 "The former fourth cache should move into the Arc Furnace instead of remaining in transit space.");
-            Assert.That(game.AuthoredSalvageSocketCount, Is.EqualTo(3));
+                Assert.That(game.AuthoredSalvageSocketCount, Is.EqualTo(2));
             Assert.That(eastVault.GetComponentsInChildren<Collider>().Length, Is.Zero,
                 "The optional room should use serialized object-aligned blockers without duplicate physics colliders.");
             var eastVaultMeshes = eastVault.GetComponentsInChildren<MeshFilter>()
@@ -1541,7 +1541,7 @@ namespace DeadSignal.Tests
             var salvageCaches = game.transform.Cast<Transform>().Where(child => child.name == "Salvage Cache").ToArray();
             Assert.That(game.HasSalvageCacheAssets, Is.True,
                 "The salvage-cache prefab and original containment texture should load from Resources.");
-            const int REGIONAL_CACHE_COUNT = RunModel.SalvageRequired * 2 + 1;
+            const int REGIONAL_CACHE_COUNT = RunModel.SalvageRequired * 2;
             Assert.That(game.SalvageCacheInstanceCount, Is.EqualTo(REGIONAL_CACHE_COUNT));
             Assert.That(game.SalvageCachePartCount, Is.EqualTo(REGIONAL_CACHE_COUNT * 4));
             Assert.That(salvageCaches.Length, Is.EqualTo(REGIONAL_CACHE_COUNT));
@@ -2049,9 +2049,10 @@ namespace DeadSignal.Tests
                 yield return null;
                 Assert.That(game.SelectedAuxiliaryOverclock, Is.EqualTo(SignalAuxiliaryOverclock.FeedbackShield));
 
+                game.DebugInstallRelayPayload();
                 yield return null;
                 Assert.That(game.CurrentObjectiveBeaconPhase, Is.EqualTo(ObjectiveBeaconPhase.Tower),
-                    "The Relay payload should advance guidance to the required Spine tower.");
+                    "Foundry installation should advance guidance to the required Spine tower.");
                 Assert.That(game.CurrentMissionPhase, Is.EqualTo(5),
                     "The mission command strip should route the Relay payload into the Spine expedition.");
                 game.DebugMakeExtractionReady();

@@ -26,7 +26,7 @@ MonoBehaviour:
     m_guidanceTitle: RESTORE CENTRAL
     m_guidanceAction: ACTIVATE THE CENTRAL SIGNAL TOWER
     m_guidanceAdvisory: SIGNAL -10  //  REFILL +62
-    m_prerequisites:
+    m_prerequisites: 
     m_successors: 0700000008000000
   - m_id: 7
     m_legacyStage: 1
@@ -110,16 +110,31 @@ MonoBehaviour:
     m_successors: 03000000
   - m_id: 3
     m_legacyStage: 3
-    m_owningRoom: Relay Foundry / Cooling Gantry
-    m_anchorId: Relay Payload Socket
-    m_completionRule: 3
-    m_worldMutations: 8
+    m_owningRoom: Cooling Gantry
+    m_anchorId: Cooling Gantry Relay Payload Socket
+    m_completionRule: 12
+    m_worldMutations: 4096
     m_rewards: []
     m_guidancePhase: 4
-    m_guidanceTitle: RELAY PAYLOAD
-    m_guidanceAction: CHOOSE FOUNDRY OR COOLING GANTRY
-    m_guidanceAdvisory: INNER COVER OR EXCHANGER LOOP  //  ONE REQUIRED
+    m_guidanceTitle: STABILIZE RELAY PAYLOAD
+    m_guidanceAction: PROCESS THE PAYLOAD IN THE COOLING GANTRY
+    m_guidanceAdvisory: THREAD THE EXCHANGER LOOP  //  THEN RETURN TO FOUNDRY
     m_prerequisites: 02000000
+    m_successors: 0c000000
+  - m_id: 12
+    m_legacyStage: 3
+    m_owningRoom: Relay Foundry
+    m_anchorId: Relay Payload Calibration Anchor
+    m_completionRule: 3
+    m_worldMutations: 8
+    m_rewards:
+    - m_kind: 2
+      m_amount: 0
+    m_guidancePhase: 4
+    m_guidanceTitle: PAYLOAD STABILIZED
+    m_guidanceAction: RETURN TO FOUNDRY AND INSTALL THE RELAY PAYLOAD
+    m_guidanceAdvisory: ONE INSTALLATION RETURN  //  CHOOSE WEAPON CALIBRATION
+    m_prerequisites: 03000000
     m_successors: 04000000
   - m_id: 4
     m_legacyStage: 4
@@ -136,7 +151,7 @@ MonoBehaviour:
     m_guidanceTitle: POWER THE SPINE
     m_guidanceAction: RESTORE THE CAPACITOR SPINE TOWER
     m_guidanceAdvisory: SIGNAL -18  //  EVOLVE WEAPON
-    m_prerequisites: 03000000
+    m_prerequisites: 0c000000
     m_successors: 05000000
   - m_id: 5
     m_legacyStage: 5
@@ -165,4 +180,4 @@ MonoBehaviour:
     m_guidanceAction: RETURN TO THE CYAN DOCK
     m_guidanceAdvisory: THREE TOWERS + THREE PAYLOADS SECURED  //  QUENCH CACHE OPTIONAL
     m_prerequisites: 05000000
-    m_successors:
+    m_successors: 

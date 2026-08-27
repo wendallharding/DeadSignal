@@ -131,6 +131,7 @@ namespace DeadSignal.Application
         public Vector3 CoolantSealPosition => m_world?.CoolantReclamationObjective?.SealPosition ?? Vector3.zero;
         public Vector3 CoolantReleasePosition => m_world?.CoolantReclamationObjective?.ReleasePosition ?? Vector3.zero;
         public bool IsRelayPayloadSecured => m_model?.RelayPayloadSecured ?? false;
+        public bool IsRelayPayloadStabilized => m_model?.RelayPayloadStabilized ?? false;
         public bool IsSpinePayloadSecured => m_model?.SpinePayloadSecured ?? false;
         public bool IsExtractionReady => m_model?.CanExtract ?? false;
         public bool IsDepartureSurgeConsumed => m_world?.IsDepartureSurgeConsumed ?? false;
@@ -795,6 +796,10 @@ namespace DeadSignal.Application
             {
                 DebugCollectNextCache();
             }
+            if (!m_model.RelayPayloadSecured)
+            {
+                DebugInstallRelayPayload();
+            }
             if (m_overclockChoice.SelectedWeapon == SignalWeaponOverclock.None)
             {
                 DebugSelectWeapon(SignalWeaponOverclock.PiercingPulse);
@@ -986,6 +991,18 @@ namespace DeadSignal.Application
         {
             m_overclockChoice.NotifyRelayActivated();
             m_overclockChoice.TrySelect(overclock);
+        }
+
+        public void DebugInstallRelayPayload()
+        {
+            if (m_model?.TryInstallRelayPayload() != true)
+            {
+                return;
+            }
+
+            m_world.UpdateRelayPayloadPresentation(m_model);
+            m_overclockChoice.NotifyRelayActivated();
+            _showFeedback("DEBUG — RELAY PAYLOAD INSTALLED");
         }
 
         public void DebugBeginExtraction(ExtractionUplinkMode mode)
@@ -1323,6 +1340,7 @@ namespace DeadSignal.Application
             var powered = _isPlayerPowered();
             m_world.TickEnvironmentPresentation(dt, m_model.TowerOnline, powered);
             m_world.UpdateCentralTransferPresentation(m_model);
+            m_world.UpdateRelayPayloadPresentation(m_model);
             m_world.PlayerSignalWake.Tick(m_playerMovement.Velocity);
             m_world.TickGameplayAssists(dt, m_model, m_threats, aimDirection);
 
@@ -1717,6 +1735,21 @@ namespace DeadSignal.Application
                 return;
             }
 
+            if (m_world.RelayPayloadObjective != null &&
+                DeadSignalWorld.FlatDistance(m_world.Player.position, m_world.RelayPayloadObjective.Position) <
+                TOWER_INTERACTION_RADIUS && m_model.CurrentObjective.Id == MissionObjectiveId.RelayInstallation)
+            {
+                if (m_model.TryInstallRelayPayload())
+                {
+                    m_world.UpdateRelayPayloadPresentation(m_model);
+                    m_overclockChoice.NotifyRelayActivated();
+                    m_audio.Play(DeadSignalAudioCue.TowerOnline);
+                    _showFeedback("RELAY PAYLOAD INSTALLED — CHOOSE WEAPON CALIBRATION");
+                }
+
+                return;
+            }
+
             if (!m_model.SpineTowerOnline &&
                 m_world.IsSpineTowerInteractionInRange(m_world.Player.position))
             {
@@ -2103,7 +2136,10 @@ namespace DeadSignal.Application
                 case DebugRouteAction.AssembleCentralPayload: DebugAssembleCentralPayload(); break;
                 case DebugRouteAction.InstallCentralPayload: DebugInstallCentralPayload(); break;
                 case DebugRouteAction.ActivateRelayTower: DebugActivateRelayTower(); break;
-                case DebugRouteAction.SelectWeaponOverclock: DebugSelectWeapon(SignalWeaponOverclock.PiercingPulse); break;
+                case DebugRouteAction.SelectWeaponOverclock:
+                    DebugInstallRelayPayload();
+                    DebugSelectWeapon(SignalWeaponOverclock.PiercingPulse);
+                    break;
                 case DebugRouteAction.ActivateSpineTower: DebugActivateSpineTower(); break;
                 case DebugRouteAction.BeginStableExtraction: DebugBeginExtraction(ExtractionUplinkMode.Stable); break;
                 case DebugRouteAction.CaptureScreenshot: DebugCaptureScreenshot(); break;

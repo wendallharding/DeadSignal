@@ -414,9 +414,10 @@ namespace DeadSignal.Diagnostics
                         DebugRouteAction.InstallCentralPayload, roomName: "Central Chamber", isBacktrack: true);
                     yield return new DebugRouteStep("Relay tower", DebugLocation.RelayTower, 2f,
                         DebugRouteAction.ActivateRelayTower, roomName: "Relay Foundry");
-                    yield return new DebugRouteStep("Piercing calibration", DebugLocation.RelayTower, 2f,
-                        DebugRouteAction.SelectWeaponOverclock, roomName: "Relay Foundry");
-                    yield return new DebugRouteStep("Relay payload", DebugLocation.CurrentObjective, 2.3f, DebugRouteAction.CollectCache);
+                    yield return new DebugRouteStep("Cooling Gantry stabilization", DebugLocation.CurrentObjective, 2.3f,
+                        DebugRouteAction.CollectCache, roomName: "Cooling Gantry");
+                    yield return new DebugRouteStep("Foundry payload installation", DebugLocation.RelayTower, 2f,
+                        DebugRouteAction.SelectWeaponOverclock, roomName: "Relay Foundry", isBacktrack: true);
                     yield return new DebugRouteStep("Spine tower", DebugLocation.SpineTower, 2f,
                         DebugRouteAction.ActivateSpineTower, roomName: "Capacitor Spine");
                     yield return new DebugRouteStep("Spine payload", DebugLocation.CurrentObjective, 2.3f,

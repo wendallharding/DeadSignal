@@ -48,7 +48,7 @@ namespace DeadSignal.Diagnostics
 
             var game = FindFirstObjectByType<DeadSignalGame>();
             var missionObjectives = Resources.Load<MissionObjectiveGraphConfiguration>("Tuning/CompatibilityMissionObjectives");
-            var missionObjectivesReady = missionObjectives != null && missionObjectives.ObjectiveCount == 11;
+            var missionObjectivesReady = missionObjectives != null && missionObjectives.ObjectiveCount == 12;
             var objectiveConsumersReady = game != null &&
                                           game.CurrentMissionObjectiveId == MissionObjectiveId.CentralTower &&
                                           game.CurrentMissionGuidanceTitle == "RESTORE CENTRAL" &&
@@ -63,10 +63,13 @@ namespace DeadSignal.Diagnostics
             var transferVaultObjective = FindFirstObjectByType<AuthoredTransferVaultObjective>(FindObjectsInactive.Include);
             var centralInstallationObjective =
                 FindFirstObjectByType<AuthoredCentralInstallationObjective>(FindObjectsInactive.Include);
+            var relayPayloadObjective =
+                FindFirstObjectByType<AuthoredRelayPayloadObjective>(FindObjectsInactive.Include);
             var centralTransferReady = relayForkObjective != null && relayForkObjective.IsConfigured &&
                                        transferVaultObjective != null && transferVaultObjective.IsConfigured &&
                                        centralInstallationObjective != null && centralInstallationObjective.IsConfigured &&
                                        transferVaultObjective.IsRouteConfigured && !transferVaultObjective.IsRelayRouteOpen;
+            var relayPayloadReady = relayPayloadObjective != null && relayPayloadObjective.IsConfigured;
             var weaponTextureReady = Resources.Load<Texture2D>("Environment/RelayFoundryWeaponCalibrationDecal") != null;
             var weaponMaterialReady =
                 Resources.Load<Material>("Materials/RelayFoundry/RelayFoundryWeaponCalibrationDecal") != null;
@@ -154,12 +157,16 @@ namespace DeadSignal.Diagnostics
                       $"install={centralInstallationObjective?.IsConfigured ?? false} " +
                       $"routeConfigured={transferVaultObjective?.IsRouteConfigured ?? false} " +
                       $"routeOpen={transferVaultObjective?.IsRelayRouteOpen ?? false}");
+            Debug.Log($"[DEAD SIGNAL STANDALONE SMOKE] RELAY PAYLOAD | " +
+                      $"configured={relayPayloadObjective?.IsConfigured ?? false} " +
+                      $"stabilized={game?.IsRelayPayloadStabilized ?? false}");
             var runtimeReady = game != null &&
                                 missionObjectivesReady &&
                                 objectiveConsumersReady &&
                                 cargoAnnexReady &&
                                 coolantReady &&
                                 centralTransferReady &&
+                                relayPayloadReady &&
                                 game.transform.Find("Maintenance Drone") != null &&
                                 game.transform.Find("Shortcut Gate Assembly/Signal Shortcut Gate") != null &&
                                 game.transform.Find("Tower Signal Lines/Signal Trunk West") != null &&
@@ -172,8 +179,8 @@ namespace DeadSignal.Diagnostics
                                 game.HasSignalRoutingAssets &&
                                 game.HasStationMachineAssets &&
                                 game.HasSalvageCacheAssets &&
-                                game.SalvageCacheInstanceCount == RunModel.SalvageRequired * 2 + 1 &&
-                                game.AuthoredSalvageSocketCount == 3 &&
+                                game.SalvageCacheInstanceCount == RunModel.SalvageRequired * 2 &&
+                                game.AuthoredSalvageSocketCount == 2 &&
                                 game.HasSalvagePresentationTuning &&
                                 game.HasPlayerDroneAssets &&
                                 game.HasPlayerMovementTuning &&
@@ -230,7 +237,7 @@ namespace DeadSignal.Diagnostics
                                     "Relay Foundry Region/Relay Cooling Gantry Region/Relay Heat Exchanger") != null &&
                                 game.transform.Find(
                                     "Relay Foundry Region/Relay Cooling Gantry Region/Cooling Gantry Reinforcement Gate") != null &&
-                                game.transform.Find("Relay Foundry Region/Protected Relay Payload Socket") != null &&
+                                game.transform.Find("Relay Foundry Region/Relay Payload Calibration Anchor") != null &&
                                 game.transform.Find(
                                     "Relay Foundry Region/Relay Cooling Gantry Region/" +
                                     "Cooling Gantry Relay Payload Socket") != null &&

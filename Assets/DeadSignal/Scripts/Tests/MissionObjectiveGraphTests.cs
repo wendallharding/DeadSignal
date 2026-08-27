@@ -13,7 +13,7 @@ namespace DeadSignal.Tests
         {
             var definitions = CompatibilityMissionObjectiveGraph.Instance.Definitions;
 
-            Assert.That(definitions.Count, Is.EqualTo(11));
+            Assert.That(definitions.Count, Is.EqualTo(12));
             Assert.That(definitions.Select(definition => definition.Id), Is.Unique);
             Assert.That(definitions.All(definition => !string.IsNullOrWhiteSpace(definition.OwningRoom)), Is.True);
             Assert.That(definitions.All(definition => !string.IsNullOrWhiteSpace(definition.AnchorId)), Is.True);
@@ -25,8 +25,10 @@ namespace DeadSignal.Tests
             Assert.That(definitions[6].Rewards.Select(reward => reward.Kind),
                 Is.EquivalentTo(new[] { MissionRewardKind.SignalRefill }));
             Assert.That(definitions[8].Rewards.Select(reward => reward.Kind),
+                Is.EquivalentTo(new[] { MissionRewardKind.WeaponCalibration }));
+            Assert.That(definitions[9].Rewards.Select(reward => reward.Kind),
                 Is.EquivalentTo(new[] { MissionRewardKind.SignalRefill, MissionRewardKind.WeaponEvolution }));
-            Assert.That(definitions[10].Rewards.Single().Kind, Is.EqualTo(MissionRewardKind.Victory));
+            Assert.That(definitions[11].Rewards.Single().Kind, Is.EqualTo(MissionRewardKind.Victory));
         }
 
         [Test]
@@ -35,7 +37,7 @@ namespace DeadSignal.Tests
             var configuration = Resources.Load<MissionObjectiveGraphConfiguration>("Tuning/CompatibilityMissionObjectives");
 
             Assert.That(configuration, Is.Not.Null);
-            Assert.That(configuration.ObjectiveCount, Is.EqualTo(11));
+            Assert.That(configuration.ObjectiveCount, Is.EqualTo(12));
             var authored = configuration.BuildGraph().Definitions;
             var fallback = CompatibilityMissionObjectiveGraph.Instance.Definitions;
             Assert.That(authored.Count, Is.EqualTo(fallback.Count));
@@ -104,12 +106,20 @@ namespace DeadSignal.Tests
             Assert.That(run.Signal, Is.EqualTo(Math.Min(RunModel.MaximumSignal,
                 signalBeforeRelay - RunModel.RelayTowerCost + RunModel.RelayTowerRefill)));
             _assertObjective(run, MissionObjectiveId.RelayPayload, MissionStage.RelayPayload,
-                MissionCompletionRule.RelayPayloadSecured, MissionWorldMutation.RelayPayloadSecured,
-                "RELAY PAYLOAD");
+                MissionCompletionRule.RelayPayloadStabilized, MissionWorldMutation.RelayPayloadStabilized,
+                "STABILIZE RELAY PAYLOAD");
             Assert.That(run.TryActivateSpineTower(), Is.False);
             Assert.That(run.CollectPayload(SignalRegion.Spine), Is.False);
             Assert.That(run.CollectPayload(SignalRegion.Relay), Is.True);
             Assert.That(run.Salvage, Is.EqualTo(2));
+            Assert.That(run.RelayPayloadStabilized, Is.True);
+            Assert.That(run.RelayPayloadSecured, Is.False);
+            _assertObjective(run, MissionObjectiveId.RelayInstallation, MissionStage.RelayPayload,
+                MissionCompletionRule.RelayPayloadSecured, MissionWorldMutation.RelayPayloadSecured,
+                "PAYLOAD STABILIZED");
+            Assert.That(run.TryActivateSpineTower(), Is.False);
+            Assert.That(run.TryInstallRelayPayload(), Is.True);
+            Assert.That(run.TryInstallRelayPayload(), Is.False);
             _assertObjective(run, MissionObjectiveId.SpineTower, MissionStage.SpineTower,
                 MissionCompletionRule.SpineTowerOnline, MissionWorldMutation.SpineTerritoryPowered,
                 "POWER THE SPINE");

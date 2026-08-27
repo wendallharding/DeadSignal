@@ -7,6 +7,7 @@ using UnityEngine.InputSystem.LowLevel;
 using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
 using DeadSignal.Application;
+using DeadSignal.Missions;
 using DeadSignal.World;
 
 namespace DeadSignal.Tests
@@ -33,12 +34,13 @@ namespace DeadSignal.Tests
                 Assert.That(gantry.GetComponentsInChildren<AuthoredMapObstacle>().Length, Is.EqualTo(6));
                 Assert.That(gantry.GetComponentsInChildren<AuthoredInterceptorEntrance>().Length, Is.EqualTo(1));
                 var gantryPayloadSocket = gantry.GetComponentInChildren<AuthoredSalvageSocket>();
-                var protectedPayloadSocket = foundry.Find("Protected Relay Payload Socket")
-                    .GetComponent<AuthoredSalvageSocket>();
+                var payloadObjective = foundry.GetComponent<AuthoredRelayPayloadObjective>();
                 Assert.That(gantryPayloadSocket.Region, Is.EqualTo(DeadSignal.Missions.SignalRegion.Relay));
                 Assert.That(gantryPayloadSocket.IsOptional, Is.False);
-                Assert.That(protectedPayloadSocket.Region, Is.EqualTo(DeadSignal.Missions.SignalRegion.Relay));
-                Assert.That(protectedPayloadSocket.IsOptional, Is.False);
+                Assert.That(foundry.Find("Protected Relay Payload Socket"), Is.Null,
+                    "Foundry calibration must no longer bypass Gantry stabilization with a sibling cache.");
+                Assert.That(payloadObjective, Is.Not.Null);
+                Assert.That(payloadObjective.IsConfigured, Is.True);
                 Assert.That(gantry.GetComponentsInChildren<Collider>().Length, Is.Zero);
                 Assert.That(gantry.Find("Relay Heat Exchanger"), Is.Not.Null);
                 Assert.That(gantry.Find("West Ceramic Deflector"), Is.Not.Null);
@@ -83,25 +85,57 @@ namespace DeadSignal.Tests
                 game.DebugActivateRelayTower();
                 Assert.That(game.DebugIsPoweredAt(gantryCenter), Is.True);
                 Assert.That(routing.activeSelf, Is.True);
-                Assert.That(game.AuthoredSalvageSocketCount, Is.EqualTo(3));
+                Assert.That(game.AuthoredSalvageSocketCount, Is.EqualTo(2));
+                Assert.That(game.IsOverclockChoicePending, Is.True);
+                InputSystem.QueueStateEvent(gamepad, new GamepadState().WithButton(GamepadButton.West));
+                yield return null;
+                InputSystem.QueueStateEvent(gamepad, new GamepadState());
+                yield return null;
 
                 var relayCaches = game.transform.Cast<Transform>()
                     .Where(child => child.name == "Salvage Cache" &&
-                                    (Vector3.Distance(child.position, gantryPayloadSocket.Position) < 0.1f ||
-                                     Vector3.Distance(child.position, protectedPayloadSocket.Position) < 0.1f))
+                                    Vector3.Distance(child.position, gantryPayloadSocket.Position) < 0.1f)
                     .ToArray();
-                Assert.That(relayCaches.Length, Is.EqualTo(2));
+                Assert.That(relayCaches.Length, Is.EqualTo(1));
                 Assert.That(relayCaches.All(cache => cache.gameObject.activeSelf), Is.True);
 
                 player.position = gantryPayloadSocket.Position;
                 yield return null;
-                Assert.That(game.IsRelayPayloadSecured, Is.True,
-                    "The Cooling Gantry cache should satisfy the Relay payload branch.");
+                Assert.That(game.IsRelayPayloadStabilized, Is.True,
+                    "The Cooling Gantry should stabilize the Relay payload.");
+                Assert.That(game.IsRelayPayloadSecured, Is.False,
+                    "Stabilization must not bypass the Foundry installation return.");
                 Assert.That(relayCaches.All(cache => !cache.gameObject.activeSelf), Is.True,
-                    "Securing either Relay payload must retire its authored sibling.");
+                    "The processed payload should leave the Gantry socket.");
                 yield return null;
+                Assert.That(game.CurrentMissionObjectiveId, Is.EqualTo(MissionObjectiveId.RelayInstallation));
+                Assert.That(game.CurrentMissionGuidanceAction, Does.Contain("RETURN TO FOUNDRY"));
+                Assert.That(game.IsWeaponOverclockChoicePending, Is.False,
+                    "Weapon calibration must remain locked until installation.");
+
+                Assert.That(game.IsAuxiliaryOverclockChoicePending, Is.True,
+                    "The established second-salvage auxiliary reward should remain intact.");
+                InputSystem.QueueStateEvent(gamepad, new GamepadState().WithButton(GamepadButton.West));
+                yield return null;
+                InputSystem.QueueStateEvent(gamepad, new GamepadState());
+                yield return null;
+
+                player.position = payloadObjective.Position;
+                InputSystem.QueueStateEvent(gamepad, new GamepadState().WithButton(GamepadButton.West));
+                yield return null;
+                InputSystem.QueueStateEvent(gamepad, new GamepadState());
+                yield return null;
+                Assert.That(game.IsRelayPayloadSecured, Is.True);
+                Assert.That(game.IsWeaponOverclockChoicePending, Is.True,
+                    "Foundry installation should own the weapon-transformation choice.");
+
+                InputSystem.QueueStateEvent(gamepad, new GamepadState().WithButton(GamepadButton.West));
+                yield return null;
+                InputSystem.QueueStateEvent(gamepad, new GamepadState());
+                yield return null;
+                Assert.That(game.SelectedWeaponOverclock, Is.EqualTo(SignalWeaponOverclock.ControlledRicochet));
                 Assert.That(game.CurrentMissionPhase, Is.EqualTo(5),
-                    "The gantry branch should advance the required journey to the Spine tower.");
+                    "Installing and choosing the weapon should advance the required journey to the Spine tower.");
             }
             finally
             {

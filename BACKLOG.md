@@ -32,7 +32,7 @@ This is the controlling workstream for scheduled development. Complete it from t
 ### Phase 3 — Act II: extend the network
 
 - [x] Relay Foundry activation creates the second powered foothold and unlocks payload processing
-- [ ] Cooling Gantry stabilizes the Relay payload; Foundry calibration installs it and owns the weapon-transformation choice
+- [x] Cooling Gantry stabilizes the Relay payload; Foundry calibration installs it and owns the weapon-transformation choice
 - [ ] Capacitor Spine establishes the third-tower objective; Spine Discharge Trench vents the berth before interaction
 - [ ] Spine Tower activation installs the Relay result, evolves the weapon, powers the deep return network, and opens the core-rebuild act
 - [ ] Prove that every room changes traversal, power, build state, or combat pressure and that only one meaningful installation return is required

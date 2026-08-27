@@ -16,7 +16,8 @@ namespace DeadSignal.Missions
         CoolantSeal,
         RelayFork,
         CentralAssembly,
-        CentralInstallation
+        CentralInstallation,
+        RelayInstallation
     }
 
     public enum MissionCompletionRule
@@ -32,7 +33,8 @@ namespace DeadSignal.Missions
         CoolantSealSecured,
         RelayFeedsRouted,
         CentralPayloadAssembled,
-        CentralPayloadInstalled
+        CentralPayloadInstalled,
+        RelayPayloadStabilized
     }
 
     [Flags]
@@ -50,7 +52,8 @@ namespace DeadSignal.Missions
         CoolantSealSecured = 1 << 8,
         RelayFeedsRouted = 1 << 9,
         CentralPayloadAssembled = 1 << 10,
-        CentralPayloadInstalled = 1 << 11
+        CentralPayloadInstalled = 1 << 11,
+        RelayPayloadStabilized = 1 << 12
     }
 
     public enum MissionRewardKind
@@ -330,12 +333,19 @@ namespace DeadSignal.Missions
                     $"SIGNAL -{RunModel.RelayTowerCost:0}  //  POWERS FOUNDRY + UNLOCKS PROCESSING"),
                 new[] { MissionObjectiveId.CentralInstallation }, new[] { MissionObjectiveId.RelayPayload }),
             _definition(MissionObjectiveId.RelayPayload, MissionStage.RelayPayload,
-                "Relay Foundry / Cooling Gantry", "Relay Payload Socket",
-                MissionCompletionRule.RelayPayloadSecured, MissionWorldMutation.RelayPayloadSecured,
+                "Cooling Gantry", "Cooling Gantry Relay Payload Socket",
+                MissionCompletionRule.RelayPayloadStabilized, MissionWorldMutation.RelayPayloadStabilized,
                 Array.Empty<MissionReward>(),
-                new MissionGuidanceState(4, "RELAY PAYLOAD", "CHOOSE FOUNDRY OR COOLING GANTRY",
-                    "INNER COVER OR EXCHANGER LOOP  //  ONE REQUIRED"),
-                new[] { MissionObjectiveId.RelayTower }, new[] { MissionObjectiveId.SpineTower }),
+                new MissionGuidanceState(4, "STABILIZE RELAY PAYLOAD", "PROCESS THE PAYLOAD IN THE COOLING GANTRY",
+                    "THREAD THE EXCHANGER LOOP  //  THEN RETURN TO FOUNDRY"),
+                new[] { MissionObjectiveId.RelayTower }, new[] { MissionObjectiveId.RelayInstallation }),
+            _definition(MissionObjectiveId.RelayInstallation, MissionStage.RelayPayload,
+                "Relay Foundry", "Relay Payload Calibration Anchor",
+                MissionCompletionRule.RelayPayloadSecured, MissionWorldMutation.RelayPayloadSecured,
+                new[] { new MissionReward(MissionRewardKind.WeaponCalibration) },
+                new MissionGuidanceState(4, "PAYLOAD STABILIZED", "RETURN TO FOUNDRY AND INSTALL THE RELAY PAYLOAD",
+                    "ONE INSTALLATION RETURN  //  CHOOSE WEAPON CALIBRATION"),
+                new[] { MissionObjectiveId.RelayPayload }, new[] { MissionObjectiveId.SpineTower }),
             _definition(MissionObjectiveId.SpineTower, MissionStage.SpineTower, "Capacitor Spine", "Capacitor Spine Activation Decal",
                 MissionCompletionRule.SpineTowerOnline, MissionWorldMutation.SpineTerritoryPowered,
                 new[]
@@ -345,7 +355,7 @@ namespace DeadSignal.Missions
                 },
                 new MissionGuidanceState(5, "POWER THE SPINE", "RESTORE THE CAPACITOR SPINE TOWER",
                     $"SIGNAL -{RunModel.SpineTowerCost:0}  //  EVOLVE WEAPON"),
-                new[] { MissionObjectiveId.RelayPayload }, new[] { MissionObjectiveId.SpinePayload }),
+                new[] { MissionObjectiveId.RelayInstallation }, new[] { MissionObjectiveId.SpinePayload }),
             _definition(MissionObjectiveId.SpinePayload, MissionStage.SpinePayload, "Capacitor Spine", "Spine Payload Socket",
                 MissionCompletionRule.SpinePayloadSecured, MissionWorldMutation.SpinePayloadSecured,
                 Array.Empty<MissionReward>(),

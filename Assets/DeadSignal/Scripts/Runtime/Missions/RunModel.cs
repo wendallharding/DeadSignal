@@ -185,6 +185,7 @@ namespace DeadSignal.Missions
         public bool CargoCouplingSecured { get; private set; }
         public bool CoolantSealSecured { get; private set; }
         public bool RelayFeedsRouted { get; private set; }
+        public bool RelayPayloadStabilized { get; private set; }
         public bool RelayPayloadSecured { get; private set; }
         public bool SpinePayloadSecured { get; private set; }
         public RunOutcome Outcome { get; private set; } = RunOutcome.Running;
@@ -321,6 +322,18 @@ namespace DeadSignal.Missions
             return true;
         }
 
+        public bool TryInstallRelayPayload()
+        {
+            if (!_isCurrentObjective(MissionObjectiveId.RelayInstallation) || !RelayPayloadStabilized ||
+                RelayPayloadSecured || Outcome != RunOutcome.Running)
+            {
+                return false;
+            }
+
+            RelayPayloadSecured = true;
+            return true;
+        }
+
         public void TakeSecurityHit()
         {
             if (Outcome != RunOutcome.Running)
@@ -365,7 +378,7 @@ namespace DeadSignal.Missions
             {
                 SignalRegion.Central => _canCollectCentralComponent(centralComponent),
                 SignalRegion.Relay => _isCurrentObjective(MissionObjectiveId.RelayPayload) && RelayTowerOnline &&
-                                      CentralPayloadSecured && !RelayPayloadSecured,
+                                      CentralPayloadSecured && !RelayPayloadStabilized,
                 SignalRegion.Spine => _isCurrentObjective(MissionObjectiveId.SpinePayload) && SpineTowerOnline &&
                                       RelayPayloadSecured && !SpinePayloadSecured,
                 _ => false
@@ -398,7 +411,7 @@ namespace DeadSignal.Missions
 
                     break;
                 case SignalRegion.Relay:
-                    RelayPayloadSecured = true;
+                    RelayPayloadStabilized = true;
                     break;
                 case SignalRegion.Spine:
                     SpinePayloadSecured = true;
@@ -495,6 +508,7 @@ namespace DeadSignal.Missions
                 MissionCompletionRule.RelayFeedsRouted => RelayFeedsRouted,
                 MissionCompletionRule.CentralPayloadAssembled => CentralPayloadAssembled,
                 MissionCompletionRule.CentralPayloadInstalled => CentralPayloadSecured,
+                MissionCompletionRule.RelayPayloadStabilized => RelayPayloadStabilized,
                 _ => false
             };
         }

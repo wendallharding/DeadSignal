@@ -98,9 +98,11 @@ namespace DeadSignal.Tests
             _completeCurrentStep(sequencer);
             Assert.That(sequencer.CurrentStep.Action, Is.EqualTo(DebugRouteAction.ActivateRelayTower));
             _completeCurrentStep(sequencer);
-            Assert.That(sequencer.CurrentStep.Action, Is.EqualTo(DebugRouteAction.SelectWeaponOverclock));
-            _completeCurrentStep(sequencer);
             Assert.That(sequencer.CurrentStep.Action, Is.EqualTo(DebugRouteAction.CollectCache));
+            Assert.That(sequencer.CurrentStep.Location, Is.EqualTo(DebugLocation.CurrentObjective));
+            _completeCurrentStep(sequencer);
+            Assert.That(sequencer.CurrentStep.Action, Is.EqualTo(DebugRouteAction.SelectWeaponOverclock));
+            Assert.That(sequencer.CurrentStep.Location, Is.EqualTo(DebugLocation.RelayTower));
             _completeCurrentStep(sequencer);
             Assert.That(sequencer.CurrentStep.Action, Is.EqualTo(DebugRouteAction.ActivateSpineTower));
             _completeCurrentStep(sequencer);
@@ -194,10 +196,11 @@ namespace DeadSignal.Tests
             var report = sequencer.FinishReport(72f, metrics, false, false, Vector3.zero, RunOutcome.Victory);
 
             Assert.That(report, Does.Contain("Guidance response proxy avg 0.30s"));
-            Assert.That(report, Does.Contain("Wrong-turn proxies 0  Backtrack legs 5"));
+            Assert.That(report, Does.Contain("Wrong-turn proxies 0  Backtrack legs 6"));
             Assert.That(report, Does.Contain("Extraction Dock"));
             Assert.That(report, Does.Contain("Central Chamber"));
             Assert.That(report, Does.Contain("Relay Foundry"));
+            Assert.That(report, Does.Contain("Cooling Gantry"));
             Assert.That(report, Does.Contain("Capacitor Spine"));
         }
 
