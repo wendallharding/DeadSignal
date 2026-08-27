@@ -8,8 +8,6 @@ namespace DeadSignal.Presentation
     /// <summary>Draws high-priority, runtime-only coaching above the authored HUD.</summary>
     public sealed class MissionClarityHud : MonoBehaviour
     {
-        private const float TARGET_PULSE_DURATION = 2.25f;
-
         private RunModel m_model;
         private RunMetrics m_metrics;
         private DeadSignalWorld m_world;
@@ -18,8 +16,6 @@ namespace DeadSignal.Presentation
         private GUIStyle m_panelStyle;
         private GUIStyle m_primaryStyle;
         private GUIStyle m_smallStyle;
-        private int m_lastSalvage;
-        private float m_targetPulse;
         private readonly Queue<SignalEvent> m_signalEvents = new();
 
         public float DrainMultiplier { get; set; } = 1f;
@@ -38,23 +34,6 @@ namespace DeadSignal.Presentation
             m_world = world;
             m_overclocks = overclocks;
             m_camera = world.Camera;
-            m_lastSalvage = model.Salvage;
-        }
-
-        private void Update()
-        {
-            if (m_model == null)
-            {
-                return;
-            }
-
-            if (m_model.Salvage != m_lastSalvage)
-            {
-                m_lastSalvage = m_model.Salvage;
-                m_targetPulse = TARGET_PULSE_DURATION;
-            }
-
-            m_targetPulse = Mathf.Max(0f, m_targetPulse - Time.unscaledDeltaTime);
         }
 
         private void OnGUI()
@@ -80,7 +59,6 @@ namespace DeadSignal.Presentation
             }
 
             _drawAbilityStatus();
-            _drawObjectiveMarker();
             _drawThreatRewardMarkers();
             _drawSignalEvents();
             _drawPlayerMarker();
@@ -128,24 +106,6 @@ namespace DeadSignal.Presentation
                 $"{primary}\n{auxiliary}\n{weapon}\n{dash}", m_smallStyle);
         }
 
-        private void _drawObjectiveMarker()
-        {
-            var target = _objectiveTarget();
-            var waypoint = m_world.GetObjectiveGuidanceWaypoint(m_model, 0.48f);
-            var distance = DeadSignalWorld.FlatDistance(m_world.Player.position, target);
-            var usesDetour = DeadSignalWorld.FlatDistance(waypoint, target) > 0.35f;
-            var point = m_camera.WorldToScreenPoint(waypoint + Vector3.up * 1.6f);
-            var behind = point.z <= 0f;
-            var x = behind ? Screen.width - point.x : point.x;
-            var y = Screen.height - point.y;
-            // Keep the marker clear of the authored upper-corner HUD panels while retaining edge guidance.
-            x = Mathf.Clamp(x, 120f, Screen.width - 360f);
-            y = Mathf.Clamp(y, 175f, Screen.height - 132f);
-            var pulse = m_targetPulse > 0f ? "  //  NEW ROUTE" : string.Empty;
-            var route = usesDetour ? "  //  TURN VIA CORRIDOR" : string.Empty;
-            GUI.Label(new Rect(x - 145f, y - 22f, 290f, 44f), $"▲  {_objectiveName()}  {distance:0}m{route}{pulse}", m_primaryStyle);
-        }
-
         private void _drawThreatRewardMarkers()
         {
             _drawThreatReward(m_world.Warden, "+12 SIGNAL");
@@ -184,11 +144,6 @@ namespace DeadSignal.Presentation
                 GUI.Label(new Rect(Mathf.Clamp(point.x - 80f, 80f, Screen.width - 240f),
                     Mathf.Clamp(Screen.height - point.y, 150f, Screen.height - 160f), 180f, 36f), "▲  SAFE TURN", m_primaryStyle);
             }
-        }
-
-        private Vector3 _objectiveTarget()
-        {
-            return m_world.GetObjectiveTarget(m_model);
         }
 
         private void _drawPlayerMarker()
@@ -258,11 +213,6 @@ namespace DeadSignal.Presentation
             GUI.DrawTexture(new Rect(x - size * 0.5f, y - size * 0.5f, size, size), Texture2D.whiteTexture);
             GUI.color = oldColor;
             GUI.Label(new Rect(x + 6f, y - 11f, 80f, 22f), label, m_smallStyle);
-        }
-
-        private string _objectiveName()
-        {
-            return m_model.CurrentObjective.Guidance.Title;
         }
 
         private readonly struct SignalEvent
