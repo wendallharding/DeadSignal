@@ -1,6 +1,6 @@
 # DEAD SIGNAL — Current station room inventory
 
-Status: Phase 0 current-state and space-classification contract, 2026-08-27. This records what the playable scene and runtime do now; it is not the target mission order. The room-purpose ledger, schematic target route, and measured route baselines remain later Phase 0 work.
+Status: Phase 0 current-state, space-classification, purpose, and target-route contract, 2026-08-27. The inventory sections record what the playable scene and runtime do now. The target schematic and ordered ledger define later mission work without claiming it is implemented. Measured current-route baselines remain the final Phase 0 item.
 
 ## Authority and coordinate contract
 
@@ -87,6 +87,76 @@ These contracts define the player-facing responsibility of every mission room be
 | Room C / Reward Vault | Room B is cleared and the reward door is open. | **Recover:** claim the station capacitor and integrate it with the stabilized core. | The capacitor is collected exactly once and the rebuilt core is complete. | The vault remains depleted, the completed-core state persists, and Spine installation guidance takes authority. | Station-capacitor anchor — `VAULT • RECOVER STATION CAPACITOR`. | Culmination of the trial; immediate return through cleared Rooms B/A begins the sole core-installation return. |
 
 Contract count: **19 mission-room rows, each with all six required fields**. Cargo and Coolant remain order-independent retrieval jobs with different spatial verbs; Relay Fork and Flux Bypass own rerouting rather than pickups; Convergence is a bounded calibration defense; Room B alone owns the full lockdown; and each act contains at most one installation return. Departure Channel, Warden Bay, and Sapper Cradle remain required route support under their connector/landmark classifications and therefore do not receive filler objective contracts here.
+
+## Target cohesive-mission schematic
+
+Solid arrows are required forward travel. A doubled arrow is the act's single meaningful installation return. Parentheses mark pressure landmarks or powered connectors that support traversal without gaining filler interactions. Cargo and Coolant may be completed in either order.
+
+```text
+ACT I — RESTART
+Dock -> Departure Channel -> Central [restart]
+                             |-> Cargo [retrieve] -> Central ---------|
+                             |-> Coolant [thread] -> Central ---------+-> Relay Fork [reroute]
+                                                                         -> Central cross
+                                                                         -> East Transfer Vault [assemble]
+                                                                         => Central [install]
+
+ACT II — EXTEND
+Central -> East Transfer Vault -> Relay Foundry [activate]
+                                  -> Cooling Gantry [process]
+                                  => Relay Foundry [install + choose weapon]
+                                  -> Capacitor Spine -> Discharge Trench [vent]
+                                                       -> Capacitor Spine [activate]
+
+ACT III — REBUILD
+Capacitor Spine -> Induction [charge]
+                  -> Flux [reroute] -> Induction
+                  -> Convergence [defend]
+                  -> Breaker [reset] -> Convergence
+                  -> Furnace [forge] -> Quench [stabilize]
+                  -> Furnace -> Room A [commit] -> Room B [purge] -> Room C [recover]
+                  => cleared B/A -> Furnace -> Convergence -> Induction -> Capacitor Spine [install core]
+
+ACT IV — WITHDRAW
+Capacitor Spine -> Relay Foundry -> East Transfer Vault
+                 -> Central floor (Warden Bay pursuit + Sapper Cradle priority pressure)
+                 -> powered Central -> Departure Channel [released shortcut / optional surge]
+                 -> Dock [extract]
+```
+
+The schematic never implies a direct portal between Central's branch landmarks: Cargo, Coolant, Relay Fork, Warden Bay, and Sapper Cradle all reconnect through the open Central floor. Likewise, Flux, Breaker, Gantry, Discharge, and Quench are deliberate out-and-back operations within their parent room. These are processing or routing returns, not extra installation returns.
+
+## Ordered room-purpose ledger
+
+| Order | Act | Required space or support beat | Player verb | Entry from / exit toward | Persistent payoff | Installation return |
+| --- | --- | --- | --- | --- | --- | --- |
+| 0 | Opening | Extraction Dock + Departure Channel | Deploy | Dock -> Central | Establishes the known extraction endpoint. | No |
+| 1 | Restart | Central Maintenance Concourse | Restart | Departure -> Central branches | Powers the first foothold and exposes both component jobs. | No |
+| 2a/2b | Restart | Cargo Annex / Coolant Reclamation | Retrieve / thread | Central -> each branch -> Central; either order | Secures both distinct components and visibly stabilizes both branches. | No |
+| 3 | Restart | Relay Fork | Reroute | Central -> Relay Fork -> Central/east approach | Latches both feeds to the transfer route. | No |
+| 4 | Restart | East Transfer Vault | Assemble | Central -> Vault | Releases one assembled Central payload. | No |
+| 5 | Restart | Central Maintenance Concourse | Install | Vault => Central -> Vault | Opens the Relay route; the act's only installation return. | **Yes — Act I** |
+| 6 | Extend | Relay Foundry | Activate | Vault -> Foundry | Powers Relay territory and its shortcut. | No |
+| 7 | Extend | Cooling Gantry | Process | Foundry -> Gantry -> Foundry | Stabilizes the Relay payload. | No |
+| 8 | Extend | Relay Foundry | Install / choose | Gantry => Foundry -> Spine | Applies the weapon transformation and opens the Spine route. | **Yes — Act II** |
+| 9 | Extend | Spine Discharge Trench | Vent | Spine -> Trench -> Spine | Releases the berth interlock. | No |
+| 10 | Extend | Capacitor Spine | Activate | Trench -> Spine -> Induction | Powers Spine territory and opens the deep route. | No |
+| 11 | Rebuild | Induction Gallery | Charge | Spine -> Induction | Charges the empty lattice and powers the return corridor. | No |
+| 12 | Rebuild | Flux Bypass | Reroute | Induction -> Flux -> Induction | Enables Convergence and creates a return flank. | No |
+| 13 | Rebuild | Convergence Chamber | Defend | Induction -> Convergence | Completes one bounded calibration, not a lockdown. | No |
+| 14 | Rebuild | Breaker Gallery | Reset | Convergence -> Breaker -> Convergence | Enables Furnace load. | No |
+| 15 | Rebuild | Arc Furnace | Forge | Convergence -> Furnace | Produces the hot formed core. | No |
+| 16 | Rebuild | Quench Loop | Stabilize | Furnace -> Quench -> Furnace | Stabilizes the core and opens the return shortcut. | No |
+| 17 | Rebuild | Room A | Commit | Furnace -> A -> B | Seals the explicit final-trial commitment. | No |
+| 18 | Rebuild | Room B | Purge | A -> B -> C | Clears the sole full lockdown and powers the return spine. | No |
+| 19 | Rebuild | Room C | Recover | B -> C => cleared trial return | Completes the rebuilt core with the station capacitor. | No |
+| 20 | Rebuild | Capacitor Spine | Install | C => B/A/Furnace/Convergence/Induction => Spine | Enables powered withdrawal; the act's only installation return. | **Yes — Act III** |
+| 21 | Withdraw | Relay Foundry + East Transfer Vault | Pursue / traverse | Spine -> Foundry -> Vault -> Central | Reuses powered shortcuts instead of adding tasks. | No |
+| 22 | Withdraw | Warden Bay + Sapper Cradle pressure on the Central floor | Evade / prioritize | Vault -> Central -> Departure | Makes the established roles shape the return without filler switches. | No |
+| 23 | Withdraw | Departure Channel | Recover / withdraw | Central -> released channel -> Dock | Earlier readiness opens the shutter; the direct surge remains optional. | No |
+| 24 | Withdraw | Extraction Dock | Extract | Departure -> live uplink | Completes the mission with movement, combat, and build still relevant. | No |
+
+Ledger constraints: the 19 mission rooms appear at least once; the connector and both combat landmarks appear only as route support; Room B is the only full lockdown; Cargo/Coolant remain order-independent; and Acts I–III each contain exactly one installation return while withdrawal contains none. Phase 1 must first reproduce the current seven-stage route, so this target ledger does not authorize a progression-order change by itself.
 
 ## Opening and Central inventory
 
