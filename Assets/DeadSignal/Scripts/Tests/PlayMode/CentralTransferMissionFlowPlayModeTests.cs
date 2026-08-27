@@ -12,6 +12,69 @@ namespace DeadSignal.Tests.PlayMode
     public sealed class CentralTransferMissionFlowPlayModeTests
     {
         [UnityTest]
+        public IEnumerator CoolantFirstThenCargo_ReachesRelayThroughOneInstallationReturn()
+        {
+            SceneManager.LoadScene("SampleScene");
+            yield return null;
+            yield return null;
+
+            var game = Object.FindFirstObjectByType<DeadSignalGame>();
+            var scene = Object.FindFirstObjectByType<DeadSignalSceneReferences>();
+            var cargo = Object.FindFirstObjectByType<AuthoredCargoAnnexObjective>(FindObjectsInactive.Include);
+            var coolant = Object.FindFirstObjectByType<AuthoredCoolantReclamationObjective>(FindObjectsInactive.Include);
+            Assert.That(game, Is.Not.Null);
+            Assert.That(scene, Is.Not.Null);
+            Assert.That(cargo, Is.Not.Null);
+            Assert.That(coolant, Is.Not.Null);
+
+            game.DebugActivateTower();
+            Assert.That(game.CurrentMissionObjectiveId, Is.EqualTo(MissionObjectiveId.CargoCoupling),
+                "Cargo remains the deterministic guidance tie-breaker while both jobs are available.");
+
+            scene.Player.position = coolant.FirstBafflePosition;
+            yield return null;
+            scene.Player.position = coolant.SecondBafflePosition;
+            yield return null;
+            scene.Player.position = coolant.SealPosition;
+            yield return null;
+            Assert.That(game.IsCoolantSealSecured, Is.False,
+                "Coolant must still require the outward release crossing when selected first.");
+            scene.Player.position = coolant.ReleasePosition;
+            yield return null;
+
+            Assert.That(game.IsCoolantSealSecured, Is.True);
+            Assert.That(game.IsCargoCouplingSecured, Is.False);
+            Assert.That(game.CurrentMissionObjectiveId, Is.EqualTo(MissionObjectiveId.CargoCoupling));
+            Assert.That(game.CurrentSalvage, Is.EqualTo(1));
+
+            scene.Player.position = cargo.CommitmentPosition;
+            yield return null;
+            Assert.That(game.IsCargoCouplingSecured, Is.False,
+                "Cargo must still require withdrawal when selected second.");
+            scene.Player.position = cargo.WithdrawalPosition;
+            yield return null;
+
+            Assert.That(game.IsCargoCouplingSecured, Is.True);
+            Assert.That(game.CurrentMissionObjectiveId, Is.EqualTo(MissionObjectiveId.RelayFork));
+            Assert.That(game.CurrentSalvage, Is.EqualTo(1),
+                "Completing both Central jobs in reverse order must preserve the single regional reward.");
+
+            game.DebugRouteCentralComponents();
+            game.DebugAssembleCentralPayload();
+            Assert.That(game.CurrentMissionObjectiveId, Is.EqualTo(MissionObjectiveId.CentralInstallation));
+            Assert.That(game.IsCentralPayloadSecured, Is.False);
+
+            game.DebugInstallCentralPayload();
+            game.DebugInstallCentralPayload();
+            yield return null;
+
+            Assert.That(game.IsCentralPayloadSecured, Is.True);
+            Assert.That(game.CurrentMissionObjectiveId, Is.EqualTo(MissionObjectiveId.RelayTower));
+            Assert.That(game.CurrentSalvage, Is.EqualTo(1),
+                "The single Central installation return must remain idempotent.");
+        }
+
+        [UnityTest]
         public IEnumerator RoutingThenAssembly_GatesProgressAndPersistsAuthoredState()
         {
             SceneManager.LoadScene("SampleScene");
