@@ -72,6 +72,37 @@ Work through these gates in order. Authorize one bounded combat advancement per 
 - [ ] Capture event-timed human frames with the drone, nearest threat, projectile path, and one escape lane simultaneously visible
 - [ ] Treat owner P0.1 as provisionally supported, not complete, until both opening and Spine-return silhouettes remain visually substantial in human comparison
 
+## P0 — Matched tactical-window capture presets (Run 122)
+
+- [x] Add development-menu presets for the powered Opening return and powered Spine return
+- [x] Add `-deadSignalTacticalWindow=Opening` and `-deadSignalTacticalWindow=SpineReturn` development-player presets
+- [x] Stage one Sapper warning and one immediate player bolt on a camera-relative line while preserving full player control
+- [x] Keep all other specialists absent, enable debug invulnerability, and leave production combat, geometry, collision, Signal, and foreground presentation unchanged
+- [x] Prove player/Sapper safe framing, the 20-percent renderer limit at 1280x720 and 1600x900 after camera settle, and all 135 authored obstacles
+- [ ] Capture one human-controlled frame per preset at both resolutions with the drone, Sapper warning, player bolt path, and one escape lane simultaneously visible
+- [ ] Keep owner P0.1 provisional until the captured silhouettes remain substantial and readable; then complete the P0.2 Swarmer off/on human pairs
+
+## P0 — Consecutive rendered tactical-window evidence (Run 123)
+
+- [x] Add explicit `-deadSignalTacticalWindowCapture` automation that records two labeled frames after the existing one-second camera settle
+- [x] Preserve ordinary screenshot behavior and auto-exit only command-line development-player captures
+- [x] Reject hidden-window captures after inspection proved their suppressed backbuffers were black
+- [x] Correct Spine-return diagnostic staging from the tower berth to the authored north-return approach without changing production geometry or combat state
+- [x] Capture and inspect two visible-player frames per preset at 1280x720 and 1600x900
+- [ ] Keep owner P0.1 provisional: have a human move and fire through both presets and judge lane continuity, silhouette substance, threat/bolt readability, and preference
+- [ ] Do not advance P0.2 or promote Swarmers until the human P0.1 comparison is recorded
+
+## P0 — Moving tactical-window sweep evidence (Run 124)
+
+- [x] Add explicit `-deadSignalTacticalWindowSweep` automation for a short collision-aware left/right/return movement sample
+- [x] Use non-damaging near-target traces so the staged Sapper remains present throughout all four captures
+- [x] Reset owned diagnostic projectiles between presets and preserve all 135 authored obstacles
+- [x] Record actor viewport positions, real distance travelled, maximum foreground coverage, and a command-line pass/fail marker
+- [x] Prove Opening at 18.2/17.5 percent and Spine return at 17.3/17.8 percent maximum coverage at 1280x720/1600x900 while both actors remain safe
+- [x] Inspect representative moving frames with the drone, Sapper, trace feedback, machinery, and an escape area present
+- [ ] Keep owner P0.1 provisional until a human repeats both presets with keyboard/mouse and controller, pauses mid-warning, and judges threat/trace/lane continuity and silhouette preference
+- [ ] Do not advance P0.2 or promote Swarmers until the human P0.1 comparison is recorded
+
 ## P0 — Eastern-lab Swarmer pressure tier (Run 117)
 
 - [x] Add one fragile one-bolt Swarmer behavior that continuously converges and punishes stationary contact

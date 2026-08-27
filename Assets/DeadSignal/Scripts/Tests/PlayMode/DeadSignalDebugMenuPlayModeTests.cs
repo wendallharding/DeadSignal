@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Linq;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -303,6 +304,125 @@ namespace DeadSignal.Tests.PlayMode
             var end = game.DebugThreatPosition(SecurityReinforcement.Warden);
             Assert.That(Vector3.Distance(start, end), Is.GreaterThan(1f));
             Assert.That(game.DebugNavMeshStatus, Does.Contain("corner").Or.Contain("Complete"));
+        }
+
+        [UnityTest]
+        public IEnumerator TacticalWindowScenarios_StagePoweredReturnThreatAndBoltWithoutChangingCollision()
+        {
+            SceneManager.LoadScene("SampleScene");
+            yield return null;
+            yield return null;
+
+            var game = Object.FindFirstObjectByType<DeadSignalGame>();
+            var camera = Object.FindFirstObjectByType<Camera>();
+            var foregroundController = Object.FindFirstObjectByType<ForegroundOcclusionController>(FindObjectsInactive.Include);
+            Assert.That(game, Is.Not.Null);
+            Assert.That(camera, Is.Not.Null);
+            Assert.That(foregroundController == null || !foregroundController.enabled, Is.True,
+                "The comparison preset must not reactivate runtime foreground culling.");
+
+            foreach (var scenario in new[]
+                     {
+                         DebugScenario.OpeningTacticalWindow,
+                         DebugScenario.SpineReturnTacticalWindow
+                     })
+            {
+                game.DebugApplyScenario(scenario);
+
+                var expectedPosition = scenario == DebugScenario.OpeningTacticalWindow
+                    ? game.DebugPlayerPosition
+                    : game.SpineTowerPosition + Vector3.forward * 3.35f;
+                if (scenario == DebugScenario.OpeningTacticalWindow)
+                {
+                    Assert.That(game.DebugDistanceToLocation(DebugLocation.Extraction), Is.LessThan(0.01f));
+                }
+                else
+                {
+                    Assert.That(Vector3.Distance(game.DebugPlayerPosition, expectedPosition), Is.LessThan(0.01f));
+                }
+                Assert.That(game.IsTowerOnline, Is.True);
+                Assert.That(game.IsRelayTowerOnline, Is.True);
+                Assert.That(game.IsSpineTowerOnline, Is.True);
+                Assert.That(game.CurrentMissionObjective, Does.Contain("TACTICAL WINDOW"));
+                Assert.That(game.CurrentMissionObjective, Does.Contain("BOLT PATH"));
+                Assert.That(game.SapperHealth, Is.GreaterThan(0f));
+                Assert.That(game.WardenHealth, Is.EqualTo(0f));
+                Assert.That(game.InterceptorHealth, Is.EqualTo(0f));
+                Assert.That(game.SuppressorHealth, Is.EqualTo(0f));
+                Assert.That(game.ActiveSignalBoltCount, Is.EqualTo(1),
+                    "Each preset should stage one immediate player bolt for event-timed framing.");
+                yield return new WaitForSeconds(1f);
+                var playerViewport = camera.WorldToViewportPoint(game.DebugPlayerPosition + Vector3.up * 0.5f);
+                var sapperViewport = camera.WorldToViewportPoint(
+                    game.DebugThreatPosition(SecurityReinforcement.Sapper) + Vector3.up * 0.5f);
+                Assert.That(game.AreTacticalWindowActorsInSafeViewport, Is.True,
+                    $"{scenario} viewport framing: player={playerViewport}, sapper={sapperViewport}.");
+                Assert.That(game.AuthoredMapObstacleCount, Is.EqualTo(135));
+                if (scenario == DebugScenario.OpeningTacticalWindow)
+                {
+                    Assert.That(game.IsExtractionReady, Is.True,
+                        "The opening comparison should expose the released direct return lane.");
+                }
+
+                foreach (var resolution in new[] { new Vector2Int(1280, 720), new Vector2Int(1600, 900) })
+                {
+                    camera.aspect = (float)resolution.x / resolution.y;
+                    var coverage = TacticalWindowCoverageDiagnostic.Measure(
+                        camera,
+                        Object.FindObjectsByType<Renderer>(FindObjectsSortMode.None)
+                            .Where(renderer => renderer is MeshRenderer &&
+                                               renderer.bounds.center.y > 0.2f && renderer.bounds.size.y > 0.45f));
+                    Assert.That(coverage, Is.Not.Empty);
+                    Assert.That(coverage[0].WindowCoverage, Is.LessThanOrEqualTo(0.2f),
+                        $"{coverage[0].RendererName} consumes too much of the {scenario} tactical window at " +
+                        $"{resolution.x}x{resolution.y}.");
+                }
+            }
+        }
+
+        [UnityTest]
+        public IEnumerator TacticalWindowSweep_RecordsRealMovementWithoutChangingAuthoredCollision()
+        {
+            SceneManager.LoadScene("SampleScene");
+            yield return null;
+            yield return null;
+
+            var game = Object.FindFirstObjectByType<DeadSignalGame>();
+            var camera = Object.FindFirstObjectByType<Camera>();
+            Assert.That(game, Is.Not.Null);
+            Assert.That(camera, Is.Not.Null);
+            camera.aspect = 16f / 9f;
+
+            foreach (var scenario in new[]
+                     {
+                         DebugScenario.OpeningTacticalWindow,
+                         DebugScenario.SpineReturnTacticalWindow
+                     })
+            {
+                game.DebugApplyScenario(scenario);
+                var obstacleCount = game.AuthoredMapObstacleCount;
+                game.DebugStartTacticalWindowSweep();
+                Assert.That(game.IsTacticalWindowSweepActive, Is.True);
+
+                var timeout = Time.realtimeSinceStartup + 5f;
+                while (game.IsTacticalWindowSweepActive && Time.realtimeSinceStartup < timeout)
+                {
+                    yield return null;
+                }
+
+                Assert.That(game.IsTacticalWindowSweepActive, Is.False, $"{scenario} sweep timed out.");
+                Assert.That(game.TacticalWindowSweepSamples, Is.EqualTo(4));
+                Assert.That(game.TacticalWindowSweepUnsafeActorSamples, Is.Zero,
+                    $"{scenario} lost the player or Sapper during the diagnostic sweep.");
+                Assert.That(game.TacticalWindowSweepDistance, Is.GreaterThan(1f),
+                    $"{scenario} did not exercise meaningful real movement.");
+                Assert.That(game.TacticalWindowSweepMaximumCoverage, Is.InRange(0f, 1f));
+                Assert.That(game.AuthoredMapObstacleCount, Is.EqualTo(obstacleCount));
+                TestContext.WriteLine(
+                    $"{scenario}: pass={game.DidTacticalWindowSweepPass}, " +
+                    $"maxCoverage={game.TacticalWindowSweepMaximumCoverage:P1}, " +
+                    $"distance={game.TacticalWindowSweepDistance:0.00}m.");
+            }
         }
 
         [UnityTest]

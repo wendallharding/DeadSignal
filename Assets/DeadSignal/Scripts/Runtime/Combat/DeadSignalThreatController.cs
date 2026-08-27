@@ -376,6 +376,7 @@ namespace DeadSignal.Combat
             {
                 if (projectile.Visual != null)
                 {
+                    projectile.Visual.SetActive(false);
                     UnityEngine.Object.Destroy(projectile.Visual);
                 }
             }

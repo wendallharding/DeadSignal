@@ -19,6 +19,10 @@ namespace DeadSignal.Diagnostics
         [Button("Overdrive Extraction")] public void OverdriveExtraction() => _apply(DebugScenario.OverdriveExtraction);
         [Button("Victory")] public void Victory() => _apply(DebugScenario.Victory);
         [Button("Failure")] public void Failure() => _apply(DebugScenario.Failure);
+        [Button("Tactical Window — Opening")]
+        public void OpeningTacticalWindow() => _apply(DebugScenario.OpeningTacticalWindow);
+        [Button("Tactical Window — Spine Return")]
+        public void SpineReturnTacticalWindow() => _apply(DebugScenario.SpineReturnTacticalWindow);
         [Button("Eastern Combat — Swarmers On")]
         public void EasternRoomCombat() => _apply(DebugScenario.EasternRoomCombat);
         [Button("Eastern Combat — Swarmers Off")]

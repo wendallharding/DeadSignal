@@ -91,6 +91,14 @@ namespace DeadSignal.Application
         private bool m_debugCombatScenarioIncludesSwarmers;
         private float m_debugCombatScenarioSeconds;
         private bool m_debugCombatScenarioActive;
+        private DebugScenario m_debugTacticalWindowScenario = DebugScenario.FreshRun;
+        private Vector2 m_debugTacticalWindowMoveInput;
+        private bool m_debugTacticalWindowSweepActive;
+        private bool m_debugTacticalWindowSweepPassed;
+        private int m_debugTacticalWindowSweepSamples;
+        private int m_debugTacticalWindowSweepUnsafeActorSamples;
+        private float m_debugTacticalWindowSweepDistance;
+        private float m_debugTacticalWindowSweepMaximumCoverage;
         private readonly LiveBalanceCombatPolicy m_liveBalanceCombatPolicy = new();
         private LiveBalanceCombatDecision m_liveBalanceCombatDecision;
 
@@ -263,7 +271,8 @@ namespace DeadSignal.Application
         public int ThreatsPurged => m_metrics?.ThreatsPurged ?? 0;
         public float SignalRecovered => m_metrics?.SignalRecovered ?? 0f;
         public int ShotsFired => m_metrics?.ShotsFired ?? 0;
-        public int ActiveSignalBoltCount => transform.Cast<Transform>().Count(child => child.name == "Signal Bolt");
+        public int ActiveSignalBoltCount => transform.Cast<Transform>().Count(child =>
+            child.name == "Signal Bolt" && child.gameObject.activeInHierarchy);
         public int PiercingPulseFollowThroughs => m_threats?.PiercingPulseFollowThroughs ?? 0;
         public int ControlledRicochets => m_threats?.ControlledRicochets ?? 0;
         public bool HasSwarmerAssets => m_threats?.HasSwarmerAssets ?? false;
@@ -325,6 +334,14 @@ namespace DeadSignal.Application
             _isInSafeViewport(m_world.Player) && _isInSafeViewport(m_world.Warden) &&
             _isInSafeViewport(m_world.Sapper) && _isInSafeViewport(m_world.Interceptor) &&
             _isInSafeViewport(m_world.Suppressor) && _areActiveSwarmersInSafeViewport();
+        public bool AreTacticalWindowActorsInSafeViewport =>
+            _isInSafeViewport(m_world?.Player) && _isInSafeViewport(m_world?.Sapper);
+        public bool IsTacticalWindowSweepActive => m_debugTacticalWindowSweepActive;
+        public bool DidTacticalWindowSweepPass => m_debugTacticalWindowSweepPassed;
+        public int TacticalWindowSweepSamples => m_debugTacticalWindowSweepSamples;
+        public int TacticalWindowSweepUnsafeActorSamples => m_debugTacticalWindowSweepUnsafeActorSamples;
+        public float TacticalWindowSweepDistance => m_debugTacticalWindowSweepDistance;
+        public float TacticalWindowSweepMaximumCoverage => m_debugTacticalWindowSweepMaximumCoverage;
         public string DebugCombatScenarioStatus => !m_debugCombatScenarioActive
             ? "COMBAT LAB  Inactive"
             : $"COMBAT LAB  {(m_debugCombatScenarioIncludesSwarmers ? "SWARMERS ON" : "SWARMERS OFF")}  " +
@@ -371,6 +388,51 @@ namespace DeadSignal.Application
                 }
             }
             return false;
+        }
+
+        public static bool TryParseTacticalWindowScenario(string[] arguments, out DebugScenario scenario)
+        {
+            const string PREFIX = "-DEADSIGNALTACTICALWINDOW=";
+            scenario = DebugScenario.FreshRun;
+            if (arguments == null)
+            {
+                return false;
+            }
+
+            foreach (var argument in arguments)
+            {
+                if (argument == null || !argument.StartsWith(PREFIX, System.StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+
+                var location = argument.Substring(PREFIX.Length);
+                if (location.Equals("Opening", System.StringComparison.OrdinalIgnoreCase))
+                {
+                    scenario = DebugScenario.OpeningTacticalWindow;
+                    return true;
+                }
+                if (location.Equals("SpineReturn", System.StringComparison.OrdinalIgnoreCase))
+                {
+                    scenario = DebugScenario.SpineReturnTacticalWindow;
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        public static bool HasTacticalWindowCaptureArgument(string[] arguments)
+        {
+            const string ARGUMENT = "-DEADSIGNALTACTICALWINDOWCAPTURE";
+            return arguments != null && arguments.Any(argument =>
+                argument != null && argument.Equals(ARGUMENT, System.StringComparison.OrdinalIgnoreCase));
+        }
+
+        public static bool HasTacticalWindowSweepArgument(string[] arguments)
+        {
+            const string ARGUMENT = "-DEADSIGNALTACTICALWINDOWSWEEP";
+            return arguments != null && arguments.Any(argument =>
+                argument != null && argument.Equals(ARGUMENT, System.StringComparison.OrdinalIgnoreCase));
         }
 
         public float DebugDistanceToLocation(DebugLocation location)
@@ -564,14 +626,21 @@ namespace DeadSignal.Application
 
         public void DebugCaptureScreenshot()
         {
-            var directory = Path.Combine(UnityEngine.Application.persistentDataPath, "PlaytestCaptures");
-            Directory.CreateDirectory(directory);
-            m_lastDebugCapturePath = Path.Combine(directory, $"DeadSignal-{System.DateTime.Now:yyyyMMdd-HHmmssfff}.png");
-            ScreenCapture.CaptureScreenshot(m_lastDebugCapturePath);
-            _showFeedback("DEBUG — SCREENSHOT CAPTURED");
+            _debugCaptureScreenshot(null);
         }
 
         public void DebugCaptureCombatSequence() => StartCoroutine(_debugCaptureCombatSequence());
+
+        public void DebugStartTacticalWindowSweep()
+        {
+            if (m_debugTacticalWindowScenario is not (DebugScenario.OpeningTacticalWindow or
+                DebugScenario.SpineReturnTacticalWindow) || m_debugTacticalWindowSweepActive)
+            {
+                return;
+            }
+
+            StartCoroutine(_captureTacticalWindowSweepSequence(m_debugTacticalWindowScenario, false, false));
+        }
 
         public void DebugExerciseCombatFeedback()
         {
@@ -864,6 +933,10 @@ namespace DeadSignal.Application
                 case DebugScenario.OverdriveExtraction: DebugBeginExtraction(ExtractionUplinkMode.Overdrive); DebugTeleport(DebugLocation.Extraction); break;
                 case DebugScenario.Victory: DebugCompleteExtraction(); break;
                 case DebugScenario.Failure: m_model.SetSignalForDebug(0f); m_model.Advance(RunModel.CriticalRecoveryDuration, false, false); break;
+                case DebugScenario.OpeningTacticalWindow:
+                    _applyTacticalWindowScenario(DebugLocation.Extraction); break;
+                case DebugScenario.SpineReturnTacticalWindow:
+                    _applyTacticalWindowScenario(DebugLocation.SpineTower); break;
                 case DebugScenario.EasternRoomCombat:
                     _applyEasternRoomCombatScenario(true); break;
                 case DebugScenario.EasternRoomCombatNoSwarmers:
@@ -1213,7 +1286,9 @@ namespace DeadSignal.Application
                 return Vector3.zero;
             }
 
-            var moveInput = m_debugRouteDriving ? _debugRouteInput() : m_input.ReadMovement();
+            var moveInput = m_debugTacticalWindowSweepActive
+                ? m_debugTacticalWindowMoveInput
+                : m_debugRouteDriving ? _debugRouteInput() : m_input.ReadMovement();
             if (_isLiveBalanceAutomationActive())
             {
                 moveInput = LiveBalanceCombatPolicy.BlendMovement(
@@ -2089,6 +2164,19 @@ namespace DeadSignal.Application
                 return;
             }
             var arguments = System.Environment.GetCommandLineArgs();
+            if (TryParseTacticalWindowScenario(arguments, out var tacticalWindowScenario))
+            {
+                DebugApplyScenario(tacticalWindowScenario);
+                if (HasTacticalWindowSweepArgument(arguments))
+                {
+                    StartCoroutine(_captureTacticalWindowSweepSequence(tacticalWindowScenario, true, true));
+                }
+                else if (HasTacticalWindowCaptureArgument(arguments))
+                {
+                    StartCoroutine(_captureTacticalWindowSequence(tacticalWindowScenario));
+                }
+                return;
+            }
             if (TryParseCombatLabScenario(arguments, out var combatLabScenario))
             {
                 DebugApplyScenario(combatLabScenario);
@@ -2211,6 +2299,193 @@ namespace DeadSignal.Application
                 objectiveBeacon.enabled = false;
             }
             _showFeedback("DEBUG — EASTERN COMBAT LAB READY");
+        }
+
+        private void _applyTacticalWindowScenario(DebugLocation location)
+        {
+            m_debugTacticalWindowScenario = location == DebugLocation.Extraction
+                ? DebugScenario.OpeningTacticalWindow
+                : DebugScenario.SpineReturnTacticalWindow;
+            if (location == DebugLocation.Extraction)
+            {
+                DebugMakeExtractionReady();
+            }
+            else
+            {
+                DebugActivateSpineTower();
+            }
+
+            DebugTeleport(location);
+            if (location == DebugLocation.SpineTower)
+            {
+                m_world.Player.position = m_world.ClampToArena(
+                    m_world.SpineTowerPosition + Vector3.forward * 3.35f,
+                    0.8f);
+            }
+            m_world.PlayerCamera.SnapToFocus(m_world.Player.position);
+            m_model.SetSignalForDebug(RunModel.MaximumSignal);
+            m_threats.ResetDebugScenario();
+            DebugSetInvulnerable(true);
+            foreach (var reinforcement in new[]
+                     {
+                         SecurityReinforcement.Warden, SecurityReinforcement.Sapper,
+                         SecurityReinforcement.Interceptor, SecurityReinforcement.Suppressor
+                     })
+            {
+                DebugPurgeThreat(reinforcement);
+            }
+            DebugForceThreatAttack(SecurityReinforcement.Sapper);
+            var playerViewport = m_world.Camera.WorldToViewportPoint(m_world.Player.position + Vector3.up * 0.5f);
+            var stagingRay = m_world.Camera.ViewportPointToRay(new Vector3(0.7f, playerViewport.y, 0f));
+            var actorPlane = new Plane(Vector3.up, m_world.Player.position + Vector3.up * 0.5f);
+            if (actorPlane.Raycast(stagingRay, out var stagingDistance))
+            {
+                var stagingPosition = stagingRay.GetPoint(stagingDistance) - Vector3.up * 0.5f;
+                m_world.Sapper.position = m_world.ClampToArena(stagingPosition, 0.8f);
+            }
+            _fireTacticalWindowTrace();
+            m_hud.SetDebugObjective(
+                $"TACTICAL WINDOW  //  {(location == DebugLocation.Extraction ? "OPENING RETURN" : "SPINE RETURN")}\n" +
+                "MOVE, FIRE, AND CAPTURE THE THREAT, BOLT PATH, AND ONE ESCAPE LANE");
+            _showFeedback("DEBUG — TACTICAL WINDOW CAPTURE READY");
+        }
+
+        private IEnumerator _captureTacticalWindowSweepSequence(
+            DebugScenario scenario,
+            bool captureFrames,
+            bool exitWhenComplete)
+        {
+            const float CAMERA_SETTLE_SECONDS = 1f;
+            var legs = new[]
+            {
+                (Input: Vector2.left, Seconds: 0.35f, Label: "Left"),
+                (Input: Vector2.right, Seconds: 0.7f, Label: "Right"),
+                (Input: Vector2.left, Seconds: 0.35f, Label: "Return")
+            };
+            var scenarioLabel = scenario == DebugScenario.OpeningTacticalWindow ? "Opening" : "SpineReturn";
+            m_debugTacticalWindowSweepActive = true;
+            m_debugTacticalWindowSweepPassed = true;
+            m_debugTacticalWindowSweepSamples = 0;
+            m_debugTacticalWindowSweepUnsafeActorSamples = 0;
+            m_debugTacticalWindowSweepDistance = 0f;
+            m_debugTacticalWindowSweepMaximumCoverage = 0f;
+            m_debugTacticalWindowMoveInput = Vector2.zero;
+
+            yield return new WaitForSecondsRealtime(CAMERA_SETTLE_SECONDS);
+            _fireTacticalWindowTrace();
+            yield return captureFrames ? new WaitForEndOfFrame() : null;
+            _recordTacticalWindowSweepSample(scenarioLabel, "Center", captureFrames);
+
+            foreach (var leg in legs)
+            {
+                var legStart = m_world.Player.position;
+                var elapsed = 0f;
+                m_debugTacticalWindowMoveInput = leg.Input;
+                while (elapsed < leg.Seconds)
+                {
+                    yield return null;
+                    elapsed += Time.unscaledDeltaTime;
+                }
+
+                m_debugTacticalWindowMoveInput = Vector2.zero;
+                m_debugTacticalWindowSweepDistance += DeadSignalWorld.FlatDistance(legStart, m_world.Player.position);
+                _fireTacticalWindowTrace();
+                yield return captureFrames ? new WaitForEndOfFrame() : null;
+                _recordTacticalWindowSweepSample(scenarioLabel, leg.Label, captureFrames);
+            }
+
+            m_debugTacticalWindowMoveInput = Vector2.zero;
+            m_debugTacticalWindowSweepActive = false;
+            var result = m_debugTacticalWindowSweepPassed ? "PASS" : "FAIL";
+            Debug.Log(
+                $"[DEAD SIGNAL TACTICAL WINDOW SWEEP] {result} | {scenarioLabel} | {Screen.width}x{Screen.height} | " +
+                $"samples={m_debugTacticalWindowSweepSamples} | distance={m_debugTacticalWindowSweepDistance:0.00}m | " +
+                $"maxCoverage={m_debugTacticalWindowSweepMaximumCoverage:P1} | production state unchanged");
+            if (exitWhenComplete && !UnityEngine.Application.isEditor)
+            {
+                UnityEngine.Application.Quit(m_debugTacticalWindowSweepPassed ? 0 : 1);
+            }
+        }
+
+        private void _recordTacticalWindowSweepSample(string scenarioLabel, string sampleLabel, bool captureFrame)
+        {
+            var coverage = TacticalWindowCoverageDiagnostic.Measure(
+                m_world.Camera,
+                FindObjectsByType<Renderer>(FindObjectsSortMode.None)
+                    .Where(renderer => renderer is MeshRenderer &&
+                                       renderer.bounds.center.y > 0.2f && renderer.bounds.size.y > 0.45f));
+            var maximumCoverage = coverage.Count > 0 ? coverage[0].WindowCoverage : 1f;
+            var playerViewport = m_world.Camera.WorldToViewportPoint(m_world.Player.position + Vector3.up * 0.5f);
+            var sapperViewport = m_world.Camera.WorldToViewportPoint(m_world.Sapper.position + Vector3.up * 0.5f);
+            var actorsSafe = AreTacticalWindowActorsInSafeViewport;
+            m_debugTacticalWindowSweepSamples++;
+            if (!actorsSafe)
+            {
+                m_debugTacticalWindowSweepUnsafeActorSamples++;
+            }
+            m_debugTacticalWindowSweepMaximumCoverage = Mathf.Max(
+                m_debugTacticalWindowSweepMaximumCoverage,
+                maximumCoverage);
+            m_debugTacticalWindowSweepPassed &= actorsSafe && maximumCoverage <= 0.2f;
+            Debug.Log(
+                $"[DEAD SIGNAL TACTICAL WINDOW SWEEP] SAMPLE | {scenarioLabel} | {sampleLabel} | " +
+                $"actorsSafe={actorsSafe} | coverage={maximumCoverage:P1} | " +
+                $"playerViewport={playerViewport.x:0.00},{playerViewport.y:0.00} | " +
+                $"sapperViewport={sapperViewport.x:0.00},{sapperViewport.y:0.00} | " +
+                $"player={m_world.Player.position.x:0.00},{m_world.Player.position.z:0.00}");
+            if (captureFrame)
+            {
+                _debugCaptureScreenshot(
+                    $"TacticalWindowSweep-{scenarioLabel}-{Screen.width}x{Screen.height}-{sampleLabel}");
+            }
+        }
+
+        private void _fireTacticalWindowTrace()
+        {
+            var toSapper = m_world.Sapper.position - m_world.Player.position;
+            toSapper.y = 0f;
+            var perpendicular = toSapper.sqrMagnitude > 0.01f
+                ? Vector3.Cross(Vector3.up, toSapper.normalized)
+                : Vector3.right;
+            DebugFireAt(m_world.Sapper.position + perpendicular * 1.1f);
+        }
+
+        private IEnumerator _captureTacticalWindowSequence(DebugScenario scenario)
+        {
+            const float CAMERA_SETTLE_SECONDS = 1f;
+            const float BETWEEN_CAPTURES_SECONDS = 0.5f;
+            var scenarioLabel = scenario == DebugScenario.OpeningTacticalWindow ? "Opening" : "SpineReturn";
+
+            yield return new WaitForSecondsRealtime(CAMERA_SETTLE_SECONDS);
+            for (var captureIndex = 1; captureIndex <= 2; captureIndex++)
+            {
+                DebugFireAt(m_world.Sapper.position);
+                yield return new WaitForEndOfFrame();
+                var label = $"TacticalWindow-{scenarioLabel}-{Screen.width}x{Screen.height}-{captureIndex}";
+                _debugCaptureScreenshot(label);
+                yield return new WaitForSecondsRealtime(BETWEEN_CAPTURES_SECONDS);
+            }
+
+            yield return new WaitForSecondsRealtime(0.5f);
+            Debug.Log(
+                $"[DEAD SIGNAL TACTICAL WINDOW] PASS | {scenarioLabel} | {Screen.width}x{Screen.height} | " +
+                "captures=2 | production state unchanged");
+            if (!UnityEngine.Application.isEditor)
+            {
+                UnityEngine.Application.Quit(0);
+            }
+        }
+
+        private void _debugCaptureScreenshot(string label)
+        {
+            var directory = Path.Combine(UnityEngine.Application.persistentDataPath, "PlaytestCaptures");
+            Directory.CreateDirectory(directory);
+            var captureLabel = string.IsNullOrWhiteSpace(label) ? string.Empty : $"-{label}";
+            m_lastDebugCapturePath = Path.Combine(
+                directory,
+                $"DeadSignal{captureLabel}-{System.DateTime.Now:yyyyMMdd-HHmmssfff}.png");
+            ScreenCapture.CaptureScreenshot(m_lastDebugCapturePath);
+            _showFeedback("DEBUG — SCREENSHOT CAPTURED");
         }
 
         private int _activeDebugThreatCount()
