@@ -1208,7 +1208,7 @@ namespace DeadSignal.Application
             _tryTriggerEmergencyCapacitor();
             m_signalDust.Tick(powered, m_model.TowerOnline, m_model.Signal / RunModel.MaximumSignal);
             m_lowSignalWarning.Tick(dt);
-            m_metrics.Advance(dt, powered);
+            m_metrics.Advance(dt, powered, _activeDebugThreatCount() > 0);
             _tickOnboarding();
             if (powered != m_lastPoweredState)
             {
@@ -1885,6 +1885,10 @@ namespace DeadSignal.Application
             var hasCompleteRoute = m_world.GetRemainingNavMeshCorners(m_world.Player) > 0;
             var arrived = m_debugRouteSequencer.TickNavigation(
                 distance, dt, m_world.LastMovementBlocked, hasCompleteRoute);
+            if (arrived)
+            {
+                m_debugRouteSequencer.RecordMissionRoomVisit(_debugCompatibilityRoomName(step, destination));
+            }
             if (arrived && m_debugCaptureEachRouteStep)
             {
                 DebugCaptureScreenshot();
@@ -1928,6 +1932,21 @@ namespace DeadSignal.Application
                 case DebugRouteAction.BeginStableExtraction: DebugBeginExtraction(ExtractionUplinkMode.Stable); break;
                 case DebugRouteAction.CaptureScreenshot: DebugCaptureScreenshot(); break;
             }
+        }
+
+        private static string _debugCompatibilityRoomName(DebugRouteStep step, Vector3 destination)
+        {
+            if (!string.IsNullOrEmpty(step.RoomName))
+            {
+                return step.RoomName;
+            }
+
+            return step.Name switch
+            {
+                "Central payload" => destination.z >= 0f ? "Cargo Annex" : "Coolant Reclamation",
+                "Relay payload" => destination.z < -5f ? "Cooling Gantry" : "Relay Foundry",
+                _ => null
+            };
         }
 
         private Vector3 _debugRouteSequenceDestination(DebugRouteStep step)

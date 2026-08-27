@@ -35,6 +35,7 @@ namespace DeadSignal.Missions
     {
         public float ElapsedSeconds { get; private set; }
         public float DeadZoneSeconds { get; private set; }
+        public float CombatSeconds { get; private set; }
         public int ShotsFired { get; private set; }
         public int SecurityHits { get; private set; }
         public int SapperPulses { get; private set; }
@@ -52,6 +53,11 @@ namespace DeadSignal.Missions
 
         public void Advance(float seconds, bool isPowered)
         {
+            Advance(seconds, isPowered, false);
+        }
+
+        public void Advance(float seconds, bool isPowered, bool isCombatActive)
+        {
             if (seconds <= 0f)
             {
                 return;
@@ -61,6 +67,10 @@ namespace DeadSignal.Missions
             if (!isPowered)
             {
                 DeadZoneSeconds += seconds;
+            }
+            if (isCombatActive)
+            {
+                CombatSeconds += seconds;
             }
         }
 

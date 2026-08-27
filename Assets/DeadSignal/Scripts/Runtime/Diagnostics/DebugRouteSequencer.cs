@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using DeadSignal.Missions;
 using UnityEngine;
@@ -65,13 +66,15 @@ namespace DeadSignal.Diagnostics
     public sealed class DebugRouteStep
     {
         public DebugRouteStep(string name, DebugLocation location, float arrivalRadius, DebugRouteAction action,
-            DebugRouteAssertion assertion = DebugRouteAssertion.None)
+            DebugRouteAssertion assertion = DebugRouteAssertion.None, string roomName = null, bool isBacktrack = false)
         {
             Name = name;
             Location = location;
             ArrivalRadius = arrivalRadius;
             Action = action;
             Assertion = assertion;
+            RoomName = roomName;
+            IsBacktrack = isBacktrack;
         }
 
         public DebugRouteStep(string name, Vector3 position)
@@ -89,6 +92,8 @@ namespace DeadSignal.Diagnostics
         public float ArrivalRadius { get; }
         public DebugRouteAction Action { get; }
         public DebugRouteAssertion Assertion { get; }
+        public string RoomName { get; }
+        public bool IsBacktrack { get; }
     }
 
     /// <summary>Owns deterministic route sequencing, progress monitoring, recovery state, and its run report.</summary>
@@ -99,8 +104,32 @@ namespace DeadSignal.Diagnostics
         private const float PROGRESS_EPSILON = 0.25f;
         private const int MAXIMUM_RECOVERIES = 3;
 
+        private static readonly string[] s_missionRooms =
+        {
+            "Extraction Dock",
+            "Central Chamber",
+            "Cargo Annex",
+            "Coolant Reclamation",
+            "Relay Fork",
+            "East Transfer Vault",
+            "Relay Foundry",
+            "Cooling Gantry",
+            "Capacitor Spine",
+            "Spine Discharge Trench",
+            "Induction Gallery",
+            "Flux Bypass",
+            "Convergence Chamber",
+            "Breaker Gallery",
+            "Arc Furnace",
+            "Quench Loop",
+            "Room A",
+            "Room B",
+            "Room C"
+        };
+
         private readonly List<DebugRouteStep> m_steps = new();
         private readonly List<Vector3> m_recordedPositions = new();
+        private readonly HashSet<string> m_visitedMissionRooms = new(StringComparer.Ordinal);
         private readonly StringBuilder m_report = new();
         private string m_finishedReport;
         private int m_stepIndex;
@@ -109,6 +138,13 @@ namespace DeadSignal.Diagnostics
         private float m_noProgressSeconds;
         private float m_bestDistance = float.PositiveInfinity;
         private float m_startSignal;
+        private float m_guidanceResponseSeconds;
+        private float m_maximumGuidanceResponseSeconds;
+        private int m_guidanceResponseSamples;
+        private int m_totalRecoveryCount;
+        private int m_completedBacktrackLegs;
+        private bool m_hasDistanceSample;
+        private bool m_guidanceResponseRecorded;
         private bool m_actionIssued;
 
         public DebugRouteRunState State { get; private set; } = DebugRouteRunState.Idle;
@@ -134,6 +170,14 @@ namespace DeadSignal.Diagnostics
 
         public void ClearRecording() => m_recordedPositions.Clear();
 
+        public void RecordMissionRoomVisit(string roomName)
+        {
+            if (!string.IsNullOrWhiteSpace(roomName) && s_missionRooms.Contains(roomName))
+            {
+                m_visitedMissionRooms.Add(roomName);
+            }
+        }
+
         public void Start(DebugRoutePreset preset, DebugAutomationMode mode, DebugAutomationProfile profile, float signal)
         {
             Preset = preset;
@@ -145,8 +189,18 @@ namespace DeadSignal.Diagnostics
             m_stepIndex = 0;
             m_report.Clear();
             m_finishedReport = null;
+            m_visitedMissionRooms.Clear();
+            m_guidanceResponseSeconds = 0f;
+            m_maximumGuidanceResponseSeconds = 0f;
+            m_guidanceResponseSamples = 0;
+            m_totalRecoveryCount = 0;
+            m_completedBacktrackLegs = 0;
             m_report.AppendLine($"DEAD SIGNAL PLAYTEST ROUTE — {preset} / {mode} / {profile}");
             m_report.AppendLine($"Started {DateTime.Now:O}  Signal {signal:0.0}");
+            if (preset is DebugRoutePreset.RequiredExtraction or DebugRoutePreset.FullExtraction)
+            {
+                RecordMissionRoomVisit("Extraction Dock");
+            }
             if (m_steps.Count == 0)
             {
                 _fail("Route contains no recorded nodes.");
@@ -199,10 +253,16 @@ namespace DeadSignal.Diagnostics
             }
 
             m_stepSeconds += dt;
-            if (distance + PROGRESS_EPSILON < m_bestDistance)
+            if (!m_hasDistanceSample)
+            {
+                m_hasDistanceSample = true;
+                m_bestDistance = distance;
+            }
+            else if (distance + PROGRESS_EPSILON < m_bestDistance)
             {
                 m_bestDistance = distance;
                 m_noProgressSeconds = 0f;
+                _recordGuidanceResponse();
             }
             else if (blocked || !hasCompleteNavigationRoute)
             {
@@ -215,6 +275,7 @@ namespace DeadSignal.Diagnostics
 
             if (distance <= CurrentStep.ArrivalRadius)
             {
+                _recordGuidanceResponse();
                 State = DebugRouteRunState.Verifying;
                 m_actionIssued = false;
                 m_report.AppendLine($"ARRIVE {m_stepIndex + 1}/{m_steps.Count} {CurrentStep.Name} in {m_stepSeconds:0.00}s");
@@ -224,6 +285,7 @@ namespace DeadSignal.Diagnostics
             if (m_noProgressSeconds >= STALL_SECONDS)
             {
                 m_recoveryCount++;
+                m_totalRecoveryCount++;
                 m_noProgressSeconds = 0.01f;
                 m_bestDistance = distance;
                 m_report.AppendLine($"RECOVER {CurrentStep.Name} attempt {m_recoveryCount} at {distance:0.00}m");
@@ -272,13 +334,26 @@ namespace DeadSignal.Diagnostics
             finishedReport.AppendLine($"Journey {(optionalSalvageSecured ? "OPTIONAL GREED" : "REQUIRED WITHDRAWAL")}  " +
                                       $"Shortcut {(shortcutOpen ? "OPEN" : "CLOSED")}");
             finishedReport.AppendLine($"Time {metrics.ElapsedSeconds:0.00}s  Dead zone {metrics.DeadZoneSeconds:0.00}s  " +
-                                      $"Hits {metrics.SecurityHits}  Sapper drains {metrics.SapperPulses}");
+                                      $"Combat {metrics.CombatSeconds:0.00}s  Hits {metrics.SecurityHits}  " +
+                                      $"Sapper drains {metrics.SapperPulses}");
             finishedReport.AppendLine($"Shots {metrics.ShotsFired}  Purges {metrics.ThreatsPurged}  " +
                                       $"Travel spent {metrics.PassiveSignalSpent + metrics.MovementSignalSpent:0.0}  " +
                                       $"Fire spent {metrics.WeaponSignalSpent:0.0}");
             finishedReport.AppendLine($"Minimum Signal {metrics.MinimumSignal:0.0}  Peak threats {metrics.PeakThreatConcurrency}  " +
                                       $"Swarmer contacts {metrics.SwarmerContacts}  Swarmer purges {metrics.SwarmersPurged}");
             finishedReport.AppendLine($"Live policy shots {directedShots}  Evasion responses {evasionResponses}");
+            var averageGuidanceResponse = m_guidanceResponseSamples > 0
+                ? m_guidanceResponseSeconds / m_guidanceResponseSamples
+                : 0f;
+            finishedReport.AppendLine($"Guidance response proxy avg {averageGuidanceResponse:0.00}s  " +
+                                      $"max {m_maximumGuidanceResponseSeconds:0.00}s  " +
+                                      $"Wrong-turn proxies {m_totalRecoveryCount}  Backtrack legs {m_completedBacktrackLegs}");
+            var visitedRooms = s_missionRooms.Where(m_visitedMissionRooms.Contains).ToArray();
+            var absentRooms = s_missionRooms.Where(room => !m_visitedMissionRooms.Contains(room)).ToArray();
+            finishedReport.AppendLine($"Objective-room coverage {visitedRooms.Length}/{s_missionRooms.Length}: " +
+                                      $"{string.Join(", ", visitedRooms)}");
+            finishedReport.AppendLine($"Rooms without a compatibility-route objective {absentRooms.Length}: " +
+                                      $"{string.Join(", ", absentRooms)}");
             finishedReport.AppendLine($"Recovered {metrics.SignalRecovered + metrics.SalvageSignalRecovered:0.0}  " +
                                       $"Position {position.x:0.00},{position.z:0.00}");
             m_finishedReport = finishedReport.ToString();
@@ -291,8 +366,9 @@ namespace DeadSignal.Diagnostics
             {
                 case DebugRoutePreset.OpeningLoop:
                     yield return new DebugRouteStep("Central tower", DebugLocation.CentralTower, 2f,
-                        DebugRouteAction.ActivateCentralTower, DebugRouteAssertion.InteractionInRange);
-                    yield return new DebugRouteStep("Extraction return", DebugLocation.Extraction, 1.5f, DebugRouteAction.CaptureScreenshot);
+                        DebugRouteAction.ActivateCentralTower, DebugRouteAssertion.InteractionInRange, "Central Chamber");
+                    yield return new DebugRouteStep("Extraction return", DebugLocation.Extraction, 1.5f,
+                        DebugRouteAction.CaptureScreenshot, roomName: "Extraction Dock", isBacktrack: true);
                     break;
                 case DebugRoutePreset.RequiredSalvage:
                     yield return new DebugRouteStep("Nearest cache one", DebugLocation.CurrentObjective, 2.3f, DebugRouteAction.CollectCache);
@@ -300,9 +376,12 @@ namespace DeadSignal.Diagnostics
                     yield return new DebugRouteStep("Nearest cache three", DebugLocation.CurrentObjective, 2.3f, DebugRouteAction.CollectCache);
                     break;
                 case DebugRoutePreset.ThreeTowerRun:
-                    yield return new DebugRouteStep("Central tower", DebugLocation.CentralTower, 2f, DebugRouteAction.ActivateCentralTower);
-                    yield return new DebugRouteStep("Relay tower", DebugLocation.RelayTower, 2f, DebugRouteAction.ActivateRelayTower);
-                    yield return new DebugRouteStep("Spine tower", DebugLocation.SpineTower, 2f, DebugRouteAction.ActivateSpineTower);
+                    yield return new DebugRouteStep("Central tower", DebugLocation.CentralTower, 2f,
+                        DebugRouteAction.ActivateCentralTower, roomName: "Central Chamber");
+                    yield return new DebugRouteStep("Relay tower", DebugLocation.RelayTower, 2f,
+                        DebugRouteAction.ActivateRelayTower, roomName: "Relay Foundry");
+                    yield return new DebugRouteStep("Spine tower", DebugLocation.SpineTower, 2f,
+                        DebugRouteAction.ActivateSpineTower, roomName: "Capacitor Spine");
                     break;
                 case DebugRoutePreset.EasternRoom:
                     yield return new DebugRouteStep("Relay tower", DebugLocation.RelayTower, 2f, DebugRouteAction.ActivateRelayTower);
@@ -312,32 +391,36 @@ namespace DeadSignal.Diagnostics
                     break;
                 case DebugRoutePreset.RequiredExtraction:
                 case DebugRoutePreset.FullExtraction:
-                    yield return new DebugRouteStep("Central tower", DebugLocation.CentralTower, 2f, DebugRouteAction.ActivateCentralTower);
+                    yield return new DebugRouteStep("Central tower", DebugLocation.CentralTower, 2f,
+                        DebugRouteAction.ActivateCentralTower, roomName: "Central Chamber");
                     yield return new DebugRouteStep("Central payload", DebugLocation.CurrentObjective, 2.3f, DebugRouteAction.CollectCache);
-                    yield return new DebugRouteStep("Relay tower", DebugLocation.RelayTower, 2f, DebugRouteAction.ActivateRelayTower);
+                    yield return new DebugRouteStep("Relay tower", DebugLocation.RelayTower, 2f,
+                        DebugRouteAction.ActivateRelayTower, roomName: "Relay Foundry");
                     yield return new DebugRouteStep("Piercing calibration", DebugLocation.RelayTower, 2f,
-                        DebugRouteAction.SelectWeaponOverclock);
+                        DebugRouteAction.SelectWeaponOverclock, roomName: "Relay Foundry");
                     yield return new DebugRouteStep("Relay payload", DebugLocation.CurrentObjective, 2.3f, DebugRouteAction.CollectCache);
-                    yield return new DebugRouteStep("Spine tower", DebugLocation.SpineTower, 2f, DebugRouteAction.ActivateSpineTower);
-                    yield return new DebugRouteStep("Spine payload", DebugLocation.CurrentObjective, 2.3f, DebugRouteAction.CollectCache);
+                    yield return new DebugRouteStep("Spine tower", DebugLocation.SpineTower, 2f,
+                        DebugRouteAction.ActivateSpineTower, roomName: "Capacitor Spine");
+                    yield return new DebugRouteStep("Spine payload", DebugLocation.CurrentObjective, 2.3f,
+                        DebugRouteAction.CollectCache, roomName: "Capacitor Spine");
                     if (preset == DebugRoutePreset.FullExtraction)
                     {
                         yield return new DebugRouteStep("Optional Quench cache", DebugLocation.CacheFour, 2.3f,
-                            DebugRouteAction.CollectCache);
+                            DebugRouteAction.CollectCache, roomName: "Quench Loop");
                         yield return new DebugRouteStep("Quench return to Spine", DebugLocation.SpineTower, 2f,
-                            DebugRouteAction.CaptureScreenshot);
+                            DebugRouteAction.CaptureScreenshot, roomName: "Capacitor Spine", isBacktrack: true);
                     }
                     else
                     {
                         yield return new DebugRouteStep("Spine discharge withdrawal", DebugLocation.SpineTower, 2f,
-                            DebugRouteAction.CaptureScreenshot);
+                            DebugRouteAction.CaptureScreenshot, roomName: "Capacitor Spine", isBacktrack: true);
                     }
                     yield return new DebugRouteStep("Relay powered foothold", DebugLocation.RelayTower, 2f,
-                        DebugRouteAction.None);
+                        DebugRouteAction.None, roomName: "Relay Foundry", isBacktrack: true);
                     yield return new DebugRouteStep("Central powered foothold", DebugLocation.CentralTower, 2f,
-                        DebugRouteAction.None);
+                        DebugRouteAction.None, roomName: "Central Chamber", isBacktrack: true);
                     yield return new DebugRouteStep("Extraction", DebugLocation.Extraction, 1.5f, DebugRouteAction.BeginStableExtraction,
-                        DebugRouteAssertion.SignalAboveTwenty);
+                        DebugRouteAssertion.SignalAboveTwenty, "Extraction Dock", true);
                     break;
                 case DebugRoutePreset.RecordedRoute:
                     for (var index = 0; index < m_recordedPositions.Count; index++)
@@ -354,12 +437,19 @@ namespace DeadSignal.Diagnostics
             m_stepSeconds = 0f;
             m_noProgressSeconds = 0f;
             m_bestDistance = float.PositiveInfinity;
+            m_hasDistanceSample = false;
+            m_guidanceResponseRecorded = false;
             m_recoveryCount = 0;
             m_actionIssued = false;
         }
 
         private void _advance()
         {
+            RecordMissionRoomVisit(CurrentStep?.RoomName);
+            if (CurrentStep?.IsBacktrack == true)
+            {
+                m_completedBacktrackLegs++;
+            }
             m_stepIndex++;
             if (m_stepIndex >= m_steps.Count)
             {
@@ -382,6 +472,19 @@ namespace DeadSignal.Diagnostics
         {
             State = DebugRouteRunState.Failed;
             m_report.AppendLine($"ROUTE FAILED — {reason}");
+        }
+
+        private void _recordGuidanceResponse()
+        {
+            if (m_guidanceResponseRecorded)
+            {
+                return;
+            }
+
+            m_guidanceResponseRecorded = true;
+            m_guidanceResponseSeconds += m_stepSeconds;
+            m_maximumGuidanceResponseSeconds = Mathf.Max(m_maximumGuidanceResponseSeconds, m_stepSeconds);
+            m_guidanceResponseSamples++;
         }
     }
 }

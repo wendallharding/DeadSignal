@@ -130,6 +130,11 @@ namespace DeadSignal.Tests.PlayMode
             var report = File.ReadAllText(game.DebugLastCapturePath);
             Assert.That(report, Does.Contain("Outcome Victory"));
             Assert.That(report, Does.Contain("Journey REQUIRED WITHDRAWAL"));
+            Assert.That(report, Does.Contain("Combat "));
+            Assert.That(report, Does.Contain("Guidance response proxy"));
+            Assert.That(report, Does.Contain("Wrong-turn proxies 0  Backtrack legs 4"));
+            Assert.That(report, Does.Contain("Objective-room coverage 5/19"));
+            Assert.That(report, Does.Contain("Rooms without a compatibility-route objective 14"));
             game.DebugSetTimeScale(1f);
         }
 

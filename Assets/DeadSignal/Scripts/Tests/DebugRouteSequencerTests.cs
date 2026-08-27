@@ -138,7 +138,7 @@ namespace DeadSignal.Tests
             var metrics = new DeadSignal.Missions.RunMetrics();
             sequencer.Start(DebugRoutePreset.RequiredExtraction, DebugAutomationMode.AssistedPlaythrough,
                 DebugAutomationProfile.LiveBalance, 72f);
-            metrics.Advance(12f, false);
+            metrics.Advance(12f, false, true);
             metrics.RecordShot();
             metrics.RecordSecurityHit();
             metrics.RecordThreatPurge(14f);
@@ -149,10 +149,43 @@ namespace DeadSignal.Tests
             Assert.That(report, Does.Contain("Outcome Victory"));
             Assert.That(report, Does.Contain("Journey REQUIRED WITHDRAWAL"));
             Assert.That(report, Does.Contain("Time 12.00s"));
+            Assert.That(report, Does.Contain("Combat 12.00s"));
             Assert.That(report, Does.Contain("Hits 1"));
             Assert.That(report, Does.Contain("Shots 1"));
             Assert.That(report, Does.Contain("Live policy shots 1  Evasion responses 2"));
             Assert.That(report, Does.Contain("Recovered 14.0"));
+            Assert.That(report, Does.Contain("Guidance response proxy"));
+            Assert.That(report, Does.Contain("Wrong-turn proxies 0"));
+            Assert.That(report, Does.Contain("Objective-room coverage 1/19: Extraction Dock"));
+            Assert.That(report, Does.Contain("Rooms without a compatibility-route objective 18"));
+        }
+
+        [Test]
+        public void RequiredExtractionReport_RecordsCoverageGuidanceWrongTurnsAndBacktracking()
+        {
+            var sequencer = new DebugRouteSequencer();
+            var metrics = new RunMetrics();
+            sequencer.Start(DebugRoutePreset.RequiredExtraction, DebugAutomationMode.DeterministicValidation,
+                DebugAutomationProfile.SafeNavigation, 72f);
+
+            while (sequencer.CurrentStep != null)
+            {
+                sequencer.TickNavigation(10f, 0.1f, false, true);
+                sequencer.TickNavigation(9f, 0.2f, false, true);
+                sequencer.TickNavigation(0f, 0.1f, false, true);
+                sequencer.RecordMissionRoomVisit(sequencer.CurrentStep.RoomName);
+                Assert.That(sequencer.ShouldIssueAction(), Is.True);
+                sequencer.TickVerification(0.1f, true, true, "verified", 72f);
+            }
+
+            var report = sequencer.FinishReport(72f, metrics, false, false, Vector3.zero, RunOutcome.Victory);
+
+            Assert.That(report, Does.Contain("Guidance response proxy avg 0.30s"));
+            Assert.That(report, Does.Contain("Wrong-turn proxies 0  Backtrack legs 4"));
+            Assert.That(report, Does.Contain("Extraction Dock"));
+            Assert.That(report, Does.Contain("Central Chamber"));
+            Assert.That(report, Does.Contain("Relay Foundry"));
+            Assert.That(report, Does.Contain("Capacitor Spine"));
         }
 
         [Test]

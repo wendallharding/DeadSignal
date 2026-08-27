@@ -209,9 +209,23 @@ This is the progression that Phase 1 must reproduce before mission order changes
 
 The current model requires three towers and three regional payloads, but it does **not** require Relay Fork, Discharge Trench, Induction, Flux, Convergence, Breaker, Furnace processing, Quench processing, or Rooms A–C. This is the central mission-flow gap that the later phases must close without breaking compatibility first.
 
+## Measured current-route baseline
+
+The Phase 0 compatibility baseline uses the existing `RequiredExtraction` route with assisted movement and live combat policy. It is an automation comparison baseline, not a human completion-time or objective-comprehension claim. The route report measures first movement toward each new target as a guidance-response proxy, counts NavMesh recovery attempts as wrong-turn proxies, and counts the four explicit Spine → Relay → Central → Dock withdrawal legs as backtracking. Objective-room coverage is deliberately a lower bound: it records rooms that own a compatibility-route transaction, not pass-through geometry crossed en route.
+
+Fresh Unity `6000.3.11f1` evidence on 2026-08-27 reached Victory with these values:
+
+- Automation duration `42.57s`; dead-zone exposure `16.75s`; active-threat combat window `31.64s`.
+- Guidance-response proxy average `0.34s`, maximum `1.34s`; wrong-turn/recovery proxies `0`; explicit backtrack legs `4`.
+- Signal minimum/final `60.7/60.7`; travel spend `108.1`; recovery `60.2`; `2` hits, `0` Sapper drains, `9` shots, `3` purges, peak concurrency `3`.
+- Objective-room coverage `5/19`: Extraction Dock, Central Chamber, Cargo Annex, Relay Foundry, and Capacitor Spine.
+- Fourteen mission rooms receive no compatibility-route objective in this deterministic branch: Coolant Reclamation, Relay Fork, East Transfer Vault, Cooling Gantry, Spine Discharge Trench, Induction Gallery, Flux Bypass, Convergence Chamber, Breaker Gallery, Arc Furnace, Quench Loop, and Rooms A–C. Cargo/Coolant and Foundry/Gantry are sibling alternatives, so another route seed can swap two names without improving the `5/19` coverage total.
+
+The automated duration is intentionally accelerated and cannot be compared to the 20–25 minute human target. A keyboard/mouse and controller watch must still measure actual recognition, wrong turns, pass-through room entry, and subjective dead space after Phase 1 reproduces this route from the objective graph.
+
 ## Inventory evidence and open verification
 
 - Scene/prefab evidence: `SampleScene.unity`, the environment prefabs named above, and their idempotent `DeadSignal*Setup` scripts.
 - Runtime authority evidence: `RunModel`, `MissionGuidance`, `DeadSignalGame`, `DeadSignalWorld`, `DeadSignalSalvageController`, `AuthoredCombatChamber`, and `DebugRouteSequencer`.
-- Existing regression evidence covers region hierarchy, wall openings, blocker counts, powered-state mutations, cache collection, dynamic gates, and the current commercial journey. Phase 0's later adjacency-contract checkbox must consolidate the critical paths/anchors into focused tests; this inventory deliberately does not claim that later item complete.
-- Human route recognition, wrong turns, room-entry coverage, and duration have not been established for this inventory run. Those remain the final Phase 0 baseline checkbox.
+- Existing regression evidence covers region hierarchy, wall openings, blocker counts, powered-state mutations, cache collection, dynamic gates, the current commercial journey, and the automated compatibility baseline above.
+- Human route recognition, wrong turns, pass-through room-entry coverage, and duration remain unmeasured. Automation supplies a repeatable pre-graph comparison, not a substitute for the required keyboard/mouse and controller route watch.
