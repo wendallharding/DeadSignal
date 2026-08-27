@@ -1947,71 +1947,9 @@ Transform:
   - {fileID: 1446826702}
   - {fileID: 821964417}
   - {fileID: 1795554687}
-  - {fileID: 512598582}
+  - {fileID: 1106195334}
   m_Father: {fileID: 2147458777}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1001 &512598581
-PrefabInstance:
-  m_ObjectHideFlags: 0
-  serializedVersion: 2
-  m_Modification:
-    serializedVersion: 3
-    m_TransformParent: {fileID: 504074787}
-    m_Modifications:
-    - target: {fileID: 727709942285017225, guid: 31b787177fc55a149ba6c232d64016a4, type: 3}
-      propertyPath: m_LocalPosition.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 727709942285017225, guid: 31b787177fc55a149ba6c232d64016a4, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: -1.1
-      objectReference: {fileID: 0}
-    - target: {fileID: 727709942285017225, guid: 31b787177fc55a149ba6c232d64016a4, type: 3}
-      propertyPath: m_LocalPosition.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 727709942285017225, guid: 31b787177fc55a149ba6c232d64016a4, type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 0.7071068
-      objectReference: {fileID: 0}
-    - target: {fileID: 727709942285017225, guid: 31b787177fc55a149ba6c232d64016a4, type: 3}
-      propertyPath: m_LocalRotation.x
-      value: -0.7071068
-      objectReference: {fileID: 0}
-    - target: {fileID: 727709942285017225, guid: 31b787177fc55a149ba6c232d64016a4, type: 3}
-      propertyPath: m_LocalRotation.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 727709942285017225, guid: 31b787177fc55a149ba6c232d64016a4, type: 3}
-      propertyPath: m_LocalRotation.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 727709942285017225, guid: 31b787177fc55a149ba6c232d64016a4, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 727709942285017225, guid: 31b787177fc55a149ba6c232d64016a4, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 727709942285017225, guid: 31b787177fc55a149ba6c232d64016a4, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 5034512631706208430, guid: 31b787177fc55a149ba6c232d64016a4, type: 3}
-      propertyPath: m_Name
-      value: Station Underdeck Backdrop
-      objectReference: {fileID: 0}
-    m_RemovedComponents: []
-    m_RemovedGameObjects: []
-    m_AddedGameObjects: []
-    m_AddedComponents: []
-  m_SourcePrefab: {fileID: 100100000, guid: 31b787177fc55a149ba6c232d64016a4, type: 3}
---- !u!4 &512598582 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 727709942285017225, guid: 31b787177fc55a149ba6c232d64016a4, type: 3}
-  m_PrefabInstance: {fileID: 512598581}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &560658794
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -3433,6 +3371,68 @@ PrefabInstance:
 Transform:
   m_CorrespondingSourceObject: {fileID: 650148704720777452, guid: 9f4174f9c3e4c6b449cf99582d77e1fa, type: 3}
   m_PrefabInstance: {fileID: 1094165249}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1001 &1106195333
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 504074787}
+    m_Modifications:
+    - target: {fileID: 727709942285017225, guid: 31b787177fc55a149ba6c232d64016a4, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 727709942285017225, guid: 31b787177fc55a149ba6c232d64016a4, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: -1.1
+      objectReference: {fileID: 0}
+    - target: {fileID: 727709942285017225, guid: 31b787177fc55a149ba6c232d64016a4, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 727709942285017225, guid: 31b787177fc55a149ba6c232d64016a4, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 0.7071068
+      objectReference: {fileID: 0}
+    - target: {fileID: 727709942285017225, guid: 31b787177fc55a149ba6c232d64016a4, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0.7071068
+      objectReference: {fileID: 0}
+    - target: {fileID: 727709942285017225, guid: 31b787177fc55a149ba6c232d64016a4, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 727709942285017225, guid: 31b787177fc55a149ba6c232d64016a4, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 727709942285017225, guid: 31b787177fc55a149ba6c232d64016a4, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 727709942285017225, guid: 31b787177fc55a149ba6c232d64016a4, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 727709942285017225, guid: 31b787177fc55a149ba6c232d64016a4, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5034512631706208430, guid: 31b787177fc55a149ba6c232d64016a4, type: 3}
+      propertyPath: m_Name
+      value: Station Underdeck Backdrop
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 31b787177fc55a149ba6c232d64016a4, type: 3}
+--- !u!4 &1106195334 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 727709942285017225, guid: 31b787177fc55a149ba6c232d64016a4, type: 3}
+  m_PrefabInstance: {fileID: 1106195333}
   m_PrefabAsset: {fileID: 0}
 --- !u!1 &1113528124
 GameObject:
@@ -6491,7 +6491,7 @@ MonoBehaviour:
   m_relayTowerAnchor: {fileID: 1752854266}
   m_relayShortcutAnchor: {fileID: 1752854265}
   m_spineTowerAnchor: {fileID: 1591059657}
-  m_arenaHalfExtents: {x: 57.5, y: 30.4}
+  m_arenaHalfExtents: {x: 57.5, y: 81}
   m_maintenanceDeck: {fileID: 969288187}
   m_maintenanceRoomShell: {fileID: 1678895568}
   m_extractionPad: {fileID: 626674125}

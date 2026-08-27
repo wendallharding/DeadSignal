@@ -50,7 +50,7 @@ namespace DeadSignal.Tests
                 Assert.That(Resources.Load<GameObject>("Environment/RelayHeatExchanger"), Is.Not.Null);
                 Assert.That(Resources.Load<Texture2D>("Environment/RelayCoolingGantryRouteDecal"), Is.Not.Null);
                 Assert.That(Resources.Load<Material>("Materials/RelayCoolingGantry/RelayCoolingGantryRouteDecal"), Is.Not.Null);
-                Assert.That(game.AuthoredMapObstacleCount, Is.EqualTo(123));
+                Assert.That(game.AuthoredMapObstacleCount, Is.EqualTo(135));
                 Assert.That(game.AuthoredInterceptorEntranceCount, Is.EqualTo(9));
                 Assert.That(foundry.Find("Foundry South Bulkhead"), Is.Null);
 

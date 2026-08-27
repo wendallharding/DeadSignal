@@ -192,7 +192,8 @@ namespace DeadSignal.World
                 var nearestNormal = Vector2.zero;
                 foreach (var blocker in m_movementBlockers)
                 {
-                    if ((blocker.IsShortcutGate && shortcutOpen) || (blocker.IsRelayShortcutGate && m_relayShortcutOpen) ||
+                    if (!blocker.IsActive || (blocker.IsShortcutGate && shortcutOpen) ||
+                        (blocker.IsRelayShortcutGate && m_relayShortcutOpen) ||
                         (blocker.IsSpineReturnGate && m_spineReturnOpen) ||
                         (blocker.IsQuenchReturnGate && m_quenchReturnOpen) ||
                         (blocker.IsDepartureReturnGate && m_departureReturnOpen) ||
@@ -332,7 +333,8 @@ namespace DeadSignal.World
             var didHit = false;
             foreach (var blocker in m_movementBlockers)
             {
-                if ((blocker.IsShortcutGate && shortcutOpen) || (blocker.IsRelayShortcutGate && m_relayShortcutOpen) ||
+                if (!blocker.IsActive || (blocker.IsShortcutGate && shortcutOpen) ||
+                    (blocker.IsRelayShortcutGate && m_relayShortcutOpen) ||
                     (blocker.IsSpineReturnGate && m_spineReturnOpen) ||
                     (blocker.IsQuenchReturnGate && m_quenchReturnOpen) ||
                     (blocker.IsDepartureReturnGate && m_departureReturnOpen))
@@ -520,6 +522,11 @@ namespace DeadSignal.World
             _rebuildNavMesh();
         }
 
+        public void RefreshNavigation()
+        {
+            _rebuildNavMesh();
+        }
+
         public void Dispose()
         {
             m_navMeshPlanner?.Dispose();
@@ -535,7 +542,7 @@ namespace DeadSignal.World
             var obstacles = new List<NavMeshObstacleBounds>(m_movementBlockers.Count);
             foreach (var blocker in m_movementBlockers)
             {
-                if (blocker.IsShortcutGate && m_shortcutOpen ||
+                if (!blocker.IsActive || blocker.IsShortcutGate && m_shortcutOpen ||
                     blocker.IsRelayShortcutGate && m_relayShortcutOpen ||
                     blocker.IsSpineReturnGate && m_spineReturnOpen ||
                     blocker.IsQuenchReturnGate && m_quenchReturnOpen ||
@@ -1079,7 +1086,8 @@ namespace DeadSignal.World
                     false,
                     opensWithSpineTower,
                     opensWithOptionalCache,
-                    opensWithExtractionReadiness));
+                    opensWithExtractionReadiness,
+                    obstacle.gameObject));
                 _createObstacleTrim(obstacle);
             }
 
@@ -1751,9 +1759,10 @@ namespace DeadSignal.World
                 bool isRelayShortcutGate = false,
                 bool isSpineReturnGate = false,
                 bool isQuenchReturnGate = false,
-                bool isDepartureReturnGate = false)
+                bool isDepartureReturnGate = false,
+                GameObject source = null)
                 : this(center, halfSize, Vector2.right, Vector2.up, isShortcutGate, isRelayShortcutGate,
-                    isSpineReturnGate, isQuenchReturnGate, isDepartureReturnGate)
+                    isSpineReturnGate, isQuenchReturnGate, isDepartureReturnGate, source)
             {
             }
 
@@ -1766,7 +1775,8 @@ namespace DeadSignal.World
                 bool isRelayShortcutGate = false,
                 bool isSpineReturnGate = false,
                 bool isQuenchReturnGate = false,
-                bool isDepartureReturnGate = false)
+                bool isDepartureReturnGate = false,
+                GameObject source = null)
             {
                 Center = center;
                 HalfSize = halfSize;
@@ -1777,6 +1787,7 @@ namespace DeadSignal.World
                 IsSpineReturnGate = isSpineReturnGate;
                 IsQuenchReturnGate = isQuenchReturnGate;
                 IsDepartureReturnGate = isDepartureReturnGate;
+                Source = source;
             }
 
             public Vector2 Center { get; }
@@ -1788,6 +1799,8 @@ namespace DeadSignal.World
             public bool IsSpineReturnGate { get; }
             public bool IsQuenchReturnGate { get; }
             public bool IsDepartureReturnGate { get; }
+            public GameObject Source { get; }
+            public bool IsActive => Source == null || Source.activeInHierarchy;
 
             public bool Overlaps(Vector3 position, float radius)
             {

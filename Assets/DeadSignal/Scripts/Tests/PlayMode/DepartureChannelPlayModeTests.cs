@@ -64,7 +64,7 @@ namespace DeadSignal.Tests
             }
 
             Assert.That(channel.GetComponentsInChildren<AuthoredMapObstacle>().Length, Is.EqualTo(3));
-            Assert.That(game.AuthoredMapObstacleCount, Is.EqualTo(123));
+            Assert.That(game.AuthoredMapObstacleCount, Is.EqualTo(135));
             Assert.That(player, Is.Not.Null);
         }
 
@@ -93,7 +93,7 @@ namespace DeadSignal.Tests
                 Assert.That(Resources.Load<Material>("Materials/DepartureCargoReturnDecal"), Is.Not.Null);
                 Assert.That(Resources.Load<Texture2D>("Environment/DepartureCapacitorSurgeDecal"), Is.Not.Null);
                 Assert.That(Resources.Load<Material>("Materials/DepartureCapacitorSurgeDecal"), Is.Not.Null);
-                Assert.That(game.AuthoredMapObstacleCount, Is.EqualTo(123));
+                Assert.That(game.AuthoredMapObstacleCount, Is.EqualTo(135));
 
                 var directStart = channel.TransformPoint(new Vector3(-1.35f, 0f, 0f));
                 var directDirection = channel.TransformDirection(Vector3.right);

@@ -29,7 +29,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: -0.7071068, y: 0, z: 0, w: 0.7071068}
   m_LocalPosition: {x: 0, y: -1.1, z: 0}
-  m_LocalScale: {x: 150, y: 100, z: 1}
+  m_LocalScale: {x: 150, y: 210, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
@@ -103,4 +103,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0258404ff17566848b53e6b925f66c01, type: 3}
   m_Name: 
   m_EditorClassIdentifier: DeadSignal.Runtime::DeadSignal.World.AuthoredStationBackdrop
-  m_coverage: {x: 150, y: 100}
+  m_coverage: {x: 150, y: 210}

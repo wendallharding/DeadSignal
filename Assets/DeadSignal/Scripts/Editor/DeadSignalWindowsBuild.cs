@@ -56,6 +56,7 @@ namespace DeadSignal.Editor
             DeadSignalArcFurnaceSetup.EnsureAssets();
             DeadSignalQuenchLoopSetup.EnsureAssets();
             DeadSignalEasternCombatScenarioSetup.EnsureAssets();
+            DeadSignalSecurityTrialSetup.EnsureAssets();
             DeadSignalStationBackdropSetup.EnsureAssets();
             DeadSignalForegroundCutawaySetup.EnsureAssets();
             DeadSignalSignalSpineSetup.EnsureAssets();
@@ -137,6 +138,11 @@ namespace DeadSignal.Editor
             if (!DeadSignalSwarmerSetup.HasAssets)
             {
                 throw new BuildFailedException("The Swarmer pressure prefab or tuning asset is missing.");
+            }
+
+            if (!DeadSignalSecurityTrialSetup.HasAssets)
+            {
+                throw new BuildFailedException("The scene-authored Security Trial Wing is missing or incomplete.");
             }
 
             if (!DeadSignalSalvageChainSetup.HasAssets)

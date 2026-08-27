@@ -51,9 +51,9 @@ namespace DeadSignal.Tests
                 Assert.That(Resources.Load<Material>("Materials/QuenchLoop/QuenchLoopRouteDecal"), Is.Not.Null);
                 Assert.That(Resources.Load<Texture2D>("Environment/QuenchCacheReturnDecal"), Is.Not.Null);
                 Assert.That(Resources.Load<Material>("Materials/QuenchLoop/QuenchCacheReturnDecal"), Is.Not.Null);
-                Assert.That(game.AuthoredMapObstacleCount, Is.EqualTo(123));
+                Assert.That(game.AuthoredMapObstacleCount, Is.EqualTo(135));
                 Assert.That(game.AuthoredInterceptorEntranceCount, Is.EqualTo(9));
-                Assert.That(sceneReferences.ArenaHalfExtents, Is.EqualTo(new Vector2(57.5f, 30.4f)));
+                Assert.That(sceneReferences.ArenaHalfExtents, Is.EqualTo(new Vector2(57.5f, 81f)));
                 Assert.That(furnace.Find("Arc Furnace East Bulkhead"), Is.Null);
 
                 player.position = new Vector3(48.4f, 0f, 23f);

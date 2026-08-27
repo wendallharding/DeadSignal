@@ -67,8 +67,23 @@ namespace DeadSignal.Combat
             m_scenario = scenario;
             var waveSize = Mathf.Min(m_tuning.WaveSize, m_tuning.MaximumAlive);
             _createWave(scenario.WardenAnchor.position, waveSize, true);
-            _createWave(scenario.SapperAnchor.position, m_tuning.MaximumAlive - waveSize, false);
+            var secondWaveSize = m_tuning.MaximumAlive - waveSize;
+            _createWave(_safeInactiveWaveCenter(scenario.SapperAnchor.position, secondWaveSize), secondWaveSize, false);
             m_secondWaveCountdown = m_tuning.SecondWaveDelay;
+            _activateWave(true);
+        }
+
+        public void DeploySingleWave(AuthoredCombatScenario scenario, Transform anchor, int count)
+        {
+            RetireActivePopulation();
+            if (!HasAssets || scenario == null || !scenario.IsComplete || anchor == null)
+            {
+                return;
+            }
+
+            m_scenario = scenario;
+            _createWave(anchor.position, Mathf.Clamp(count, 1, m_tuning.MaximumAlive), true);
+            m_secondWaveDeployed = true;
             _activateWave(true);
         }
 
@@ -173,7 +188,28 @@ namespace DeadSignal.Combat
             return position;
         }
 
+        public void PurgeAllForDebug()
+        {
+            for (var index = m_agents.Count - 1; index >= 0; index--)
+            {
+                var agent = m_agents[index];
+                if (agent.IsActive)
+                {
+                    Purge(agent.Id);
+                }
+            }
+        }
+
         public void Reset()
+        {
+            RetireActivePopulation();
+            PeakActiveCount = 0;
+            SpawnedCount = 0;
+            PurgedCount = 0;
+            ContactCount = 0;
+        }
+
+        public void RetireActivePopulation()
         {
             foreach (var agent in m_agents)
             {
@@ -190,10 +226,6 @@ namespace DeadSignal.Combat
             m_secondWaveCountdown = 0f;
             m_secondWaveDeployed = false;
             ActiveCount = 0;
-            PeakActiveCount = 0;
-            SpawnedCount = 0;
-            PurgedCount = 0;
-            ContactCount = 0;
         }
 
         private bool _canDeploySecondWave()
@@ -229,6 +261,26 @@ namespace DeadSignal.Combat
                 m_world.RebindRuntimeMaterials(visual.transform);
                 m_agents.Add(new Agent(m_agents.Count, visual.transform, isFirstWave));
             }
+        }
+
+        private Vector3 _safeInactiveWaveCenter(Vector3 center, int count)
+        {
+            var awayFromPlayer = center - m_world.Player.position;
+            awayFromPlayer.y = 0f;
+            if (awayFromPlayer.sqrMagnitude < 0.01f)
+            {
+                awayFromPlayer = Vector3.right;
+            }
+
+            var maximumSpawnOffset = Mathf.Max(0f, (count - 1) * 0.5f * m_tuning.SpawnSpacing);
+            // _createWave nudges the formation 0.6m inward, so retain enough clearance after that adjustment.
+            var minimumCenterDistance = m_tuning.SafeSpawnDistance + maximumSpawnOffset + 0.75f;
+            if (awayFromPlayer.magnitude >= minimumCenterDistance)
+            {
+                return center;
+            }
+
+            return m_world.Player.position + awayFromPlayer.normalized * minimumCenterDistance;
         }
 
         private void _activateWave(bool firstWave)

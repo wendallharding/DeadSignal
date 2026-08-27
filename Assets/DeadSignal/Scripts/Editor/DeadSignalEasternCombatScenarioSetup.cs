@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using DeadSignal.World;
@@ -20,7 +21,10 @@ namespace DeadSignal.Editor
             get
             {
                 var region = AssetDatabase.LoadAssetAtPath<GameObject>(REGION_PREFAB_PATH);
-                var scenario = region == null ? null : region.GetComponentInChildren<AuthoredCombatScenario>();
+                var scenario = region == null
+                    ? null
+                    : region.GetComponentsInChildren<AuthoredCombatScenario>(true)
+                        .FirstOrDefault(candidate => candidate.name == "Eastern Combat Scenario");
                 return scenario != null && scenario.IsComplete &&
                        AssetDatabase.LoadAssetAtPath<Texture2D>(DECAL_PATH) != null &&
                        AssetDatabase.LoadAssetAtPath<Material>(DECAL_MATERIAL_PATH) != null &&
@@ -106,10 +110,10 @@ namespace DeadSignal.Editor
                 root.transform.SetParent(region.transform, false);
                 var player = _anchor(root.transform, "Player Anchor", new Vector3(0f, 0f, -2.65f), Vector3.forward);
                 var camera = _anchor(root.transform, "Camera Focus", new Vector3(0f, 0f, -0.25f), Vector3.forward);
-                var warden = _anchor(root.transform, "Warden Staging", new Vector3(-5f, 0f, 0.4f), Vector3.back);
-                var sapper = _anchor(root.transform, "Sapper Staging", new Vector3(5f, 0f, 0.4f), Vector3.back);
-                var interceptor = _anchor(root.transform, "Interceptor Staging", new Vector3(-4.3f, 0f, -2.35f), Vector3.right);
-                var suppressor = _anchor(root.transform, "Suppressor Staging", new Vector3(4.3f, 0f, -2.35f), Vector3.left);
+                var warden = _anchor(root.transform, "Warden Staging", new Vector3(-4f, 0f, 0.4f), Vector3.back);
+                var sapper = _anchor(root.transform, "Sapper Staging", new Vector3(4f, 0f, 0.4f), Vector3.back);
+                var interceptor = _anchor(root.transform, "Interceptor Staging", new Vector3(-3.5f, 0f, -2.35f), Vector3.right);
+                var suppressor = _anchor(root.transform, "Suppressor Staging", new Vector3(3.5f, 0f, -2.35f), Vector3.left);
 
                 var decal = GameObject.CreatePrimitive(PrimitiveType.Quad);
                 decal.name = "Combat Lab Target";
@@ -122,7 +126,7 @@ namespace DeadSignal.Editor
 
                 root.AddComponent<AuthoredCombatScenario>().Configure(
                     player, camera, warden, sapper, interceptor, suppressor,
-                    new Vector2(-4.6f, -2.6f), new Vector2(4.6f, 0.5f));
+                    new Vector2(-4.1f, -2.6f), new Vector2(4.1f, 0.5f));
                 PrefabUtility.SaveAsPrefabAsset(region, REGION_PREFAB_PATH);
             }
             finally

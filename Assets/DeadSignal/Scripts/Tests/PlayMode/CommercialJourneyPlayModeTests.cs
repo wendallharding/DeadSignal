@@ -227,6 +227,8 @@ namespace DeadSignal.Tests.PlayMode
             Assert.That(game.ThreatsPurged, Is.GreaterThan(0));
             Assert.That(game.DebugLiveBalanceDirectedShots, Is.EqualTo(game.ShotsFired));
             Assert.That(game.DebugRouteSequenceReport, Does.Contain("Journey OPTIONAL GREED"));
+            TestContext.WriteLine(game.DebugRouteSequenceReport);
+            TestContext.WriteLine(game.DebugTelemetry);
             game.DebugSetTimeScale(1f);
         }
 

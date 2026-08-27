@@ -41,7 +41,7 @@ namespace DeadSignal.Tests
                 Assert.That(Resources.Load<Texture2D>("Environment/SpineDischargeTrenchRouteDecal"), Is.Not.Null);
                 Assert.That(Resources.Load<Material>(
                     "Materials/SpineDischargeTrench/SpineDischargeTrenchRouteDecal"), Is.Not.Null);
-                Assert.That(game.AuthoredMapObstacleCount, Is.EqualTo(123));
+                Assert.That(game.AuthoredMapObstacleCount, Is.EqualTo(135));
                 Assert.That(game.AuthoredInterceptorEntranceCount, Is.EqualTo(9));
 
                 player.position = new Vector3(40.3f, 0f, -4.2f);
@@ -117,7 +117,7 @@ namespace DeadSignal.Tests
             Assert.That(spine.Find("Capacitor Transfer Bank").gameObject.activeSelf, Is.False,
                 "The tactical-window sample should represent the powered Spine return state.");
             Assert.That(trench.GetComponentsInChildren<AuthoredMapObstacle>().Length, Is.EqualTo(6));
-            Assert.That(game.AuthoredMapObstacleCount, Is.EqualTo(123));
+            Assert.That(game.AuthoredMapObstacleCount, Is.EqualTo(135));
         }
 
         private static IEnumerator _moveDown(Gamepad gamepad, Transform player, float targetZ)

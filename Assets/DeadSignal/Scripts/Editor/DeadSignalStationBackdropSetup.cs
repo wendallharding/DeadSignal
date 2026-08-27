@@ -17,7 +17,7 @@ namespace DeadSignal.Editor
         private const string ENVIRONMENT_PATH = "DEAD SIGNAL — Authored World/Environment";
         private const string BACKDROP_NAME = "Station Underdeck Backdrop";
 
-        private static readonly Vector2 s_coverage = new(150f, 100f);
+        private static readonly Vector2 s_coverage = new(150f, 210f);
 
         public static bool HasAssets
         {

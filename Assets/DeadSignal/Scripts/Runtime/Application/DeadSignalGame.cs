@@ -87,6 +87,7 @@ namespace DeadSignal.Application
         private DeadSignalDebugCamera m_debugCamera;
         private string m_lastDebugCapturePath = "None";
         private AuthoredCombatScenario m_debugCombatScenario;
+        private AuthoredCombatChamber m_combatChamber;
         private float m_debugCombatScenarioSeconds;
         private bool m_debugCombatScenarioActive;
         private readonly LiveBalanceCombatPolicy m_liveBalanceCombatPolicy = new();
@@ -270,6 +271,10 @@ namespace DeadSignal.Application
         public int SwarmersSpawned => m_threats?.SwarmersSpawned ?? 0;
         public int SwarmersPurged => m_threats?.SwarmersPurged ?? 0;
         public int SwarmerContacts => m_threats?.SwarmerContacts ?? 0;
+        public CombatChamberState CurrentCombatChamberState =>
+            m_combatChamber?.State ?? DeadSignal.World.CombatChamberState.Dormant;
+        public int CombatChamberPhase => m_combatChamber?.Phase ?? 0;
+        public bool HasAuthoredCombatChamber => m_combatChamber != null && m_combatChamber.IsComplete;
         public int PeakThreatConcurrency => m_metrics?.PeakThreatConcurrency ?? 0;
         public string DebugOverview =>
             $"DEBUG ACTIVE\n" +
@@ -738,6 +743,8 @@ namespace DeadSignal.Application
 
         public void DebugPurgeThreat(SecurityReinforcement reinforcement) => m_threats?.PurgeForDebug(reinforcement);
 
+        public void DebugPurgeSwarmers() => m_threats?.PurgeSwarmersForDebug();
+
         public void DebugSelectOverclock(SignalOverclock overclock)
         {
             m_overclockChoice.NotifySalvageCollected(1);
@@ -955,6 +962,8 @@ namespace DeadSignal.Application
             PlayerPrefs.Save();
 
             m_world = new DeadSignalWorld(transform, m_comfortSettings);
+            m_combatChamber = Object.FindFirstObjectByType<AuthoredCombatChamber>(FindObjectsInactive.Include);
+            m_combatChamber?.ResetState();
             m_world.ConfigurePlayerSignalWake(m_playerMovementTuning);
             m_combatFeedback.Configure(m_world.Camera);
             var signalBoltTuning = Resources.Load<SignalBoltPresentationTuning>("Tuning/SignalBoltPresentationTuning");
@@ -1380,6 +1389,35 @@ namespace DeadSignal.Application
 
         private void _handleInteraction()
         {
+            if (m_combatChamber != null)
+            {
+                if (m_combatChamber.TryCollectReward(m_world.Player.position))
+                {
+                    var restored = m_model.RestoreSignal(m_combatChamber.RewardSignal);
+                    m_combatFeedback.PlaySignalRecovery(m_world.Player.position + Vector3.up * 0.45f);
+                    m_audio.Play(DeadSignalAudioCue.TowerOnline);
+                    _showFeedback($"SECURITY VAULT RECOVERED  +{restored:0} SIGNAL");
+                    return;
+                }
+
+                if (m_combatChamber.CanInteract(m_world.Player.position))
+                {
+                    if (!m_threats.CanBeginCombatChamber)
+                    {
+                        _showFeedback("SECURITY TRIAL BLOCKED — CLEAR ACTIVE THREATS");
+                        return;
+                    }
+
+                    if (m_combatChamber.TryArm(m_world.Player.position))
+                    {
+                        m_world.RefreshNavigation();
+                        m_audio.Play(DeadSignalAudioCue.Shortcut);
+                        _showFeedback("SECURITY TRIAL ARMED — CROSSING THE RED THRESHOLD SEALS THE ROOM");
+                    }
+                    return;
+                }
+            }
+
             if (!m_model.SpineTowerOnline &&
                 DeadSignalWorld.FlatDistance(m_world.Player.position, m_world.SpineTowerPosition) < TOWER_INTERACTION_RADIUS)
             {
@@ -2072,7 +2110,9 @@ namespace DeadSignal.Application
 
         private void _applyEasternRoomCombatScenario()
         {
-            m_debugCombatScenario = Object.FindFirstObjectByType<AuthoredCombatScenario>(FindObjectsInactive.Include);
+            m_debugCombatScenario = Object.FindObjectsByType<AuthoredCombatScenario>(
+                    FindObjectsInactive.Include, FindObjectsSortMode.None)
+                .FirstOrDefault(scenario => scenario.name == "Eastern Combat Scenario");
             if (m_debugCombatScenario == null || !m_debugCombatScenario.IsComplete)
             {
                 _showFeedback("DEBUG — EASTERN COMBAT ANCHORS MISSING");
@@ -2262,6 +2302,7 @@ namespace DeadSignal.Application
 
         private void _tickRunSystems(float dt, bool powered)
         {
+            _tickCombatChamber();
             m_world.TickTower(dt, m_model.TowerOnline);
             m_threats.Tick(dt, powered);
             _tryTriggerEmergencyCapacitor();
@@ -2288,6 +2329,45 @@ namespace DeadSignal.Application
                 _completeExtraction();
             }
             m_metrics.RecordSignal(m_model.Signal);
+        }
+
+        private void _tickCombatChamber()
+        {
+            if (m_combatChamber == null)
+            {
+                return;
+            }
+
+            if (m_combatChamber.TryBeginLockdown(m_world.Player.position))
+            {
+                m_world.RefreshNavigation();
+                m_threats.BeginCombatChamberPhase(m_combatChamber.CombatScenario, m_combatChamber.Phase);
+                m_audio.Play(DeadSignalAudioCue.SecurityImpact);
+                _showFeedback("SECURITY LOCKDOWN — PHASE 1  //  PURGE THE SWARM");
+                return;
+            }
+
+            if (m_combatChamber.State != CombatChamberState.Lockdown ||
+                !m_threats.IsCombatChamberPhaseCleared())
+            {
+                return;
+            }
+
+            if (m_combatChamber.AdvancePhase())
+            {
+                m_threats.BeginCombatChamberPhase(m_combatChamber.CombatScenario, m_combatChamber.Phase);
+                var objective = m_combatChamber.Phase == 2
+                    ? "PHASE 2 — SWARM + WARDEN  //  CREATE SPACE"
+                    : "PHASE 3 — SWARM + SAPPER  //  PROTECT THE SIGNAL";
+                _showFeedback(objective);
+                return;
+            }
+
+            m_threats.EndCombatChamber();
+            m_combatChamber.Complete();
+            m_world.RefreshNavigation();
+            m_audio.Play(DeadSignalAudioCue.TowerOnline);
+            _showFeedback("SECURITY TRIAL CLEARED — VAULT OPEN  //  RETURN ROUTE POWERED");
         }
 
         private void _setPaused(bool paused)

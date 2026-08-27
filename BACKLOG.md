@@ -33,13 +33,14 @@ Work through these gates in order. Authorize one bounded combat advancement per 
 
 ### Evidence-gated combat chamber prototype
 
-- [ ] After the lightweight pressure enemy and connected Signal economy work in the combat laboratory, identify one existing region where a bounded branch tests them better than another open-route encounter
-- [ ] Author Room A as a readable commitment space with a switch, tower, breaker, or Signal transaction that previews the chamber, reward, cost, and no-return threshold
-- [ ] Author Room B as a roughly 60–90-second lockdown arena with full movement, clear door-close warning, readable spawn directions, bounded concurrency, brief phase-reset beats, and geometry that supports circulation and reversals
-- [ ] Build the first sequence from a pressure-population teaching phase, a pressure-plus-Warden space-management phase, and one pressure-plus-Sapper-or-Suppressor target-priority phase; adjust composition when baseline evidence supports a clearer progression
-- [ ] Author Room C as a distinct reward space whose payload, calibration, salvage, or temporary overcharge justifies the Signal, damage, and time risk without becoming mandatory for every successful run
-- [ ] Make the cleared chamber useful on withdrawal through a powered foothold, shortcut, alternate exit, or other legible state change
-- [ ] Handle death, reload, re-entry, stuck or escaped enemies, interrupted transitions, phase cleanup, door safety, and cleared/rewarded persistence deterministically
+- [x] Extend the Arc Furnace north branch where a bounded trial can test the committed free-fire/Swarmer model separately from open-route encounters
+- [x] Author Room A as a readable commitment space with an amber security breaker, red threshold warning, and explicit no-return message
+- [x] Author Room B as a bounded lockdown arena with full movement, circulation cover, collision-authoritative doors, capped phase populations, and authored spawn directions
+- [x] Build a pressure-population teaching phase, pressure-plus-Warden space-management phase, and pressure-plus-Sapper target-priority phase
+- [x] Author Room C as a distinct vault whose one-shot capacitor restores up to 20 Signal after the trial
+- [x] Make the cleared chamber useful on withdrawal by opening both doors and energizing a cyan return spine through all three rooms
+- [x] Reset chamber state deterministically with the run and handle dynamic door collision/NavMesh, phase cleanup, bounded actors, reward collection, and cleared revisits
+- [x] Prove the complete three-phase transition, five-threat peak, both door releases, reward availability, persistent 11-spawn/11-purge evidence, full regression, Windows build, and packaged smoke
 - [ ] Reject or revise the pattern if matched play shows Signal soft-locks, unreadable saturation, repetitive waves, weak reward value, route coercion, excessive duration, poor return value, or lower fun and replay intent
 - [ ] Do not replicate the chamber pattern elsewhere until the single prototype passes focused tests, complete-run regression, Windows smoke, and a human-controlled before/after comparison
 

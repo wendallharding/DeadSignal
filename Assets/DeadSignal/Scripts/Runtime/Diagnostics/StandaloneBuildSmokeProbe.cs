@@ -19,7 +19,7 @@ namespace DeadSignal.Diagnostics
         public const string COMMAND_LINE_ARGUMENT = "-deadSignalBuildSmoke";
         public const string PASS_MARKER = "[DEAD SIGNAL STANDALONE SMOKE] PASS";
 
-        private const int EXPECTED_AUTHORED_OBSTACLE_COUNT = 123;
+        private const int EXPECTED_AUTHORED_OBSTACLE_COUNT = 135;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         private static void _startWhenRequested()
@@ -75,6 +75,9 @@ namespace DeadSignal.Diagnostics
                 "Arc Furnace Region/Eastern Combat Scenario") != null;
             var swarmerPrefabReady = Resources.Load<GameObject>("Actors/SwarmerAssembly") != null;
             var swarmerTuningReady = Resources.Load<SwarmerPressureTuning>("Tuning/SwarmerPressureTuning") != null;
+            var securityTrialPrefabReady =
+                Resources.Load<GameObject>("Environment/SecurityTrialWingRegion") != null;
+            var securityTrialSceneReady = game != null && game.HasAuthoredCombatChamber;
             var stationBackdropTextureReady =
                 Resources.Load<Texture2D>("Environment/StationUnderdeckAlbedo") != null;
             var stationBackdropMaterialReady = Resources.Load<Material>("Materials/StationUnderdeck") != null;
@@ -105,6 +108,9 @@ namespace DeadSignal.Diagnostics
             Debug.Log($"[DEAD SIGNAL STANDALONE SMOKE] EASTERN COMBAT LAB | " +
                       $"anchors={combatLabAnchorsReady} texture={combatLabTextureReady} material={combatLabMaterialReady} " +
                       $"swarmerPrefab={swarmerPrefabReady} swarmerTuning={swarmerTuningReady}");
+            Debug.Log($"[DEAD SIGNAL STANDALONE SMOKE] SECURITY TRIAL | " +
+                      $"scene={securityTrialSceneReady} prefab={securityTrialPrefabReady} " +
+                      $"state={game?.CurrentCombatChamberState}");
             Debug.Log($"[DEAD SIGNAL STANDALONE SMOKE] SUPPRESSOR FIELD | " +
                       $"runtime={game?.HasSuppressorFieldTexture ?? false} " +
                       $"texture={Resources.Load<Texture2D>("VFX/SuppressorFieldActive") != null}");
@@ -167,6 +173,7 @@ namespace DeadSignal.Diagnostics
                                 Resources.Load<Texture2D>("VFX/SuppressorFieldActive") != null &&
                                 Resources.Load<GameObject>("Environment/InterceptorEntryGate") != null &&
                                 game.AuthoredMapObstacleCount == EXPECTED_AUTHORED_OBSTACLE_COUNT &&
+                                securityTrialSceneReady && securityTrialPrefabReady &&
                                 Resources.Load<GameObject>("Environment/CoolantManifoldAssembly") != null &&
                                 Resources.Load<GameObject>("Environment/TowerApproachJunction") != null &&
                                 Resources.Load<Texture2D>("Environment/CoolantManifoldAlbedo") != null &&

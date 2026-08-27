@@ -71,6 +71,9 @@ namespace DeadSignal.Combat
         private bool m_debugScenarioActive;
         private int m_debugScenarioAttackMask;
         private AuthoredCombatScenario m_debugScenario;
+        private AuthoredCombatScenario m_combatChamberScenario;
+        private bool m_combatChamberActive;
+        private int m_combatChamberPhase;
 
         public DeadSignalThreatController(
             RunModel model,
@@ -164,6 +167,8 @@ namespace DeadSignal.Combat
         public int SwarmersPurged => m_swarmers.PurgedCount;
         public int SwarmerContacts => m_swarmers.ContactCount;
         public IReadOnlyList<Transform> ActiveSwarmers => m_swarmers.ActiveTransforms;
+        public bool CanBeginCombatChamber => !IsWardenAlive && !IsSapperAlive && !IsInterceptorAlive &&
+                                             !IsSuppressorAlive && m_swarmers.ActiveCount == 0;
         public int DebugScenarioAttackCount
         {
             get
@@ -249,6 +254,8 @@ namespace DeadSignal.Combat
             }
         }
 
+        public void PurgeSwarmersForDebug() => m_swarmers.PurgeAllForDebug();
+
         public void SetFrozenForDebug(bool frozen) => m_debugFrozen = frozen;
 
         public void SetPlayerInvulnerableForDebug(bool invulnerable) => m_debugPlayerInvulnerable = invulnerable;
@@ -280,6 +287,57 @@ namespace DeadSignal.Combat
             m_suppressorFieldCooldown = 1f;
             m_world.SapperTelegraph.SetThreatState(true, true, m_sapperPulseCooldown, m_tuning.SapperPulseInterval);
             m_swarmers.Deploy(scenario);
+        }
+
+        public void BeginCombatChamberPhase(AuthoredCombatScenario scenario, int phase)
+        {
+            if (scenario == null || !scenario.IsComplete || phase < 1 || phase > 3)
+            {
+                return;
+            }
+
+            m_combatChamberActive = true;
+            m_combatChamberScenario = scenario;
+            m_combatChamberPhase = phase;
+            var anchor = phase == 3 ? scenario.SapperAnchor : scenario.WardenAnchor;
+            m_swarmers.DeploySingleWave(scenario, anchor, phase == 1 ? 3 : 4);
+            if (phase == 2)
+            {
+                SpawnForDebug(SecurityReinforcement.Warden);
+                _placeForDebug(m_world.Warden, scenario.WardenAnchor, scenario.PlayerAnchor.position);
+                m_wardenAttackCooldown = 1f;
+            }
+            else if (phase == 3)
+            {
+                SpawnForDebug(SecurityReinforcement.Sapper);
+                _placeForDebug(m_world.Sapper, scenario.SapperAnchor, scenario.PlayerAnchor.position);
+                m_sapperLatched = true;
+                m_sapperPulseCooldown = 1.5f;
+            }
+        }
+
+        public bool IsCombatChamberPhaseCleared()
+        {
+            if (!m_combatChamberActive || m_swarmers.ActiveCount > 0)
+            {
+                return false;
+            }
+
+            return m_combatChamberPhase switch
+            {
+                1 => true,
+                2 => !IsWardenAlive,
+                3 => !IsSapperAlive,
+                _ => false
+            };
+        }
+
+        public void EndCombatChamber()
+        {
+            m_combatChamberActive = false;
+            m_combatChamberScenario = null;
+            m_combatChamberPhase = 0;
+            m_swarmers.RetireActivePopulation();
         }
 
         public void ResetDebugScenario()
@@ -362,18 +420,22 @@ namespace DeadSignal.Combat
                 return;
             }
 
-            _tickDirector(dt, playerPowered);
+            if (!m_combatChamberActive)
+            {
+                _tickDirector(dt, playerPowered);
+            }
             _tickInterceptor(dt);
             _tickSuppressor(dt);
             _tickWarden(dt);
             _tickSapper(dt);
-            if (m_debugScenarioActive)
+            if (m_debugScenarioActive || m_combatChamberActive)
             {
                 m_swarmers.Tick(dt, m_model.ShortcutOpen);
             }
             m_metrics.RecordThreatConcurrency(_activeThreatCount());
             _tickProjectiles(dt);
             _clampDebugScenarioActors();
+            _clampCombatChamberActors();
         }
 
         public void TryFire(Vector3 direction)
@@ -1505,6 +1567,21 @@ namespace DeadSignal.Combat
             foreach (var swarmer in m_swarmers.ActiveTransforms)
             {
                 swarmer.position = m_debugScenario.ClampToSafeArea(swarmer.position);
+            }
+        }
+
+        private void _clampCombatChamberActors()
+        {
+            if (!m_combatChamberActive || m_combatChamberScenario == null)
+            {
+                return;
+            }
+
+            if (IsWardenAlive) m_world.Warden.position = m_combatChamberScenario.ClampToSafeArea(m_world.Warden.position);
+            if (IsSapperAlive) m_world.Sapper.position = m_combatChamberScenario.ClampToSafeArea(m_world.Sapper.position);
+            foreach (var swarmer in m_swarmers.ActiveTransforms)
+            {
+                swarmer.position = m_combatChamberScenario.ClampToSafeArea(swarmer.position);
             }
         }
 
