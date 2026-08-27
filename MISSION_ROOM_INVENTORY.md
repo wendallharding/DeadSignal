@@ -1,6 +1,6 @@
 # DEAD SIGNAL — Current station room inventory
 
-Status: Phase 0 current-state contract, 2026-08-27. This records what the playable scene and runtime do now; it is not the target mission order. Classification, the room-purpose ledger, the schematic target route, and measured route baselines remain later Phase 0 work.
+Status: Phase 0 current-state and space-classification contract, 2026-08-27. This records what the playable scene and runtime do now; it is not the target mission order. The room-purpose ledger, schematic target route, and measured route baselines remain later Phase 0 work.
 
 ## Authority and coordinate contract
 
@@ -23,6 +23,42 @@ Arc Furnace — {Quench Loop, Room A — Room B — Room C}
 ```
 
 The central landmarks overlap the open maintenance floor rather than forming sealed door-to-door rooms. Their edges are therefore walkable spatial adjacencies, not guaranteed portal boundaries. The east/deep chain uses explicit parent-wall openings. Security Trial Rooms A–C are a single north-running wing attached to the Furnace.
+
+## Authoritative space classification
+
+These classes describe each space's intended player-facing function in the cohesive mission, without assigning its later objective contract:
+
+- **Mission room:** must own a required transaction, process, trial, or completion beat. A mission room may be an open floor landmark rather than a sealed chamber.
+- **Traversal connector:** primarily carries the player between mission rooms and earns its place through route state or navigation, not a standalone objective.
+- **Combat landmark:** anchors a recognizable enemy identity, pressure direction, or cover decision while progression remains owned elsewhere.
+- **Decorative pocket:** may enrich presentation but must not be made required merely to justify existing geometry.
+
+| Space | Classification | Classification evidence and boundary |
+| --- | --- | --- |
+| Extraction Dock | Mission room | Owns the opening spawn and final live extraction transaction. |
+| Departure Channel | Traversal connector | Connects Dock to Central and communicates the changed withdrawal lane; the one-shot surge supports traversal rather than becoming another objective. |
+| Central Maintenance Concourse | Mission room | Owns the Central Tower transaction and the first powered foothold. |
+| Cargo Annex | Mission room | The cohesive route assigns it the required coupling-retrieval function; its current alternative cache is temporary compatibility behavior. |
+| Coolant Reclamation | Mission room | The cohesive route assigns it the required seal-retrieval function; baffle traversal distinguishes it from Cargo. |
+| Relay Fork | Mission room | Must own routing the two Central components into the transfer vault, not remain set dressing. |
+| Warden Bay | Combat landmark | Establishes Warden silhouette, cover, and withdrawal pursuit identity; it does not need an independent switch or pickup. |
+| Sapper Cradle | Combat landmark | Establishes Sapper warning, cover, and withdrawal pursuit identity; progression remains with the withdrawal route. |
+| East Transfer Vault | Mission room | Owns transfer-vault assembly after Relay Fork routing while also bridging Central to Relay. |
+| Relay Foundry | Mission room | Owns Relay activation, payload calibration/installation, and the weapon-transformation decision. |
+| Cooling Gantry | Mission room | Owns payload stabilization through its exchanger route before the Foundry return. |
+| Capacitor Spine | Mission room | Owns the third-tower activation and later completed-core installation. |
+| Spine Discharge Trench | Mission room | Owns berth venting before the Spine transaction. |
+| Induction Gallery | Mission room | Owns charging the empty core lattice. |
+| Flux Bypass | Mission room | Owns the shunt/reroute that enables Convergence and changes the later return. |
+| Convergence Chamber | Mission room | Owns the bounded calibration holdout, distinct from Room B's full lockdown. |
+| Breaker Gallery | Mission room | Owns the distribution reset that unlocks Furnace processing. |
+| Arc Furnace | Mission room | Owns forging the charged lattice and gates the final processing/trial chain. |
+| Quench Loop | Mission room | Owns lattice stabilization and the existing return-shortcut mutation. |
+| Room A / Commitment Room | Mission room | Owns warning and irreversible commitment to the final trial. |
+| Room B / Lockdown Arena | Mission room | Owns the mission's single full Geometry Wars-inspired lockdown climax. |
+| Room C / Reward Vault | Mission room | Owns recovery of the mission-critical station capacitor after trial clearance. |
+
+Classification count: **19 mission rooms, 1 traversal connector, 2 combat landmarks, and 0 decorative pockets (22 total)**. No decorative pocket appears in this major-space inventory: decorative machinery and bypass niches exist within the listed spaces, but they are not independent rooms and must not be promoted into objectives. The connector and combat-landmark classifications are deliberate exceptions to the required-room objective pattern; those spaces earn required traversal through route change, combat readability, or pursuit rather than filler interactions.
 
 ## Opening and Central inventory
 
