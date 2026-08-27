@@ -325,13 +325,9 @@ namespace DeadSignal.Missions
                 new[] { MissionObjectiveId.CentralAssembly }, new[] { MissionObjectiveId.RelayTower }),
             _definition(MissionObjectiveId.RelayTower, MissionStage.RelayTower, "Relay Foundry", "Relay Tower",
                 MissionCompletionRule.RelayTowerOnline, MissionWorldMutation.RelayTerritoryPowered,
-                new[]
-                {
-                    new MissionReward(MissionRewardKind.SignalRefill, RunModel.RelayTowerRefill),
-                    new MissionReward(MissionRewardKind.WeaponCalibration)
-                },
+                new[] { new MissionReward(MissionRewardKind.SignalRefill, RunModel.RelayTowerRefill) },
                 new MissionGuidanceState(3, "EXTEND THE NETWORK", "RESTORE THE RELAY FOUNDRY TOWER",
-                    $"SIGNAL -{RunModel.RelayTowerCost:0}  //  WEAPON CALIBRATION"),
+                    $"SIGNAL -{RunModel.RelayTowerCost:0}  //  POWERS FOUNDRY + UNLOCKS PROCESSING"),
                 new[] { MissionObjectiveId.CentralInstallation }, new[] { MissionObjectiveId.RelayPayload }),
             _definition(MissionObjectiveId.RelayPayload, MissionStage.RelayPayload,
                 "Relay Foundry / Cooling Gantry", "Relay Payload Socket",

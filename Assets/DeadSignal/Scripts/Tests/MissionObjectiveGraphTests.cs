@@ -23,7 +23,7 @@ namespace DeadSignal.Tests
             Assert.That(definitions[0].WorldMutations.HasFlag(MissionWorldMutation.CentralTerritoryPowered), Is.True);
             Assert.That(definitions[0].Rewards.Single().Kind, Is.EqualTo(MissionRewardKind.SignalRefill));
             Assert.That(definitions[6].Rewards.Select(reward => reward.Kind),
-                Is.EquivalentTo(new[] { MissionRewardKind.SignalRefill, MissionRewardKind.WeaponCalibration }));
+                Is.EquivalentTo(new[] { MissionRewardKind.SignalRefill }));
             Assert.That(definitions[8].Rewards.Select(reward => reward.Kind),
                 Is.EquivalentTo(new[] { MissionRewardKind.SignalRefill, MissionRewardKind.WeaponEvolution }));
             Assert.That(definitions[10].Rewards.Single().Kind, Is.EqualTo(MissionRewardKind.Victory));

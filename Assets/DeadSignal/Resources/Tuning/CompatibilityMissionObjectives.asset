@@ -102,12 +102,10 @@ MonoBehaviour:
     m_rewards:
     - m_kind: 1
       m_amount: 44
-    - m_kind: 2
-      m_amount: 0
     m_guidancePhase: 3
     m_guidanceTitle: EXTEND THE NETWORK
     m_guidanceAction: RESTORE THE RELAY FOUNDRY TOWER
-    m_guidanceAdvisory: SIGNAL -14  //  WEAPON CALIBRATION
+    m_guidanceAdvisory: SIGNAL -14  //  POWERS FOUNDRY + UNLOCKS PROCESSING
     m_prerequisites: 0b000000
     m_successors: 03000000
   - m_id: 3

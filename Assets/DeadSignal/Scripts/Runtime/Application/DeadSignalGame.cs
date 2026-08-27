@@ -751,7 +751,6 @@ namespace DeadSignal.Application
             if (m_model.TryActivateRelayTower())
             {
                 m_world.ActivateRelayTower();
-                m_overclockChoice.NotifyRelayActivated();
                 _showFeedback("DEBUG — RELAY TOWER ACTIVATED");
             }
         }
@@ -1753,9 +1752,8 @@ namespace DeadSignal.Application
                 if (m_model.TryActivateRelayTower())
                 {
                     m_world.ActivateRelayTower();
-                    m_overclockChoice.NotifyRelayActivated();
                     m_audio.Play(DeadSignalAudioCue.TowerOnline);
-                    _showFeedback("RELAY ONLINE — RETURN BULKHEAD OPEN  //  WEAPON CALIBRATION READY");
+                    _showFeedback("RELAY FOUNDRY ONLINE — RETURN BULKHEAD OPEN  //  PAYLOAD PROCESSING READY");
                 }
                 else if (!m_model.TowerOnline)
                 {

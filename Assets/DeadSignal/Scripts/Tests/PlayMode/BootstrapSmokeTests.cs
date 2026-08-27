@@ -86,6 +86,14 @@ namespace DeadSignal.Tests
                 Assert.That(foundry.Find("Foundry South Reinforcement Gate"), Is.Not.Null);
                 Assert.That(game.AuthoredInterceptorEntranceCount, Is.EqualTo(9));
 
+                player.position = game.RelayTowerPosition;
+                InputSystem.QueueStateEvent(gamepad, new GamepadState().WithButton(GamepadButton.West));
+                yield return null;
+                InputSystem.QueueStateEvent(gamepad, new GamepadState());
+                yield return null;
+                Assert.That(game.IsRelayTowerOnline, Is.False,
+                    "Foundry commissioning must remain locked until the Central payload is installed.");
+
                 player.position = new Vector3(-0.6f, 0f, 0.4f);
                 InputSystem.QueueStateEvent(gamepad, new GamepadState().WithButton(GamepadButton.West));
                 yield return null;
@@ -126,22 +134,15 @@ namespace DeadSignal.Tests
                 Assert.That(foundry.Find("Relay Return Bulkhead").gameObject.activeSelf, Is.False);
                 Assert.That(game.IsSignalDustPowered, Is.True,
                     "The second tower should make its authored region a real Signal-safe foothold.");
-                Assert.That(game.IsWeaponOverclockChoicePending, Is.True,
-                    "Relay activation should award one meaningful weapon calibration choice.");
+                Assert.That(game.IsWeaponOverclockChoicePending, Is.False,
+                    "Foundry commissioning should unlock payload processing without awarding calibration early.");
+                Assert.That(game.CurrentMissionObjectiveId, Is.EqualTo(MissionObjectiveId.RelayPayload));
+                Assert.That(game.CurrentMissionGuidanceAction, Does.Contain("FOUNDRY OR COOLING GANTRY"),
+                    "The compatibility payload step must remain completable until Gantry processing replaces it.");
                 Assert.That(game.PendingSecurityReinforcement, Is.EqualTo(SecurityReinforcement.Suppressor),
                     "The second powered territory should promote the existing final response into a Relay lockdown.");
                 Assert.That(game.SecurityReinforcementsRemaining, Is.EqualTo(2),
                     "The Central payload response and Relay lockdown should both remain inside the bounded budget.");
-                var shotsBeforeCalibration = game.ShotsFired;
-                InputSystem.QueueStateEvent(gamepad,
-                    new GamepadState().WithButton(GamepadButton.RightShoulder));
-                yield return null;
-                InputSystem.QueueStateEvent(gamepad, new GamepadState());
-                yield return null;
-                Assert.That(game.SelectedWeaponOverclock, Is.EqualTo(SignalWeaponOverclock.PiercingPulse));
-                Assert.That(game.ShotsFired, Is.EqualTo(shotsBeforeCalibration),
-                    "Fire should select Piercing Pulse without also spending Signal on a bolt.");
-
                 var relayLockdownDeadline = Time.time + 2.7f;
                 while (!game.IsSuppressorFieldWarningActive && Time.time < relayLockdownDeadline)
                 {
@@ -164,6 +165,16 @@ namespace DeadSignal.Tests
                 yield return new WaitForSeconds(0.12f);
                 Assert.That(game.LastSignalBoltBlockedByEnvironment, Is.False,
                     "The activated return shortcut should reopen the same combat sightline.");
+
+                yield return SceneManager.LoadSceneAsync("SampleScene");
+                yield return null;
+                game = Object.FindFirstObjectByType<DeadSignalGame>();
+                foundry = game.transform.Find("Relay Foundry Region");
+                Assert.That(game.IsRelayTowerOnline, Is.False,
+                    "A restarted run must restore the dormant Foundry state.");
+                Assert.That(foundry.Find("Relay Signal Lines").gameObject.activeSelf, Is.False);
+                Assert.That(foundry.Find("Relay Return Bulkhead").gameObject.activeSelf, Is.True);
+                Assert.That(game.IsWeaponOverclockChoicePending, Is.False);
             }
             finally
             {
@@ -199,10 +210,7 @@ namespace DeadSignal.Tests
                 yield return null;
                 InputSystem.QueueStateEvent(gamepad, new GamepadState());
                 yield return null;
-                InputSystem.QueueStateEvent(gamepad, new GamepadState().WithButton(GamepadButton.RightShoulder));
-                yield return null;
-                InputSystem.QueueStateEvent(gamepad, new GamepadState());
-                yield return null;
+                game.DebugSelectWeapon(SignalWeaponOverclock.PiercingPulse);
 
                 Assert.That(game.SelectedWeaponOverclock, Is.EqualTo(SignalWeaponOverclock.PiercingPulse));
                 player.position = new Vector3(22f, 0f, 5f);
@@ -256,10 +264,7 @@ namespace DeadSignal.Tests
                 yield return null;
                 InputSystem.QueueStateEvent(gamepad, new GamepadState());
                 yield return null;
-                InputSystem.QueueStateEvent(gamepad, new GamepadState().WithButton(GamepadButton.West));
-                yield return null;
-                InputSystem.QueueStateEvent(gamepad, new GamepadState());
-                yield return null;
+                game.DebugSelectWeapon(SignalWeaponOverclock.ControlledRicochet);
 
                 Assert.That(game.SelectedWeaponOverclock, Is.EqualTo(SignalWeaponOverclock.ControlledRicochet));
                 player.position = new Vector3(27.5f, 0f, 5f);
@@ -630,7 +635,8 @@ namespace DeadSignal.Tests
                 Assert.That(game.SelectedAuxiliaryOverclock, Is.EqualTo(SignalAuxiliaryOverclock.FeedbackShield));
                 Assert.That(game.IsFeedbackShieldCharged, Is.True);
                 Assert.That(game.IsAuxiliaryOverclockChoicePending, Is.False);
-                Assert.That(game.IsWeaponOverclockChoicePending, Is.True);
+                Assert.That(game.IsWeaponOverclockChoicePending, Is.False,
+                    "Foundry activation must not award the later calibration choice.");
 
                 var warden = game.transform.Find("Security Warden");
                 warden.position = new Vector3(20f, 0f, 20f);
