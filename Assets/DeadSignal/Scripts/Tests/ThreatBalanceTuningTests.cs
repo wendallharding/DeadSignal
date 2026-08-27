@@ -72,6 +72,28 @@ namespace DeadSignal.Tests
         }
 
         [Test]
+        public void SwarmerDefaults_CreateFiniteFragilePressureWithoutPositiveSignalLoop()
+        {
+            var tuning = ScriptableObject.CreateInstance<SwarmerPressureTuning>();
+            try
+            {
+                Assert.That(tuning.MaximumAlive, Is.EqualTo(6));
+                Assert.That(tuning.WaveSize, Is.EqualTo(3));
+                Assert.That(tuning.SecondWaveDelay, Is.InRange(3f, 5f));
+                Assert.That(tuning.SafeSpawnDistance, Is.GreaterThan(4f));
+                Assert.That(tuning.Speed, Is.GreaterThan(3f));
+                Assert.That(tuning.ContactSignalDrain, Is.GreaterThan(0f));
+                Assert.That(tuning.PurgeSignalReward, Is.GreaterThan(0f).And.LessThan(tuning.ContactSignalDrain));
+                Assert.That(tuning.MaximumAlive * tuning.PurgeSignalReward, Is.LessThanOrEqualTo(RunModel.SecurityHitCost),
+                    "Clearing the complete finite pressure tier must not out-earn one specialist collision.");
+            }
+            finally
+            {
+                Object.DestroyImmediate(tuning);
+            }
+        }
+
+        [Test]
         public void OpeningSuppressionCenter_StableLocksPlayerWhileOverdriveLeadsRetreat()
         {
             var extraction = new Vector3(-9f, 0f, -5f);

@@ -31,12 +31,56 @@ Work through these gates in order. Authorize one bounded combat advancement per 
 - [ ] Add a genuinely new enemy only if existing roles cannot supply the required counterplay
 - [ ] Add level area or the station guardian only when matched human play shows the existing spaces or roster cannot sustain the intended 15–25-minute escalation and extraction climax
 
+### Evidence-gated combat chamber prototype
+
+- [ ] After the lightweight pressure enemy and connected Signal economy work in the combat laboratory, identify one existing region where a bounded branch tests them better than another open-route encounter
+- [ ] Author Room A as a readable commitment space with a switch, tower, breaker, or Signal transaction that previews the chamber, reward, cost, and no-return threshold
+- [ ] Author Room B as a roughly 60–90-second lockdown arena with full movement, clear door-close warning, readable spawn directions, bounded concurrency, brief phase-reset beats, and geometry that supports circulation and reversals
+- [ ] Build the first sequence from a pressure-population teaching phase, a pressure-plus-Warden space-management phase, and one pressure-plus-Sapper-or-Suppressor target-priority phase; adjust composition when baseline evidence supports a clearer progression
+- [ ] Author Room C as a distinct reward space whose payload, calibration, salvage, or temporary overcharge justifies the Signal, damage, and time risk without becoming mandatory for every successful run
+- [ ] Make the cleared chamber useful on withdrawal through a powered foothold, shortcut, alternate exit, or other legible state change
+- [ ] Handle death, reload, re-entry, stuck or escaped enemies, interrupted transitions, phase cleanup, door safety, and cleared/rewarded persistence deterministically
+- [ ] Reject or revise the pattern if matched play shows Signal soft-locks, unreadable saturation, repetitive waves, weak reward value, route coercion, excessive duration, poor return value, or lower fun and replay intent
+- [ ] Do not replicate the chamber pattern elsewhere until the single prototype passes focused tests, complete-run regression, Windows smoke, and a human-controlled before/after comparison
+
 ### Combat-proof Definition of Done
 
 - [ ] Matched evidence improves weapon satisfaction, movement decisions, role distinction, encounter variety, combat readability, completion pressure, build diversity, fun, and replay intent
 - [ ] No build is dominant, no role is trivialized, and Signal remains a meaningful mobility, machinery, special-power, damage, and survival tradeoff while basic fire stays free
 - [ ] Focused and applicable full Unity suites pass; the Windows development player builds and smoke-tests when runtime integration changes
 - [ ] A human-controlled comparison validates feel, or the DEVLOG states clearly that subjective balance and fun remain unproven and supplies a concise manual script
+
+## P0 — Authored Spine-return tactical window (Run 118)
+
+- [x] Keep `ForegroundOcclusionController` disabled and preserve all nine compatibility bindings/resources
+- [x] Identify the actual powered-return foreground offender with a resolution-normalized renderer coverage diagnostic
+- [x] Reduce only the North Capacitor Shield presentation height while preserving both object-aligned X/Z collision footprints
+- [x] Lower the shield's central tactical-window coverage from 17.3 percent to 9.9 percent
+- [x] Prevent the historical Capacitor Spine setup from shrinking later authored world bounds
+- [x] Prove powered return state, obstacle count, collision, projectile authority, eastern-lab framing, Full Extraction, full regression, Windows build, and D3D11 packaged smoke
+- [ ] Capture matched human-controlled frames at 1280x720 and 1600x900 with a threat, bolt path, and escape lane present
+- [ ] Treat P0.1 as incomplete until the opening composition also passes and the human Spine/Quench comparison confirms the lower shield remains visually substantial
+
+## P0 — Authored opening tactical window (Run 119)
+
+- [x] Identify the opening return's actual foreground offenders with the established resolution-normalized diagnostic
+- [x] Lower both departure capacitors while preserving their full-length low beacon rails and object-aligned X/Z collision footprints
+- [x] Shorten only the raised armor/cell spans so no authored opening renderer covers more than 20 percent of the tactical window
+- [x] Reduce north/south armor coverage from 39.3/29.6 percent to 13.0/12.1 percent at 1280x720 and 1600x900
+- [x] Prove controller flank traversal, projectile blocking, 123 obstacles, opening route, matched Full Extraction, full regression, Windows build, and null/D3D11 packaged smoke
+- [ ] Capture event-timed human frames with the drone, nearest threat, projectile path, and one escape lane simultaneously visible
+- [ ] Treat owner P0.1 as provisionally supported, not complete, until both opening and Spine-return silhouettes remain visually substantial in human comparison
+
+## P0 — Eastern-lab Swarmer pressure tier (Run 117)
+
+- [x] Add one fragile one-bolt Swarmer behavior that continuously converges and punishes stationary contact
+- [x] Reuse the lab's authored Warden and Sapper staging lanes for two readable three-Swarmer formations
+- [x] Cap the bounded population at six, delay the second trio, and prevent deployment inside the safe-spawn radius
+- [x] Keep purge recovery below contact loss and keep the full finite tier at or below one specialist-hit recovery
+- [x] Package a purpose-built geometric Swarmer prefab and focused ScriptableObject tuning without bitmap art
+- [x] Prove one-bolt purge, collision, reward, contact pressure, viewport containment, density cap, and the unchanged Full Extraction route
+- [ ] Compare stationary held fire against continuous strafing at 1280×720 and 1600×900 with keyboard/mouse and controller; record damage, evasions, clear time, minimum/final Signal, readability, fun, and replay intent
+- [ ] Promote Swarmers beyond the combat laboratory only if human evidence shows movement pressure improves without obscuring specialist target priority
 
 ## P0 — Free continuous basic fire (Run 116)
 

@@ -34,6 +34,7 @@ namespace DeadSignal.Editor
             "Assets/DeadSignal/Resources/Materials/WorldPalette/SignalCyan.mat";
 
         private static readonly Vector3 s_regionPosition = new(42.5f, 0f, 0f);
+        private static readonly Vector3 s_northShieldPresentationScale = new(1f, 0.62f, 1f);
 
         public static bool HasAssets
         {
@@ -51,6 +52,7 @@ namespace DeadSignal.Editor
                        prefab.GetComponentsInChildren<AuthoredMapObstacle>().Length >= 10 &&
                        prefab.GetComponentsInChildren<AuthoredSalvageSocket>().Length == 0 &&
                        prefab.transform.Find("Capacitor Transfer Bank") != null &&
+                       prefab.transform.Find("North Capacitor Shield")?.localScale == s_northShieldPresentationScale &&
                        prefab.transform.Find("Third Tower Berth") != null &&
                        prefab.transform.Find("Spine Signal Lines") != null &&
                        prefab.transform.Find("Capacitor Spine Activation Decal") != null &&
@@ -350,6 +352,15 @@ namespace DeadSignal.Editor
                 changed |= signalLines.activeSelf;
                 signalLines.SetActive(false);
 
+                var northShield = root.transform.Find("North Capacitor Shield");
+                if (northShield == null)
+                {
+                    throw new InvalidOperationException("The Capacitor Spine north shield is missing.");
+                }
+
+                changed |= northShield.localScale != s_northShieldPresentationScale;
+                northShield.localScale = s_northShieldPresentationScale;
+
                 var decal = root.transform.Find("Capacitor Spine Activation Decal")?.gameObject;
                 if (decal == null)
                 {
@@ -434,7 +445,9 @@ namespace DeadSignal.Editor
 
             var references = UnityEngine.Object.FindFirstObjectByType<DeadSignalSceneReferences>(FindObjectsInactive.Include);
             var serialized = new SerializedObject(references);
-            serialized.FindProperty("m_arenaHalfExtents").vector2Value = new Vector2(50.5f, 8.8f);
+            serialized.FindProperty("m_arenaHalfExtents").vector2Value = Vector2.Max(
+                references.ArenaHalfExtents,
+                new Vector2(50.5f, 8.8f));
             serialized.FindProperty("m_spineTowerAnchor").objectReferenceValue = existing.transform.Find("Third Tower Berth");
             serialized.FindProperty("m_capacitorSpine").objectReferenceValue = existing;
             serialized.FindProperty("m_spineTower").objectReferenceValue = existing.transform.Find("Third Tower Berth").gameObject;

@@ -543,6 +543,10 @@ PrefabInstance:
     m_TransformParent: {fileID: 400746329525056401}
     m_Modifications:
     - target: {fileID: 438807158888121989, guid: 58dc118058da47d48bda379766ca3f55, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 438807158888121989, guid: 58dc118058da47d48bda379766ca3f55, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
       objectReference: {fileID: 0}
@@ -586,6 +590,14 @@ PrefabInstance:
       propertyPath: m_Name
       value: South Departure Capacitor
       objectReference: {fileID: 0}
+    - target: {fileID: 5532878233620104026, guid: 58dc118058da47d48bda379766ca3f55, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 9174224202299194258, guid: 58dc118058da47d48bda379766ca3f55, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 0.5
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -604,6 +616,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 400746329525056401}
     m_Modifications:
+    - target: {fileID: 438807158888121989, guid: 58dc118058da47d48bda379766ca3f55, type: 3}
+      propertyPath: m_LocalScale.y
+      value: 0.5
+      objectReference: {fileID: 0}
     - target: {fileID: 438807158888121989, guid: 58dc118058da47d48bda379766ca3f55, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
@@ -647,6 +663,14 @@ PrefabInstance:
     - target: {fileID: 962965914303372351, guid: 58dc118058da47d48bda379766ca3f55, type: 3}
       propertyPath: m_Name
       value: North Departure Capacitor
+      objectReference: {fileID: 0}
+    - target: {fileID: 5532878233620104026, guid: 58dc118058da47d48bda379766ca3f55, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 9174224202299194258, guid: 58dc118058da47d48bda379766ca3f55, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 0.5
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

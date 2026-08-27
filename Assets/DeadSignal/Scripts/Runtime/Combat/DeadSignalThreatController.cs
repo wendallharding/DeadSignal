@@ -31,11 +31,13 @@ namespace DeadSignal.Combat
         private readonly IDeadSignalAudio m_audio;
         private readonly SignalBoltPresentationTuning m_projectileTuning;
         private readonly ThreatBalanceTuning m_tuning;
+        private readonly SwarmerPressureTuning m_swarmerTuning;
         private readonly SignalOverclockChoice m_overclockChoice;
         private readonly SignalOverclockTuning m_overclockTuning;
         private readonly Action<string> m_showFeedback;
         private readonly Func<float> m_rewardExtractionPurge;
         private readonly SecurityEscalationDirector m_director;
+        private readonly SwarmerPressurePopulation m_swarmers;
         private readonly List<Projectile> m_projectiles = new();
 
         private float m_wardenHealth;
@@ -78,6 +80,7 @@ namespace DeadSignal.Combat
             IDeadSignalAudio audio,
             SignalBoltPresentationTuning projectileTuning,
             ThreatBalanceTuning tuning,
+            SwarmerPressureTuning swarmerTuning,
             SignalOverclockChoice overclockChoice,
             SignalOverclockTuning overclockTuning,
             Action<string> showFeedback,
@@ -90,6 +93,7 @@ namespace DeadSignal.Combat
             m_audio = audio;
             m_projectileTuning = projectileTuning;
             m_tuning = tuning;
+            m_swarmerTuning = swarmerTuning;
             m_overclockChoice = overclockChoice;
             m_overclockTuning = overclockTuning;
             m_director = new SecurityEscalationDirector(
@@ -98,6 +102,7 @@ namespace DeadSignal.Combat
                 UnityEngine.Random.Range(0, 2) == 1,
                 tuning.DeadZoneTraceDuration,
                 tuning.DeadZoneTraceRecoveryRate);
+            m_swarmers = new SwarmerPressurePopulation(world, swarmerTuning, _applySwarmerContact, _purgeSwarmer);
             m_showFeedback = showFeedback;
             m_rewardExtractionPurge = rewardExtractionPurge;
             m_wardenHealth = tuning.WardenHealth;
@@ -152,12 +157,19 @@ namespace DeadSignal.Combat
         public ExtractionSuppressionProfile CurrentExtractionSuppressionProfile { get; private set; }
         public int PiercingPulseFollowThroughs { get; private set; }
         public int ControlledRicochets { get; private set; }
+        public bool HasSwarmerAssets => m_swarmers.HasAssets;
+        public int ActiveSwarmerCount => m_swarmers.ActiveCount;
+        public int PeakSwarmerCount => m_swarmers.PeakActiveCount;
+        public int SwarmersSpawned => m_swarmers.SpawnedCount;
+        public int SwarmersPurged => m_swarmers.PurgedCount;
+        public int SwarmerContacts => m_swarmers.ContactCount;
+        public IReadOnlyList<Transform> ActiveSwarmers => m_swarmers.ActiveTransforms;
         public int DebugScenarioAttackCount
         {
             get
             {
                 var count = 0;
-                for (var bit = 1; bit <= 8; bit <<= 1)
+                for (var bit = 1; bit <= 16; bit <<= 1)
                 {
                     if ((m_debugScenarioAttackMask & bit) != 0)
                     {
@@ -267,6 +279,7 @@ namespace DeadSignal.Combat
             m_interceptorChargeCountdown = 1.5f;
             m_suppressorFieldCooldown = 1f;
             m_world.SapperTelegraph.SetThreatState(true, true, m_sapperPulseCooldown, m_tuning.SapperPulseInterval);
+            m_swarmers.Deploy(scenario);
         }
 
         public void ResetDebugScenario()
@@ -306,6 +319,7 @@ namespace DeadSignal.Combat
                 }
             }
             m_projectiles.Clear();
+            m_swarmers.Reset();
             m_world.PurgeWarden();
             m_world.PurgeSapper();
             m_world.PurgeInterceptor();
@@ -353,6 +367,11 @@ namespace DeadSignal.Combat
             _tickSuppressor(dt);
             _tickWarden(dt);
             _tickSapper(dt);
+            if (m_debugScenarioActive)
+            {
+                m_swarmers.Tick(dt, m_model.ShortcutOpen);
+            }
+            m_metrics.RecordThreatConcurrency(_activeThreatCount());
             _tickProjectiles(dt);
             _clampDebugScenarioActors();
         }
@@ -953,6 +972,8 @@ namespace DeadSignal.Combat
                 var sapperHitFraction = float.PositiveInfinity;
                 var interceptorHitFraction = float.PositiveInfinity;
                 var suppressorHitFraction = float.PositiveInfinity;
+                var swarmerHitFraction = float.PositiveInfinity;
+                var swarmerId = -1;
                 var hitWarden = !shot.HasHit(ThreatTarget.Warden) && _tryGetThreatHitFraction(
                     start, end, m_world.Warden, m_wardenHealth, s_wardenProjectileHitRadius, out wardenHitFraction);
                 var hitSapper = !shot.HasHit(ThreatTarget.Sapper) && _tryGetThreatHitFraction(
@@ -971,6 +992,8 @@ namespace DeadSignal.Combat
                     m_suppressorHealth,
                     s_suppressorProjectileHitRadius,
                     out suppressorHitFraction);
+                var hitSwarmer = m_swarmers.TryGetHitFraction(
+                    start, end, shot.HitSwarmerIds, out swarmerId, out swarmerHitFraction);
                 var hitObstacle = m_world.TryGetProjectileObstacleHit(
                     start,
                     end,
@@ -983,7 +1006,9 @@ namespace DeadSignal.Combat
                         hitSapper ? sapperHitFraction : float.PositiveInfinity),
                     Mathf.Min(
                         hitInterceptor ? interceptorHitFraction : float.PositiveInfinity,
-                        hitSuppressor ? suppressorHitFraction : float.PositiveInfinity));
+                        Mathf.Min(
+                            hitSuppressor ? suppressorHitFraction : float.PositiveInfinity,
+                            hitSwarmer ? swarmerHitFraction : float.PositiveInfinity)));
                 if (hitObstacle && obstacleHitFraction < nearestThreatFraction)
                 {
                     LastShotBlockedByEnvironment = true;
@@ -1004,8 +1029,9 @@ namespace DeadSignal.Combat
 
                 var hitTarget = ThreatTarget.None;
                 var hitFraction = float.PositiveInfinity;
+                var didHitSwarmer = false;
                 if (hitWarden && wardenHitFraction <= sapperHitFraction && wardenHitFraction <= interceptorHitFraction &&
-                    wardenHitFraction <= suppressorHitFraction)
+                    wardenHitFraction <= suppressorHitFraction && wardenHitFraction <= swarmerHitFraction)
                 {
                     var hitPosition = m_world.Warden.position + Vector3.up * 0.55f;
                     _hitWarden();
@@ -1013,7 +1039,8 @@ namespace DeadSignal.Combat
                     hitTarget = ThreatTarget.Warden;
                     hitFraction = wardenHitFraction;
                 }
-                else if (hitSapper && sapperHitFraction <= interceptorHitFraction && sapperHitFraction <= suppressorHitFraction)
+                else if (hitSapper && sapperHitFraction <= interceptorHitFraction && sapperHitFraction <= suppressorHitFraction &&
+                         sapperHitFraction <= swarmerHitFraction)
                 {
                     var hitPosition = m_world.Sapper.position + Vector3.up * 0.5f;
                     _hitSapper();
@@ -1021,7 +1048,8 @@ namespace DeadSignal.Combat
                     hitTarget = ThreatTarget.Sapper;
                     hitFraction = sapperHitFraction;
                 }
-                else if (hitInterceptor && interceptorHitFraction <= suppressorHitFraction)
+                else if (hitInterceptor && interceptorHitFraction <= suppressorHitFraction &&
+                         interceptorHitFraction <= swarmerHitFraction)
                 {
                     var hitPosition = m_world.Interceptor.position + Vector3.up * 0.5f;
                     _hitInterceptor();
@@ -1029,7 +1057,7 @@ namespace DeadSignal.Combat
                     hitTarget = ThreatTarget.Interceptor;
                     hitFraction = interceptorHitFraction;
                 }
-                else if (hitSuppressor)
+                else if (hitSuppressor && suppressorHitFraction <= swarmerHitFraction)
                 {
                     var hitPosition = m_world.Suppressor.position + Vector3.up * 0.5f;
                     _hitSuppressor();
@@ -1037,10 +1065,22 @@ namespace DeadSignal.Combat
                     hitTarget = ThreatTarget.Suppressor;
                     hitFraction = suppressorHitFraction;
                 }
-
-                if (hitTarget != ThreatTarget.None)
+                else if (hitSwarmer)
                 {
-                    shot.MarkHit(hitTarget);
+                    var hitPosition = m_swarmers.Purge(swarmerId) + Vector3.up * 0.3f;
+                    m_combatFeedback.PlaySignalImpact(hitPosition, true);
+                    m_audio.Play(DeadSignalAudioCue.SignalImpact);
+                    shot.MarkSwarmerHit(swarmerId);
+                    hitFraction = swarmerHitFraction;
+                    didHitSwarmer = true;
+                }
+
+                if (hitTarget != ThreatTarget.None || didHitSwarmer)
+                {
+                    if (hitTarget != ThreatTarget.None)
+                    {
+                        shot.MarkHit(hitTarget);
+                    }
                     if (shot.RemainingThreatHits > 0 && shot.Life > 0f)
                     {
                         PiercingPulseFollowThroughs++;
@@ -1053,7 +1093,7 @@ namespace DeadSignal.Combat
                     shot.Visual.transform.position = end;
                 }
 
-                if (hitTarget != ThreatTarget.None || shot.Life <= 0f)
+                if (hitTarget != ThreatTarget.None || didHitSwarmer || shot.Life <= 0f)
                 {
                     UnityEngine.Object.Destroy(shot.Visual);
                     m_projectiles.RemoveAt(index);
@@ -1462,6 +1502,46 @@ namespace DeadSignal.Combat
             m_world.Sapper.position = m_debugScenario.ClampToSafeArea(m_world.Sapper.position);
             m_world.Interceptor.position = m_debugScenario.ClampToSafeArea(m_world.Interceptor.position);
             m_world.Suppressor.position = m_debugScenario.ClampToSafeArea(m_world.Suppressor.position);
+            foreach (var swarmer in m_swarmers.ActiveTransforms)
+            {
+                swarmer.position = m_debugScenario.ClampToSafeArea(swarmer.position);
+            }
+        }
+
+        private void _applySwarmerContact(Vector3 position)
+        {
+            if (m_debugScenarioActive)
+            {
+                m_debugScenarioAttackMask |= 16;
+            }
+            m_combatFeedback.PlaySecurityImpact(position + Vector3.up * 0.35f);
+            m_audio.Play(DeadSignalAudioCue.SecurityImpact);
+            if (_tryAbsorbThreatDamage("SWARMER IMPACT") || m_debugPlayerInvulnerable)
+            {
+                return;
+            }
+
+            m_model.TakeSuppressionPulse(m_swarmerTuning.ContactSignalDrain);
+            m_metrics.RecordSwarmerContact();
+            m_showFeedback($"SWARMER IMPACT  −{m_swarmerTuning.ContactSignalDrain:0} SIGNAL");
+        }
+
+        private int _activeThreatCount()
+        {
+            var count = m_swarmers.ActiveCount;
+            if (IsWardenAlive && m_world.Warden.gameObject.activeSelf) count++;
+            if (IsSapperAlive && m_world.Sapper.gameObject.activeSelf) count++;
+            if (IsInterceptorAlive && m_world.Interceptor.gameObject.activeSelf) count++;
+            if (IsSuppressorAlive && m_world.Suppressor.gameObject.activeSelf) count++;
+            return count;
+        }
+
+        private void _purgeSwarmer(Vector3 position)
+        {
+            var restored = m_model.RestoreSignal(m_swarmerTuning.PurgeSignalReward);
+            m_metrics.RecordSwarmerPurge(restored);
+            m_combatFeedback.PlaySignalRecovery(position + Vector3.up * 0.3f);
+            m_showFeedback($"SWARMER PURGED  +{restored:0} SIGNAL{_purgeRewardText()}");
         }
 
         private string _purgeRewardText()
@@ -1497,12 +1577,19 @@ namespace DeadSignal.Combat
             public int RemainingThreatHits { get; private set; }
             public int RemainingRicochetBanks { get; private set; }
             public bool CanRicochet => RemainingRicochetBanks > 0;
+            public HashSet<int> HitSwarmerIds => m_hitSwarmerIds;
 
             public bool HasHit(ThreatTarget target) => (m_hitMask & (1 << (int)target)) != 0;
 
             public void MarkHit(ThreatTarget target)
             {
                 m_hitMask |= 1 << (int)target;
+                RemainingThreatHits--;
+            }
+
+            public void MarkSwarmerHit(int swarmerId)
+            {
+                m_hitSwarmerIds.Add(swarmerId);
                 RemainingThreatHits--;
             }
 
@@ -1515,6 +1602,7 @@ namespace DeadSignal.Combat
             }
 
             private int m_hitMask;
+            private readonly HashSet<int> m_hitSwarmerIds = new();
         }
 
         private enum ThreatTarget

@@ -310,6 +310,36 @@ namespace DeadSignal.Tests
         }
 
         [Test]
+        public void RunMetrics_AttributeSwarmerContactsAndPurges()
+        {
+            var metrics = new RunMetrics();
+
+            metrics.RecordSwarmerContact();
+            metrics.RecordSwarmerPurge(3f);
+
+            Assert.That(metrics.SwarmerContacts, Is.EqualTo(1));
+            Assert.That(metrics.SwarmersPurged, Is.EqualTo(1));
+            Assert.That(metrics.ThreatsPurged, Is.EqualTo(1));
+            Assert.That(metrics.SignalRecovered, Is.EqualTo(3f));
+        }
+
+        [Test]
+        public void RunMetrics_TrackMinimumSignalAndPeakThreatConcurrency()
+        {
+            var metrics = new RunMetrics();
+
+            metrics.RecordSignal(64f);
+            metrics.RecordSignal(81f);
+            metrics.RecordSignal(19f);
+            metrics.RecordThreatConcurrency(4);
+            metrics.RecordThreatConcurrency(10);
+            metrics.RecordThreatConcurrency(6);
+
+            Assert.That(metrics.MinimumSignal, Is.EqualTo(19f));
+            Assert.That(metrics.PeakThreatConcurrency, Is.EqualTo(10));
+        }
+
+        [Test]
         public void SalvageChain_EscalatesRewardsInsideWindow()
         {
             var chain = new SalvageChain();

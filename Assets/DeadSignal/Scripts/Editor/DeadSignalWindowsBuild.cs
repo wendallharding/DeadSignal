@@ -63,6 +63,7 @@ namespace DeadSignal.Editor
             DeadSignalHudSetup.EnsureAssets();
             DeadSignalThreatSetup.EnsureAssets();
             DeadSignalInterceptorSetup.EnsureAssets();
+            DeadSignalSwarmerSetup.EnsureAssets();
             DeadSignalSalvageChainSetup.EnsureAssets();
             _validateBuildInputs();
             _configureWindowsPlayer();
@@ -131,6 +132,11 @@ namespace DeadSignal.Editor
             if (!DeadSignalInterceptorSetup.HasAssets)
             {
                 throw new BuildFailedException("The authored Security Interceptor and flank gates are missing.");
+            }
+
+            if (!DeadSignalSwarmerSetup.HasAssets)
+            {
+                throw new BuildFailedException("The Swarmer pressure prefab or tuning asset is missing.");
             }
 
             if (!DeadSignalSalvageChainSetup.HasAssets)

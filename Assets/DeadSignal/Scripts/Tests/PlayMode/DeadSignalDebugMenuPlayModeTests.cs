@@ -322,6 +322,8 @@ namespace DeadSignal.Tests.PlayMode
             Assert.That(scenario.IsComplete, Is.True);
             Assert.That(Resources.Load<Texture2D>("Environment/EasternCombatLabTarget"), Is.Not.Null);
             Assert.That(Resources.Load<Material>("Materials/EasternCombatLab/EasternCombatLabTarget"), Is.Not.Null);
+            Assert.That(Resources.Load<GameObject>("Actors/SwarmerAssembly"), Is.Not.Null);
+            Assert.That(Resources.Load<SwarmerPressureTuning>("Tuning/SwarmerPressureTuning"), Is.Not.Null);
             var obstacles = Object.FindObjectsByType<AuthoredMapObstacle>(FindObjectsSortMode.None);
             foreach (var anchor in new[]
                      {
@@ -352,7 +354,32 @@ namespace DeadSignal.Tests.PlayMode
                 Assert.That(game.CurrentMissionObjective, Does.Contain("COMBAT LAB"));
                 Assert.That(game.CurrentMissionObjective, Does.Not.Contain("SALVAGE"));
                 Assert.That(game.AreDebugCombatActorsInSafeViewport, Is.True, game.DebugCombatScenarioStatus);
+                Assert.That(game.HasSwarmerAssets, Is.True);
+                Assert.That(game.ActiveSwarmerCount, Is.EqualTo(3), game.DebugCombatScenarioStatus);
             }
+
+            var player = game.transform.Find("Maintenance Drone");
+            var swarmer = game.transform.Find("Security Swarmer 1");
+            Assert.That(player, Is.Not.Null);
+            Assert.That(swarmer, Is.Not.Null);
+            swarmer.position = player.position + player.forward * 2f;
+            game.DebugSetSignal(50f);
+            var shotsBeforeSwarmer = game.ShotsFired;
+            game.DebugFireAt(swarmer.position);
+            var purgeDeadline = Time.realtimeSinceStartup + 2f;
+            while (game.SwarmersPurged == 0 && Time.realtimeSinceStartup < purgeDeadline)
+            {
+                yield return null;
+            }
+            Assert.That(game.SwarmersPurged, Is.EqualTo(1), game.DebugCombatScenarioStatus);
+            Assert.That(game.ShotsFired - shotsBeforeSwarmer, Is.EqualTo(1),
+                "One fragile Swarmer should be purged by one basic Signal bolt.");
+            Assert.That(game.CurrentSignal, Is.EqualTo(53f).Within(0.1f),
+                "The finite Swarmer reward should restore the tuned three Signal without charging for the bolt.");
+
+            game.DebugApplyScenario(DebugScenario.EasternRoomCombat);
+            yield return null;
+            yield return null;
 
             game.DebugSetTimeScale(8f);
             var timeout = Time.realtimeSinceStartup + 45f;
@@ -364,7 +391,12 @@ namespace DeadSignal.Tests.PlayMode
             }
 
             Assert.That(game.DebugCombatScenarioSeconds, Is.GreaterThanOrEqualTo(30f), game.DebugCombatScenarioStatus);
-            Assert.That(game.DebugCombatScenarioAttackCount, Is.EqualTo(4), game.DebugCombatScenarioStatus);
+            Assert.That(game.DebugCombatScenarioAttackCount, Is.EqualTo(5), game.DebugCombatScenarioStatus);
+            Assert.That(game.SwarmersSpawned, Is.EqualTo(6), game.DebugCombatScenarioStatus);
+            Assert.That(game.PeakSwarmerCount, Is.EqualTo(6), game.DebugCombatScenarioStatus);
+            Assert.That(game.PeakThreatConcurrency, Is.EqualTo(10), game.DebugCombatScenarioStatus);
+            Assert.That(game.ActiveSwarmerCount, Is.EqualTo(6), game.DebugCombatScenarioStatus);
+            Assert.That(game.SwarmerContacts, Is.GreaterThan(0), game.DebugCombatScenarioStatus);
             Assert.That(game.WardenHealth, Is.GreaterThan(0f));
             Assert.That(game.SapperHealth, Is.GreaterThan(0f));
             Assert.That(game.InterceptorHealth, Is.GreaterThan(0f));

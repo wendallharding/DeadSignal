@@ -39,12 +39,16 @@ namespace DeadSignal.Missions
         public int SecurityHits { get; private set; }
         public int SapperPulses { get; private set; }
         public int ThreatsPurged { get; private set; }
+        public int SwarmerContacts { get; private set; }
+        public int SwarmersPurged { get; private set; }
         public float SignalRecovered { get; private set; }
         public int BestSalvageChain { get; private set; }
         public float SalvageSignalRecovered { get; private set; }
         public float PassiveSignalSpent { get; private set; }
         public float MovementSignalSpent { get; private set; }
         public float WeaponSignalSpent { get; private set; }
+        public float MinimumSignal { get; private set; } = RunModel.StartingSignal;
+        public int PeakThreatConcurrency { get; private set; }
 
         public void Advance(float seconds, bool isPowered)
         {
@@ -72,6 +76,16 @@ namespace DeadSignal.Missions
             MovementSignalSpent += Math.Max(0f, movement);
         }
 
+        public void RecordSignal(float signal)
+        {
+            MinimumSignal = Math.Min(MinimumSignal, Math.Max(0f, signal));
+        }
+
+        public void RecordThreatConcurrency(int activeThreats)
+        {
+            PeakThreatConcurrency = Math.Max(PeakThreatConcurrency, Math.Max(0, activeThreats));
+        }
+
         public void RecordSecurityHit()
         {
             SecurityHits++;
@@ -86,6 +100,17 @@ namespace DeadSignal.Missions
         {
             ThreatsPurged++;
             SignalRecovered += Math.Max(0f, signalRecovered);
+        }
+
+        public void RecordSwarmerContact()
+        {
+            SwarmerContacts++;
+        }
+
+        public void RecordSwarmerPurge(float signalRecovered)
+        {
+            SwarmersPurged++;
+            RecordThreatPurge(signalRecovered);
         }
 
         public void RecordSalvageChain(int chainCount, float signalRecovered)

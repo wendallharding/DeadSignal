@@ -73,6 +73,8 @@ namespace DeadSignal.Diagnostics
             var combatLabAnchorsReady = game != null && game.transform.Find(
                 "Spine Induction Gallery Region/Convergence Chamber Region/" +
                 "Arc Furnace Region/Eastern Combat Scenario") != null;
+            var swarmerPrefabReady = Resources.Load<GameObject>("Actors/SwarmerAssembly") != null;
+            var swarmerTuningReady = Resources.Load<SwarmerPressureTuning>("Tuning/SwarmerPressureTuning") != null;
             var stationBackdropTextureReady =
                 Resources.Load<Texture2D>("Environment/StationUnderdeckAlbedo") != null;
             var stationBackdropMaterialReady = Resources.Load<Material>("Materials/StationUnderdeck") != null;
@@ -101,7 +103,8 @@ namespace DeadSignal.Diagnostics
                       $"surgeTexture={departureSurgeTextureReady} surgeMaterial={departureSurgeMaterialReady} " +
                       $"salvage={game?.SalvageCacheInstanceCount ?? -1}");
             Debug.Log($"[DEAD SIGNAL STANDALONE SMOKE] EASTERN COMBAT LAB | " +
-                      $"anchors={combatLabAnchorsReady} texture={combatLabTextureReady} material={combatLabMaterialReady}");
+                      $"anchors={combatLabAnchorsReady} texture={combatLabTextureReady} material={combatLabMaterialReady} " +
+                      $"swarmerPrefab={swarmerPrefabReady} swarmerTuning={swarmerTuningReady}");
             Debug.Log($"[DEAD SIGNAL STANDALONE SMOKE] SUPPRESSOR FIELD | " +
                       $"runtime={game?.HasSuppressorFieldTexture ?? false} " +
                       $"texture={Resources.Load<Texture2D>("VFX/SuppressorFieldActive") != null}");
@@ -287,6 +290,9 @@ namespace DeadSignal.Diagnostics
                                 combatLabTextureReady &&
                                 combatLabMaterialReady &&
                                 combatLabAnchorsReady &&
+                                swarmerPrefabReady &&
+                                swarmerTuningReady &&
+                                game.HasSwarmerAssets &&
                                 stationBackdropTextureReady &&
                                 stationBackdropMaterialReady &&
                                 stationBackdropPrefabReady &&

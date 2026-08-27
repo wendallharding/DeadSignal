@@ -226,6 +226,14 @@ namespace DeadSignal.World
             return position;
         }
 
+        public void RebindRuntimeMaterials(Transform root)
+        {
+            if (root != null)
+            {
+                m_palette.RebindHierarchy(root);
+            }
+        }
+
         public Vector3 GetNavigationWaypoint(Vector3 current, Vector3 destination, float radius, bool shortcutOpen)
         {
             if (!_tryGetNavigationBlocker(current, destination, radius, shortcutOpen, out var blockingObstacle))

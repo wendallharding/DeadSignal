@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Linq;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -7,12 +8,66 @@ using UnityEngine.InputSystem.LowLevel;
 using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
 using DeadSignal.Application;
+using DeadSignal.Diagnostics;
 using DeadSignal.World;
 
 namespace DeadSignal.Tests
 {
     public sealed class DepartureChannelPlayModeTests
     {
+        [UnityTest]
+        public IEnumerator OpeningReturn_PreservesTacticalWindowWithoutChangingCollision()
+        {
+            yield return SceneManager.LoadSceneAsync("SampleScene");
+            yield return null;
+
+            var game = UnityEngine.Object.FindFirstObjectByType<DeadSignalGame>();
+            Assert.That(game, Is.Not.Null);
+            var player = game.transform.Find("Maintenance Drone");
+            var channel = GameObject.Find("Extraction Departure Channel").transform;
+            game.DebugActivateTower();
+            game.DebugTeleport(DebugLocation.Extraction);
+            yield return new WaitForSeconds(1f);
+
+            var camera = UnityEngine.Object.FindFirstObjectByType<Camera>();
+            foreach (var resolution in new[] { new Vector2Int(1280, 720), new Vector2Int(1600, 900) })
+            {
+                camera.aspect = (float)resolution.x / resolution.y;
+                var coverage = TacticalWindowCoverageDiagnostic.Measure(
+                    camera,
+                    UnityEngine.Object.FindObjectsByType<Renderer>(FindObjectsSortMode.None)
+                        .Where(renderer => renderer is MeshRenderer &&
+                                           renderer.bounds.center.y > 0.2f && renderer.bounds.size.y > 0.45f));
+                Assert.That(coverage, Is.Not.Empty);
+                Debug.Log($"Opening tactical-window coverage at {resolution.x}x{resolution.y}:\n" + string.Join("\n",
+                    coverage.Take(10).Select(item => $"{item.WindowCoverage:P1} {item.RendererName}")));
+                Assert.That(coverage[0].WindowCoverage, Is.LessThanOrEqualTo(0.2f),
+                    $"{coverage[0].RendererName} consumes too much of the opening tactical window at {resolution.x}x{resolution.y}.");
+            }
+
+            foreach (var capacitorName in new[] { "North Departure Capacitor", "South Departure Capacitor" })
+            {
+                var capacitor = channel.Find(capacitorName);
+                Assert.That(capacitor.localScale, Is.EqualTo(new Vector3(1f, 0.5f, 1f)));
+                Assert.That(capacitor.Find("Departure Capacitor Armor").localScale,
+                    Is.EqualTo(new Vector3(0.5f, 1f, 1f)));
+                Assert.That(capacitor.Find("Departure Capacitor Cells").localScale,
+                    Is.EqualTo(new Vector3(0.5f, 1f, 1f)));
+                Assert.That(capacitor.Find("Departure Threshold Beacons").localScale, Is.EqualTo(Vector3.one),
+                    "The full-length low beacon rail should continue to describe the obstacle footprint.");
+                var halfSize = capacitor.GetComponent<AuthoredMapObstacle>().ScaledHalfSize;
+                Assert.That(halfSize.x, Is.EqualTo(2.3f).Within(0.001f),
+                    $"{capacitorName} must retain its object-aligned movement and projectile footprint.");
+                Assert.That(halfSize.y, Is.EqualTo(0.42f).Within(0.001f),
+                    $"{capacitorName} must retain its object-aligned movement and projectile footprint.");
+                Assert.That(capacitor.GetComponent<AuthoredMapObstacle>().OverlapsCircle(capacitor.position, 0.35f), Is.True);
+            }
+
+            Assert.That(channel.GetComponentsInChildren<AuthoredMapObstacle>().Length, Is.EqualTo(3));
+            Assert.That(game.AuthoredMapObstacleCount, Is.EqualTo(123));
+            Assert.That(player, Is.Not.Null);
+        }
+
         [UnityTest]
         public IEnumerator CargoShutter_ForcesOutboundFlanksAndOpensDirectExtractionReturn()
         {

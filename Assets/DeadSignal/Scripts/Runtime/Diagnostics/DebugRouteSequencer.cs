@@ -276,6 +276,8 @@ namespace DeadSignal.Diagnostics
             finishedReport.AppendLine($"Shots {metrics.ShotsFired}  Purges {metrics.ThreatsPurged}  " +
                                       $"Travel spent {metrics.PassiveSignalSpent + metrics.MovementSignalSpent:0.0}  " +
                                       $"Fire spent {metrics.WeaponSignalSpent:0.0}");
+            finishedReport.AppendLine($"Minimum Signal {metrics.MinimumSignal:0.0}  Peak threats {metrics.PeakThreatConcurrency}  " +
+                                      $"Swarmer contacts {metrics.SwarmerContacts}  Swarmer purges {metrics.SwarmersPurged}");
             finishedReport.AppendLine($"Live policy shots {directedShots}  Evasion responses {evasionResponses}");
             finishedReport.AppendLine($"Recovered {metrics.SignalRecovered + metrics.SalvageSignalRecovered:0.0}  " +
                                       $"Position {position.x:0.00},{position.z:0.00}");

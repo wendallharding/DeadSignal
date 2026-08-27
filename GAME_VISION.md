@@ -26,7 +26,23 @@ The three-region journey now provides enough authored space to prove the core co
 
 Every combat advancement requires a bounded hypothesis, rejection criteria, and matched before/after evidence. The comparison must cover weapon satisfaction, movement decisions, enemy-role distinction, encounter variety, combat readability, completion pressure, build diversity, Signal economy, fun, and replay intent. Automated validation proves correctness; subjective balance and fun require human play.
 
+### Authored combat-chamber pattern
+
+Purposeful level expansion may create a three-room combat branch when the denser combat model is ready to be tested in a controlled space:
+
+1. **Commitment room:** a switch, tower, breaker, or Signal transaction opens the route and previews the risk before the player enters.
+2. **Lockdown arena:** crossing a clearly warned threshold seals the exits and starts a short, authored Geometry Wars-inspired pressure sequence. Phases combine lightweight population enemies with existing specialists while preserving full movement, readable entry directions, bounded concurrency, and brief reset beats.
+3. **Reward room:** clearing the sequence opens a distinct exit to a payload, weapon calibration, rare salvage, temporary overcharge, or other reward that justifies the Signal, damage, and time risk. The cleared chamber should also provide a useful return route or powered foothold instead of becoming dead space.
+
+The first chamber is an evidence-gated prototype, not a mandate to turn every room into an arena. Target roughly 60–90 seconds for its initial sequence. The player must receive a clear commitment warning, a viable starting reserve or recovery rule, and deterministic recovery from death, reload, stuck enemies, and interrupted phase transitions. Prefer station-fiction objectives such as a security purge, quarantine cycle, or marked anchor destruction over unexplained waves. Keep the branch optional or semi-required until matched play demonstrates that lockdown combat improves focus, route choice, build value, Signal tension, fun, and replay intent.
+
 Basic Signal bolts are permanently free. Keyboard/mouse and controller Fire can be held for the authored cadence, including at critical reserve. Signal pressure now comes from traversal, dashing, machinery, enemy damage and drains, extraction commitments, and future explicitly costed special power—not from every ordinary trigger pull. Purge rewards remain finite, cap-safe survival recovery rather than ammunition repayment.
+
+The first lightweight pressure population is the Security Swarmer: a small, one-bolt geometric pursuer that makes stationary firing unsafe without inheriting a specialist mechanic. Its initial evidence tier exists only in the eastern combat laboratory as two safely separated trios, capped at six simultaneous Swarmers. Each contact drains more Signal than a purge can restore, the finite tier cannot out-earn one specialist collision, and no Swarmer enters the commercial journey until matched human play proves its density, readability, and movement value.
+
+Foreground readability is authored into room and machine silhouettes while runtime foreground culling remains disabled. Presentation height may be reduced independently of an obstacle's object-aligned X/Z footprint when a return-lane machine enters the tactical window; movement, projectile blocking, NavMesh authority, and the machine's readable station function must remain unchanged.
+
+The opening departure channel follows the same authored rule without hiding its collision. Its paired capacitor obstacles retain full-length, low cyan beacon rails that describe the two blocked footprints, while only the raised armor and cell spans are shortened and lowered. This keeps the direct/flank choice legible while preventing the opening machines from covering the drone's central tactical window on return.
 
 ## MVP scope
 

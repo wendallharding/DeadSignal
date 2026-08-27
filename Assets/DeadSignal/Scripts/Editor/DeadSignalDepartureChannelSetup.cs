@@ -33,6 +33,8 @@ namespace DeadSignal.Editor
         private const string SCENE_PATH = "Assets/DeadSignal/Scenes/SampleScene.unity";
 
         private static readonly Vector3 s_channelPosition = new(-7.2f, 0f, -4.2f);
+        private static readonly Vector3 s_openingCapacitorPresentationScale = new(1f, 0.5f, 1f);
+        private static readonly Vector3 s_openingRaisedSpanScale = new(0.5f, 1f, 1f);
 
         public static bool HasAssets
         {
@@ -52,6 +54,8 @@ namespace DeadSignal.Editor
                        _hasValidCapacitor(capacitor) &&
                        channel != null &&
                        channel.GetComponentsInChildren<AuthoredMapObstacle>().Length == 3 &&
+                       _hasOpeningPresentationScale(channel.transform.Find("North Departure Capacitor")) &&
+                       _hasOpeningPresentationScale(channel.transform.Find("South Departure Capacitor")) &&
                        channel.transform.Find("Departure Cargo Shutter") != null &&
                        channel.transform.Find("Departure Cargo Return Signal") != null &&
                        channel.transform.Find("Departure Capacitor Surge Signal") != null;
@@ -364,6 +368,9 @@ namespace DeadSignal.Editor
             capacitor.transform.SetParent(parent, false);
             capacitor.transform.localPosition = localPosition;
             capacitor.transform.localRotation = Quaternion.Euler(0f, rotationY, 0f);
+            capacitor.transform.localScale = s_openingCapacitorPresentationScale;
+            capacitor.transform.Find("Departure Capacitor Armor").localScale = s_openingRaisedSpanScale;
+            capacitor.transform.Find("Departure Capacitor Cells").localScale = s_openingRaisedSpanScale;
         }
 
         private static void _ensureScenePlacement()
@@ -411,6 +418,14 @@ namespace DeadSignal.Editor
                    capacitor.transform.Find("Departure Capacitor Armor") != null &&
                    capacitor.transform.Find("Departure Capacitor Cells") != null &&
                    capacitor.transform.Find("Departure Threshold Beacons") != null;
+        }
+
+        private static bool _hasOpeningPresentationScale(Transform capacitor)
+        {
+            return capacitor != null &&
+                   capacitor.localScale == s_openingCapacitorPresentationScale &&
+                   capacitor.Find("Departure Capacitor Armor")?.localScale == s_openingRaisedSpanScale &&
+                   capacitor.Find("Departure Capacitor Cells")?.localScale == s_openingRaisedSpanScale;
         }
     }
 }

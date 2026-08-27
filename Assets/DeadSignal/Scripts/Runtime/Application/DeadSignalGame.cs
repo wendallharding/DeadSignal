@@ -264,6 +264,13 @@ namespace DeadSignal.Application
         public int ActiveSignalBoltCount => transform.Cast<Transform>().Count(child => child.name == "Signal Bolt");
         public int PiercingPulseFollowThroughs => m_threats?.PiercingPulseFollowThroughs ?? 0;
         public int ControlledRicochets => m_threats?.ControlledRicochets ?? 0;
+        public bool HasSwarmerAssets => m_threats?.HasSwarmerAssets ?? false;
+        public int ActiveSwarmerCount => m_threats?.ActiveSwarmerCount ?? 0;
+        public int PeakSwarmerCount => m_threats?.PeakSwarmerCount ?? 0;
+        public int SwarmersSpawned => m_threats?.SwarmersSpawned ?? 0;
+        public int SwarmersPurged => m_threats?.SwarmersPurged ?? 0;
+        public int SwarmerContacts => m_threats?.SwarmerContacts ?? 0;
+        public int PeakThreatConcurrency => m_metrics?.PeakThreatConcurrency ?? 0;
         public string DebugOverview =>
             $"DEBUG ACTIVE\n" +
             $"Run: {m_model?.Outcome}  //  Phase {CurrentMissionPhase}\n" +
@@ -310,11 +317,12 @@ namespace DeadSignal.Application
         public bool AreDebugCombatActorsInSafeViewport => m_debugCombatScenarioActive &&
             _isInSafeViewport(m_world.Player) && _isInSafeViewport(m_world.Warden) &&
             _isInSafeViewport(m_world.Sapper) && _isInSafeViewport(m_world.Interceptor) &&
-            _isInSafeViewport(m_world.Suppressor);
+            _isInSafeViewport(m_world.Suppressor) && _areActiveSwarmersInSafeViewport();
         public string DebugCombatScenarioStatus => !m_debugCombatScenarioActive
             ? "COMBAT LAB  Inactive"
             : $"COMBAT LAB  {m_debugCombatScenarioSeconds:0.0}s  Signal {CurrentSignal:0.0}  " +
-              $"Threats {_activeDebugThreatCount()}/4  Attacks {DebugCombatScenarioAttackCount}/4\n" +
+              $"Threats {_activeDebugThreatCount()}/10  Attacks {DebugCombatScenarioAttackCount}/5  " +
+              $"Swarmers {ActiveSwarmerCount}/6 peak {PeakSwarmerCount}\n" +
               $"Viewport P:{_viewportState(m_world.Player)} W:{_viewportState(m_world.Warden)} " +
               $"S:{_viewportState(m_world.Sapper)} I:{_viewportState(m_world.Interceptor)} " +
               $"X:{_viewportState(m_world.Suppressor)}";
@@ -382,6 +390,18 @@ namespace DeadSignal.Application
         public void DebugSetThreatsFrozen(bool frozen) => m_threats?.SetFrozenForDebug(frozen);
 
         public void DebugSetFireHeld(bool held) => m_debugFireHeld = held;
+
+        public void DebugFireAt(Vector3 position)
+        {
+            if (m_world == null || m_threats == null || !m_threats.CanFire)
+            {
+                return;
+            }
+
+            var direction = position - m_world.Player.position;
+            direction.y = 0f;
+            m_threats.TryFire(direction);
+        }
 
         public void DebugSetTimeScale(float scale)
         {
@@ -939,10 +959,11 @@ namespace DeadSignal.Application
             m_combatFeedback.Configure(m_world.Camera);
             var signalBoltTuning = Resources.Load<SignalBoltPresentationTuning>("Tuning/SignalBoltPresentationTuning");
             var threatTuning = Resources.Load<ThreatBalanceTuning>("Tuning/ThreatBalanceTuning");
+            var swarmerTuning = Resources.Load<SwarmerPressureTuning>("Tuning/SwarmerPressureTuning");
             m_overclockTuning = Resources.Load<SignalOverclockTuning>("Tuning/SignalOverclockTuning");
-            if (signalBoltTuning == null || threatTuning == null || m_overclockTuning == null)
+            if (signalBoltTuning == null || threatTuning == null || swarmerTuning == null || m_overclockTuning == null)
             {
-                Debug.LogError("Signal bolt, threat balance, or overclock tuning is missing from Resources/Tuning.", this);
+                Debug.LogError("Signal bolt, threat, Swarmer, or overclock tuning is missing from Resources/Tuning.", this);
                 enabled = false;
                 return;
             }
@@ -962,6 +983,7 @@ namespace DeadSignal.Application
                 m_audio,
                 signalBoltTuning,
                 threatTuning,
+                swarmerTuning,
                 m_overclockChoice,
                 m_overclockTuning,
                 _showFeedback,
@@ -2092,7 +2114,7 @@ namespace DeadSignal.Application
             m_debugCombatScenarioActive = true;
             m_hud.SetDebugObjective(
                 "COMBAT LAB  //  SURVIVE 30 SECONDS\n" +
-                "READ WARDEN, SAPPER, INTERCEPTOR, AND SUPPRESSOR ATTACKS\n" +
+                "KEEP MOVING — PURGE TWO SWARMER TRIOS THROUGH SPECIALIST PRESSURE\n" +
                 "DEBUG SHIELD ACTIVE — FIRE AND EVADE NORMALLY");
             if (m_missionClarityHud != null)
             {
@@ -2112,7 +2134,24 @@ namespace DeadSignal.Application
             if (SapperHealth > 0f) count++;
             if (InterceptorHealth > 0f) count++;
             if (SuppressorHealth > 0f) count++;
-            return count;
+            return count + ActiveSwarmerCount;
+        }
+
+        private bool _areActiveSwarmersInSafeViewport()
+        {
+            if (m_threats == null)
+            {
+                return false;
+            }
+
+            foreach (var swarmer in m_threats.ActiveSwarmers)
+            {
+                if (!_isInSafeViewport(swarmer))
+                {
+                    return false;
+                }
+            }
+            return true;
         }
 
         private bool _isInSafeViewport(Transform target)
@@ -2248,6 +2287,7 @@ namespace DeadSignal.Application
             {
                 _completeExtraction();
             }
+            m_metrics.RecordSignal(m_model.Signal);
         }
 
         private void _setPaused(bool paused)
