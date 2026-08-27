@@ -8,7 +8,7 @@ This is the controlling workstream for scheduled development. Complete it from t
 
 - [x] Inventory every major room, its actual adjacency, current gameplay authority, objective/pickup/enemy ownership, powered/dead state, doors, shortcuts, collision, NavMesh links, and return-route value
 - [x] Classify each space as mission room, traversal connector, combat landmark, or decorative pocket; do not force decorative pockets to masquerade as objectives
-- [ ] Give every mission room an entry condition, player verb, completion condition, persistent world-state change, guidance target/copy, and reason to revisit or pass through
+- [x] Give every mission room an entry condition, player verb, completion condition, persistent world-state change, guidance target/copy, and reason to revisit or pass through
 - [ ] Add a schematic route and ordered room-purpose ledger to the project documentation and protect critical adjacency/anchor assumptions with focused tests
 - [ ] Establish measured current-route baselines for completion time, objective recognition, wrong turns, backtracking, dead-zone time, combat time, Signal minimum/final reserve, and rooms never entered
 
