@@ -218,7 +218,8 @@ namespace DeadSignal.Missions
 
         public bool TryActivateTower()
         {
-            if (TowerOnline || Outcome != RunOutcome.Running || (Signal < TowerCost && !IsCriticalRecovery))
+            if (!_isCurrentObjective(MissionObjectiveId.CentralTower) || TowerOnline || Outcome != RunOutcome.Running ||
+                (Signal < TowerCost && !IsCriticalRecovery))
             {
                 return false;
             }
@@ -247,8 +248,8 @@ namespace DeadSignal.Missions
 
         public bool TryActivateRelayTower()
         {
-            if (!TowerOnline || !CentralPayloadSecured || RelayTowerOnline || Outcome != RunOutcome.Running ||
-                Signal <= RelayTowerCost)
+            if (!_isCurrentObjective(MissionObjectiveId.RelayTower) || !TowerOnline || !CentralPayloadSecured ||
+                RelayTowerOnline || Outcome != RunOutcome.Running || Signal <= RelayTowerCost)
             {
                 return false;
             }
@@ -261,8 +262,8 @@ namespace DeadSignal.Missions
 
         public bool TryActivateSpineTower()
         {
-            if (!RelayTowerOnline || !RelayPayloadSecured || SpineTowerOnline || Outcome != RunOutcome.Running ||
-                Signal <= SpineTowerCost)
+            if (!_isCurrentObjective(MissionObjectiveId.SpineTower) || !RelayTowerOnline || !RelayPayloadSecured ||
+                SpineTowerOnline || Outcome != RunOutcome.Running || Signal <= SpineTowerCost)
             {
                 return false;
             }
@@ -315,9 +316,12 @@ namespace DeadSignal.Missions
 
             return region switch
             {
-                SignalRegion.Central => TowerOnline && !CentralPayloadSecured,
-                SignalRegion.Relay => RelayTowerOnline && CentralPayloadSecured && !RelayPayloadSecured,
-                SignalRegion.Spine => SpineTowerOnline && RelayPayloadSecured && !SpinePayloadSecured,
+                SignalRegion.Central => _isCurrentObjective(MissionObjectiveId.CentralPayload) && TowerOnline &&
+                                        !CentralPayloadSecured,
+                SignalRegion.Relay => _isCurrentObjective(MissionObjectiveId.RelayPayload) && RelayTowerOnline &&
+                                      CentralPayloadSecured && !RelayPayloadSecured,
+                SignalRegion.Spine => _isCurrentObjective(MissionObjectiveId.SpinePayload) && SpineTowerOnline &&
+                                      RelayPayloadSecured && !SpinePayloadSecured,
                 _ => false
             };
         }
@@ -404,7 +408,7 @@ namespace DeadSignal.Missions
 
         public bool TryExtract()
         {
-            if (!CanExtract)
+            if (!_isCurrentObjective(MissionObjectiveId.Extraction) || !CanExtract)
             {
                 return false;
             }
@@ -426,6 +430,11 @@ namespace DeadSignal.Missions
                 MissionCompletionRule.ExtractionComplete => Outcome == RunOutcome.Victory,
                 _ => false
             };
+        }
+
+        private bool _isCurrentObjective(MissionObjectiveId objectiveId)
+        {
+            return CurrentObjective.Id == objectiveId;
         }
 
         private void _evaluateSignal(float elapsedSeconds = 0f)

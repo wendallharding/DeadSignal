@@ -61,24 +61,61 @@ namespace DeadSignal.Tests
         [Test]
         public void CompatibilityGraph_ResolvesEveryLegacyStageInOrder()
         {
-            var run = new RunModel();
+            var configuration = Resources.Load<MissionObjectiveGraphConfiguration>("Tuning/CompatibilityMissionObjectives");
+            Assert.That(configuration, Is.Not.Null);
+            var run = new RunModel(configuration.BuildGraph());
 
-            Assert.That(run.CurrentMissionStage, Is.EqualTo(MissionStage.CentralTower));
-            Assert.That(run.CurrentObjective.Id, Is.EqualTo(MissionObjectiveId.CentralTower));
+            _assertObjective(run, MissionObjectiveId.CentralTower, MissionStage.CentralTower,
+                MissionCompletionRule.CentralTowerOnline, MissionWorldMutation.CentralTerritoryPowered,
+                "RESTORE CENTRAL");
+            Assert.That(run.TryActivateRelayTower(), Is.False);
+            Assert.That(run.CollectPayload(SignalRegion.Central), Is.False);
+            var signalBeforeCentral = run.Signal;
             Assert.That(run.TryActivateTower(), Is.True);
-            Assert.That(run.CurrentMissionStage, Is.EqualTo(MissionStage.CentralPayload));
+            Assert.That(run.Signal, Is.EqualTo(Math.Min(RunModel.MaximumSignal,
+                signalBeforeCentral - RunModel.TowerCost + RunModel.TowerRefill)));
+            _assertObjective(run, MissionObjectiveId.CentralPayload, MissionStage.CentralPayload,
+                MissionCompletionRule.CentralPayloadSecured, MissionWorldMutation.CentralPayloadSecured,
+                "CENTRAL PAYLOAD");
+            Assert.That(run.TryActivateTower(), Is.False);
+            Assert.That(run.CollectPayload(SignalRegion.Relay), Is.False);
             Assert.That(run.CollectPayload(SignalRegion.Central), Is.True);
-            Assert.That(run.CurrentMissionStage, Is.EqualTo(MissionStage.RelayTower));
+            Assert.That(run.Salvage, Is.EqualTo(1));
+            _assertObjective(run, MissionObjectiveId.RelayTower, MissionStage.RelayTower,
+                MissionCompletionRule.RelayTowerOnline, MissionWorldMutation.RelayTerritoryPowered,
+                "EXTEND THE NETWORK");
+            Assert.That(run.CollectPayload(SignalRegion.Central), Is.False);
+            var signalBeforeRelay = run.Signal;
             Assert.That(run.TryActivateRelayTower(), Is.True);
-            Assert.That(run.CurrentMissionStage, Is.EqualTo(MissionStage.RelayPayload));
+            Assert.That(run.Signal, Is.EqualTo(Math.Min(RunModel.MaximumSignal,
+                signalBeforeRelay - RunModel.RelayTowerCost + RunModel.RelayTowerRefill)));
+            _assertObjective(run, MissionObjectiveId.RelayPayload, MissionStage.RelayPayload,
+                MissionCompletionRule.RelayPayloadSecured, MissionWorldMutation.RelayPayloadSecured,
+                "RELAY PAYLOAD");
+            Assert.That(run.TryActivateSpineTower(), Is.False);
+            Assert.That(run.CollectPayload(SignalRegion.Spine), Is.False);
             Assert.That(run.CollectPayload(SignalRegion.Relay), Is.True);
-            Assert.That(run.CurrentMissionStage, Is.EqualTo(MissionStage.SpineTower));
+            Assert.That(run.Salvage, Is.EqualTo(2));
+            _assertObjective(run, MissionObjectiveId.SpineTower, MissionStage.SpineTower,
+                MissionCompletionRule.SpineTowerOnline, MissionWorldMutation.SpineTerritoryPowered,
+                "POWER THE SPINE");
+            var signalBeforeSpine = run.Signal;
             Assert.That(run.TryActivateSpineTower(), Is.True);
-            Assert.That(run.CurrentMissionStage, Is.EqualTo(MissionStage.SpinePayload));
+            Assert.That(run.Signal, Is.EqualTo(Math.Min(RunModel.MaximumSignal,
+                signalBeforeSpine - RunModel.SpineTowerCost + RunModel.SpineTowerRefill)));
+            _assertObjective(run, MissionObjectiveId.SpinePayload, MissionStage.SpinePayload,
+                MissionCompletionRule.SpinePayloadSecured, MissionWorldMutation.SpinePayloadSecured,
+                "FINAL PAYLOAD");
+            Assert.That(run.TryExtract(), Is.False);
             Assert.That(run.CollectPayload(SignalRegion.Spine), Is.True);
-            Assert.That(run.CurrentMissionStage, Is.EqualTo(MissionStage.Extraction));
+            Assert.That(run.Salvage, Is.EqualTo(3));
+            _assertObjective(run, MissionObjectiveId.Extraction, MissionStage.Extraction,
+                MissionCompletionRule.ExtractionComplete, MissionWorldMutation.RunCompleted,
+                "EXTRACT OR GREED");
             Assert.That(run.TryExtract(), Is.True);
+            Assert.That(run.Outcome, Is.EqualTo(RunOutcome.Victory));
             Assert.That(run.CurrentMissionStage, Is.EqualTo(MissionStage.Extraction));
+            Assert.That(run.TryExtract(), Is.False);
         }
 
         [Test]
@@ -103,6 +140,21 @@ namespace DeadSignal.Tests
             return new MissionObjectiveDefinition(id, MissionStage.CentralTower, "Test Room", "Test Anchor",
                 MissionCompletionRule.CentralTowerOnline, MissionWorldMutation.None, Array.Empty<MissionReward>(),
                 new MissionGuidanceState(1, "TEST", "TEST", "TEST"), prerequisites, new[] { successor });
+        }
+
+        private static void _assertObjective(
+            RunModel run,
+            MissionObjectiveId id,
+            MissionStage stage,
+            MissionCompletionRule completionRule,
+            MissionWorldMutation mutation,
+            string guidanceTitle)
+        {
+            Assert.That(run.CurrentObjective.Id, Is.EqualTo(id));
+            Assert.That(run.CurrentMissionStage, Is.EqualTo(stage));
+            Assert.That(run.CurrentObjective.CompletionRule, Is.EqualTo(completionRule));
+            Assert.That(run.CurrentObjective.WorldMutations, Is.EqualTo(mutation));
+            Assert.That(run.CurrentObjective.Guidance.Title, Is.EqualTo(guidanceTitle));
         }
     }
 }
