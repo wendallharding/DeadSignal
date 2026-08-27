@@ -88,7 +88,7 @@ namespace DeadSignal.Tests
         {
             var run = new RunModel();
             run.TryActivateTower();
-            run.CollectPayload(SignalRegion.Central);
+            _assembleCentralPayload(run);
             var before = run.Signal;
 
             Assert.That(run.TryActivateRelayTower(), Is.True);
@@ -107,7 +107,7 @@ namespace DeadSignal.Tests
             Assert.That(run.TryActivateSpineTower(), Is.False);
             Assert.That(run.TryActivateTower(), Is.True);
             Assert.That(run.TryActivateSpineTower(), Is.False);
-            Assert.That(run.CollectPayload(SignalRegion.Central), Is.True);
+            _assembleCentralPayload(run);
             Assert.That(run.TryActivateRelayTower(), Is.True);
             Assert.That(run.TryActivateSpineTower(), Is.False);
             Assert.That(run.CollectPayload(SignalRegion.Relay), Is.True);
@@ -160,7 +160,7 @@ namespace DeadSignal.Tests
 
             Assert.That(run.TryExtract(), Is.False);
             Assert.That(run.TryActivateTower(), Is.True);
-            Assert.That(run.CollectPayload(SignalRegion.Central), Is.True);
+            _assembleCentralPayload(run);
             Assert.That(run.CanExtract, Is.False);
             Assert.That(run.TryActivateRelayTower(), Is.True);
             Assert.That(run.CollectPayload(SignalRegion.Relay), Is.True);
@@ -181,7 +181,7 @@ namespace DeadSignal.Tests
             Assert.That(run.CollectOptionalSalvage(18f), Is.Zero);
             Assert.That(run.OptionalSalvageSecured, Is.False);
             Assert.That(run.TryActivateTower(), Is.True);
-            Assert.That(run.CollectPayload(SignalRegion.Central), Is.True);
+            _assembleCentralPayload(run);
             Assert.That(run.TryActivateRelayTower(), Is.True);
             Assert.That(run.CollectPayload(SignalRegion.Relay), Is.True);
             Assert.That(run.TryActivateSpineTower(), Is.True);
@@ -204,6 +204,13 @@ namespace DeadSignal.Tests
             Assert.That(run.Signal, Is.Zero);
             Assert.That(run.Outcome, Is.EqualTo(RunOutcome.Destroyed));
             Assert.That(run.TrySpend(1f), Is.False);
+        }
+
+        private static void _assembleCentralPayload(RunModel run)
+        {
+            Assert.That(run.CollectPayload(SignalRegion.Central), Is.True);
+            Assert.That(run.TryRouteCentralComponents(), Is.True);
+            Assert.That(run.TryAssembleCentralPayload(), Is.True);
         }
 
         [Test]

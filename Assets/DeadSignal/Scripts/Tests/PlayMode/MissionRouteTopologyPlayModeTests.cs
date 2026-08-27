@@ -75,6 +75,17 @@ namespace DeadSignal.Tests
             Assert.That(cargo.GetComponentsInChildren<Collider>(true).Length, Is.Zero,
                 "Objective markers must not create collision outside the three authored obstacle contracts.");
 
+            var relayForkObjective = relayFork.GetComponent<AuthoredRelayForkObjective>();
+            var transferVaultObjective = transferVault.GetComponent<AuthoredTransferVaultObjective>();
+            Assert.That(relayForkObjective, Is.Not.Null);
+            Assert.That(relayForkObjective.IsConfigured, Is.True);
+            Assert.That(relayForkObjective.Position, Is.EqualTo(relayFork.TransformPoint(0f, 0f, 1.15f)));
+            Assert.That(transferVaultObjective, Is.Not.Null);
+            Assert.That(transferVaultObjective.IsConfigured, Is.True);
+            Assert.That(transferVaultObjective.Position, Is.EqualTo(transferVault.TransformPoint(1.45f, 0f, 0f)));
+            Assert.That(relayFork.GetComponentsInChildren<Collider>(true).Length, Is.Zero);
+            Assert.That(transferVault.GetComponentsInChildren<Collider>(true).Length, Is.Zero);
+
             Assert.That(_require(wing, "Commitment Room").position.z,
                 Is.LessThan(_require(wing, "Lockdown Arena").position.z));
             Assert.That(_require(wing, "Lockdown Arena").position.z,

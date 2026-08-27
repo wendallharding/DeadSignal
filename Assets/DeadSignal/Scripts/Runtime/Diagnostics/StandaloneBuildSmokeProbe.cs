@@ -48,7 +48,7 @@ namespace DeadSignal.Diagnostics
 
             var game = FindFirstObjectByType<DeadSignalGame>();
             var missionObjectives = Resources.Load<MissionObjectiveGraphConfiguration>("Tuning/CompatibilityMissionObjectives");
-            var missionObjectivesReady = missionObjectives != null && missionObjectives.ObjectiveCount == 9;
+            var missionObjectivesReady = missionObjectives != null && missionObjectives.ObjectiveCount == 10;
             var objectiveConsumersReady = game != null &&
                                           game.CurrentMissionObjectiveId == MissionObjectiveId.CentralTower &&
                                           game.CurrentMissionGuidanceTitle == "RESTORE CENTRAL" &&
@@ -59,6 +59,10 @@ namespace DeadSignal.Diagnostics
             var coolantObjective = FindFirstObjectByType<AuthoredCoolantReclamationObjective>(FindObjectsInactive.Include);
             var coolantReady = coolantObjective != null && coolantObjective.IsConfigured &&
                                coolantObjective.Phase == CoolantSealThreadingPhase.AwaitingFirstBaffle;
+            var relayForkObjective = FindFirstObjectByType<AuthoredRelayForkObjective>(FindObjectsInactive.Include);
+            var transferVaultObjective = FindFirstObjectByType<AuthoredTransferVaultObjective>(FindObjectsInactive.Include);
+            var centralTransferReady = relayForkObjective != null && relayForkObjective.IsConfigured &&
+                                       transferVaultObjective != null && transferVaultObjective.IsConfigured;
             var weaponTextureReady = Resources.Load<Texture2D>("Environment/RelayFoundryWeaponCalibrationDecal") != null;
             var weaponMaterialReady =
                 Resources.Load<Material>("Materials/RelayFoundry/RelayFoundryWeaponCalibrationDecal") != null;
@@ -141,11 +145,14 @@ namespace DeadSignal.Diagnostics
                       $"configured={cargoAnnexObjective?.IsConfigured ?? false} phase={cargoAnnexObjective?.Phase}");
             Debug.Log($"[DEAD SIGNAL STANDALONE SMOKE] COOLANT RECLAMATION | " +
                       $"configured={coolantObjective?.IsConfigured ?? false} phase={coolantObjective?.Phase}");
+            Debug.Log($"[DEAD SIGNAL STANDALONE SMOKE] CENTRAL TRANSFER | " +
+                      $"fork={relayForkObjective?.IsConfigured ?? false} vault={transferVaultObjective?.IsConfigured ?? false}");
             var runtimeReady = game != null &&
                                 missionObjectivesReady &&
                                 objectiveConsumersReady &&
                                 cargoAnnexReady &&
                                 coolantReady &&
+                                centralTransferReady &&
                                 game.transform.Find("Maintenance Drone") != null &&
                                 game.transform.Find("Shortcut Gate Assembly/Signal Shortcut Gate") != null &&
                                 game.transform.Find("Tower Signal Lines/Signal Trunk West") != null &&

@@ -13,7 +13,9 @@ namespace DeadSignal.Missions
         SpinePayload,
         Extraction,
         CargoCoupling,
-        CoolantSeal
+        CoolantSeal,
+        RelayFork,
+        CentralAssembly
     }
 
     public enum MissionCompletionRule
@@ -26,7 +28,9 @@ namespace DeadSignal.Missions
         SpinePayloadSecured,
         ExtractionComplete,
         CargoCouplingSecured,
-        CoolantSealSecured
+        CoolantSealSecured,
+        RelayFeedsRouted,
+        CentralPayloadAssembled
     }
 
     [Flags]
@@ -41,7 +45,9 @@ namespace DeadSignal.Missions
         SpinePayloadSecured = 1 << 5,
         RunCompleted = 1 << 6,
         CargoCouplingSecured = 1 << 7,
-        CoolantSealSecured = 1 << 8
+        CoolantSealSecured = 1 << 8,
+        RelayFeedsRouted = 1 << 9,
+        CentralPayloadAssembled = 1 << 10
     }
 
     public enum MissionRewardKind
@@ -285,20 +291,28 @@ namespace DeadSignal.Missions
                 Array.Empty<MissionReward>(),
                 new MissionGuidanceState(2, "RESTART CENTRAL", "RECOVER THE CARGO POWER COUPLING",
                     "COUPLING + COOLANT SEAL REQUIRED  //  EITHER ORDER"),
-                new[] { MissionObjectiveId.CentralTower }, new[] { MissionObjectiveId.CentralPayload }),
+                new[] { MissionObjectiveId.CentralTower }, new[] { MissionObjectiveId.RelayFork }),
             _definition(MissionObjectiveId.CoolantSeal, MissionStage.CentralPayload, "Coolant Reclamation", "Coolant Seal Socket",
                 MissionCompletionRule.CoolantSealSecured, MissionWorldMutation.CoolantSealSecured,
                 Array.Empty<MissionReward>(),
                 new MissionGuidanceState(2, "RESTART CENTRAL: 1/2", "THREAD THE BAFFLES FOR THE COOLANT SEAL",
                     "ONE CENTRAL COMPONENT REMAINS"),
-                new[] { MissionObjectiveId.CentralTower }, new[] { MissionObjectiveId.CentralPayload }),
-            _definition(MissionObjectiveId.CentralPayload, MissionStage.CentralPayload,
-                "Central Maintenance Concourse", "Central Component Readiness",
-                MissionCompletionRule.CentralPayloadSecured, MissionWorldMutation.CentralPayloadSecured,
+                new[] { MissionObjectiveId.CentralTower }, new[] { MissionObjectiveId.RelayFork }),
+            _definition(MissionObjectiveId.RelayFork, MissionStage.CentralPayload,
+                "Relay Fork", "Relay Bank Anchor",
+                MissionCompletionRule.RelayFeedsRouted, MissionWorldMutation.RelayFeedsRouted,
                 Array.Empty<MissionReward>(),
-                new MissionGuidanceState(2, "CENTRAL COMPONENTS READY", "CONTINUE TO THE RELAY FOUNDRY",
-                    "POWER COUPLING + COOLANT SEAL SECURED"),
-                new[] { MissionObjectiveId.CargoCoupling, MissionObjectiveId.CoolantSeal }, new[] { MissionObjectiveId.RelayTower }),
+                new MissionGuidanceState(2, "CENTRAL COMPONENTS READY", "ROUTE BOTH FEEDS AT THE RELAY FORK",
+                    "COUPLING + COOLANT SEAL SECURED  //  REROUTE"),
+                new[] { MissionObjectiveId.CargoCoupling, MissionObjectiveId.CoolantSeal },
+                new[] { MissionObjectiveId.CentralAssembly }),
+            _definition(MissionObjectiveId.CentralAssembly, MissionStage.CentralPayload,
+                "East Transfer Vault", "Transfer Assembly Socket",
+                MissionCompletionRule.CentralPayloadAssembled, MissionWorldMutation.CentralPayloadAssembled,
+                Array.Empty<MissionReward>(),
+                new MissionGuidanceState(2, "FEEDS ROUTED", "ASSEMBLE THE CENTRAL PAYLOAD IN THE TRANSFER VAULT",
+                    "TRANSFER CYCLE READY  //  ASSEMBLE"),
+                new[] { MissionObjectiveId.RelayFork }, new[] { MissionObjectiveId.RelayTower }),
             _definition(MissionObjectiveId.RelayTower, MissionStage.RelayTower, "Relay Foundry", "Relay Tower",
                 MissionCompletionRule.RelayTowerOnline, MissionWorldMutation.RelayTerritoryPowered,
                 new[]
@@ -308,7 +322,7 @@ namespace DeadSignal.Missions
                 },
                 new MissionGuidanceState(3, "EXTEND THE NETWORK", "RESTORE THE RELAY FOUNDRY TOWER",
                     $"SIGNAL -{RunModel.RelayTowerCost:0}  //  WEAPON CALIBRATION"),
-                new[] { MissionObjectiveId.CentralPayload }, new[] { MissionObjectiveId.RelayPayload }),
+                new[] { MissionObjectiveId.CentralAssembly }, new[] { MissionObjectiveId.RelayPayload }),
             _definition(MissionObjectiveId.RelayPayload, MissionStage.RelayPayload,
                 "Relay Foundry / Cooling Gantry", "Relay Payload Socket",
                 MissionCompletionRule.RelayPayloadSecured, MissionWorldMutation.RelayPayloadSecured,

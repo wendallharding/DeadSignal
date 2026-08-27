@@ -147,8 +147,10 @@ namespace DeadSignal.Tests.PlayMode
             Assert.That(report, Does.Contain("Wrong-turn proxies 0  Backtrack legs 4"));
             Assert.That(report, Does.Contain("PASS Cargo coupling"));
             Assert.That(report, Does.Contain("PASS Coolant seal"));
-            Assert.That(report, Does.Contain("Objective-room coverage 6/19"));
-            Assert.That(report, Does.Contain("Rooms without a compatibility-route objective 13"));
+            Assert.That(report, Does.Contain("PASS Relay Fork routing"));
+            Assert.That(report, Does.Contain("PASS Transfer-vault assembly"));
+            Assert.That(report, Does.Contain("Objective-room coverage 8/19"));
+            Assert.That(report, Does.Contain("Rooms without a compatibility-route objective 11"));
             game.DebugSetTimeScale(1f);
         }
 

@@ -80,6 +80,8 @@ namespace DeadSignal.Tests
         private static void _completeNetworkJourney(RunModel model)
         {
             Assert.That(model.CollectPayload(SignalRegion.Central), Is.True);
+            Assert.That(model.TryRouteCentralComponents(), Is.True);
+            Assert.That(model.TryAssembleCentralPayload(), Is.True);
             Assert.That(model.TryActivateRelayTower(), Is.True);
             Assert.That(model.CollectPayload(SignalRegion.Relay), Is.True);
             Assert.That(model.TryActivateSpineTower(), Is.True);

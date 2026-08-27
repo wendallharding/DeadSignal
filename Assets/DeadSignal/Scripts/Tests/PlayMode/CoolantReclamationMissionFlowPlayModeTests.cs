@@ -69,8 +69,8 @@ namespace DeadSignal.Tests.PlayMode
             yield return null;
             Assert.That(game.IsCoolantSealSecured, Is.True);
             Assert.That(game.CoolantSealPhase, Is.EqualTo(CoolantSealThreadingPhase.Complete));
-            Assert.That(game.CurrentMissionObjectiveId, Is.EqualTo(MissionObjectiveId.RelayTower),
-                "Compatibility progression must still advance to Relay until the Relay Fork slice replaces it.");
+            Assert.That(game.CurrentMissionObjectiveId, Is.EqualTo(MissionObjectiveId.RelayFork),
+                "Both Central components must now advance to the authored Relay Fork routing step.");
             Assert.That(game.CurrentSalvage, Is.EqualTo(1),
                 "The second Central job must retain the established single regional reward.");
             Assert.That(objective.transform.Find("First Baffle Route Marker").gameObject.activeSelf, Is.False);

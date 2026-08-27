@@ -123,7 +123,7 @@ namespace DeadSignal.Editor
 
             var missionObjectives = AssetDatabase.LoadAssetAtPath<MissionObjectiveGraphConfiguration>(
                 "Assets/DeadSignal/Resources/Tuning/CompatibilityMissionObjectives.asset");
-            if (missionObjectives == null || missionObjectives.ObjectiveCount != 9)
+            if (missionObjectives == null || missionObjectives.ObjectiveCount != 10)
             {
                 throw new BuildFailedException("The compatibility mission objective configuration is missing or incomplete.");
             }

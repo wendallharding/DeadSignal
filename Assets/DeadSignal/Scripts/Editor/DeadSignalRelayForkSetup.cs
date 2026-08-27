@@ -16,6 +16,8 @@ namespace DeadSignal.Editor
         private const string INSULATOR_MATERIAL_PATH = "Assets/DeadSignal/Resources/Materials/RelayBankInsulators.mat";
         private const string COIL_MATERIAL_PATH = "Assets/DeadSignal/Resources/Materials/RelayBankCoils.mat";
         private const string SIGNAL_MATERIAL_PATH = "Assets/DeadSignal/Resources/Materials/RelayBankSignals.mat";
+        private const string AMBER_MATERIAL_PATH = "Assets/DeadSignal/Resources/Materials/WorldPalette/SalvageAmber.mat";
+        private const string CYAN_MATERIAL_PATH = "Assets/DeadSignal/Resources/Materials/WorldPalette/SignalCyan.mat";
         private const string BANK_PREFAB_PATH = "Assets/DeadSignal/Resources/Environment/RelayBank.prefab";
         private const string FORK_PREFAB_PATH = "Assets/DeadSignal/Resources/Environment/NorthwestRelayFork.prefab";
         private const string SCENE_PATH = "Assets/DeadSignal/Scenes/SampleScene.unity";
@@ -36,7 +38,9 @@ namespace DeadSignal.Editor
                        AssetDatabase.LoadAssetAtPath<Material>(SIGNAL_MATERIAL_PATH) != null &&
                        _hasValidBank(bank) &&
                        fork != null &&
-                       fork.GetComponentsInChildren<AuthoredMapObstacle>().Length == 2;
+                       fork.GetComponentsInChildren<AuthoredMapObstacle>().Length == 2 &&
+                       fork.TryGetComponent<AuthoredRelayForkObjective>(out var objective) &&
+                       objective.IsConfigured;
             }
         }
 
@@ -182,23 +186,77 @@ namespace DeadSignal.Editor
 
         private static void _ensureForkPrefab()
         {
-            if (AssetDatabase.LoadAssetAtPath<GameObject>(FORK_PREFAB_PATH) != null)
+            if (AssetDatabase.LoadAssetAtPath<GameObject>(FORK_PREFAB_PATH) == null)
             {
-                return;
+                var bankPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(BANK_PREFAB_PATH);
+                var fork = new GameObject("NorthwestRelayFork");
+                try
+                {
+                    _addBank(fork.transform, bankPrefab, "West Relay Bank", new Vector3(-2.1f, 0f, -0.55f), 22f);
+                    _addBank(fork.transform, bankPrefab, "East Relay Bank", new Vector3(2.1f, 0f, -0.55f), -22f);
+                    PrefabUtility.SaveAsPrefabAsset(fork, FORK_PREFAB_PATH);
+                }
+                finally
+                {
+                    UnityEngine.Object.DestroyImmediate(fork);
+                }
             }
 
-            var bankPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(BANK_PREFAB_PATH);
-            var fork = new GameObject("NorthwestRelayFork");
+            var root = PrefabUtility.LoadPrefabContents(FORK_PREFAB_PATH);
             try
             {
-                _addBank(fork.transform, bankPrefab, "West Relay Bank", new Vector3(-2.1f, 0f, -0.55f), 22f);
-                _addBank(fork.transform, bankPrefab, "East Relay Bank", new Vector3(2.1f, 0f, -0.55f), -22f);
-                PrefabUtility.SaveAsPrefabAsset(fork, FORK_PREFAB_PATH);
+                var anchor = _ensureAnchor(root.transform, "Relay Feed Routing Anchor", new Vector3(0f, 0f, 1.15f));
+                var available = _ensureMarker(root.transform, "Relay Routing Available", new Vector3(0f, 0.08f, 0.55f),
+                    new Vector3(2.6f, 0.08f, 0.18f), AMBER_MATERIAL_PATH);
+                var routed = _ensureMarker(root.transform, "Relay Feeds Routed", new Vector3(0f, 0.09f, -0.05f),
+                    new Vector3(3.8f, 0.08f, 0.14f), CYAN_MATERIAL_PATH);
+                var objective = root.GetComponent<AuthoredRelayForkObjective>() ?? root.AddComponent<AuthoredRelayForkObjective>();
+                objective.Configure(anchor, available, routed);
+                PrefabUtility.SaveAsPrefabAsset(root, FORK_PREFAB_PATH);
             }
             finally
             {
-                UnityEngine.Object.DestroyImmediate(fork);
+                PrefabUtility.UnloadPrefabContents(root);
             }
+        }
+
+        private static Transform _ensureAnchor(Transform parent, string objectName, Vector3 localPosition)
+        {
+            var anchor = parent.Find(objectName);
+            if (anchor == null)
+            {
+                var anchorObject = new GameObject(objectName);
+                anchorObject.transform.SetParent(parent, false);
+                anchor = anchorObject.transform;
+            }
+
+            anchor.localPosition = localPosition;
+            anchor.localRotation = Quaternion.identity;
+            anchor.localScale = Vector3.one;
+            return anchor;
+        }
+
+        private static GameObject _ensureMarker(
+            Transform parent,
+            string objectName,
+            Vector3 localPosition,
+            Vector3 localScale,
+            string materialPath)
+        {
+            var marker = parent.Find(objectName)?.gameObject;
+            if (marker == null)
+            {
+                marker = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                marker.name = objectName;
+                marker.transform.SetParent(parent, false);
+                UnityEngine.Object.DestroyImmediate(marker.GetComponent<Collider>());
+            }
+
+            marker.transform.localPosition = localPosition;
+            marker.transform.localRotation = Quaternion.identity;
+            marker.transform.localScale = localScale;
+            marker.GetComponent<Renderer>().sharedMaterial = AssetDatabase.LoadAssetAtPath<Material>(materialPath);
+            return marker;
         }
 
         private static void _addBank(

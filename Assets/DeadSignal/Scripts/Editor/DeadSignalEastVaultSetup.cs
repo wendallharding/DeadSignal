@@ -19,6 +19,8 @@ namespace DeadSignal.Editor
         private const string ARMOR_MATERIAL_PATH = "Assets/DeadSignal/Resources/Materials/EastVaultArmor.mat";
         private const string COPPER_MATERIAL_PATH = "Assets/DeadSignal/Resources/Materials/EastVaultCopper.mat";
         private const string ENERGY_MATERIAL_PATH = "Assets/DeadSignal/Resources/Materials/EastVaultEnergy.mat";
+        private const string AMBER_MATERIAL_PATH = "Assets/DeadSignal/Resources/Materials/WorldPalette/SalvageAmber.mat";
+        private const string CYAN_MATERIAL_PATH = "Assets/DeadSignal/Resources/Materials/WorldPalette/SignalCyan.mat";
         private const string TUNING_PATH = "Assets/DeadSignal/Resources/Tuning/SalvagePresentationTuning.asset";
         private const string SCENE_PATH = "Assets/DeadSignal/Scenes/SampleScene.unity";
 
@@ -154,17 +156,16 @@ namespace DeadSignal.Editor
             var prefabRoot = PrefabUtility.LoadPrefabContents(PREFAB_PATH);
             try
             {
-                foreach (var importedObstacle in prefabRoot.GetComponentsInChildren<AuthoredMapObstacle>())
-                {
-                    UnityEngine.Object.DestroyImmediate(importedObstacle);
-                }
-
                 _ensureObstacle(prefabRoot.transform, "Vault North Wall Bounds", new Vector3(0f, 0f, -3.15f),
                     new Vector2(3.3f, 0.16f));
                 _ensureObstacle(prefabRoot.transform, "Vault South Wall Bounds", new Vector3(0f, 0f, 3.15f),
                     new Vector2(3.3f, 0.16f));
-                _ensureObstacle(prefabRoot.transform, "Vault East Wall Bounds", new Vector3(-3.15f, 0f, 0f),
-                    new Vector2(0.16f, 3.3f));
+                if (prefabRoot.transform.Find("Vault East Exit North Bounds") == null ||
+                    prefabRoot.transform.Find("Vault East Exit South Bounds") == null)
+                {
+                    _ensureObstacle(prefabRoot.transform, "Vault East Wall Bounds", new Vector3(-3.15f, 0f, 0f),
+                        new Vector2(0.16f, 3.3f));
+                }
                 _ensureObstacle(prefabRoot.transform, "Vault West North Gate Bounds", new Vector3(3.15f, 0f, -2.15f),
                     new Vector2(0.16f, 1f));
                 _ensureObstacle(prefabRoot.transform, "Vault West South Gate Bounds", new Vector3(3.15f, 0f, 2.15f),
@@ -177,6 +178,15 @@ namespace DeadSignal.Editor
                 {
                     UnityEngine.Object.DestroyImmediate(legacySocket.gameObject);
                 }
+
+                var anchor = _ensureAnchor(prefabRoot.transform, "Transfer Assembly Anchor", new Vector3(1.45f, 0f, 0f));
+                var available = _ensureMarker(prefabRoot.transform, "Transfer Assembly Available",
+                    new Vector3(0.65f, 0.08f, 0f), new Vector3(0.18f, 0.08f, 2.2f), AMBER_MATERIAL_PATH);
+                var assembled = _ensureMarker(prefabRoot.transform, "Central Payload Assembled",
+                    new Vector3(-0.45f, 0.12f, 0f), new Vector3(0.8f, 0.12f, 1.7f), CYAN_MATERIAL_PATH);
+                var objective = prefabRoot.GetComponent<AuthoredTransferVaultObjective>() ??
+                                prefabRoot.AddComponent<AuthoredTransferVaultObjective>();
+                objective.Configure(anchor, available, assembled);
 
                 PrefabUtility.SaveAsPrefabAsset(prefabRoot, PREFAB_PATH);
             }
@@ -310,10 +320,13 @@ namespace DeadSignal.Editor
             existing.transform.localScale = Vector3.one;
             EditorSceneManager.SaveScene(scene);
 
-            if (existing.GetComponentsInChildren<AuthoredMapObstacle>().Length != 6 ||
+            var obstacleCount = existing.GetComponentsInChildren<AuthoredMapObstacle>().Length;
+            if (obstacleCount < 6 || obstacleCount > 7 ||
                 existing.GetComponentsInChildren<AuthoredSalvageSocket>().Length != 0)
             {
-                throw new InvalidOperationException("The scene-authored east transfer vault has invalid blockers or a legacy cache socket.");
+                throw new InvalidOperationException(
+                    $"The scene-authored east transfer vault has {obstacleCount} blockers and " +
+                    $"{existing.GetComponentsInChildren<AuthoredSalvageSocket>().Length} legacy cache sockets.");
             }
         }
 
@@ -339,6 +352,45 @@ namespace DeadSignal.Editor
             obstacle.Configure(halfSize);
         }
 
+        private static Transform _ensureAnchor(Transform parent, string objectName, Vector3 localPosition)
+        {
+            var anchor = parent.Find(objectName);
+            if (anchor == null)
+            {
+                var anchorObject = new GameObject(objectName);
+                anchorObject.transform.SetParent(parent, false);
+                anchor = anchorObject.transform;
+            }
+
+            anchor.localPosition = localPosition;
+            anchor.localRotation = Quaternion.identity;
+            anchor.localScale = Vector3.one;
+            return anchor;
+        }
+
+        private static GameObject _ensureMarker(
+            Transform parent,
+            string objectName,
+            Vector3 localPosition,
+            Vector3 localScale,
+            string materialPath)
+        {
+            var marker = parent.Find(objectName)?.gameObject;
+            if (marker == null)
+            {
+                marker = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                marker.name = objectName;
+                marker.transform.SetParent(parent, false);
+                UnityEngine.Object.DestroyImmediate(marker.GetComponent<Collider>());
+            }
+
+            marker.transform.localPosition = localPosition;
+            marker.transform.localRotation = Quaternion.identity;
+            marker.transform.localScale = localScale;
+            marker.GetComponent<Renderer>().sharedMaterial = AssetDatabase.LoadAssetAtPath<Material>(materialPath);
+            return marker;
+        }
+
         private static void _assignMaterial(Transform root, string partName, string materialPath)
         {
             var part = root.Find(partName);
@@ -356,7 +408,8 @@ namespace DeadSignal.Editor
             var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(PREFAB_PATH);
             var obstacleCount = prefab != null ? prefab.GetComponentsInChildren<AuthoredMapObstacle>().Length : 0;
             if (prefab == null || obstacleCount < 6 || obstacleCount > 7 ||
-                prefab.GetComponentsInChildren<AuthoredSalvageSocket>().Length != 0)
+                prefab.GetComponentsInChildren<AuthoredSalvageSocket>().Length != 0 ||
+                !prefab.TryGetComponent<AuthoredTransferVaultObjective>(out var objective) || !objective.IsConfigured)
             {
                 return false;
             }

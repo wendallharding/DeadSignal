@@ -509,6 +509,12 @@ namespace DeadSignal.Presentation
             if (_isExtractionUplinkChoiceAvailable())
                 return $"CHOOSE LINK  —  {_binding("FIRE: OVERDRIVE", "RB: OVERDRIVE")}  |  " +
                        $"{_binding("USE: STABLE", "X: STABLE")}";
+            if (m_model.CurrentObjective.Id == MissionObjectiveId.RelayFork && m_world.RelayForkObjective != null &&
+                DeadSignalWorld.FlatDistance(m_world.Player.position, m_world.RelayForkObjective.Position) < 1.8f)
+                return $"[{_binding("E", "GAMEPAD X")}]  ROUTE BOTH CENTRAL FEEDS";
+            if (m_model.CurrentObjective.Id == MissionObjectiveId.CentralAssembly && m_world.TransferVaultObjective != null &&
+                DeadSignalWorld.FlatDistance(m_world.Player.position, m_world.TransferVaultObjective.Position) < 1.8f)
+                return $"[{_binding("E", "GAMEPAD X")}]  ASSEMBLE CENTRAL PAYLOAD";
             if (!m_model.SpineTowerOnline &&
                 m_world.IsSpineTowerInteractionInRange(m_world.Player.position))
                 return m_model.RelayTowerOnline

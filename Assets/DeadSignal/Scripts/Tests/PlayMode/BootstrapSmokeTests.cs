@@ -101,6 +101,8 @@ namespace DeadSignal.Tests
                     "The closed return bulkhead should block projectiles as well as movement.");
                 game.DebugCollectNextCache();
                 game.DebugSelectOverclock(SignalOverclock.ChainArc);
+                game.DebugRouteCentralComponents();
+                game.DebugAssembleCentralPayload();
 
                 player.position = game.RelayTowerPosition;
                 Assert.That(game.SafestReinforcementEntryPosition.x, Is.GreaterThan(34f),
@@ -188,6 +190,8 @@ namespace DeadSignal.Tests
                 yield return null;
                 game.DebugCollectNextCache();
                 game.DebugSelectOverclock(SignalOverclock.OverdriveThrusters);
+                game.DebugRouteCentralComponents();
+                game.DebugAssembleCentralPayload();
                 player.position = game.RelayTowerPosition;
                 InputSystem.QueueStateEvent(gamepad, new GamepadState().WithButton(GamepadButton.West));
                 yield return null;
@@ -242,6 +246,8 @@ namespace DeadSignal.Tests
                 yield return null;
                 game.DebugCollectNextCache();
                 game.DebugSelectOverclock(SignalOverclock.OverdriveThrusters);
+                game.DebugRouteCentralComponents();
+                game.DebugAssembleCentralPayload();
                 player.position = game.RelayTowerPosition;
                 InputSystem.QueueStateEvent(gamepad, new GamepadState().WithButton(GamepadButton.West));
                 yield return null;

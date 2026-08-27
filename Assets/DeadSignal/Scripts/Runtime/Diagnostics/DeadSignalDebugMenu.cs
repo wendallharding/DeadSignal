@@ -13,7 +13,7 @@ namespace DeadSignal.Diagnostics
     public enum DebugLocation
     {
         Extraction, CentralTower, Shortcut, RelayTower, SpineTower, CacheOne, CacheTwo, CacheThree, CacheFour,
-        FarEast, NorthBoundary, SouthBoundary, CurrentObjective
+        FarEast, NorthBoundary, SouthBoundary, CurrentObjective, RelayFork, TransferVault
     }
 
     public enum DebugScenario

@@ -40,7 +40,7 @@ MonoBehaviour:
     m_guidanceAction: RECOVER THE CARGO POWER COUPLING
     m_guidanceAdvisory: COUPLING + COOLANT SEAL REQUIRED  //  EITHER ORDER
     m_prerequisites: 00000000
-    m_successors: 01000000
+    m_successors: 09000000
   - m_id: 8
     m_legacyStage: 1
     m_owningRoom: Coolant Reclamation
@@ -53,19 +53,32 @@ MonoBehaviour:
     m_guidanceAction: THREAD THE BAFFLES FOR THE COOLANT SEAL
     m_guidanceAdvisory: ONE CENTRAL COMPONENT REMAINS
     m_prerequisites: 00000000
-    m_successors: 01000000
-  - m_id: 1
+    m_successors: 09000000
+  - m_id: 9
     m_legacyStage: 1
-    m_owningRoom: Central Maintenance Concourse
-    m_anchorId: Central Component Readiness
-    m_completionRule: 1
-    m_worldMutations: 2
+    m_owningRoom: Relay Fork
+    m_anchorId: Relay Bank Anchor
+    m_completionRule: 9
+    m_worldMutations: 512
     m_rewards: []
     m_guidancePhase: 2
     m_guidanceTitle: CENTRAL COMPONENTS READY
-    m_guidanceAction: CONTINUE TO THE RELAY FOUNDRY
-    m_guidanceAdvisory: POWER COUPLING + COOLANT SEAL SECURED
+    m_guidanceAction: ROUTE BOTH FEEDS AT THE RELAY FORK
+    m_guidanceAdvisory: COUPLING + COOLANT SEAL SECURED  //  REROUTE
     m_prerequisites: 0700000008000000
+    m_successors: 0a000000
+  - m_id: 10
+    m_legacyStage: 1
+    m_owningRoom: East Transfer Vault
+    m_anchorId: Transfer Assembly Socket
+    m_completionRule: 10
+    m_worldMutations: 1024
+    m_rewards: []
+    m_guidancePhase: 2
+    m_guidanceTitle: FEEDS ROUTED
+    m_guidanceAction: ASSEMBLE THE CENTRAL PAYLOAD IN THE TRANSFER VAULT
+    m_guidanceAdvisory: TRANSFER CYCLE READY  //  ASSEMBLE
+    m_prerequisites: 09000000
     m_successors: 02000000
   - m_id: 2
     m_legacyStage: 2
@@ -82,7 +95,7 @@ MonoBehaviour:
     m_guidanceTitle: EXTEND THE NETWORK
     m_guidanceAction: RESTORE THE RELAY FOUNDRY TOWER
     m_guidanceAdvisory: SIGNAL -14  //  WEAPON CALIBRATION
-    m_prerequisites: 01000000
+    m_prerequisites: 0a000000
     m_successors: 03000000
   - m_id: 3
     m_legacyStage: 3

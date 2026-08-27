@@ -183,6 +183,7 @@ namespace DeadSignal.Missions
         public bool CentralPayloadSecured { get; private set; }
         public bool CargoCouplingSecured { get; private set; }
         public bool CoolantSealSecured { get; private set; }
+        public bool RelayFeedsRouted { get; private set; }
         public bool RelayPayloadSecured { get; private set; }
         public bool SpinePayloadSecured { get; private set; }
         public RunOutcome Outcome { get; private set; } = RunOutcome.Running;
@@ -266,6 +267,30 @@ namespace DeadSignal.Missions
             Signal = Math.Min(MaximumSignal, Signal - RelayTowerCost + RelayTowerRefill);
             RelayTowerOnline = true;
             CriticalRecoveryRemaining = 0f;
+            return true;
+        }
+
+        public bool TryRouteCentralComponents()
+        {
+            if (!_isCurrentObjective(MissionObjectiveId.RelayFork) || !CargoCouplingSecured || !CoolantSealSecured ||
+                RelayFeedsRouted || Outcome != RunOutcome.Running)
+            {
+                return false;
+            }
+
+            RelayFeedsRouted = true;
+            return true;
+        }
+
+        public bool TryAssembleCentralPayload()
+        {
+            if (!_isCurrentObjective(MissionObjectiveId.CentralAssembly) || !RelayFeedsRouted ||
+                CentralPayloadSecured || Outcome != RunOutcome.Running)
+            {
+                return false;
+            }
+
+            CentralPayloadSecured = true;
             return true;
         }
 
@@ -358,7 +383,6 @@ namespace DeadSignal.Missions
                         CargoCouplingSecured = true;
                     }
 
-                    CentralPayloadSecured = CargoCouplingSecured && CoolantSealSecured;
                     break;
                 case SignalRegion.Relay:
                     RelayPayloadSecured = true;
@@ -455,6 +479,8 @@ namespace DeadSignal.Missions
                 MissionCompletionRule.ExtractionComplete => Outcome == RunOutcome.Victory,
                 MissionCompletionRule.CargoCouplingSecured => CargoCouplingSecured,
                 MissionCompletionRule.CoolantSealSecured => CoolantSealSecured,
+                MissionCompletionRule.RelayFeedsRouted => RelayFeedsRouted,
+                MissionCompletionRule.CentralPayloadAssembled => CentralPayloadSecured,
                 _ => false
             };
         }

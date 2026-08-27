@@ -64,6 +64,8 @@ namespace DeadSignal.World
         public SignalSapperTelegraph SapperTelegraph { get; private set; }
         public AuthoredCargoAnnexObjective CargoAnnexObjective { get; private set; }
         public AuthoredCoolantReclamationObjective CoolantReclamationObjective { get; private set; }
+        public AuthoredRelayForkObjective RelayForkObjective { get; private set; }
+        public AuthoredTransferVaultObjective TransferVaultObjective { get; private set; }
         public IReadOnlyList<GameObject> SalvagePickups => m_salvagePickups;
 
         public SignalRegion GetPayloadRegion(GameObject pickup) => m_salvageRegions.TryGetValue(pickup, out var region)
@@ -153,6 +155,8 @@ namespace DeadSignal.World
             CargoAnnexObjective?.ResetState();
             CoolantReclamationObjective = Object.FindFirstObjectByType<AuthoredCoolantReclamationObjective>(FindObjectsInactive.Include);
             CoolantReclamationObjective?.ResetState();
+            RelayForkObjective = Object.FindFirstObjectByType<AuthoredRelayForkObjective>(FindObjectsInactive.Include);
+            TransferVaultObjective = Object.FindFirstObjectByType<AuthoredTransferVaultObjective>(FindObjectsInactive.Include);
             _buildActors(comfortSettings);
             m_palette.RebindHierarchy(m_root);
             _configurePlayerCamera();
@@ -303,6 +307,14 @@ namespace DeadSignal.World
         public Vector3 GetObjectiveTarget(RunModel model)
         {
             return _currentObjectiveTarget(model);
+        }
+
+        public void UpdateCentralTransferPresentation(RunModel model)
+        {
+            RelayForkObjective?.SetState(model.CurrentObjective.Id == MissionObjectiveId.RelayFork, model.RelayFeedsRouted);
+            TransferVaultObjective?.SetState(
+                model.CurrentObjective.Id == MissionObjectiveId.CentralAssembly,
+                model.CentralPayloadSecured);
         }
 
         public Vector3 GetObjectiveGuidanceWaypoint(RunModel model, float radius)
@@ -1610,6 +1622,10 @@ namespace DeadSignal.World
                     return CoolantReclamationObjective != null
                         ? CoolantReclamationObjective.CurrentTargetPosition
                         : _centralComponentTarget(CentralComponentKind.CoolantSeal);
+                case MissionObjectiveId.RelayFork:
+                    return RelayForkObjective != null ? RelayForkObjective.Position : TowerPosition;
+                case MissionObjectiveId.CentralAssembly:
+                    return TransferVaultObjective != null ? TransferVaultObjective.Position : RelayTowerPosition;
                 case MissionObjectiveId.RelayPayload:
                     return _nearestPayloadTarget(SignalRegion.Relay);
                 case MissionObjectiveId.SpinePayload:
