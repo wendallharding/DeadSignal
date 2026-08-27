@@ -56,6 +56,9 @@ namespace DeadSignal.Diagnostics
             var cargoAnnexObjective = FindFirstObjectByType<AuthoredCargoAnnexObjective>(FindObjectsInactive.Include);
             var cargoAnnexReady = cargoAnnexObjective != null && cargoAnnexObjective.IsConfigured &&
                                   cargoAnnexObjective.Phase == CargoCouplingRetrievalPhase.AwaitingCommit;
+            var coolantObjective = FindFirstObjectByType<AuthoredCoolantReclamationObjective>(FindObjectsInactive.Include);
+            var coolantReady = coolantObjective != null && coolantObjective.IsConfigured &&
+                               coolantObjective.Phase == CoolantSealThreadingPhase.AwaitingFirstBaffle;
             var weaponTextureReady = Resources.Load<Texture2D>("Environment/RelayFoundryWeaponCalibrationDecal") != null;
             var weaponMaterialReady =
                 Resources.Load<Material>("Materials/RelayFoundry/RelayFoundryWeaponCalibrationDecal") != null;
@@ -136,10 +139,13 @@ namespace DeadSignal.Diagnostics
                       $"consumers={objectiveConsumersReady} current={game?.CurrentMissionObjectiveId}");
             Debug.Log($"[DEAD SIGNAL STANDALONE SMOKE] CARGO ANNEX | " +
                       $"configured={cargoAnnexObjective?.IsConfigured ?? false} phase={cargoAnnexObjective?.Phase}");
+            Debug.Log($"[DEAD SIGNAL STANDALONE SMOKE] COOLANT RECLAMATION | " +
+                      $"configured={coolantObjective?.IsConfigured ?? false} phase={coolantObjective?.Phase}");
             var runtimeReady = game != null &&
                                 missionObjectivesReady &&
                                 objectiveConsumersReady &&
                                 cargoAnnexReady &&
+                                coolantReady &&
                                 game.transform.Find("Maintenance Drone") != null &&
                                 game.transform.Find("Shortcut Gate Assembly/Signal Shortcut Gate") != null &&
                                 game.transform.Find("Tower Signal Lines/Signal Trunk West") != null &&

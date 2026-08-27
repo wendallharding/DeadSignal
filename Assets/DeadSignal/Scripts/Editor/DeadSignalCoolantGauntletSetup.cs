@@ -16,6 +16,8 @@ namespace DeadSignal.Editor
         private const string FIN_MATERIAL_PATH = "Assets/DeadSignal/Resources/Materials/CoolantBaffleFins.mat";
         private const string PIPE_MATERIAL_PATH = "Assets/DeadSignal/Resources/Materials/CoolantBafflePipes.mat";
         private const string LIGHT_MATERIAL_PATH = "Assets/DeadSignal/Resources/Materials/CoolantBaffleLights.mat";
+        private const string AMBER_MATERIAL_PATH = "Assets/DeadSignal/Resources/Materials/WorldPalette/SalvageAmber.mat";
+        private const string CYAN_MATERIAL_PATH = "Assets/DeadSignal/Resources/Materials/WorldPalette/SignalCyan.mat";
         private const string BAFFLE_PREFAB_PATH = "Assets/DeadSignal/Resources/Environment/CoolantBaffle.prefab";
         private const string GAUNTLET_PREFAB_PATH = "Assets/DeadSignal/Resources/Environment/SoutheastCoolantGauntlet.prefab";
         private const string SCENE_PATH = "Assets/DeadSignal/Scenes/SampleScene.unity";
@@ -36,7 +38,9 @@ namespace DeadSignal.Editor
                        AssetDatabase.LoadAssetAtPath<Material>(LIGHT_MATERIAL_PATH) != null &&
                        _hasValidBaffle(baffle) &&
                        gauntlet != null &&
-                       gauntlet.GetComponentsInChildren<AuthoredMapObstacle>().Length == 2;
+                       gauntlet.GetComponentsInChildren<AuthoredMapObstacle>().Length == 2 &&
+                       gauntlet.TryGetComponent<AuthoredCoolantReclamationObjective>(out var objective) &&
+                       objective.IsConfigured;
             }
         }
 
@@ -182,37 +186,124 @@ namespace DeadSignal.Editor
 
         private static void _ensureGauntletPrefab()
         {
-            if (AssetDatabase.LoadAssetAtPath<GameObject>(GAUNTLET_PREFAB_PATH) != null)
+            if (AssetDatabase.LoadAssetAtPath<GameObject>(GAUNTLET_PREFAB_PATH) == null)
             {
-                return;
+                var emptyGauntlet = new GameObject("SoutheastCoolantGauntlet");
+                try
+                {
+                    PrefabUtility.SaveAsPrefabAsset(emptyGauntlet, GAUNTLET_PREFAB_PATH);
+                }
+                finally
+                {
+                    UnityEngine.Object.DestroyImmediate(emptyGauntlet);
+                }
             }
 
             var bafflePrefab = AssetDatabase.LoadAssetAtPath<GameObject>(BAFFLE_PREFAB_PATH);
-            var gauntlet = new GameObject("SoutheastCoolantGauntlet");
+            var gauntlet = PrefabUtility.LoadPrefabContents(GAUNTLET_PREFAB_PATH);
             try
             {
-                _addBaffle(gauntlet.transform, bafflePrefab, "Northwest Coolant Baffle", new Vector3(-1f, 0f, 1.35f));
-                _addBaffle(gauntlet.transform, bafflePrefab, "Southeast Coolant Baffle", new Vector3(1f, 0f, -1.35f));
+                _ensureBaffle(gauntlet.transform, bafflePrefab, "Northwest Coolant Baffle", new Vector3(-1f, 0f, 1.35f));
+                _ensureBaffle(gauntlet.transform, bafflePrefab, "Southeast Coolant Baffle", new Vector3(1f, 0f, -1.35f));
+                var firstBaffleAnchor = _ensureAnchor(gauntlet.transform, "First Baffle Thread Anchor", new Vector3(-1.75f, 0f, -0.55f));
+                var secondBaffleAnchor = _ensureAnchor(gauntlet.transform, "Second Baffle Thread Anchor", new Vector3(1.75f, 0f, 1.95f));
+                var sealSocket = _ensureAnchor(gauntlet.transform, "Coolant Seal Socket", new Vector3(0f, 0f, 2.65f));
+                var releaseAnchor = _ensureAnchor(gauntlet.transform, "Coolant Release Anchor", new Vector3(0f, 0f, -2.65f));
+                var firstBaffleMarker = _ensureMarker(gauntlet.transform, "First Baffle Route Marker", PrimitiveType.Cylinder,
+                    firstBaffleAnchor.localPosition + new Vector3(0f, 0.025f, 0f), new Vector3(0.7f, 0.025f, 0.7f),
+                    AMBER_MATERIAL_PATH);
+                var secondBaffleMarker = _ensureMarker(gauntlet.transform, "Second Baffle Route Marker", PrimitiveType.Cylinder,
+                    secondBaffleAnchor.localPosition + new Vector3(0f, 0.025f, 0f), new Vector3(0.7f, 0.025f, 0.7f),
+                    AMBER_MATERIAL_PATH);
+                var releaseMarker = _ensureMarker(gauntlet.transform, "Coolant Release Marker", PrimitiveType.Cube,
+                    releaseAnchor.localPosition + new Vector3(0f, 0.025f, 0f), new Vector3(3.6f, 0.025f, 0.12f),
+                    CYAN_MATERIAL_PATH);
+                var stableMarker = _ensureMarker(gauntlet.transform, "Coolant Line Stable Marker", PrimitiveType.Cylinder,
+                    sealSocket.localPosition + new Vector3(0f, 0.025f, 0f), new Vector3(0.95f, 0.025f, 0.95f),
+                    CYAN_MATERIAL_PATH);
+                var objective = gauntlet.GetComponent<AuthoredCoolantReclamationObjective>();
+                if (objective == null)
+                {
+                    objective = gauntlet.AddComponent<AuthoredCoolantReclamationObjective>();
+                }
+                objective.Configure(firstBaffleAnchor, secondBaffleAnchor, sealSocket, releaseAnchor,
+                    firstBaffleMarker.gameObject, secondBaffleMarker.gameObject, releaseMarker.gameObject, stableMarker.gameObject);
                 PrefabUtility.SaveAsPrefabAsset(gauntlet, GAUNTLET_PREFAB_PATH);
             }
             finally
             {
-                UnityEngine.Object.DestroyImmediate(gauntlet);
+                PrefabUtility.UnloadPrefabContents(gauntlet);
             }
         }
 
-        private static void _addBaffle(Transform parent, GameObject prefab, string objectName, Vector3 localPosition)
+        private static void _ensureBaffle(Transform parent, GameObject prefab, string objectName, Vector3 localPosition)
         {
-            var baffle = PrefabUtility.InstantiatePrefab(prefab) as GameObject;
+            var baffle = parent.Find(objectName);
             if (baffle == null)
             {
-                throw new InvalidOperationException($"Could not instantiate {objectName} for the coolant gauntlet.");
+                var instance = PrefabUtility.InstantiatePrefab(prefab) as GameObject;
+                if (instance == null)
+                {
+                    throw new InvalidOperationException($"Could not instantiate {objectName} for the coolant gauntlet.");
+                }
+
+                instance.name = objectName;
+                instance.transform.SetParent(parent, false);
+                baffle = instance.transform;
             }
 
-            baffle.name = objectName;
-            baffle.transform.SetParent(parent, false);
-            baffle.transform.localPosition = localPosition;
-            baffle.transform.localRotation = Quaternion.identity;
+            baffle.localPosition = localPosition;
+            baffle.localRotation = Quaternion.identity;
+            baffle.localScale = Vector3.one;
+        }
+
+        private static Transform _ensureAnchor(Transform parent, string objectName, Vector3 localPosition)
+        {
+            var anchor = parent.Find(objectName);
+            if (anchor == null)
+            {
+                anchor = new GameObject(objectName).transform;
+                anchor.SetParent(parent, false);
+            }
+
+            anchor.localPosition = localPosition;
+            anchor.localRotation = Quaternion.identity;
+            anchor.localScale = Vector3.one;
+            return anchor;
+        }
+
+        private static Transform _ensureMarker(
+            Transform parent,
+            string objectName,
+            PrimitiveType primitiveType,
+            Vector3 localPosition,
+            Vector3 localScale,
+            string materialPath)
+        {
+            var marker = parent.Find(objectName);
+            if (marker == null)
+            {
+                marker = GameObject.CreatePrimitive(primitiveType).transform;
+                marker.name = objectName;
+                marker.SetParent(parent, false);
+            }
+
+            marker.localPosition = localPosition;
+            marker.localRotation = Quaternion.identity;
+            marker.localScale = localScale;
+            if (marker.TryGetComponent<Collider>(out var collider))
+            {
+                UnityEngine.Object.DestroyImmediate(collider);
+            }
+
+            var material = AssetDatabase.LoadAssetAtPath<Material>(materialPath);
+            if (!marker.TryGetComponent<Renderer>(out var renderer) || material == null)
+            {
+                throw new InvalidOperationException($"Could not configure {objectName} with {materialPath}.");
+            }
+
+            renderer.sharedMaterial = material;
+            return marker;
         }
 
         private static void _ensureScenePlacement()

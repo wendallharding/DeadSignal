@@ -112,11 +112,18 @@ namespace DeadSignal.Application
         public bool IsSpineTowerOnline => m_model?.SpineTowerOnline ?? false;
         public bool IsCentralPayloadSecured => m_model?.CentralPayloadSecured ?? false;
         public bool IsCargoCouplingSecured => m_model?.CargoCouplingSecured ?? false;
+        public bool IsCoolantSealSecured => m_model?.CoolantSealSecured ?? false;
         public CargoCouplingRetrievalPhase CargoCouplingPhase =>
             m_world?.CargoAnnexObjective?.Phase ?? CargoCouplingRetrievalPhase.AwaitingCommit;
         public Vector3 CargoCommitmentPosition => m_world?.CargoAnnexObjective?.CommitmentPosition ?? Vector3.zero;
         public Vector3 CargoCouplingPosition => m_world?.CargoAnnexObjective?.CouplingPosition ?? Vector3.zero;
         public Vector3 CargoWithdrawalPosition => m_world?.CargoAnnexObjective?.WithdrawalPosition ?? Vector3.zero;
+        public CoolantSealThreadingPhase CoolantSealPhase =>
+            m_world?.CoolantReclamationObjective?.Phase ?? CoolantSealThreadingPhase.AwaitingFirstBaffle;
+        public Vector3 CoolantFirstBafflePosition => m_world?.CoolantReclamationObjective?.FirstBafflePosition ?? Vector3.zero;
+        public Vector3 CoolantSecondBafflePosition => m_world?.CoolantReclamationObjective?.SecondBafflePosition ?? Vector3.zero;
+        public Vector3 CoolantSealPosition => m_world?.CoolantReclamationObjective?.SealPosition ?? Vector3.zero;
+        public Vector3 CoolantReleasePosition => m_world?.CoolantReclamationObjective?.ReleasePosition ?? Vector3.zero;
         public bool IsRelayPayloadSecured => m_model?.RelayPayloadSecured ?? false;
         public bool IsSpinePayloadSecured => m_model?.SpinePayloadSecured ?? false;
         public bool IsExtractionReady => m_model?.CanExtract ?? false;
@@ -802,6 +809,18 @@ namespace DeadSignal.Application
                         m_world.Player.position = centralPickup.transform.position;
                         m_salvage.Tick(0f);
                         m_world.Player.position = m_world.CargoAnnexObjective.WithdrawalPosition;
+                        m_salvage.Tick(0f);
+                    }
+                    else if (m_world.GetCentralComponent(centralPickup) == CentralComponentKind.CoolantSeal &&
+                             m_world.CoolantReclamationObjective != null)
+                    {
+                        m_world.Player.position = m_world.CoolantReclamationObjective.FirstBafflePosition;
+                        m_salvage.Tick(0f);
+                        m_world.Player.position = m_world.CoolantReclamationObjective.SecondBafflePosition;
+                        m_salvage.Tick(0f);
+                        m_world.Player.position = centralPickup.transform.position;
+                        m_salvage.Tick(0f);
+                        m_world.Player.position = m_world.CoolantReclamationObjective.ReleasePosition;
                         m_salvage.Tick(0f);
                     }
                     else
@@ -2054,6 +2073,18 @@ namespace DeadSignal.Application
                 m_world.Player.position = nearest.transform.position;
                 m_salvage.Tick(0f);
                 m_world.Player.position = m_world.CargoAnnexObjective.WithdrawalPosition;
+                m_salvage.Tick(0f);
+            }
+            else if (m_world.GetCentralComponent(nearest) == CentralComponentKind.CoolantSeal &&
+                     m_world.CoolantReclamationObjective != null)
+            {
+                m_world.Player.position = m_world.CoolantReclamationObjective.FirstBafflePosition;
+                m_salvage.Tick(0f);
+                m_world.Player.position = m_world.CoolantReclamationObjective.SecondBafflePosition;
+                m_salvage.Tick(0f);
+                m_world.Player.position = nearest.transform.position;
+                m_salvage.Tick(0f);
+                m_world.Player.position = m_world.CoolantReclamationObjective.ReleasePosition;
                 m_salvage.Tick(0f);
             }
             else

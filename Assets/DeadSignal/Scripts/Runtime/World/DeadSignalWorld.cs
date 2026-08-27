@@ -63,6 +63,7 @@ namespace DeadSignal.World
         public Transform SpineTowerCore { get; private set; }
         public SignalSapperTelegraph SapperTelegraph { get; private set; }
         public AuthoredCargoAnnexObjective CargoAnnexObjective { get; private set; }
+        public AuthoredCoolantReclamationObjective CoolantReclamationObjective { get; private set; }
         public IReadOnlyList<GameObject> SalvagePickups => m_salvagePickups;
 
         public SignalRegion GetPayloadRegion(GameObject pickup) => m_salvageRegions.TryGetValue(pickup, out var region)
@@ -150,6 +151,8 @@ namespace DeadSignal.World
             _registerAuthoredPoweredTerritories();
             CargoAnnexObjective = Object.FindFirstObjectByType<AuthoredCargoAnnexObjective>(FindObjectsInactive.Include);
             CargoAnnexObjective?.ResetState();
+            CoolantReclamationObjective = Object.FindFirstObjectByType<AuthoredCoolantReclamationObjective>(FindObjectsInactive.Include);
+            CoolantReclamationObjective?.ResetState();
             _buildActors(comfortSettings);
             m_palette.RebindHierarchy(m_root);
             _configurePlayerCamera();
@@ -1176,7 +1179,9 @@ namespace DeadSignal.World
             var northCache = CargoAnnexObjective != null
                 ? CargoAnnexObjective.CouplingPosition
                 : routeVariant == 1 ? new Vector3(8.7f, 0f, 6.5f) : new Vector3(9.7f, 0f, 6.3f);
-            var southCache = routeVariant == 2 ? new Vector3(9.2f, 0f, -6.5f) : new Vector3(10.4f, 0f, -6.4f);
+            var southCache = CoolantReclamationObjective != null
+                ? CoolantReclamationObjective.SealPosition
+                : routeVariant == 2 ? new Vector3(9.2f, 0f, -6.5f) : new Vector3(10.4f, 0f, -6.4f);
             var spineNorthCache = new Vector3(39f, 0f, 3f);
             var spineSouthCache = new Vector3(39f, 0f, -3f);
             _createSalvage(northCache, SignalRegion.Central, centralComponent: CentralComponentKind.PowerCoupling);
@@ -1602,7 +1607,9 @@ namespace DeadSignal.World
                         ? CargoAnnexObjective.CurrentTargetPosition
                         : _centralComponentTarget(CentralComponentKind.PowerCoupling);
                 case MissionObjectiveId.CoolantSeal:
-                    return _centralComponentTarget(CentralComponentKind.CoolantSeal);
+                    return CoolantReclamationObjective != null
+                        ? CoolantReclamationObjective.CurrentTargetPosition
+                        : _centralComponentTarget(CentralComponentKind.CoolantSeal);
                 case MissionObjectiveId.RelayPayload:
                     return _nearestPayloadTarget(SignalRegion.Relay);
                 case MissionObjectiveId.SpinePayload:

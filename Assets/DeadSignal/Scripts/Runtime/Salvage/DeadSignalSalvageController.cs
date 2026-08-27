@@ -24,6 +24,7 @@ namespace DeadSignal.Salvage
         private float m_recoveryFieldSecondsRemaining;
         private Vector3 m_recoveryFieldPosition;
         private GameObject m_carriedCargoCoupling;
+        private GameObject m_carriedCoolantSeal;
 
         public int ChainCount => m_chain.Count;
         public float ChainSecondsRemaining => m_chain.SecondsRemaining;
@@ -59,6 +60,7 @@ namespace DeadSignal.Salvage
             m_chain.Advance(dt);
             m_recoveryFieldSecondsRemaining = Mathf.Max(0f, m_recoveryFieldSecondsRemaining - dt);
             _tickCargoCouplingWithdrawal();
+            _tickCoolantSealRelease();
             foreach (var pickup in m_world.SalvagePickups)
             {
                 if (!pickup.activeSelf)
@@ -114,6 +116,22 @@ namespace DeadSignal.Salvage
                     continue;
                 }
 
+                if (!isOptionalCache && region == SignalRegion.Central &&
+                    centralComponent == CentralComponentKind.CoolantSeal && m_world.CoolantReclamationObjective != null)
+                {
+                    if (!m_world.CoolantReclamationObjective.TryReleaseSeal(
+                            m_model.CanCollectPayload(region, centralComponent)))
+                    {
+                        continue;
+                    }
+
+                    pickup.SetActive(false);
+                    m_carriedCoolantSeal = pickup;
+                    m_audio.Play(DeadSignalAudioCue.Salvage);
+                    m_showFeedback("COOLANT SEAL RELEASED — EXIT ACROSS THE CYAN THRESHOLD");
+                    continue;
+                }
+
                 pickup.SetActive(false);
                 if (isOptionalCache)
                 {
@@ -162,6 +180,38 @@ namespace DeadSignal.Salvage
 
             m_carriedCargoCoupling = null;
             objective.CompleteWithdrawal();
+        }
+
+        private void _tickCoolantSealRelease()
+        {
+            var objective = m_world.CoolantReclamationObjective;
+            if (objective == null)
+            {
+                return;
+            }
+
+            var objectiveAvailable = m_model.CanCollectPayload(SignalRegion.Central, CentralComponentKind.CoolantSeal);
+            objective.ObservePlayer(m_world.Player.position, objectiveAvailable);
+            if (m_carriedCoolantSeal == null ||
+                !objective.CanCompleteRelease(m_world.Player.position, objectiveAvailable))
+            {
+                return;
+            }
+
+            if (!_completeRequiredPayload(
+                    m_carriedCoolantSeal,
+                    SignalRegion.Central,
+                    CentralComponentKind.CoolantSeal,
+                    m_world.Player.position))
+            {
+                m_carriedCoolantSeal.SetActive(true);
+                m_carriedCoolantSeal = null;
+                objective.ResetState();
+                return;
+            }
+
+            m_carriedCoolantSeal = null;
+            objective.CompleteRelease();
         }
 
         private bool _completeRequiredPayload(
