@@ -83,6 +83,16 @@ Work through these gates in order. Authorize one bounded combat advancement per 
 - [ ] Compare stationary held fire against continuous strafing at 1280×720 and 1600×900 with keyboard/mouse and controller; record damage, evasions, clear time, minimum/final Signal, readability, fun, and replay intent
 - [ ] Promote Swarmers beyond the combat laboratory only if human evidence shows movement pressure improves without obscuring specialist target priority
 
+## P0 — Matched Swarmer off/on control (Run 121)
+
+- [x] Add explicit development-menu presets for the same eastern laboratory with Swarmers on or off
+- [x] Add `-deadSignalCombatLab=SwarmersOn` and `-deadSignalCombatLab=SwarmersOff` development-player presets
+- [x] Preserve the resolved Chain Arc, Piercing Pulse, and Feedback Shield build, authored anchors, four specialists, attack schedule, invulnerability, and 30-second duration in both modes
+- [x] Prove the specialists-only control has zero Swarmer population/contact and peak concurrency four while the unchanged pressure tier has six Swarmers and peak concurrency ten
+- [x] Keep combat values, commercial routes, Security Trial composition, geometry, economy, input, visuals, audio, and assets unchanged
+- [ ] Run three human pairs per mode at 1280x720 and 1600x900 with keyboard/mouse and controller; score stationary fire, circular strafing, specialist-first targeting, readability, fun, and replay intent
+- [ ] Keep P0.2 open and do not promote, retune, or remove Swarmers until the human pairs produce a documented decision
+
 ## P0 — Free continuous basic fire (Run 116)
 
 - [x] Permanently remove Signal spend from ordinary, Piercing Pulse, and Controlled Ricochet bolts

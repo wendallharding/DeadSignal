@@ -88,6 +88,7 @@ namespace DeadSignal.Application
         private string m_lastDebugCapturePath = "None";
         private AuthoredCombatScenario m_debugCombatScenario;
         private AuthoredCombatChamber m_combatChamber;
+        private bool m_debugCombatScenarioIncludesSwarmers;
         private float m_debugCombatScenarioSeconds;
         private bool m_debugCombatScenarioActive;
         private readonly LiveBalanceCombatPolicy m_liveBalanceCombatPolicy = new();
@@ -317,6 +318,7 @@ namespace DeadSignal.Application
             $"Route seed {PlayerPrefs.GetInt("DeadSignal.RouteVariant", 0)}  Frame {Time.frameCount}  Capture {m_lastDebugCapturePath}";
         public Vector3 DebugPlayerPosition => m_world?.Player.position ?? Vector3.zero;
         public bool IsEasternCombatScenarioActive => m_debugCombatScenarioActive;
+        public bool DebugCombatScenarioIncludesSwarmers => m_debugCombatScenarioIncludesSwarmers;
         public float DebugCombatScenarioSeconds => m_debugCombatScenarioSeconds;
         public int DebugCombatScenarioAttackCount => m_threats?.DebugScenarioAttackCount ?? 0;
         public bool AreDebugCombatActorsInSafeViewport => m_debugCombatScenarioActive &&
@@ -325,8 +327,10 @@ namespace DeadSignal.Application
             _isInSafeViewport(m_world.Suppressor) && _areActiveSwarmersInSafeViewport();
         public string DebugCombatScenarioStatus => !m_debugCombatScenarioActive
             ? "COMBAT LAB  Inactive"
-            : $"COMBAT LAB  {m_debugCombatScenarioSeconds:0.0}s  Signal {CurrentSignal:0.0}  " +
-              $"Threats {_activeDebugThreatCount()}/10  Attacks {DebugCombatScenarioAttackCount}/5  " +
+            : $"COMBAT LAB  {(m_debugCombatScenarioIncludesSwarmers ? "SWARMERS ON" : "SWARMERS OFF")}  " +
+              $"{m_debugCombatScenarioSeconds:0.0}s  Signal {CurrentSignal:0.0}  " +
+              $"Threats {_activeDebugThreatCount()}/{(m_debugCombatScenarioIncludesSwarmers ? 10 : 4)}  " +
+              $"Attacks {DebugCombatScenarioAttackCount}/{(m_debugCombatScenarioIncludesSwarmers ? 5 : 4)}  " +
               $"Swarmers {ActiveSwarmerCount}/6 peak {PeakSwarmerCount}\n" +
               $"Viewport P:{_viewportState(m_world.Player)} W:{_viewportState(m_world.Warden)} " +
               $"S:{_viewportState(m_world.Sapper)} I:{_viewportState(m_world.Interceptor)} " +
@@ -337,6 +341,37 @@ namespace DeadSignal.Application
         public bool IsDebugMenuOpen => m_debugMenuOpen;
         public bool HasRuntimeNavMesh => m_world?.HasRuntimeNavMesh ?? false;
         public string DebugNavMeshStatus => m_world?.NavMeshStatus ?? "Unavailable";
+
+        public static bool TryParseCombatLabScenario(string[] arguments, out DebugScenario scenario)
+        {
+            const string PREFIX = "-DEADSIGNALCOMBATLAB=";
+            scenario = DebugScenario.FreshRun;
+            if (arguments == null)
+            {
+                return false;
+            }
+
+            foreach (var argument in arguments)
+            {
+                if (argument == null || !argument.StartsWith(PREFIX, System.StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+
+                var population = argument.Substring(PREFIX.Length);
+                if (population.Equals("SwarmersOn", System.StringComparison.OrdinalIgnoreCase))
+                {
+                    scenario = DebugScenario.EasternRoomCombat;
+                    return true;
+                }
+                if (population.Equals("SwarmersOff", System.StringComparison.OrdinalIgnoreCase))
+                {
+                    scenario = DebugScenario.EasternRoomCombatNoSwarmers;
+                    return true;
+                }
+            }
+            return false;
+        }
 
         public float DebugDistanceToLocation(DebugLocation location)
         {
@@ -830,7 +865,9 @@ namespace DeadSignal.Application
                 case DebugScenario.Victory: DebugCompleteExtraction(); break;
                 case DebugScenario.Failure: m_model.SetSignalForDebug(0f); m_model.Advance(RunModel.CriticalRecoveryDuration, false, false); break;
                 case DebugScenario.EasternRoomCombat:
-                    _applyEasternRoomCombatScenario(); break;
+                    _applyEasternRoomCombatScenario(true); break;
+                case DebugScenario.EasternRoomCombatNoSwarmers:
+                    _applyEasternRoomCombatScenario(false); break;
                 case DebugScenario.AllEffects:
                     DebugActivateTower(); DebugTeleport(DebugLocation.CentralTower); DebugExerciseCombatFeedback(); break;
             }
@@ -2051,9 +2088,15 @@ namespace DeadSignal.Application
             {
                 return;
             }
+            var arguments = System.Environment.GetCommandLineArgs();
+            if (TryParseCombatLabScenario(arguments, out var combatLabScenario))
+            {
+                DebugApplyScenario(combatLabScenario);
+                return;
+            }
+
             const string PREFIX = "-DEADSIGNALROUTE=";
             const string LIVE_ROUTE_ARGUMENT = "-DEADSIGNALLIVEROUTE";
-            var arguments = System.Environment.GetCommandLineArgs();
             var liveRoute = arguments.Any(argument =>
                 argument.Equals(LIVE_ROUTE_ARGUMENT, System.StringComparison.OrdinalIgnoreCase));
             foreach (var argument in arguments)
@@ -2108,7 +2151,7 @@ namespace DeadSignal.Application
             m_debugPreviousSignal = m_model.Signal;
         }
 
-        private void _applyEasternRoomCombatScenario()
+        private void _applyEasternRoomCombatScenario(bool includeSwarmers)
         {
             m_debugCombatScenario = Object.FindObjectsByType<AuthoredCombatScenario>(
                     FindObjectsInactive.Include, FindObjectsSortMode.None)
@@ -2149,12 +2192,15 @@ namespace DeadSignal.Application
                 m_debugCombatScenario.PlayerAnchor.rotation);
             m_playerMovement = new PlayerDroneMovement();
             m_world.PlayerCamera.SnapToFocus(m_debugCombatScenario.CameraFocus.position);
-            m_threats.ConfigureForDebugScenario(m_debugCombatScenario);
+            m_threats.ConfigureForDebugScenario(m_debugCombatScenario, includeSwarmers);
+            m_debugCombatScenarioIncludesSwarmers = includeSwarmers;
             m_debugCombatScenarioSeconds = 0f;
             m_debugCombatScenarioActive = true;
             m_hud.SetDebugObjective(
                 "COMBAT LAB  //  SURVIVE 30 SECONDS\n" +
-                "KEEP MOVING — PURGE TWO SWARMER TRIOS THROUGH SPECIALIST PRESSURE\n" +
+                (includeSwarmers
+                    ? "KEEP MOVING — PURGE TWO SWARMER TRIOS THROUGH SPECIALIST PRESSURE\n"
+                    : "MATCHED CONTROL — FOUR SPECIALISTS, NO SWARMER PRESSURE\n") +
                 "DEBUG SHIELD ACTIVE — FIRE AND EVADE NORMALLY");
             if (m_missionClarityHud != null)
             {
@@ -2234,6 +2280,7 @@ namespace DeadSignal.Application
                 m_threats?.SetPlayerInvulnerableForDebug(false);
             }
             m_debugCombatScenarioActive = false;
+            m_debugCombatScenarioIncludesSwarmers = false;
             m_debugCombatScenarioSeconds = 0f;
             m_hud?.SetDebugObjective(string.Empty);
             if (m_missionClarityHud != null)

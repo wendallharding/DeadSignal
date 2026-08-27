@@ -40,6 +40,8 @@ Basic Signal bolts are permanently free. Keyboard/mouse and controller Fire can 
 
 The first lightweight pressure population is the Security Swarmer: a small, one-bolt geometric pursuer that makes stationary firing unsafe without inheriting a specialist mechanic. Its initial evidence tier exists only in the eastern combat laboratory as two safely separated trios, capped at six simultaneous Swarmers. Each contact drains more Signal than a purge can restore, the finite tier cannot out-earn one specialist collision, and no Swarmer enters the commercial journey until matched human play proves its density, readability, and movement value.
 
+Development builds expose matched eastern-lab presets with Swarmers on or off. Both resolve the same build, authored anchors, four specialists, and 30-second schedule so human keep/remove comparisons change only the pressure population; this evidence tool does not promote Swarmers into the commercial route.
+
 Foreground readability is authored into room and machine silhouettes while runtime foreground culling remains disabled. Presentation height may be reduced independently of an obstacle's object-aligned X/Z footprint when a return-lane machine enters the tactical window; movement, projectile blocking, NavMesh authority, and the machine's readable station function must remain unchanged.
 
 The opening departure channel follows the same authored rule without hiding its collision. Its paired capacitor obstacles retain full-length, low cyan beacon rails that describe the two blocked footprints, while only the raised armor and cell spans are shortened and lowered. This keeps the direct/flank choice legible while preventing the opening machines from covering the drone's central tactical window on return.

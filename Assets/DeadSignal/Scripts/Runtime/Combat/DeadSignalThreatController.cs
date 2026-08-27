@@ -260,7 +260,7 @@ namespace DeadSignal.Combat
 
         public void SetPlayerInvulnerableForDebug(bool invulnerable) => m_debugPlayerInvulnerable = invulnerable;
 
-        public void ConfigureForDebugScenario(AuthoredCombatScenario scenario)
+        public void ConfigureForDebugScenario(AuthoredCombatScenario scenario, bool includeSwarmers)
         {
             ResetDebugScenario();
             if (scenario == null || !scenario.IsComplete)
@@ -286,7 +286,10 @@ namespace DeadSignal.Combat
             m_interceptorChargeCountdown = 1.5f;
             m_suppressorFieldCooldown = 1f;
             m_world.SapperTelegraph.SetThreatState(true, true, m_sapperPulseCooldown, m_tuning.SapperPulseInterval);
-            m_swarmers.Deploy(scenario);
+            if (includeSwarmers)
+            {
+                m_swarmers.Deploy(scenario);
+            }
         }
 
         public void BeginCombatChamberPhase(AuthoredCombatScenario scenario, int phase)

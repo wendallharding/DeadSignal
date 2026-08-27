@@ -20,7 +20,7 @@ namespace DeadSignal.Diagnostics
     {
         FreshRun, TowerActivation, FirstOverclock, ActiveSalvageChain, SapperPulse, InterceptorCharge,
         SuppressorExtraction, CriticalRecovery, OptionalCache, StableExtraction, OverdriveExtraction, Victory,
-        Failure, EasternRoomCombat, AllEffects
+        Failure, EasternRoomCombat, EasternRoomCombatNoSwarmers, AllEffects
     }
 
     public enum DebugTimeScale

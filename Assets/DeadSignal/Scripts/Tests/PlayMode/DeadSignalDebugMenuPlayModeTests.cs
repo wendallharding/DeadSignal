@@ -306,6 +306,55 @@ namespace DeadSignal.Tests.PlayMode
         }
 
         [UnityTest]
+        public IEnumerator EasternRoomCombatWithoutSwarmers_PreservesMatchedSpecialistSchedule()
+        {
+            var originalWidth = Screen.width;
+            var originalHeight = Screen.height;
+            Screen.SetResolution(1600, 900, false);
+            SceneManager.LoadScene("SampleScene");
+            yield return null;
+            yield return null;
+
+            var game = Object.FindFirstObjectByType<DeadSignalGame>();
+            Assert.That(game, Is.Not.Null);
+            game.DebugApplyScenario(DebugScenario.EasternRoomCombatNoSwarmers);
+            yield return null;
+            yield return null;
+
+            Assert.That(game.IsEasternCombatScenarioActive, Is.True);
+            Assert.That(game.DebugCombatScenarioIncludesSwarmers, Is.False);
+            Assert.That(game.SelectedWeaponOverclock, Is.EqualTo(SignalWeaponOverclock.PiercingPulse));
+            Assert.That(game.IsOverclockChoicePending, Is.False);
+            Assert.That(game.IsWeaponOverclockChoicePending, Is.False);
+            Assert.That(game.AreDebugCombatActorsInSafeViewport, Is.True, game.DebugCombatScenarioStatus);
+            Assert.That(game.ActiveSwarmerCount, Is.Zero);
+            Assert.That(game.SwarmersSpawned, Is.Zero);
+
+            game.DebugSetTimeScale(8f);
+            var timeout = Time.realtimeSinceStartup + 45f;
+            while (game.DebugCombatScenarioSeconds < 30f && Time.realtimeSinceStartup < timeout)
+            {
+                Assert.That(game.CurrentRunOutcome, Is.EqualTo(RunOutcome.Running), game.DebugCombatScenarioStatus);
+                Assert.That(game.AreDebugCombatActorsInSafeViewport, Is.True, game.DebugCombatScenarioStatus);
+                yield return null;
+            }
+
+            Assert.That(game.DebugCombatScenarioSeconds, Is.GreaterThanOrEqualTo(30f), game.DebugCombatScenarioStatus);
+            Assert.That(game.DebugCombatScenarioAttackCount, Is.EqualTo(4), game.DebugCombatScenarioStatus);
+            Assert.That(game.PeakThreatConcurrency, Is.EqualTo(4), game.DebugCombatScenarioStatus);
+            Assert.That(game.ActiveSwarmerCount, Is.Zero);
+            Assert.That(game.SwarmersSpawned, Is.Zero);
+            Assert.That(game.SwarmerContacts, Is.Zero);
+            Assert.That(game.WardenHealth, Is.GreaterThan(0f));
+            Assert.That(game.SapperHealth, Is.GreaterThan(0f));
+            Assert.That(game.InterceptorHealth, Is.GreaterThan(0f));
+            Assert.That(game.SuppressorHealth, Is.GreaterThan(0f));
+            Assert.That(game.DebugNavMeshStatus, Does.Not.Contain("Failed"));
+            game.DebugSetTimeScale(1f);
+            Screen.SetResolution(originalWidth, originalHeight, false);
+        }
+
+        [UnityTest]
         public IEnumerator EasternRoomCombat_UsesAuthoredAnchorsAndSurvivesThirtySeconds()
         {
             var originalWidth = Screen.width;

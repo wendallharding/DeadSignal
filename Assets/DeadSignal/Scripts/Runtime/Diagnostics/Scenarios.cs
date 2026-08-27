@@ -19,7 +19,10 @@ namespace DeadSignal.Diagnostics
         [Button("Overdrive Extraction")] public void OverdriveExtraction() => _apply(DebugScenario.OverdriveExtraction);
         [Button("Victory")] public void Victory() => _apply(DebugScenario.Victory);
         [Button("Failure")] public void Failure() => _apply(DebugScenario.Failure);
-        [Button("Eastern Room Combat")] public void EasternRoomCombat() => _apply(DebugScenario.EasternRoomCombat);
+        [Button("Eastern Combat — Swarmers On")]
+        public void EasternRoomCombat() => _apply(DebugScenario.EasternRoomCombat);
+        [Button("Eastern Combat — Swarmers Off")]
+        public void EasternRoomCombatNoSwarmers() => _apply(DebugScenario.EasternRoomCombatNoSwarmers);
         [Button("All Effects")] public void AllEffects() => _apply(DebugScenario.AllEffects);
         [EndLayoutGroup] public void EndPage() { }
 
