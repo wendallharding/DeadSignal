@@ -178,12 +178,8 @@ namespace DeadSignal.Missions
         public bool HasAllRegionalPayloads => CentralPayloadSecured && RelayPayloadSecured && SpinePayloadSecured;
         public bool CanExtract => Outcome == RunOutcome.Running && TowerOnline && RelayTowerOnline && SpineTowerOnline &&
                                   HasAllRegionalPayloads;
-        public MissionStage CurrentMissionStage => !TowerOnline ? MissionStage.CentralTower :
-            !CentralPayloadSecured ? MissionStage.CentralPayload :
-            !RelayTowerOnline ? MissionStage.RelayTower :
-            !RelayPayloadSecured ? MissionStage.RelayPayload :
-            !SpineTowerOnline ? MissionStage.SpineTower :
-            !SpinePayloadSecured ? MissionStage.SpinePayload : MissionStage.Extraction;
+        public MissionObjectiveDefinition CurrentObjective => CompatibilityMissionObjectiveGraph.Instance.Evaluate(_isObjectiveComplete);
+        public MissionStage CurrentMissionStage => CurrentObjective.LegacyStage;
 
         public static float PassiveDrainRate(bool isPowered) => isPowered ? 0f : 2.8f;
         public static float MovementDrainRate(bool isMoving, bool isPowered) =>
@@ -410,6 +406,21 @@ namespace DeadSignal.Missions
 
             Outcome = RunOutcome.Victory;
             return true;
+        }
+
+        private bool _isObjectiveComplete(MissionCompletionRule rule)
+        {
+            return rule switch
+            {
+                MissionCompletionRule.CentralTowerOnline => TowerOnline,
+                MissionCompletionRule.CentralPayloadSecured => CentralPayloadSecured,
+                MissionCompletionRule.RelayTowerOnline => RelayTowerOnline,
+                MissionCompletionRule.RelayPayloadSecured => RelayPayloadSecured,
+                MissionCompletionRule.SpineTowerOnline => SpineTowerOnline,
+                MissionCompletionRule.SpinePayloadSecured => SpinePayloadSecured,
+                MissionCompletionRule.ExtractionComplete => Outcome == RunOutcome.Victory,
+                _ => false
+            };
         }
 
         private void _evaluateSignal(float elapsedSeconds = 0f)
