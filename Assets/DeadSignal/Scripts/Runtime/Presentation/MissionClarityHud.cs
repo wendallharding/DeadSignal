@@ -262,17 +262,7 @@ namespace DeadSignal.Presentation
 
         private string _objectiveName()
         {
-            return m_model.CurrentMissionStage switch
-            {
-                MissionStage.CentralTower => "CENTRAL TOWER",
-                MissionStage.CentralPayload => "CENTRAL PAYLOAD",
-                MissionStage.RelayTower => "RELAY TOWER",
-                MissionStage.RelayPayload => "RELAY PAYLOAD",
-                MissionStage.SpineTower => "SPINE TOWER",
-                MissionStage.SpinePayload => "SPINE PAYLOAD",
-                MissionStage.Extraction => "EXTRACTION",
-                _ => "OBJECTIVE"
-            };
+            return m_model.CurrentObjective.Guidance.Title;
         }
 
         private readonly struct SignalEvent

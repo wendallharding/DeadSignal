@@ -80,11 +80,18 @@ namespace DeadSignal.Tests.PlayMode
             }
 
             Assert.That(game.CurrentRunOutcome, Is.EqualTo(RunOutcome.Victory));
+            Assert.That(game.CurrentMissionObjectiveId, Is.EqualTo(MissionObjectiveId.Extraction));
+            Assert.That(game.CurrentMissionGuidanceTitle, Is.EqualTo("EXTRACT OR GREED"));
+            Assert.That(game.CurrentMissionGuidanceAction, Is.EqualTo("RETURN TO THE CYAN DOCK"));
+            Assert.That(game.CurrentObjectiveBeaconLabel, Is.EqualTo(game.CurrentMissionGuidanceAction));
+            Assert.That(game.CurrentObjectiveBeaconHint, Does.Contain("THREE TOWERS"));
             Assert.That(game.DebugRouteSequenceReport, Does.Contain("Outcome Victory"));
+            Assert.That(game.DebugRouteSequenceReport, Does.Contain("Objective Extraction  Phase 7  EXTRACT OR GREED"));
             Assert.That(game.DebugRouteSequenceReport, Does.Contain("Journey OPTIONAL GREED"));
             Assert.That(File.Exists(game.DebugLastCapturePath), Is.True, game.DebugLastCapturePath);
             var report = File.ReadAllText(game.DebugLastCapturePath);
             Assert.That(report, Does.Contain("Outcome Victory"));
+            Assert.That(report, Does.Contain("Room Extraction Dock  Anchor Dock Uplink"));
             Assert.That(report, Does.Contain("Journey OPTIONAL GREED"));
             game.DebugSetTimeScale(1f);
         }
@@ -123,12 +130,17 @@ namespace DeadSignal.Tests.PlayMode
             }
 
             Assert.That(game.CurrentRunOutcome, Is.EqualTo(RunOutcome.Victory));
+            Assert.That(game.CurrentMissionObjectiveId, Is.EqualTo(MissionObjectiveId.Extraction));
+            Assert.That(game.CurrentMissionGuidanceTitle, Is.EqualTo("EXTRACT OR GREED"));
+            Assert.That(game.CurrentObjectiveBeaconLabel, Is.EqualTo(game.CurrentMissionGuidanceAction));
             Assert.That(game.DebugRouteSequenceReport, Does.Contain("Outcome Victory"));
+            Assert.That(game.DebugRouteSequenceReport, Does.Contain("Objective Extraction  Phase 7  EXTRACT OR GREED"));
             Assert.That(game.DebugRouteSequenceReport, Does.Contain("Journey REQUIRED WITHDRAWAL"));
             Assert.That(game.DebugRouteSequenceReport, Does.Contain("Final Signal"));
             Assert.That(File.Exists(game.DebugLastCapturePath), Is.True, game.DebugLastCapturePath);
             var report = File.ReadAllText(game.DebugLastCapturePath);
             Assert.That(report, Does.Contain("Outcome Victory"));
+            Assert.That(report, Does.Contain("Room Extraction Dock  Anchor Dock Uplink"));
             Assert.That(report, Does.Contain("Journey REQUIRED WITHDRAWAL"));
             Assert.That(report, Does.Contain("Combat "));
             Assert.That(report, Does.Contain("Guidance response proxy"));

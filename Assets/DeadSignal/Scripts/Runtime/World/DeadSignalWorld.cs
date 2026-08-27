@@ -1569,21 +1569,21 @@ namespace DeadSignal.World
 
         private Vector3 _currentObjectiveTarget(RunModel model)
         {
-            switch (model.CurrentMissionStage)
+            switch (model.CurrentObjective.Id)
             {
-                case MissionStage.CentralTower:
+                case MissionObjectiveId.CentralTower:
                     return TowerPosition;
-                case MissionStage.RelayTower:
+                case MissionObjectiveId.RelayTower:
                     return RelayTowerPosition;
-                case MissionStage.SpineTower:
+                case MissionObjectiveId.SpineTower:
                     return SpineTowerInteractionPosition;
-                case MissionStage.Extraction:
+                case MissionObjectiveId.Extraction:
                     return ExtractionPosition;
-                case MissionStage.CentralPayload:
+                case MissionObjectiveId.CentralPayload:
                     return _nearestPayloadTarget(SignalRegion.Central);
-                case MissionStage.RelayPayload:
+                case MissionObjectiveId.RelayPayload:
                     return _nearestPayloadTarget(SignalRegion.Relay);
-                case MissionStage.SpinePayload:
+                case MissionObjectiveId.SpinePayload:
                     return _nearestPayloadTarget(SignalRegion.Spine);
                 default:
                     return TowerPosition;

@@ -99,6 +99,7 @@ namespace DeadSignal.Application
         private int m_debugTacticalWindowSweepUnsafeActorSamples;
         private float m_debugTacticalWindowSweepDistance;
         private float m_debugTacticalWindowSweepMaximumCoverage;
+        private MissionObjectiveId m_debugObjectiveBeforeRouteAction;
         private readonly LiveBalanceCombatPolicy m_liveBalanceCombatPolicy = new();
         private LiveBalanceCombatDecision m_liveBalanceCombatDecision;
 
@@ -115,6 +116,9 @@ namespace DeadSignal.Application
         public bool IsExtractionReady => m_model?.CanExtract ?? false;
         public bool IsDepartureSurgeConsumed => m_world?.IsDepartureSurgeConsumed ?? false;
         public MissionStage CurrentMissionStage => m_model?.CurrentMissionStage ?? MissionStage.CentralTower;
+        public MissionObjectiveId CurrentMissionObjectiveId => m_model?.CurrentObjective.Id ?? MissionObjectiveId.CentralTower;
+        public string CurrentMissionGuidanceTitle => m_model?.CurrentObjective.Guidance.Title ?? string.Empty;
+        public string CurrentMissionGuidanceAction => m_model?.CurrentObjective.Guidance.Action ?? string.Empty;
         public Vector3 SpineTowerPosition => m_world?.SpineTowerPosition ?? Vector3.zero;
         public Vector3 SpineTowerInteractionPosition => m_world?.SpineTowerInteractionPosition ?? Vector3.zero;
         public bool IsWeaponEvolved => m_overclockChoice?.IsWeaponEvolved ?? false;
@@ -230,6 +234,8 @@ namespace DeadSignal.Application
         public string RebindStatusMessage => m_input?.RebindStatusMessage ?? string.Empty;
         public ObjectiveBeaconPhase CurrentObjectiveBeaconPhase => m_objectiveBeacon?.CurrentPhase ?? ObjectiveBeaconPhase.Tower;
         public Vector3 CurrentObjectiveBeaconTarget => m_objectiveBeacon?.CurrentTarget ?? Vector3.zero;
+        public string CurrentObjectiveBeaconLabel => m_objectiveBeacon?.CurrentLabel ?? string.Empty;
+        public string CurrentObjectiveBeaconHint => m_objectiveBeacon?.CurrentHint ?? string.Empty;
         public int CurrentMissionPhase => m_hud?.CurrentMissionPhase ?? 0;
         public string CurrentMissionObjective => m_hud?.CurrentMissionObjective ?? string.Empty;
         public bool IsCameraImpulseEnabled => m_comfortSettings?.CameraImpulseEnabled ?? true;
@@ -291,7 +297,7 @@ namespace DeadSignal.Application
         public int PeakThreatConcurrency => m_metrics?.PeakThreatConcurrency ?? 0;
         public string DebugOverview =>
             $"DEBUG ACTIVE\n" +
-            $"Run: {m_model?.Outcome}  //  Phase {CurrentMissionPhase}\n" +
+            $"Run: {m_model?.Outcome}  //  Objective {CurrentMissionObjectiveId}  //  Phase {CurrentMissionPhase}\n" +
             $"Signal: {CurrentSignal:0.0}  {CurrentSignalReserveState}\n" +
             $"Tower: {(m_model?.TowerOnline == true ? "ONLINE" : "DORMANT")}  Relay: {(IsRelayTowerOnline ? "ONLINE" : "DORMANT")}\n" +
             $"Salvage: {m_model?.Salvage ?? 0}/{RunModel.SalvageRequired}  Chain: {CurrentSalvageChain} ({SalvageChainSecondsRemaining:0.0}s)\n" +
@@ -1666,16 +1672,7 @@ namespace DeadSignal.Application
 
         private string _extractionRequirement()
         {
-            return m_model.CurrentMissionStage switch
-            {
-                MissionStage.CentralTower => "RESTORE CENTRAL TOWER",
-                MissionStage.CentralPayload => "SECURE CENTRAL PAYLOAD",
-                MissionStage.RelayTower => "RESTORE RELAY TOWER",
-                MissionStage.RelayPayload => "SECURE RELAY PAYLOAD",
-                MissionStage.SpineTower => "RESTORE SPINE TOWER",
-                MissionStage.SpinePayload => "SECURE SPINE PAYLOAD",
-                _ => "COMPLETE NETWORK JOURNEY"
-            };
+            return m_model.CurrentObjective.Guidance.Action;
         }
 
         private void _handleExtractionUplinkChoice()
@@ -1914,6 +1911,7 @@ namespace DeadSignal.Application
             {
                 m_debugSalvageBeforeRouteAction = m_model.Salvage;
                 m_debugOptionalBeforeRouteAction = m_model.OptionalSalvageSecured;
+                m_debugObjectiveBeforeRouteAction = m_model.CurrentObjective.Id;
                 _executeDebugRouteAction(step.Action);
             }
             if (m_debugRouteSequencer.State == DebugRouteRunState.Verifying)
@@ -1980,16 +1978,22 @@ namespace DeadSignal.Application
         {
             return action switch
             {
-                DebugRouteAction.ActivateCentralTower => m_model.TowerOnline,
-                DebugRouteAction.CollectCache => m_model.Salvage > m_debugSalvageBeforeRouteAction ||
-                                                 m_model.OptionalSalvageSecured != m_debugOptionalBeforeRouteAction,
+                DebugRouteAction.ActivateCentralTower => m_model.TowerOnline && _debugObjectiveAdvanced(),
+                DebugRouteAction.CollectCache =>
+                    (m_model.Salvage > m_debugSalvageBeforeRouteAction && _debugObjectiveAdvanced()) ||
+                    m_model.OptionalSalvageSecured != m_debugOptionalBeforeRouteAction,
                 DebugRouteAction.SelectPrimaryOverclock => m_overclockChoice.Selected != SignalOverclock.None,
-                DebugRouteAction.ActivateRelayTower => m_model.RelayTowerOnline,
+                DebugRouteAction.ActivateRelayTower => m_model.RelayTowerOnline && _debugObjectiveAdvanced(),
                 DebugRouteAction.SelectWeaponOverclock => m_overclockChoice.SelectedWeapon != SignalWeaponOverclock.None,
-                DebugRouteAction.ActivateSpineTower => m_model.SpineTowerOnline,
+                DebugRouteAction.ActivateSpineTower => m_model.SpineTowerOnline && _debugObjectiveAdvanced(),
                 DebugRouteAction.BeginStableExtraction => m_extractionUplink.IsActive,
                 _ => true
             };
+        }
+
+        private bool _debugObjectiveAdvanced()
+        {
+            return m_model.CurrentObjective.Id != m_debugObjectiveBeforeRouteAction;
         }
 
         private void _debugCollectNearestCacheForRoute()
@@ -2164,7 +2168,8 @@ namespace DeadSignal.Application
                 m_model.ShortcutOpen, m_world?.Player.position ?? Vector3.zero,
                 m_model?.Outcome ?? RunOutcome.Destroyed,
                 m_liveBalanceCombatPolicy.DirectedShots,
-                m_liveBalanceCombatPolicy.EvasionResponses) ?? "No route report available.";
+                m_liveBalanceCombatPolicy.EvasionResponses,
+                m_model?.CurrentObjective) ?? "No route report available.";
         }
 
         private void _writeDebugRouteReport()

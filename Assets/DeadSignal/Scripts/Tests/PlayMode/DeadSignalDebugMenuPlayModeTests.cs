@@ -223,6 +223,9 @@ namespace DeadSignal.Tests.PlayMode
 
             var restartedGame = Object.FindFirstObjectByType<DeadSignalGame>();
             Assert.That(restartedGame, Is.Not.Null);
+            Assert.That(restartedGame.CurrentMissionObjectiveId, Is.EqualTo(MissionObjectiveId.CentralTower));
+            Assert.That(restartedGame.CurrentMissionGuidanceTitle, Is.EqualTo("RESTORE CENTRAL"));
+            Assert.That(restartedGame.CurrentObjectiveBeaconLabel, Is.EqualTo(restartedGame.CurrentMissionGuidanceAction));
             Assert.That(restartedGame.IsDebugRouteDriving, Is.False);
             Assert.That(restartedGame.IsDebugMenuOpen, Is.False);
         }

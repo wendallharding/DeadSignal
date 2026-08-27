@@ -326,10 +326,16 @@ namespace DeadSignal.Diagnostics
         }
 
         public string FinishReport(float signal, RunMetrics metrics, bool optionalSalvageSecured, bool shortcutOpen,
-            Vector3 position, RunOutcome outcome = RunOutcome.Running, int directedShots = 0, int evasionResponses = 0)
+            Vector3 position, RunOutcome outcome = RunOutcome.Running, int directedShots = 0, int evasionResponses = 0,
+            MissionObjectiveDefinition objective = null)
         {
             var finishedReport = new StringBuilder(m_report.ToString());
             finishedReport.AppendLine($"Outcome {outcome}");
+            if (objective != null)
+            {
+                finishedReport.AppendLine($"Objective {objective.Id}  Phase {objective.Guidance.Phase}  " +
+                                          $"{objective.Guidance.Title}  Room {objective.OwningRoom}  Anchor {objective.AnchorId}");
+            }
             finishedReport.AppendLine($"Final Signal {signal:0.0} (Δ {signal - m_startSignal:+0.0;-0.0;0.0})");
             finishedReport.AppendLine($"Journey {(optionalSalvageSecured ? "OPTIONAL GREED" : "REQUIRED WITHDRAWAL")}  " +
                                       $"Shortcut {(shortcutOpen ? "OPEN" : "CLOSED")}");

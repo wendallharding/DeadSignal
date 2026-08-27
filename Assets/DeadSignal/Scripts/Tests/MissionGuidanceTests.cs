@@ -1,3 +1,4 @@
+using System;
 using NUnit.Framework;
 using DeadSignal.Missions;
 
@@ -48,6 +49,24 @@ namespace DeadSignal.Tests
             Assert.That(guidance.Phase, Is.EqualTo(7));
             Assert.That(guidance.Action, Does.Contain("CYAN DOCK"));
             Assert.That(guidance.Advisory, Is.EqualTo("SAPPER DRAIN IN 0.4s  //  EXTRACTION READY"));
+        }
+
+        [Test]
+        public void Evaluate_UsesCurrentObjectiveAuthoredGuidanceInsteadOfLegacyStageCopy()
+        {
+            var authoredGuidance = new MissionGuidanceState(9, "AUTHORED TITLE", "AUTHORED ACTION", "AUTHORED ADVISORY");
+            var objective = new MissionObjectiveDefinition(MissionObjectiveId.CentralTower, MissionStage.Extraction,
+                "Test Room", "Test Anchor", MissionCompletionRule.CentralTowerOnline, MissionWorldMutation.None,
+                Array.Empty<MissionReward>(), authoredGuidance, Array.Empty<MissionObjectiveId>(),
+                Array.Empty<MissionObjectiveId>());
+            var model = new RunModel(new MissionObjectiveGraph(objective));
+
+            var guidance = MissionGuidance.Evaluate(model, false, false, 0f);
+
+            Assert.That(guidance.Phase, Is.EqualTo(9));
+            Assert.That(guidance.Title, Is.EqualTo("AUTHORED TITLE"));
+            Assert.That(guidance.Action, Is.EqualTo("AUTHORED ACTION"));
+            Assert.That(guidance.Advisory, Is.EqualTo("AUTHORED ADVISORY"));
         }
 
         private static RunModel _createOnlineModel()

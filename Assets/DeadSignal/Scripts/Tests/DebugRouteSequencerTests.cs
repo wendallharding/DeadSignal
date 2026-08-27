@@ -1,3 +1,4 @@
+using System.Linq;
 using NUnit.Framework;
 using UnityEngine;
 using DeadSignal.Diagnostics;
@@ -144,9 +145,12 @@ namespace DeadSignal.Tests
             metrics.RecordThreatPurge(14f);
 
             var report = sequencer.FinishReport(
-                41f, metrics, false, true, new Vector3(2f, 0f, 3f), RunOutcome.Victory, 1, 2);
+                41f, metrics, false, true, new Vector3(2f, 0f, 3f), RunOutcome.Victory, 1, 2,
+                CompatibilityMissionObjectiveGraph.Instance.Definitions.Last());
 
             Assert.That(report, Does.Contain("Outcome Victory"));
+            Assert.That(report, Does.Contain("Objective Extraction  Phase 7  EXTRACT OR GREED"));
+            Assert.That(report, Does.Contain("Room Extraction Dock  Anchor Dock Uplink"));
             Assert.That(report, Does.Contain("Journey REQUIRED WITHDRAWAL"));
             Assert.That(report, Does.Contain("Time 12.00s"));
             Assert.That(report, Does.Contain("Combat 12.00s"));

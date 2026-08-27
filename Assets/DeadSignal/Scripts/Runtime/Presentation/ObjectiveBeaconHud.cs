@@ -22,6 +22,8 @@ namespace DeadSignal.Presentation
         Vector3 CurrentTarget { get; }
         bool IsObjectiveIndicatorVisible { get; }
         int ActiveEnemyIndicatorCount { get; }
+        string CurrentLabel { get; }
+        string CurrentHint { get; }
 
         void Configure(RunModel model, DeadSignalWorld world, DeadSignalThreatController threats);
         void SetGuidanceStrength(float strength);
@@ -57,6 +59,8 @@ namespace DeadSignal.Presentation
         public Vector3 CurrentTarget { get; private set; }
         public bool IsObjectiveIndicatorVisible => m_panel != null && m_panel.activeSelf;
         public int ActiveEnemyIndicatorCount { get; private set; }
+        public string CurrentLabel => _currentLabel();
+        public string CurrentHint => _currentHint();
 
         [Inject]
         private void _construct(ICombatFeedback combatFeedback)
@@ -130,10 +134,11 @@ namespace DeadSignal.Presentation
         private void _refreshTarget()
         {
             CurrentTarget = m_world.GetObjectiveTarget(m_model);
-            CurrentPhase = m_model.CurrentMissionStage switch
+            CurrentPhase = m_model.CurrentObjective.Id switch
             {
-                MissionStage.CentralTower or MissionStage.RelayTower or MissionStage.SpineTower => ObjectiveBeaconPhase.Tower,
-                MissionStage.Extraction => ObjectiveBeaconPhase.Extraction,
+                MissionObjectiveId.CentralTower or MissionObjectiveId.RelayTower or MissionObjectiveId.SpineTower =>
+                    ObjectiveBeaconPhase.Tower,
+                MissionObjectiveId.Extraction => ObjectiveBeaconPhase.Extraction,
                 _ => ObjectiveBeaconPhase.Salvage
             };
         }
@@ -338,32 +343,12 @@ namespace DeadSignal.Presentation
 
         private string _currentLabel()
         {
-            return m_model.CurrentMissionStage switch
-            {
-                MissionStage.CentralTower => "ACTIVATE CENTRAL TOWER",
-                MissionStage.CentralPayload => "RECOVER CENTRAL PAYLOAD",
-                MissionStage.RelayTower => "RESTORE RELAY TOWER",
-                MissionStage.RelayPayload => "RECOVER RELAY PAYLOAD",
-                MissionStage.SpineTower => "RESTORE SPINE TOWER",
-                MissionStage.SpinePayload => "RECOVER SPINE PAYLOAD",
-                MissionStage.Extraction => "RETURN TO EXTRACTION",
-                _ => string.Empty
-            };
+            return m_model?.CurrentObjective.Guidance.Action ?? string.Empty;
         }
 
         private string _currentHint()
         {
-            return m_model.CurrentMissionStage switch
-            {
-                MissionStage.CentralTower => "Bring the opening network online",
-                MissionStage.CentralPayload => "Choose one of two local payload routes",
-                MissionStage.RelayTower => "Push east and establish the Relay foothold",
-                MissionStage.RelayPayload => "Choose inner Foundry cover or the Cooling Gantry loop",
-                MissionStage.SpineTower => "Carry the network into the Capacitor Spine",
-                MissionStage.SpinePayload => "Secure the final extraction payload",
-                MissionStage.Extraction => "Three towers and regional payloads secured",
-                _ => string.Empty
-            };
+            return m_model?.CurrentObjective.Guidance.Advisory ?? string.Empty;
         }
 
     }
