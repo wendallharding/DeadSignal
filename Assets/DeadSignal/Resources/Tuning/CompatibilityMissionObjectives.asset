@@ -299,15 +299,15 @@ MonoBehaviour:
   - m_id: 24
     m_legacyStage: 6
     m_owningRoom: Relay Foundry / East Transfer Vault / Central Maintenance Concourse
-      / Warden Bay / Sapper Cradle
+      / Warden Bay / Sapper Cradle / Departure Channel
     m_anchorId: Powered Withdrawal Pursuit Route
     m_completionRule: 25
     m_worldMutations: 268435456
     m_rewards: []
     m_guidancePhase: 7
     m_guidanceTitle: WITHDRAW THROUGH POWER
-    m_guidanceAction: FOLLOW THE CYAN RETURN THROUGH RELAY AND CENTRAL
-    m_guidanceAdvisory: OPEN SHORTCUTS + WARDEN BAY + SAPPER CRADLE  //  DOCK ROUTE
+    m_guidanceAction: FOLLOW THE CYAN RETURN TO THE DEPARTURE CHANNEL
+    m_guidanceAdvisory: OPEN SHORTCUTS + PURSUIT + ONE-SHOT SURGE  //  DOCK UPLINK
       FOLLOWS
     m_prerequisites: 17000000
     m_successors: 06000000

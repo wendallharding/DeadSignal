@@ -64,7 +64,8 @@ namespace DeadSignal.Diagnostics
         SignalAboveTwenty,
         CameraContainsPlayer,
         InteractionInRange,
-        ObjectiveAdvanced
+        ObjectiveAdvanced,
+        ExtractionReady
     }
 
     public enum DebugRouteRunState
@@ -472,6 +473,9 @@ namespace DeadSignal.Diagnostics
                         DebugRouteAction.None, roomName: "Warden Bay", isBacktrack: true);
                     yield return new DebugRouteStep("Sapper Cradle priority", DebugLocation.CurrentObjective, 1.7f,
                         DebugRouteAction.None, roomName: "Sapper Cradle", isBacktrack: true);
+                    yield return new DebugRouteStep("Departure capacitor surge", DebugLocation.CurrentObjective, 0.65f,
+                        DebugRouteAction.None, DebugRouteAssertion.ExtractionReady,
+                        roomName: "Departure Channel", isBacktrack: true);
                     yield return new DebugRouteStep("Extraction", DebugLocation.Extraction, 1.5f, DebugRouteAction.BeginStableExtraction,
                         DebugRouteAssertion.SignalAboveTwenty, "Extraction Dock", true);
                     break;

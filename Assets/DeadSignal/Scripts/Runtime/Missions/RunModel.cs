@@ -9,6 +9,7 @@ namespace DeadSignal.Missions
         CentralFoothold,
         WardenBay,
         SapperCradle,
+        DepartureSurge,
         Complete
     }
 

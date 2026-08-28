@@ -62,8 +62,9 @@ namespace DeadSignal.Tests
 
             Assert.That(guidance.Phase, Is.EqualTo(7));
             Assert.That(guidance.Title, Is.EqualTo("WITHDRAW THROUGH POWER"));
-            Assert.That(guidance.Action, Does.Contain("RELAY AND CENTRAL"));
+            Assert.That(guidance.Action, Does.Contain("DEPARTURE CHANNEL"));
             Assert.That(guidance.Advisory, Does.Contain("OPEN SHORTCUTS"));
+            Assert.That(guidance.Advisory, Does.Contain("ONE-SHOT SURGE"));
         }
 
         [Test]
@@ -99,6 +100,7 @@ namespace DeadSignal.Tests
             Assert.That(model.TryAdvancePoweredWithdrawal(PoweredWithdrawalPhase.CentralFoothold), Is.True);
             Assert.That(model.TryAdvancePoweredWithdrawal(PoweredWithdrawalPhase.WardenBay), Is.True);
             Assert.That(model.TryAdvancePoweredWithdrawal(PoweredWithdrawalPhase.SapperCradle), Is.True);
+            Assert.That(model.TryAdvancePoweredWithdrawal(PoweredWithdrawalPhase.DepartureSurge), Is.True);
         }
 
         private static void _completeCoreInstallation(RunModel model)

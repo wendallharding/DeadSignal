@@ -77,6 +77,7 @@ namespace DeadSignal.Tests
             model.TryAdvancePoweredWithdrawal(PoweredWithdrawalPhase.CentralFoothold);
             model.TryAdvancePoweredWithdrawal(PoweredWithdrawalPhase.WardenBay);
             model.TryAdvancePoweredWithdrawal(PoweredWithdrawalPhase.SapperCradle);
+            model.TryAdvancePoweredWithdrawal(PoweredWithdrawalPhase.DepartureSurge);
         }
     }
 }

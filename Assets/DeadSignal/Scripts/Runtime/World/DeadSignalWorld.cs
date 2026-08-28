@@ -600,9 +600,6 @@ namespace DeadSignal.World
             {
                 m_departureSurgeSignal.SetActive(true);
             }
-            m_departurePreviousLocalX = m_departureChannel == null
-                ? 0f
-                : m_departureChannel.InverseTransformPoint(Player.position).x;
             m_departureReturnOpen = true;
             _rebuildNavMesh();
         }
@@ -615,10 +612,9 @@ namespace DeadSignal.World
             }
 
             var localPosition = m_departureChannel.InverseTransformPoint(playerPosition);
-            var crossedDirectLane = m_departurePreviousLocalX < 0f && localPosition.x >= 0f &&
-                                    Mathf.Abs(localPosition.z) <= 0.9f;
-            m_departurePreviousLocalX = localPosition.x;
-            if (!crossedDirectLane)
+            var insideInnerDirectLane = localPosition.x >= 0f && localPosition.x <= 2f &&
+                                        Mathf.Abs(localPosition.z) <= 0.9f;
+            if (!insideInnerDirectLane)
             {
                 return false;
             }
@@ -1781,6 +1777,7 @@ namespace DeadSignal.World
                         PoweredWithdrawalPhase.CentralFoothold => TowerPosition,
                         PoweredWithdrawalPhase.WardenBay => WardenBayLandmark.Position,
                         PoweredWithdrawalPhase.SapperCradle => SapperCradleLandmark.Position,
+                        PoweredWithdrawalPhase.DepartureSurge => _departureSurgeTarget(),
                         _ => ExtractionPosition
                     };
                 case MissionObjectiveId.Extraction:
@@ -1834,6 +1831,13 @@ namespace DeadSignal.World
             }
 
             return nearest;
+        }
+
+        private Vector3 _departureSurgeTarget()
+        {
+            return m_departureChannel != null
+                ? m_departureChannel.TransformPoint(new Vector3(1f, 0f, 0f))
+                : ExtractionPosition;
         }
 
         private Vector3 _centralComponentTarget(CentralComponentKind component)
@@ -1974,7 +1978,6 @@ namespace DeadSignal.World
         private GameObject m_departureSurgeSignal;
         private bool m_departureReturnOpen;
         private bool m_departureSurgeConsumed;
-        private float m_departurePreviousLocalX;
         private GameObject m_relayShortcutGate;
         private bool m_relayShortcutOpen;
         private GameObject m_extractionBeacon;

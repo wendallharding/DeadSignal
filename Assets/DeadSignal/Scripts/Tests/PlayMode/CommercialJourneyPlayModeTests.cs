@@ -120,7 +120,8 @@ namespace DeadSignal.Tests.PlayMode
 
             Assert.That(game.DebugRouteSequenceState, Is.EqualTo(DebugRouteRunState.Completed),
                 $"{game.DebugRouteSequenceReport}\n{game.DebugRouteSequenceStatus}\n{game.DebugTelemetry}");
-            Assert.That(game.IsOptionalSalvageSecured, Is.False);
+            Assert.That(game.IsOptionalSalvageSecured, Is.False,
+                $"{game.DebugRouteSequenceReport}\n{game.DebugRouteSequenceStatus}\n{game.DebugTelemetry}");
             Assert.That(game.IsExtractionUplinkActive, Is.True);
             Assert.That(game.CurrentExtractionSuppressionProfile, Is.EqualTo(ExtractionSuppressionProfile.Standard),
                 "Required withdrawal should preserve the established extraction response.");
@@ -146,7 +147,7 @@ namespace DeadSignal.Tests.PlayMode
             Assert.That(report, Does.Contain("Journey REQUIRED WITHDRAWAL"));
             Assert.That(report, Does.Contain("Combat "));
             Assert.That(report, Does.Contain("Guidance response proxy"));
-            Assert.That(report, Does.Contain("Wrong-turn proxies 0  Backtrack legs 9"));
+            Assert.That(report, Does.Contain("Wrong-turn proxies 0  Backtrack legs 10"));
             Assert.That(report, Does.Contain("PASS Cargo coupling"));
             Assert.That(report, Does.Contain("PASS Coolant seal"));
             Assert.That(report, Does.Contain("PASS Relay Fork routing"));

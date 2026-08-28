@@ -992,6 +992,12 @@ namespace DeadSignal.Application
 
         public void DebugCompletePoweredWithdrawal()
         {
+            DebugPrepareDepartureSurge();
+            m_model.TryAdvancePoweredWithdrawal(PoweredWithdrawalPhase.DepartureSurge);
+        }
+
+        public void DebugPrepareDepartureSurge()
+        {
             DebugInstallSpineCore();
             m_model.TryAdvancePoweredWithdrawal(PoweredWithdrawalPhase.RelayShortcut);
             m_model.TryAdvancePoweredWithdrawal(PoweredWithdrawalPhase.TransferVault);
@@ -2660,6 +2666,14 @@ namespace DeadSignal.Application
                 var viewport = m_world.Camera.WorldToViewportPoint(m_world.Player.position);
                 return viewport.z > 0f && viewport.x >= 0f && viewport.x <= 1f && viewport.y >= 0f && viewport.y <= 1f;
             }
+            if (assertion == DebugRouteAssertion.ObjectiveAdvanced)
+            {
+                return _debugObjectiveAdvanced();
+            }
+            if (assertion == DebugRouteAssertion.ExtractionReady)
+            {
+                return m_model.CanExtract;
+            }
             return true;
         }
 
@@ -3309,16 +3323,22 @@ namespace DeadSignal.Application
             {
                 m_world.OpenQuenchReturn();
             }
-            if (m_model.CanExtract)
+            var departureSurgeAvailable = m_model.CurrentObjective.Id == MissionObjectiveId.PoweredWithdrawal &&
+                                          m_model.CurrentPoweredWithdrawalPhase == PoweredWithdrawalPhase.DepartureSurge;
+            if (departureSurgeAvailable || m_model.CanExtract)
             {
                 m_world.OpenDepartureReturn();
                 if (m_world.TryConsumeDepartureSurge(m_world.Player.position))
                 {
                     var restored = m_model.RestoreSignal(DEPARTURE_SURGE_SIGNAL_RESTORE);
                     m_metrics.RecordDepartureSurge(restored);
+                    if (departureSurgeAvailable)
+                    {
+                        m_model.TryAdvancePoweredWithdrawal(PoweredWithdrawalPhase.DepartureSurge);
+                    }
                     m_combatFeedback.PlaySignalRecovery(m_world.Player.position + Vector3.up * 0.45f);
                     m_audio.Play(DeadSignalAudioCue.TowerOnline);
-                    _showFeedback($"DEPARTURE CAPACITOR DISCHARGED  +{restored:0} SIGNAL");
+                    _showFeedback($"DEPARTURE CAPACITOR DISCHARGED  +{restored:0} SIGNAL  //  DOCK UPLINK READY");
                 }
             }
             m_world.TickExtraction(dt, m_model.CanExtract);
@@ -3337,6 +3357,11 @@ namespace DeadSignal.Application
             }
 
             var phase = m_model.CurrentPoweredWithdrawalPhase;
+            if (phase == PoweredWithdrawalPhase.DepartureSurge)
+            {
+                return;
+            }
+
             var target = m_world.GetObjectiveTarget(m_model);
             if (DeadSignalWorld.FlatDistance(m_world.Player.position, target) > 1.7f ||
                 !m_model.TryAdvancePoweredWithdrawal(phase))
@@ -3350,7 +3375,7 @@ namespace DeadSignal.Application
                 PoweredWithdrawalPhase.TransferVault => "TRANSFER ROUTE CROSSED — RETURN THROUGH POWERED CENTRAL",
                 PoweredWithdrawalPhase.CentralFoothold => "CENTRAL FOOTHOLD REACHED — WARDEN BAY PURSUIT ACTIVE",
                 PoweredWithdrawalPhase.WardenBay => "WARDEN BAY CROSSED — SAPPER CRADLE PRIORITY WARNING",
-                PoweredWithdrawalPhase.SapperCradle => "PURSUIT RESOLVED — DEPARTURE CHANNEL OPEN",
+                PoweredWithdrawalPhase.SapperCradle => "PURSUIT RESOLVED — CROSS THE RELEASED CHANNEL FOR THE FINAL SURGE",
                 _ => string.Empty
             };
             m_threats.BeginPoweredWithdrawalPursuit(m_model.CurrentPoweredWithdrawalPhase);

@@ -9,6 +9,7 @@ using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
 using DeadSignal.Application;
 using DeadSignal.Diagnostics;
+using DeadSignal.Missions;
 using DeadSignal.World;
 
 namespace DeadSignal.Tests
@@ -116,11 +117,15 @@ namespace DeadSignal.Tests
                 Assert.That(game.LastSignalBoltBlockedByEnvironment, Is.True,
                     "The closed cargo shutter should block projectiles as well as movement.");
 
-                game.DebugMakeExtractionReady();
+                game.DebugPrepareDepartureSurge();
                 yield return null;
 
+                Assert.That(game.CurrentMissionObjectiveId, Is.EqualTo(MissionObjectiveId.PoweredWithdrawal));
+                Assert.That(game.CurrentPoweredWithdrawalPhase, Is.EqualTo(PoweredWithdrawalPhase.DepartureSurge));
+                Assert.That(game.IsExtractionReady, Is.False,
+                    "The Dock uplink should remain locked until the one-shot Departure surge is crossed.");
                 Assert.That(shutter.activeSelf, Is.False,
-                    "Completing all three required regional payloads should retract the cargo shutter.");
+                    "Completing the pursuit route should retract the cargo shutter for the final recovery beat.");
                 Assert.That(returnSignal.activeSelf, Is.True,
                     "The open channel should reveal its cyan direct-return cue.");
                 Assert.That(surgeSignal.activeSelf, Is.True,
@@ -140,6 +145,9 @@ namespace DeadSignal.Tests
                 Assert.That(channel.InverseTransformPoint(player.position).x, Is.GreaterThan(0.75f),
                     "The released shutter should open the direct route into extraction.");
                 Assert.That(game.IsDepartureSurgeConsumed, Is.True);
+                Assert.That(game.CurrentMissionObjectiveId, Is.EqualTo(MissionObjectiveId.Extraction));
+                Assert.That(game.IsExtractionReady, Is.True,
+                    "The Dock uplink should become available only after the Departure surge fires.");
                 Assert.That(game.CurrentSignal, Is.GreaterThan(signalBeforeSurge),
                     "Crossing the direct return should discharge the one-shot Signal reserve.");
                 Assert.That(surgeSignal.activeSelf, Is.False,

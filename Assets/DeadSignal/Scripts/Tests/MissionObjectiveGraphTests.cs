@@ -199,6 +199,7 @@ namespace DeadSignal.Tests
             Assert.That(run.TryAdvancePoweredWithdrawal(PoweredWithdrawalPhase.CentralFoothold), Is.True);
             Assert.That(run.TryAdvancePoweredWithdrawal(PoweredWithdrawalPhase.WardenBay), Is.True);
             Assert.That(run.TryAdvancePoweredWithdrawal(PoweredWithdrawalPhase.SapperCradle), Is.True);
+            Assert.That(run.TryAdvancePoweredWithdrawal(PoweredWithdrawalPhase.DepartureSurge), Is.True);
             _assertObjective(run, MissionObjectiveId.Extraction, MissionStage.Extraction,
                 MissionCompletionRule.ExtractionComplete, MissionWorldMutation.RunCompleted,
                 "EXTRACT OR GREED");
