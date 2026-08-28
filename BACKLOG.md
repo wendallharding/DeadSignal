@@ -56,6 +56,49 @@ This is the controlling workstream for scheduled development. Complete it from t
 - [ ] Complete the live extraction uplink at the Dock with movement, combat, and chosen build still relevant
 - [ ] Retune whole-run Signal, rewards, enemy density, spawn timing, and encounter mix only after the complete route exists
 
+### Phase 6 — Unattended product shell and presentation hardening
+
+Work through this section after the required mission route is connected. Human-only mission acceptance evidence does not block these low-risk slices. Implement one bounded player-facing improvement per run, preserve gameplay authority, and keep every effect tunable and accessibility-safe.
+
+#### Game shell and outcome flow
+
+- [ ] Audit the existing boot, pause, outcome, restart, input-focus, and scene-lifetime paths; protect the current playable route with a focused lifecycle test before changing navigation
+- [ ] Add an authored main-menu shell around the existing boot flow with Start Run, Settings, Controls, and Quit; support keyboard/mouse and controller without introducing speculative save/continue behavior
+- [ ] Add reliable Return to Menu actions from pause, defeat, and victory; prove repeated menu → run → restart/menu loops do not duplicate runtime services, input actions, audio, or scene state
+- [ ] Turn the existing defeat overlay into a proper game-over presentation with a clear failure cause, concise run summary, Restart, and Main Menu
+- [ ] Turn the existing victory overlay into a distinct completion presentation with mission time, room/combat/Signal highlights, Restart, and Main Menu
+- [ ] Add short menu-to-run, defeat, and victory transitions that preserve input focus, pause semantics, Reduced Flashes, and Steady Camera
+
+#### Presentation-effect foundation
+
+- [ ] Inventory current particles, trails, flashes, camera impulses, post-processing, generated materials, and effect ownership; define per-effect lifetime, pooling/allocation, contrast, and accessibility limits before adding effects
+- [ ] Add or refine pooled projectile-impact and enemy-purge effects with distinct enemy, wall, and shield reads; keep projectile collision and damage rules unchanged
+- [ ] Add restrained directional damage and critical-Signal screen feedback that never obscures projectiles, interaction prompts, enemy telegraphs, or escape lanes
+- [ ] Add authored activation/completion effects for towers, payload installation, doors, shortcuts, and machinery state changes using the established amber → cyan language
+- [ ] Add bounded lockdown-entry, phase-transition, room-clear, capacitor/salvage recovery, and reward-release effects without changing encounter timing, population, rewards, or door authority
+- [ ] Make weapon transformation and evolution visibly distinct for each established build without changing targeting, cadence, damage, Signal, or enemy counters
+- [ ] Add extraction startup, progress, completion, defeat, and victory effects with Reduced-Flashes alternatives and no persistent full-screen clutter
+
+#### Environmental state and readability polish
+
+- [ ] Audit required machinery and doors for dormant, available, locked, active, and complete state readability; improve one coherent room/act per run rather than applying a global cosmetic rewrite
+- [ ] Strengthen powered-route lighting and persistent changed-station cues on withdrawal while preserving navigation contrast, collision, NavMesh, and performance
+- [ ] Improve existing enemy entry warnings, silhouettes, projectile contrast, and specialist telegraphs without changing health, damage, speed, count, or response budgets
+
+#### Product-shell validation
+
+- [ ] Validate main menu, pause, prompts, outcome screens, and transitions at 1280x720, 1600x900, and one ultrawide target with keyboard/mouse and controller
+- [ ] Validate every new effect with Reduced Flashes on/off and Steady Camera on/off; reject effects that hide threats, objectives, interaction prompts, or escape lanes
+- [ ] Measure allocations and frame time under the existing maximum combat population; pool or simplify effects that cause recurring allocations or miss the established performance budget
+- [ ] Run repeated death/restart/menu, victory/menu, scene reload, and complete-route soak cycles; scan for leaked objects, duplicate services, stale input, missing references, and non-reset presentation state
+- [ ] Complete applicable Unity suites, Windows development build, and packaged smoke after each game-shell integration milestone
+
+### Transition into Geometry Wars-inspired combat proof
+
+- [ ] After the mission route and unattended product-shell queue are implementation-complete, make `P0 — Geometry Wars-inspired combat proof` the controlling workstream
+- [ ] Begin with Gate A technical baselines and readability improvements, then Gate B composition/timing work; do not represent automated correctness or captures as human proof of fun
+- [ ] Consolidate completed run-history sections into an archive/index when backlog length materially interferes with selecting the next actionable item; preserve decisions and evidence
+
 ### Cohesive-mission Definition of Done
 
 - [ ] Every major mission room is entered on the required route and has a distinct legible purpose; decorative pockets are identified rather than padded with fake objectives

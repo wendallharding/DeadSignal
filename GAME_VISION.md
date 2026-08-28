@@ -44,6 +44,16 @@ The intended first successful run remains approximately 20–25 minutes. Measure
 4. Convert the Relay/Spine act: Foundry activation, Cooling Gantry processing, Foundry installation/weapon choice, Discharge Trench venting, and Spine activation/evolution.
 5. Convert the deep-core act: Induction, Flux, Convergence, Breaker, Furnace, Quench, and required A-to-B-to-C culmination, followed by core installation at the Spine.
 6. Convert withdrawal: powered shortcuts, Warden Bay and Sapper Cradle pursuit beats, Departure surge, and extraction. Only then perform whole-run Signal, enemy-density, reward, and pacing retuning.
+7. Harden the product shell and presentation: authored main menu, reliable menu/run/restart flow, distinct defeat and victory outcomes, restrained accessibility-safe effects, persistent machinery/door state feedback, resolution/controller validation, and Windows soak/build evidence.
+8. Transition into the Geometry Wars-inspired combat proof gates. Automated work may establish technical baselines, readability, performance, and regression evidence; human play retains authority over fun, density promotion, dominant builds, and subjective pacing.
+
+### Unattended product-shell and presentation strategy
+
+Once the required route is connected, implementation should continue even when the remaining mission acceptance evidence requires a human playtest. The next low-risk workstream is a bounded commercial shell around the proven run: an authored menu using the existing boot path, reliable Start/Restart/Return-to-Menu ownership, clear defeat and victory summaries, and short transitions that preserve input focus and pause state. Do not introduce speculative continue/save progression merely to populate the menu.
+
+Presentation work should strengthen gameplay events already owned by deterministic systems. Prioritize crisp projectile impacts, enemy purges, directional damage, critical Signal, tower/payload/door state changes, lockdown and room-clear beats, rewards, weapon transformations, extraction, defeat, and victory. Effects must be short-lived, tunable, pooled where recurring, compatible with Reduced Flashes and Steady Camera, and subordinate to silhouettes, projectiles, telegraphs, interaction prompts, and escape lanes. Improve persistent dormant/available/active/complete machinery states one coherent act at a time rather than performing a global cosmetic rewrite.
+
+This workstream does not authorize enemy-stat changes, broad population promotion, another arena, procedural generation, metaprogression, or a new enemy. Validate the shell and effects across target resolutions and both input families, measure allocations/frame time under the existing population cap, exercise repeated menu/run/death/victory cycles, and build/smoke-test Windows at integration milestones. After this queue is complete, proceed directly into the existing Geometry Wars-inspired combat proof gates without claiming automated evidence proves subjective fun.
 
 ### Combat proof within the mission
 

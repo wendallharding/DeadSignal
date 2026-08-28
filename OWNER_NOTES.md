@@ -18,6 +18,8 @@
 - [ ] Phase 4: implement Induction → Flux → Convergence → Breaker → Furnace → Quench → Room A → Room B → Room C → Spine core installation.
 - [ ] Phase 5: implement the powered withdrawal through Warden Bay, Sapper Cradle, Departure surge, and live extraction.
 - [ ] Perform whole-run Signal, rewards, population, spawn, and pacing retuning only after the complete required route is connected.
+- [ ] Phase 6: after the route is connected, continue through `BACKLOG.md` → “Unattended product shell and presentation hardening” one bounded slice per run: game shell/outcomes, presentation effects, environmental state/readability, then validation.
+- [ ] When Phase 6 is implementation-complete, continue into `BACKLOG.md` → “P0 — Geometry Wars-inspired combat proof” from Gate A. Human-only evidence remains explicitly unproven but does not prevent safe technical baselines, readability work, regression coverage, performance validation, or later actionable gates.
 
 ## P0.2 — Quality rules for each slice
 
@@ -44,7 +46,9 @@
 
 ## Blocker before lower-priority work
 
-- [ ] Do not resume general combat expansion, new content, broad polish, accessibility-only passes, or speculative refactoring while an actionable cohesive-mission phase remains, unless a measured correctness, usability, or playability defect blocks that phase.
+- [ ] Do not resume general combat expansion, new content, or speculative refactoring while an actionable cohesive-mission implementation phase remains, unless a measured correctness, usability, or playability defect blocks that phase.
+- [ ] Once Phases 4 and 5 have connected the required route, unresolved human-only acceptance checks do not block the explicitly authorized Phase 6 product-shell and presentation queue.
+- [ ] Phase 6 polish must be player-facing, bounded, testable, presentation-only where stated, and accessibility-safe; do not use it as permission for combat-stat changes, population promotion, new enemies, another arena, procedural generation, save progression, or unrelated cleanup.
 
 ## Overall Definition of Done
 
