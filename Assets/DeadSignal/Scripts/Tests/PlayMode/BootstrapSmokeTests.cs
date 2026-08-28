@@ -1584,7 +1584,8 @@ namespace DeadSignal.Tests
             Assert.That(game.transform.Find("Objective Route Pulse"), Is.Null,
                 "The world-spanning objective line should be replaced by edge indicators.");
             Assert.That(game.transform.Find("Projected Aim Guide")?.GetComponent<LineRenderer>(), Is.Not.Null);
-            Assert.That(game.transform.Find("Critical Signal Route")?.GetComponent<LineRenderer>(), Is.Not.Null);
+            Assert.That(game.transform.Find("Critical Signal Route"), Is.Null,
+                "Low Signal guidance should use the HUD rather than restoring a legacy world-space route line.");
             Assert.That(game.transform.Find("Extraction Approach Lane")?.childCount, Is.EqualTo(14),
                 "Extraction should have a converging seven-pair approach lane.");
             Assert.That(game.HasPlayerMovementTuning, Is.True,

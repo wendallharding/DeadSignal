@@ -26,6 +26,8 @@ namespace DeadSignal.Tests
             Assert.That(game.transform.Find("Objective Route Pulse"), Is.Null);
             Assert.That(Object.FindObjectsByType<LineRenderer>(FindObjectsSortMode.None)
                 .Any(line => line.name == "Objective Route Pulse"), Is.False);
+            Assert.That(game.transform.Find("Critical Signal Route"), Is.Null,
+                "The legacy low-Signal route line must not exist for progression events to enable later.");
 
             game.DebugTeleport(DebugLocation.FarEast);
             yield return _waitFrames(45);

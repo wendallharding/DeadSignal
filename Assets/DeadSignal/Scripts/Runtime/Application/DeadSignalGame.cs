@@ -1361,7 +1361,7 @@ namespace DeadSignal.Application
             m_world.UpdateRelayPayloadPresentation(m_model);
             m_world.UpdateSpineVentingPresentation(m_model);
             m_world.PlayerSignalWake.Tick(m_playerMovement.Velocity);
-            m_world.TickGameplayAssists(dt, m_model, m_threats, aimDirection);
+            m_world.TickGameplayAssists(dt, m_threats, aimDirection);
 
             var moving = movement.sqrMagnitude > 0.01f;
             m_audio.Tick(powered, m_model.TowerOnline, m_model.Signal / RunModel.MaximumSignal);

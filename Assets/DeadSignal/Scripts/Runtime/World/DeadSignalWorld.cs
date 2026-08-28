@@ -844,7 +844,6 @@ namespace DeadSignal.World
 
         public void TickGameplayAssists(
             float dt,
-            RunModel model,
             DeadSignalThreatController threats,
             Vector3 aimDirection)
         {
@@ -879,19 +878,6 @@ namespace DeadSignal.World
                     var pulse = 1f + Mathf.Sin(Time.time * 5f + cache.transform.position.x) * 0.18f;
                     beacon.localScale = new Vector3(0.1f * pulse, 1.3f, 0.1f * pulse);
                 }
-            }
-
-            if (model.Signal / RunModel.MaximumSignal <= 0.25f)
-            {
-                var poweredTarget = GetNearestPoweredTarget(
-                    Player.position, model.TowerOnline, model.RelayTowerOnline, model.SpineTowerOnline);
-                poweredTarget = GetNavigationWaypoint(Player.position, poweredTarget, 0.48f, model.ShortcutOpen);
-                _updateGuideLine(m_emergencyGuide, Player.position, poweredTarget, m_palette.Cyan, 0.1f);
-                m_emergencyGuide.enabled = true;
-            }
-            else
-            {
-                m_emergencyGuide.enabled = false;
             }
 
             if (LastMovementBlocked)
@@ -1595,7 +1581,6 @@ namespace DeadSignal.World
         private void _buildGameplayAssists()
         {
             m_aimGuide = _createGuideLine("Projected Aim Guide", 2);
-            m_emergencyGuide = _createGuideLine("Critical Signal Route", 12);
         }
 
         private LineRenderer _createGuideLine(string objectName, int positionCount)
@@ -1818,7 +1803,6 @@ namespace DeadSignal.World
         private float m_boundaryPulse;
         private float m_collisionPulse;
         private LineRenderer m_aimGuide;
-        private LineRenderer m_emergencyGuide;
 
         private GameObject m_towerTerritory;
         private GameObject m_towerSignalLines;
