@@ -104,7 +104,7 @@ namespace DeadSignal.Tests
             var signalBeforeRelay = run.Signal;
             Assert.That(run.TryActivateRelayTower(), Is.True);
             Assert.That(run.Signal, Is.EqualTo(Math.Min(RunModel.MaximumSignal,
-                signalBeforeRelay - RunModel.RelayTowerCost + RunModel.RelayTowerRefill)));
+                signalBeforeRelay + RunModel.RelayTowerRefill)));
             _assertObjective(run, MissionObjectiveId.RelayPayload, MissionStage.RelayPayload,
                 MissionCompletionRule.RelayPayloadStabilized, MissionWorldMutation.RelayPayloadStabilized,
                 "STABILIZE RELAY PAYLOAD");

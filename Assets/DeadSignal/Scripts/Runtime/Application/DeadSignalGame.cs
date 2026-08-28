@@ -754,7 +754,6 @@ namespace DeadSignal.Application
                 return;
             }
 
-            m_model.SetSignalForDebug(Mathf.Max(m_model.Signal, RunModel.RelayTowerCost + 1f));
             if (m_model.TryActivateRelayTower())
             {
                 m_world.ActivateRelayTower();
@@ -1837,11 +1836,6 @@ namespace DeadSignal.Application
                 {
                     _showFeedback("RELAY LOCKED — SECURE BOTH CENTRAL COMPONENTS");
                 }
-                else
-                {
-                    _showFeedback($"KEEP 1 SIGNAL AFTER {RunModel.RelayTowerCost:0} COST");
-                }
-
                 return;
             }
 

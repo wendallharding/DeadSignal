@@ -337,7 +337,7 @@ namespace DeadSignal.Missions
                 MissionCompletionRule.RelayTowerOnline, MissionWorldMutation.RelayTerritoryPowered,
                 new[] { new MissionReward(MissionRewardKind.SignalRefill, RunModel.RelayTowerRefill) },
                 new MissionGuidanceState(3, "EXTEND THE NETWORK", "RESTORE THE RELAY FOUNDRY TOWER",
-                    $"SIGNAL -{RunModel.RelayTowerCost:0}  //  POWERS FOUNDRY + UNLOCKS PROCESSING"),
+                    $"FREE ACTIVATION  //  REFILL +{RunModel.RelayTowerRefill:0}  //  UNLOCKS PROCESSING"),
                 new[] { MissionObjectiveId.CentralInstallation }, new[] { MissionObjectiveId.RelayPayload }),
             _definition(MissionObjectiveId.RelayPayload, MissionStage.RelayPayload,
                 "Cooling Gantry", "Cooling Gantry Relay Payload Socket",

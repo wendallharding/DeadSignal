@@ -72,15 +72,21 @@ namespace DeadSignal.Tests
         }
 
         [Test]
-        public void RelayTower_RequiresCentralTowerAndPreservesLastSignal()
+        public void RelayTower_RequiresCentralPayloadButActivatesAtZeroSignal()
         {
             var run = new RunModel();
 
             Assert.That(run.TryActivateRelayTower(), Is.False);
             Assert.That(run.TryActivateTower(), Is.True);
-            Assert.That(run.TrySpend(run.Signal - RunModel.RelayTowerCost), Is.True);
-            Assert.That(run.TryActivateRelayTower(), Is.False);
-            Assert.That(run.RelayTowerOnline, Is.False);
+            Assert.That(run.TryActivateRelayTower(), Is.False,
+                "Commissioning should remain mission-gated until the Central payload is installed.");
+            _assembleCentralPayload(run);
+            Assert.That(run.TrySpend(run.Signal), Is.True);
+            Assert.That(run.Signal, Is.Zero);
+            Assert.That(run.TryActivateRelayTower(), Is.True,
+                "Mandatory Foundry commissioning must not be gated by the player's current Signal reserve.");
+            Assert.That(run.RelayTowerOnline, Is.True);
+            Assert.That(run.Signal, Is.EqualTo(RunModel.RelayTowerRefill));
         }
 
         [Test]
@@ -94,8 +100,7 @@ namespace DeadSignal.Tests
             Assert.That(run.TryActivateRelayTower(), Is.True);
             Assert.That(run.RelayTowerOnline, Is.True);
             Assert.That(run.Signal,
-                Is.EqualTo(System.Math.Min(RunModel.MaximumSignal,
-                    before - RunModel.RelayTowerCost + RunModel.RelayTowerRefill)).Within(0.001f));
+                Is.EqualTo(System.Math.Min(RunModel.MaximumSignal, before + RunModel.RelayTowerRefill)).Within(0.001f));
             Assert.That(run.TryActivateRelayTower(), Is.False);
         }
 

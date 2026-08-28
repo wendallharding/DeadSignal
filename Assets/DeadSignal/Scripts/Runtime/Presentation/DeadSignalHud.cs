@@ -91,6 +91,13 @@ namespace DeadSignal.Presentation
         private IComfortSettings m_comfortSettings;
         private IDeadSignalInput m_input;
         private SignalHudTuning m_signalHudTuning;
+        private ObjectiveBeaconHud m_objectiveBeacon;
+        private RectTransform m_contextPromptRect;
+        private RectTransform m_contextPromptParent;
+        private Vector2 m_contextPromptAnchorMin;
+        private Vector2 m_contextPromptAnchorMax;
+        private Vector2 m_contextPromptPivot;
+        private Vector2 m_contextPromptPosition;
         private Texture2D m_runDebriefTexture;
         private float m_feedbackTimer;
         private float m_signalPulseTime;
@@ -139,6 +146,13 @@ namespace DeadSignal.Presentation
             m_extractionUplink = extractionUplink;
             m_overclockChoice = overclockChoice;
             m_signalHudTuning = Resources.Load<SignalHudTuning>("Tuning/SignalHudTuning");
+            m_objectiveBeacon = GetComponent<ObjectiveBeaconHud>();
+            m_contextPromptRect = m_contextPrompt.transform as RectTransform;
+            m_contextPromptParent = m_contextPromptRect.parent as RectTransform;
+            m_contextPromptAnchorMin = m_contextPromptRect.anchorMin;
+            m_contextPromptAnchorMax = m_contextPromptRect.anchorMax;
+            m_contextPromptPivot = m_contextPromptRect.pivot;
+            m_contextPromptPosition = m_contextPromptRect.anchoredPosition;
             var signalSprite = Resources.Load<Sprite>("UI/SignalReserveConduit");
             m_runDebriefTexture = Resources.Load<Texture2D>("UI/RouteLedgerInsignia");
             if (m_runReportText != null)
@@ -301,6 +315,7 @@ namespace DeadSignal.Presentation
             var prompt = _contextPrompt();
             m_contextPrompt.SetActive(!string.IsNullOrEmpty(prompt));
             m_contextPromptText.text = prompt;
+            _positionContextPrompt(!string.IsNullOrEmpty(prompt));
             m_feedbackText.gameObject.SetActive(m_feedbackTimer > 0f);
             m_feedbackText.text = m_feedback;
             m_feedbackText.color = m_feedback.Contains("DEAD") || m_feedback.Contains("SECURITY")
@@ -496,6 +511,44 @@ namespace DeadSignal.Presentation
             m_feedbackText.fontSize = Mathf.Max(m_feedbackText.fontSize, 20);
         }
 
+        private void _positionContextPrompt(bool visible)
+        {
+            var hasModalChoice = m_overclockChoice.IsPrimaryPending || m_overclockChoice.IsAuxiliaryPending ||
+                                 m_overclockChoice.IsWeaponPending || _isExtractionUplinkChoiceAvailable();
+            var attachToObjective = visible && !hasModalChoice && m_objectiveBeacon != null &&
+                                    m_objectiveBeacon.IsObjectiveIndicatorCompact &&
+                                    m_objectiveBeacon.ObjectiveIndicatorIconRect != null &&
+                                    m_contextPromptParent != null;
+            if (!attachToObjective)
+            {
+                m_contextPromptRect.anchorMin = m_contextPromptAnchorMin;
+                m_contextPromptRect.anchorMax = m_contextPromptAnchorMax;
+                m_contextPromptRect.pivot = m_contextPromptPivot;
+                m_contextPromptRect.anchoredPosition = m_contextPromptPosition;
+                return;
+            }
+
+            var eventCamera = m_canvas.renderMode == RenderMode.ScreenSpaceOverlay ? null : m_canvas.worldCamera;
+            var iconScreenPosition = RectTransformUtility.WorldToScreenPoint(
+                eventCamera, m_objectiveBeacon.ObjectiveIndicatorIconRect.position);
+            RectTransformUtility.ScreenPointToLocalPointInRectangle(
+                m_contextPromptParent, iconScreenPosition, eventCamera, out var iconPosition);
+
+            m_contextPromptRect.anchorMin = Vector2.one * 0.5f;
+            m_contextPromptRect.anchorMax = Vector2.one * 0.5f;
+            m_contextPromptRect.pivot = Vector2.one * 0.5f;
+            var halfSize = m_contextPromptRect.rect.size * 0.5f;
+            var iconHalfWidth = m_objectiveBeacon.ObjectiveIndicatorIconRect.rect.width * 0.5f;
+            var horizontalDirection = iconPosition.x <= 0f ? 1f : -1f;
+            var desiredPosition = iconPosition + Vector2.right * horizontalDirection * (iconHalfWidth + halfSize.x + 10f);
+            var parentRect = m_contextPromptParent.rect;
+            desiredPosition.x = Mathf.Clamp(desiredPosition.x, parentRect.xMin + halfSize.x + 8f,
+                parentRect.xMax - halfSize.x - 8f);
+            desiredPosition.y = Mathf.Clamp(desiredPosition.y, parentRect.yMin + halfSize.y + 8f,
+                parentRect.yMax - halfSize.y - 8f);
+            m_contextPromptRect.anchoredPosition = desiredPosition;
+        }
+
         private string _contextPrompt()
         {
             if (!string.IsNullOrEmpty(m_debugObjective))
@@ -527,7 +580,7 @@ namespace DeadSignal.Presentation
             if (!m_model.RelayTowerOnline &&
                 DeadSignalWorld.FlatDistance(m_world.Player.position, m_world.RelayTowerPosition) < 1.8f)
                 return m_model.TowerOnline
-                    ? $"[{_binding("E", "GAMEPAD X")}]  ACTIVATE RELAY FOUNDRY  —  COST {RunModel.RelayTowerCost:0}"
+                    ? $"[{_binding("E", "GAMEPAD X")}]  ACTIVATE RELAY FOUNDRY"
                     : "RELAY LOCKED - ACTIVATE CENTRAL TOWER FIRST";
             if (!m_model.ShortcutOpen && DeadSignalWorld.FlatDistance(m_world.Player.position, m_world.ShortcutPosition) < 1.9f)
                 return m_model.TowerOnline ? $"[{_binding("E", "GAMEPAD X")}]  BURN {RunModel.ShortcutCost:0} SIGNAL FOR SHORTCUT"

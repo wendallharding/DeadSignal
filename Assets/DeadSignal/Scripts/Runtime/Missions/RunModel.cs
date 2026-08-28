@@ -158,7 +158,6 @@ namespace DeadSignal.Missions
         public const float ShotCost = 0f;
         public const float TowerCost = 10f;
         public const float TowerRefill = 62f;
-        public const float RelayTowerCost = 14f;
         public const float RelayTowerRefill = 44f;
         public const float SpineTowerCost = 18f;
         public const float SpineTowerRefill = 34f;
@@ -265,12 +264,12 @@ namespace DeadSignal.Missions
         public bool TryActivateRelayTower()
         {
             if (!_isCurrentObjective(MissionObjectiveId.RelayTower) || !TowerOnline || !CentralPayloadSecured ||
-                RelayTowerOnline || Outcome != RunOutcome.Running || Signal <= RelayTowerCost)
+                RelayTowerOnline || Outcome != RunOutcome.Running)
             {
                 return false;
             }
 
-            Signal = Math.Min(MaximumSignal, Signal - RelayTowerCost + RelayTowerRefill);
+            Signal = Math.Min(MaximumSignal, Signal + RelayTowerRefill);
             RelayTowerOnline = true;
             CriticalRecoveryRemaining = 0f;
             return true;

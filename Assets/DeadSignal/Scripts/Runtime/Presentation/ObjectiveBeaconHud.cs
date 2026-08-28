@@ -65,6 +65,7 @@ namespace DeadSignal.Presentation
         public Vector3 CurrentTarget { get; private set; }
         public bool IsObjectiveIndicatorVisible => m_panel != null && m_panel.activeSelf;
         public bool IsObjectiveIndicatorCompact { get; private set; }
+        internal RectTransform ObjectiveIndicatorIconRect => m_icon == null ? null : m_icon.rectTransform;
         public int ActiveEnemyIndicatorCount { get; private set; }
         public string CurrentLabel => _currentLabel();
         public string CurrentHint => _currentHint();

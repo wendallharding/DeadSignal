@@ -114,6 +114,22 @@ namespace DeadSignal.Tests
                 game.DebugInstallCentralPayload();
 
                 player.position = game.RelayTowerPosition;
+                game.DebugSetSignal(0f);
+                for (var frame = 0; frame < 12; frame++)
+                {
+                    yield return null;
+                }
+                var contextPrompt = GameObject.Find("Context Prompt");
+                var objectiveIcon = GameObject.Find("Objective Beacon").transform.Find("Direction") as RectTransform;
+                Assert.That(contextPrompt, Is.Not.Null);
+                Assert.That(contextPrompt.activeSelf, Is.True);
+                Assert.That(contextPrompt.GetComponentInChildren<Text>().text, Does.Contain("ACTIVATE RELAY FOUNDRY"));
+                Assert.That(contextPrompt.GetComponentInChildren<Text>().text, Does.Not.Contain("COST"));
+                var promptScreenPosition = RectTransformUtility.WorldToScreenPoint(
+                    null, contextPrompt.GetComponent<RectTransform>().position);
+                var iconScreenPosition = RectTransformUtility.WorldToScreenPoint(null, objectiveIcon.position);
+                Assert.That(Mathf.Abs(promptScreenPosition.y - iconScreenPosition.y), Is.LessThan(35f),
+                    "The in-range interaction prompt should sit beside the on-objective icon, not at the screen bottom.");
                 Assert.That(game.SafestReinforcementEntryPosition.x, Is.GreaterThan(34f),
                     "Pressure inside the Relay Foundry should select one of its own far-edge safe entrances.");
                 InputSystem.QueueStateEvent(gamepad, new GamepadState().WithButton(GamepadButton.West));
