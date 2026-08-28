@@ -27,14 +27,39 @@ namespace DeadSignal.Tests
             Assert.That(Object.FindObjectsByType<LineRenderer>(FindObjectsSortMode.None)
                 .Any(line => line.name == "Objective Route Pulse"), Is.False);
 
+            game.DebugTeleport(DebugLocation.FarEast);
+            yield return _waitFrames(45);
             game.DebugTeleport(DebugLocation.CurrentObjective);
-            yield return _waitFrames(12);
-            Assert.That(game.IsObjectiveEdgeIndicatorVisible, Is.False,
-                "The objective indicator should fade when its target is comfortably on screen.");
+            yield return null;
+            Assert.That(game.IsObjectiveEdgeIndicatorVisible, Is.True,
+                "The objective icon should remain visible over an on-screen target.");
+            Assert.That(game.IsObjectiveIndicatorCompact, Is.True,
+                "An on-screen objective should hide the edge card details and retain only its icon.");
+            var objectivePanel = GameObject.Find("Objective Beacon");
+            Assert.That(objectivePanel.GetComponent<Image>().enabled, Is.False);
+            Assert.That(objectivePanel.transform.Find("Objective").gameObject.activeSelf, Is.False);
+            Assert.That(objectivePanel.transform.Find("Hint").gameObject.activeSelf, Is.False);
+            Assert.That(objectivePanel.transform.Find("Distance").gameObject.activeSelf, Is.False);
+            Assert.That(objectivePanel.transform.Find("Direction").gameObject.activeSelf, Is.True);
+            var objectiveIcon = objectivePanel.transform.Find("Direction") as RectTransform;
+            var camera = Object.FindFirstObjectByType<Camera>();
+            var expectedScreenPosition = camera.WorldToScreenPoint(game.CurrentObjectiveBeaconTarget + Vector3.up * 1.6f);
+            var transitioningScreenPosition = RectTransformUtility.WorldToScreenPoint(null, objectiveIcon.position);
+            Assert.That(Vector2.Distance(transitioningScreenPosition, expectedScreenPosition), Is.GreaterThan(2f),
+                "The compact icon should interpolate from the edge instead of popping directly onto the objective.");
+
+            yield return _waitFrames(45);
+            expectedScreenPosition = camera.WorldToScreenPoint(game.CurrentObjectiveBeaconTarget + Vector3.up * 1.6f);
+            var iconScreenPosition = RectTransformUtility.WorldToScreenPoint(null, objectiveIcon.position);
+            Assert.That(Vector2.Distance(iconScreenPosition, expectedScreenPosition), Is.LessThan(2f),
+                "The interpolated compact icon should settle over the visible world objective.");
 
             game.DebugTeleport(DebugLocation.FarEast);
             yield return _waitFrames(20);
             Assert.That(game.IsObjectiveEdgeIndicatorVisible, Is.True);
+            Assert.That(game.IsObjectiveIndicatorCompact, Is.False);
+            Assert.That(objectivePanel.GetComponent<Image>().enabled, Is.True);
+            Assert.That(objectivePanel.transform.Find("Objective").gameObject.activeSelf, Is.True);
 
             game.DebugSpawnThreat(SecurityReinforcement.Warden);
             game.DebugSpawnThreat(SecurityReinforcement.Sapper);

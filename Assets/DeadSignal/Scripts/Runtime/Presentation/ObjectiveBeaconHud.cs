@@ -21,6 +21,7 @@ namespace DeadSignal.Presentation
         ObjectiveBeaconPhase CurrentPhase { get; }
         Vector3 CurrentTarget { get; }
         bool IsObjectiveIndicatorVisible { get; }
+        bool IsObjectiveIndicatorCompact { get; }
         int ActiveEnemyIndicatorCount { get; }
         string CurrentLabel { get; }
         string CurrentHint { get; }
@@ -45,6 +46,11 @@ namespace DeadSignal.Presentation
         private RectTransform m_canvasRect;
         private RectTransform m_panelRect;
         private RectTransform m_objectiveTail;
+        private Vector2 m_edgeIconAnchorMin;
+        private Vector2 m_edgeIconAnchorMax;
+        private Vector2 m_edgeIconPivot;
+        private Vector2 m_edgeIconPosition;
+        private bool m_hasObjectivePanelPosition;
         private readonly List<ThreatCandidate> m_candidates = new();
         private readonly List<ThreatIndicator> m_threatIndicators = new();
         private float m_guidanceStrength = 0.7f;
@@ -58,6 +64,7 @@ namespace DeadSignal.Presentation
         public ObjectiveBeaconPhase CurrentPhase { get; private set; }
         public Vector3 CurrentTarget { get; private set; }
         public bool IsObjectiveIndicatorVisible => m_panel != null && m_panel.activeSelf;
+        public bool IsObjectiveIndicatorCompact { get; private set; }
         public int ActiveEnemyIndicatorCount { get; private set; }
         public string CurrentLabel => _currentLabel();
         public string CurrentHint => _currentHint();
@@ -76,6 +83,11 @@ namespace DeadSignal.Presentation
             m_tuning = Resources.Load<EdgeIndicatorTuning>(TUNING_PATH);
             m_canvasRect = m_panel.transform.parent as RectTransform;
             m_panelRect = m_panel.transform as RectTransform;
+            m_edgeIconAnchorMin = m_icon.rectTransform.anchorMin;
+            m_edgeIconAnchorMax = m_icon.rectTransform.anchorMax;
+            m_edgeIconPivot = m_icon.rectTransform.pivot;
+            m_edgeIconPosition = m_icon.rectTransform.anchoredPosition;
+            m_hasObjectivePanelPosition = false;
             _configureObjectivePanel();
             _createThreatIndicators();
             if (!HasIcon)
@@ -103,19 +115,43 @@ namespace DeadSignal.Presentation
 
         private void _refreshPresentation()
         {
-            bool visible = m_model != null && m_world != null && m_tuning != null &&
-                           m_model.Outcome == RunOutcome.Running && !m_combatFeedback.IsPaused &&
-                           m_guidanceStrength > 0.01f && !_isComfortablyVisible(CurrentTarget);
+            var visible = m_model != null && m_world != null && m_tuning != null &&
+                          m_model.Outcome == RunOutcome.Running && !m_combatFeedback.IsPaused &&
+                          m_guidanceStrength > 0.01f;
             m_panel.SetActive(visible);
-            if (m_objectiveTail != null) m_objectiveTail.gameObject.SetActive(visible);
             if (!visible)
             {
+                IsObjectiveIndicatorCompact = false;
+                if (m_objectiveTail != null) m_objectiveTail.gameObject.SetActive(false);
+                return;
+            }
+
+            IsObjectiveIndicatorCompact = _isComfortablyVisible(CurrentTarget);
+            _setObjectiveDetailsVisible(!IsObjectiveIndicatorCompact);
+            if (IsObjectiveIndicatorCompact)
+            {
+                var screenPosition = m_world.Camera.WorldToScreenPoint(CurrentTarget + Vector3.up * 1.6f);
+                var canvas = m_canvasRect.GetComponentInParent<Canvas>();
+                var eventCamera = canvas != null && canvas.renderMode != RenderMode.ScreenSpaceOverlay
+                    ? canvas.worldCamera
+                    : null;
+                RectTransformUtility.ScreenPointToLocalPointInRectangle(
+                    m_canvasRect, screenPosition, eventCamera, out var localPosition);
+                var anchorReference = new Vector2(
+                    Mathf.Lerp(m_canvasRect.rect.xMin, m_canvasRect.rect.xMax, m_panelRect.anchorMin.x),
+                    Mathf.Lerp(m_canvasRect.rect.yMin, m_canvasRect.rect.yMax, m_panelRect.anchorMin.y));
+                _moveObjectivePanel(localPosition - anchorReference);
+                m_icon.rectTransform.anchorMin = Vector2.one * 0.5f;
+                m_icon.rectTransform.anchorMax = Vector2.one * 0.5f;
+                m_icon.rectTransform.pivot = Vector2.one * 0.5f;
+                m_icon.rectTransform.anchoredPosition = Vector2.zero;
+                m_icon.rectTransform.localRotation = Quaternion.identity;
                 return;
             }
 
             var direction = _edgeDirection(CurrentTarget);
             var edgePosition = _edgePosition(direction, m_tuning.ObjectiveSize);
-            m_panelRect.anchoredPosition = edgePosition;
+            var panelPosition = _moveObjectivePanel(edgePosition);
             var panelImage = m_panel.GetComponent<Image>();
             if (panelImage != null)
             {
@@ -124,11 +160,52 @@ namespace DeadSignal.Presentation
                 panelImage.color = color;
             }
             m_icon.rectTransform.localRotation = Quaternion.Euler(0f, 0f, _directionAngle(direction));
-            m_objectiveTail.anchoredPosition = edgePosition - direction * 28f;
+            m_objectiveTail.anchoredPosition = panelPosition - direction * 28f;
             m_objectiveTail.localRotation = Quaternion.Euler(0f, 0f, _directionAngle(direction));
             m_label.text = $"NEXT  {_currentLabel()}";
             m_hint.text = _currentHint();
             m_distance.text = $"{Mathf.CeilToInt(DeadSignalWorld.FlatDistance(m_world.Player.position, CurrentTarget))}m";
+        }
+
+        private void _setObjectiveDetailsVisible(bool visible)
+        {
+            var panelImage = m_panel.GetComponent<Image>();
+            if (panelImage != null)
+            {
+                panelImage.enabled = visible;
+            }
+
+            m_label.gameObject.SetActive(visible);
+            m_hint.gameObject.SetActive(visible);
+            m_distance.gameObject.SetActive(visible);
+            if (m_objectiveTail != null)
+            {
+                m_objectiveTail.gameObject.SetActive(visible);
+            }
+
+            if (!visible)
+            {
+                return;
+            }
+
+            m_icon.rectTransform.anchorMin = m_edgeIconAnchorMin;
+            m_icon.rectTransform.anchorMax = m_edgeIconAnchorMax;
+            m_icon.rectTransform.pivot = m_edgeIconPivot;
+            m_icon.rectTransform.anchoredPosition = m_edgeIconPosition;
+        }
+
+        private Vector2 _moveObjectivePanel(Vector2 targetPosition)
+        {
+            if (!m_hasObjectivePanelPosition)
+            {
+                m_panelRect.anchoredPosition = targetPosition;
+                m_hasObjectivePanelPosition = true;
+                return targetPosition;
+            }
+
+            var interpolation = 1f - Mathf.Exp(-m_tuning.ObjectiveTransitionSpeed * Time.unscaledDeltaTime);
+            m_panelRect.anchoredPosition = Vector2.Lerp(m_panelRect.anchoredPosition, targetPosition, interpolation);
+            return m_panelRect.anchoredPosition;
         }
 
         private void _refreshTarget()

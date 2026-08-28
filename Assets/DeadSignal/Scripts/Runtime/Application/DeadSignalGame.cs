@@ -195,6 +195,7 @@ namespace DeadSignal.Application
         public bool HasHighContrastIcon => m_hud?.HasHighContrastIcon ?? false;
         public bool HasObjectiveBeaconIcon => m_objectiveBeacon?.HasIcon ?? false;
         public bool IsObjectiveEdgeIndicatorVisible => m_objectiveBeacon?.IsObjectiveIndicatorVisible ?? false;
+        public bool IsObjectiveIndicatorCompact => m_objectiveBeacon?.IsObjectiveIndicatorCompact ?? false;
         public int ActiveEnemyEdgeIndicatorCount => m_objectiveBeacon?.ActiveEnemyIndicatorCount ?? 0;
         public bool HasInputLinkIcon => m_hud?.HasInputLinkIcon ?? false;
         public bool HasAudioLinkIcon => m_hud?.HasAudioLinkIcon ?? false;
