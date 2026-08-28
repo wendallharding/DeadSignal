@@ -159,7 +159,6 @@ namespace DeadSignal.Missions
         public const float TowerCost = 10f;
         public const float TowerRefill = 62f;
         public const float RelayTowerRefill = 44f;
-        public const float SpineTowerCost = 18f;
         public const float SpineTowerRefill = 34f;
         public const float ShortcutCost = 16f;
         public const float SecurityHitCost = 18f;
@@ -314,12 +313,12 @@ namespace DeadSignal.Missions
         public bool TryActivateSpineTower()
         {
             if (!_isCurrentObjective(MissionObjectiveId.SpineTower) || !RelayTowerOnline || !RelayPayloadSecured ||
-                !SpineBerthVented || SpineRelayResultInstalled || Outcome != RunOutcome.Running || Signal <= SpineTowerCost)
+                !SpineBerthVented || SpineRelayResultInstalled || Outcome != RunOutcome.Running)
             {
                 return false;
             }
 
-            Signal = Math.Min(MaximumSignal, Signal - SpineTowerCost + SpineTowerRefill);
+            Signal = Math.Min(MaximumSignal, Signal + SpineTowerRefill);
             SpineRelayResultInstalled = true;
             CriticalRecoveryRemaining = 0f;
             return true;

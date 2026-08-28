@@ -163,7 +163,7 @@ MonoBehaviour:
     m_guidancePhase: 5
     m_guidanceTitle: INSTALL THE RELAY RESULT
     m_guidanceAction: SEAT IT IN THE CAPACITOR SPINE TOWER
-    m_guidanceAdvisory: SIGNAL -18  //  EVOLVE WEAPON + POWER DEEP RETURN
+    m_guidanceAdvisory: FREE INSTALLATION  //  REFILL +34  //  EVOLVE + POWER RETURN
     m_prerequisites: 0d000000
     m_successors: 05000000
   - m_id: 5

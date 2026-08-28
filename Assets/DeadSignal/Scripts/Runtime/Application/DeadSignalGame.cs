@@ -815,7 +815,6 @@ namespace DeadSignal.Application
                 return;
             }
 
-            m_model.SetSignalForDebug(Mathf.Max(m_model.Signal, RunModel.SpineTowerCost + 1f));
             if (m_model.TryActivateSpineTower())
             {
                 m_world.CompleteSpineRelayInstallation();
@@ -1811,11 +1810,6 @@ namespace DeadSignal.Application
                 {
                     _showFeedback("SPINE LOCKED — VENT THE BERTH IN THE DISCHARGE TRENCH");
                 }
-                else
-                {
-                    _showFeedback($"KEEP 1 SIGNAL AFTER {RunModel.SpineTowerCost:0} COST");
-                }
-
                 return;
             }
 

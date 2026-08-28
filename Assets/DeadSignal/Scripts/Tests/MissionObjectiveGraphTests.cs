@@ -136,7 +136,7 @@ namespace DeadSignal.Tests
             Assert.That(run.DeepReturnNetworkPowered, Is.True);
             Assert.That(run.CoreRebuildUnlocked, Is.True);
             Assert.That(run.Signal, Is.EqualTo(Math.Min(RunModel.MaximumSignal,
-                signalBeforeSpine - RunModel.SpineTowerCost + RunModel.SpineTowerRefill)));
+                signalBeforeSpine + RunModel.SpineTowerRefill)));
             _assertObjective(run, MissionObjectiveId.SpinePayload, MissionStage.SpinePayload,
                 MissionCompletionRule.SpinePayloadSecured, MissionWorldMutation.SpinePayloadSecured,
                 "FINAL PAYLOAD");

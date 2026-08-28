@@ -105,7 +105,7 @@ namespace DeadSignal.Tests
         }
 
         [Test]
-        public void SpineTower_RequiresRelayPreservesLastSignalAndRestoresOnce()
+        public void SpineTower_RequiresRelayAndVentingButInstallsAtZeroSignalOnce()
         {
             var run = new RunModel();
 
@@ -121,21 +121,14 @@ namespace DeadSignal.Tests
             Assert.That(run.TryActivateSpineTower(), Is.False);
             Assert.That(run.TryVentSpineBerth(), Is.True);
             Assert.That(run.TryVentSpineBerth(), Is.False);
-            Assert.That(run.TrySpend(run.Signal - RunModel.SpineTowerCost), Is.True);
-            Assert.That(run.TryActivateSpineTower(), Is.False);
-            Assert.That(run.SpineTowerOnline, Is.False);
-            Assert.That(run.SpineRelayResultInstalled, Is.False);
-            Assert.That(run.DeepReturnNetworkPowered, Is.False);
-            Assert.That(run.CoreRebuildUnlocked, Is.False);
-
-            Assert.That(run.RestoreSignal(1f), Is.EqualTo(1f));
-            var before = run.Signal;
+            Assert.That(run.TrySpend(run.Signal), Is.True);
+            Assert.That(run.Signal, Is.Zero);
             Assert.That(run.TryActivateSpineTower(), Is.True);
             Assert.That(run.SpineTowerOnline, Is.True);
             Assert.That(run.SpineRelayResultInstalled, Is.True);
             Assert.That(run.DeepReturnNetworkPowered, Is.True);
             Assert.That(run.CoreRebuildUnlocked, Is.True);
-            Assert.That(run.Signal, Is.EqualTo(before - RunModel.SpineTowerCost + RunModel.SpineTowerRefill));
+            Assert.That(run.Signal, Is.EqualTo(RunModel.SpineTowerRefill));
             Assert.That(run.TryActivateSpineTower(), Is.False);
         }
 

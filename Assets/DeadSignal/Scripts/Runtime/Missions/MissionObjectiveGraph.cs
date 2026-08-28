@@ -370,7 +370,7 @@ namespace DeadSignal.Missions
                     new MissionReward(MissionRewardKind.WeaponEvolution)
                 },
                 new MissionGuidanceState(5, "INSTALL THE RELAY RESULT", "SEAT IT IN THE CAPACITOR SPINE TOWER",
-                    $"SIGNAL -{RunModel.SpineTowerCost:0}  //  EVOLVE WEAPON + POWER DEEP RETURN"),
+                    $"FREE INSTALLATION  //  REFILL +{RunModel.SpineTowerRefill:0}  //  EVOLVE + POWER RETURN"),
                 new[] { MissionObjectiveId.SpineVenting }, new[] { MissionObjectiveId.SpinePayload }),
             _definition(MissionObjectiveId.SpinePayload, MissionStage.SpinePayload, "Capacitor Spine", "Spine Payload Socket",
                 MissionCompletionRule.SpinePayloadSecured, MissionWorldMutation.SpinePayloadSecured,
