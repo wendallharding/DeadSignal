@@ -178,6 +178,19 @@ MonoBehaviour:
     m_guidanceAction: CHARGE THE EMPTY LATTICE IN INDUCTION
     m_guidanceAdvisory: ENTER THE POWERED GALLERY  //  CHARGE AT THE COIL
     m_prerequisites: 04000000
+    m_successors: 0f000000
+  - m_id: 15
+    m_legacyStage: 5
+    m_owningRoom: Flux Bypass
+    m_anchorId: Flux Shunt Regulator
+    m_completionRule: 16
+    m_worldMutations: 262144
+    m_rewards: []
+    m_guidancePhase: 6
+    m_guidanceTitle: LATTICE CHARGED
+    m_guidanceAction: THROW THE FLUX BYPASS SHUNT
+    m_guidanceAdvisory: REROUTE CONVERGENCE FEED  //  OPENS RETURN FLANK
+    m_prerequisites: 0e000000
     m_successors: 05000000
   - m_id: 5
     m_legacyStage: 5
@@ -190,7 +203,7 @@ MonoBehaviour:
     m_guidanceTitle: FINAL PAYLOAD
     m_guidanceAction: SECURE ONE SPINE PAYLOAD
     m_guidanceAdvisory: GALLERY OR FURNACE-SIDE ROUTE  //  ONE REQUIRED
-    m_prerequisites: 0e000000
+    m_prerequisites: 0f000000
     m_successors: 06000000
   - m_id: 6
     m_legacyStage: 6

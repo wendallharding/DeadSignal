@@ -48,7 +48,7 @@ namespace DeadSignal.Diagnostics
 
             var game = FindFirstObjectByType<DeadSignalGame>();
             var missionObjectives = Resources.Load<MissionObjectiveGraphConfiguration>("Tuning/CompatibilityMissionObjectives");
-            var missionObjectivesReady = missionObjectives != null && missionObjectives.ObjectiveCount == 14;
+            var missionObjectivesReady = missionObjectives != null && missionObjectives.ObjectiveCount == 15;
             var objectiveConsumersReady = game != null &&
                                           game.CurrentMissionObjectiveId == MissionObjectiveId.CentralTower &&
                                           game.CurrentMissionGuidanceTitle == "RESTORE CENTRAL" &&
@@ -69,6 +69,8 @@ namespace DeadSignal.Diagnostics
                 FindFirstObjectByType<AuthoredSpineVentingObjective>(FindObjectsInactive.Include);
             var inductionLatticeObjective =
                 FindFirstObjectByType<AuthoredInductionLatticeObjective>(FindObjectsInactive.Include);
+            var fluxShuntObjective =
+                FindFirstObjectByType<AuthoredFluxShuntObjective>(FindObjectsInactive.Include);
             var centralTransferReady = relayForkObjective != null && relayForkObjective.IsConfigured &&
                                        transferVaultObjective != null && transferVaultObjective.IsConfigured &&
                                        centralInstallationObjective != null && centralInstallationObjective.IsConfigured &&
@@ -78,6 +80,8 @@ namespace DeadSignal.Diagnostics
                                     game != null && !game.IsSpineBerthVented;
             var inductionLatticeReady = inductionLatticeObjective != null && inductionLatticeObjective.IsConfigured &&
                                         game != null && !game.IsInductionLatticeCharged;
+            var fluxShuntReady = fluxShuntObjective != null && fluxShuntObjective.IsConfigured &&
+                                 game != null && !game.IsFluxShuntRouted;
             var weaponTextureReady = Resources.Load<Texture2D>("Environment/RelayFoundryWeaponCalibrationDecal") != null;
             var weaponMaterialReady =
                 Resources.Load<Material>("Materials/RelayFoundry/RelayFoundryWeaponCalibrationDecal") != null;
@@ -174,6 +178,9 @@ namespace DeadSignal.Diagnostics
             Debug.Log($"[DEAD SIGNAL STANDALONE SMOKE] INDUCTION LATTICE | " +
                       $"configured={inductionLatticeObjective?.IsConfigured ?? false} " +
                       $"charged={game?.IsInductionLatticeCharged ?? false}");
+            Debug.Log($"[DEAD SIGNAL STANDALONE SMOKE] FLUX SHUNT | " +
+                      $"configured={fluxShuntObjective?.IsConfigured ?? false} " +
+                      $"routed={game?.IsFluxShuntRouted ?? false}");
             var runtimeReady = game != null &&
                                 missionObjectivesReady &&
                                 objectiveConsumersReady &&
@@ -183,6 +190,7 @@ namespace DeadSignal.Diagnostics
                                 relayPayloadReady &&
                                 spineVentingReady &&
                                 inductionLatticeReady &&
+                                fluxShuntReady &&
                                 game.transform.Find("Maintenance Drone") != null &&
                                 game.transform.Find("Shortcut Gate Assembly/Signal Shortcut Gate") != null &&
                                 game.transform.Find("Tower Signal Lines/Signal Trunk West") != null &&

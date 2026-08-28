@@ -25,6 +25,8 @@ namespace DeadSignal.Editor
             "Assets/DeadSignal/Resources/Materials/RelayFoundry/RelayFoundryDeck.mat";
         private const string CYAN_MATERIAL_PATH =
             "Assets/DeadSignal/Resources/Materials/WorldPalette/SignalCyan.mat";
+        private const string AMBER_MATERIAL_PATH =
+            "Assets/DeadSignal/Resources/Materials/WorldPalette/SalvageAmber.mat";
 
         public static bool HasAssets
         {
@@ -38,6 +40,7 @@ namespace DeadSignal.Editor
                        AssetDatabase.LoadAssetAtPath<Material>(DECAL_MATERIAL_PATH) != null &&
                        region.GetComponentsInChildren<AuthoredMapObstacle>().Length == 8 &&
                        region.GetComponent<AuthoredPoweredTerritory>() != null &&
+                       region.GetComponent<AuthoredFluxShuntObjective>()?.IsConfigured == true &&
                        gallery.transform.Find("Flux Bypass Region") != null &&
                        gallery.GetComponentsInChildren<AuthoredMapObstacle>().Length >= 28 &&
                        chamber.transform.Find("Convergence West Bulkhead") == null &&
@@ -114,6 +117,7 @@ namespace DeadSignal.Editor
                 Armor = AssetDatabase.LoadAssetAtPath<Material>(ARMOR_MATERIAL_PATH),
                 Deck = AssetDatabase.LoadAssetAtPath<Material>(DECK_MATERIAL_PATH),
                 Cyan = AssetDatabase.LoadAssetAtPath<Material>(CYAN_MATERIAL_PATH),
+                Amber = AssetDatabase.LoadAssetAtPath<Material>(AMBER_MATERIAL_PATH),
                 Decal = decal
             };
         }
@@ -150,6 +154,10 @@ namespace DeadSignal.Editor
                 landmark.transform.localRotation = Quaternion.Euler(0f, 90f, 0f);
                 landmark.transform.localScale = Vector3.one * 0.82f;
 
+                var interactionAnchor = new GameObject("Flux Shunt Interaction Anchor");
+                interactionAnchor.transform.SetParent(root.transform, false);
+                interactionAnchor.transform.localPosition = new Vector3(1.45f, 0f, 0.75f);
+
                 var routing = new GameObject("Flux Bypass Signal Lines");
                 routing.transform.SetParent(root.transform, false);
                 _wall(routing.transform, "Flux Return Trunk", new Vector3(-2.55f, -0.1f, 0f),
@@ -158,6 +166,14 @@ namespace DeadSignal.Editor
                     new Vector3(5.8f, 0.04f, 0.12f), materials.Cyan, false);
                 _wall(routing.transform, "Flux Chamber Feed", new Vector3(0.45f, -0.1f, 2.75f),
                     new Vector3(5.8f, 0.04f, 0.12f), materials.Cyan, false);
+
+                var available = new GameObject("Flux Shunt Available");
+                available.transform.SetParent(root.transform, false);
+                available.transform.localPosition = new Vector3(-0.25f, 0f, 0.75f);
+                _markerPart(available.transform, "Amber Shunt Ring", PrimitiveType.Cylinder,
+                    new Vector3(0f, 0.08f, 0f), new Vector3(1.05f, 0.025f, 1.05f), materials.Amber);
+                _markerPart(available.transform, "Amber Shunt Lever", PrimitiveType.Cube,
+                    new Vector3(0f, 0.58f, 0f), new Vector3(0.16f, 0.7f, 0.16f), materials.Amber);
 
                 var decal = GameObject.CreatePrimitive(PrimitiveType.Quad);
                 decal.name = "Flux Bypass Route Decal";
@@ -169,7 +185,8 @@ namespace DeadSignal.Editor
                 UnityEngine.Object.DestroyImmediate(decal.GetComponent<Collider>());
 
                 root.AddComponent<AuthoredPoweredTerritory>().Configure(
-                    PoweredTerritorySource.SpineTower, new Vector2(3.15f, 5.4f), routing);
+                    PoweredTerritorySource.SpineTower, new Vector2(3.15f, 5.4f), null);
+                root.AddComponent<AuthoredFluxShuntObjective>().Configure(interactionAnchor.transform, available, routing);
                 PrefabUtility.SaveAsPrefabAsset(root, REGION_PREFAB_PATH);
             }
             finally
@@ -264,11 +281,24 @@ namespace DeadSignal.Editor
             return result;
         }
 
+        private static void _markerPart(Transform parent, string name, PrimitiveType primitiveType,
+            Vector3 position, Vector3 scale, Material material)
+        {
+            var part = GameObject.CreatePrimitive(primitiveType);
+            part.name = name;
+            part.transform.SetParent(parent, false);
+            part.transform.localPosition = position;
+            part.transform.localScale = scale;
+            part.GetComponent<Renderer>().sharedMaterial = material;
+            UnityEngine.Object.DestroyImmediate(part.GetComponent<Collider>());
+        }
+
         private sealed class Materials
         {
             public Material Armor;
             public Material Deck;
             public Material Cyan;
+            public Material Amber;
             public Material Decal;
         }
     }

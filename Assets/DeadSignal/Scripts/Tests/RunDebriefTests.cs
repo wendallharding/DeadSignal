@@ -62,6 +62,7 @@ namespace DeadSignal.Tests
             model.TryVentSpineBerth();
             model.TryActivateSpineTower();
             model.TryChargeInductionLattice();
+            model.TryRouteFluxShunt();
             model.CollectPayload(SignalRegion.Spine);
         }
     }

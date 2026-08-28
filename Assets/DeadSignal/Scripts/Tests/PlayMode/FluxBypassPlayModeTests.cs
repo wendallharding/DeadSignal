@@ -7,6 +7,7 @@ using UnityEngine.InputSystem.LowLevel;
 using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
 using DeadSignal.Application;
+using DeadSignal.Missions;
 using DeadSignal.World;
 
 namespace DeadSignal.Tests
@@ -28,12 +29,16 @@ namespace DeadSignal.Tests
                 var chamber = gallery.Find("Convergence Chamber Region");
                 var bypass = gallery.Find("Flux Bypass Region");
                 var territory = bypass.GetComponent<AuthoredPoweredTerritory>();
+                var objective = bypass.GetComponent<AuthoredFluxShuntObjective>();
                 var routing = bypass.Find("Flux Bypass Signal Lines").gameObject;
+                var available = bypass.Find("Flux Shunt Available").gameObject;
 
                 Assert.That(bypass.position, Is.EqualTo(new Vector3(32f, 0f, 12.75f)));
                 Assert.That(bypass.GetComponentsInChildren<AuthoredMapObstacle>().Length, Is.EqualTo(8));
                 Assert.That(bypass.GetComponentsInChildren<Collider>().Length, Is.Zero);
                 Assert.That(bypass.Find("Flux Shunt Regulator"), Is.Not.Null);
+                Assert.That(objective, Is.Not.Null);
+                Assert.That(objective.IsConfigured, Is.True);
                 Assert.That(bypass.Find("South Flux Deflector"), Is.Not.Null);
                 Assert.That(bypass.Find("North Flux Deflector"), Is.Not.Null);
                 Assert.That(bypass.Find("Flux Bypass Route Decal"), Is.Not.Null);
@@ -81,9 +86,35 @@ namespace DeadSignal.Tests
                 Assert.That(game.DebugIsPoweredAt(bypassCenter), Is.False);
                 Assert.That(routing.activeSelf, Is.False);
                 game.DebugActivateSpineTower();
+                game.DebugSelectOverclock(SignalOverclock.ChainArc);
+                game.DebugSelectAuxiliary(SignalAuxiliaryOverclock.FeedbackShield);
                 Assert.That(game.DebugIsPoweredAt(bypassCenter), Is.True,
                     "The exterior loop should become a powered return flank with the Spine tower.");
-                Assert.That(routing.activeSelf, Is.True);
+                Assert.That(routing.activeSelf, Is.False,
+                    "Spine power should not bypass the authored shunt transaction.");
+                Assert.That(available.activeSelf, Is.False);
+
+                game.DebugChargeInductionLattice();
+                yield return null;
+                Assert.That(game.CurrentMissionObjectiveId, Is.EqualTo(MissionObjectiveId.FluxShunt));
+                Assert.That(available.activeSelf, Is.True,
+                    "The charged lattice should expose an amber shunt marker at the regulator.");
+                Assert.That(routing.activeSelf, Is.False);
+
+                player.position = game.FluxShuntPosition;
+                yield return null;
+                Assert.That(Vector3.Distance(player.position, game.FluxShuntPosition), Is.LessThan(2.6f),
+                    "The authored shunt anchor must remain reachable after movement collision resolves.");
+                yield return _interact(gamepad);
+                Assert.That(game.IsFluxShuntRouted, Is.True);
+                Assert.That(game.CurrentMissionObjectiveId, Is.EqualTo(MissionObjectiveId.SpinePayload));
+                Assert.That(available.activeSelf, Is.False);
+                Assert.That(routing.activeSelf, Is.True,
+                    "Throwing the shunt should leave a persistent cyan return flank into Convergence.");
+
+                yield return _interact(gamepad);
+                Assert.That(game.CurrentMissionObjectiveId, Is.EqualTo(MissionObjectiveId.SpinePayload),
+                    "Repeated interaction must not duplicate or skip the compatibility objective.");
             }
             finally
             {
@@ -100,6 +131,15 @@ namespace DeadSignal.Tests
                 yield return null;
             }
 
+            InputSystem.QueueStateEvent(gamepad, new GamepadState());
+            yield return null;
+        }
+
+        private static IEnumerator _interact(Gamepad gamepad)
+        {
+            InputSystem.QueueStateEvent(gamepad,
+                new GamepadState().WithButton(GamepadButton.West));
+            yield return null;
             InputSystem.QueueStateEvent(gamepad, new GamepadState());
             yield return null;
         }

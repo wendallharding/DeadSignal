@@ -70,6 +70,7 @@ namespace DeadSignal.World
         public AuthoredRelayPayloadObjective RelayPayloadObjective { get; private set; }
         public AuthoredSpineVentingObjective SpineVentingObjective { get; private set; }
         public AuthoredInductionLatticeObjective InductionLatticeObjective { get; private set; }
+        public AuthoredFluxShuntObjective FluxShuntObjective { get; private set; }
         public IReadOnlyList<GameObject> SalvagePickups => m_salvagePickups;
 
         public SignalRegion GetPayloadRegion(GameObject pickup) => m_salvageRegions.TryGetValue(pickup, out var region)
@@ -169,6 +170,8 @@ namespace DeadSignal.World
                 Object.FindFirstObjectByType<AuthoredSpineVentingObjective>(FindObjectsInactive.Include);
             InductionLatticeObjective =
                 Object.FindFirstObjectByType<AuthoredInductionLatticeObjective>(FindObjectsInactive.Include);
+            FluxShuntObjective =
+                Object.FindFirstObjectByType<AuthoredFluxShuntObjective>(FindObjectsInactive.Include);
             _buildActors(comfortSettings);
             m_palette.RebindHierarchy(m_root);
             _configurePlayerCamera();
@@ -359,6 +362,13 @@ namespace DeadSignal.World
             InductionLatticeObjective?.SetState(
                 model.CurrentObjective.Id == MissionObjectiveId.InductionLattice,
                 model.InductionLatticeCharged);
+        }
+
+        public void UpdateFluxShuntPresentation(RunModel model)
+        {
+            FluxShuntObjective?.SetState(
+                model.CurrentObjective.Id == MissionObjectiveId.FluxShunt,
+                model.FluxShuntRouted);
         }
 
         public Vector3 GetObjectiveGuidanceWaypoint(RunModel model, float radius)
@@ -1644,6 +1654,10 @@ namespace DeadSignal.World
                 case MissionObjectiveId.InductionLattice:
                     return InductionLatticeObjective != null
                         ? InductionLatticeObjective.Position
+                        : SpineTowerInteractionPosition;
+                case MissionObjectiveId.FluxShunt:
+                    return FluxShuntObjective != null
+                        ? FluxShuntObjective.Position
                         : SpineTowerInteractionPosition;
                 case MissionObjectiveId.Extraction:
                     return ExtractionPosition;

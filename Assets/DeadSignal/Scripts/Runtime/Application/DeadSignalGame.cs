@@ -114,6 +114,7 @@ namespace DeadSignal.Application
         public bool IsDeepReturnNetworkPowered => m_model?.DeepReturnNetworkPowered ?? false;
         public bool IsCoreRebuildUnlocked => m_model?.CoreRebuildUnlocked ?? false;
         public bool IsInductionLatticeCharged => m_model?.InductionLatticeCharged ?? false;
+        public bool IsFluxShuntRouted => m_model?.FluxShuntRouted ?? false;
         public bool IsCentralPayloadSecured => m_model?.CentralPayloadSecured ?? false;
         public bool IsCentralPayloadAssembled => m_model?.CentralPayloadAssembled ?? false;
         public bool IsCargoCouplingSecured => m_model?.CargoCouplingSecured ?? false;
@@ -148,6 +149,7 @@ namespace DeadSignal.Application
         public Vector3 SpineTowerInteractionPosition => m_world?.SpineTowerInteractionPosition ?? Vector3.zero;
         public Vector3 SpineVentingPosition => m_world?.SpineVentingObjective?.Position ?? Vector3.zero;
         public Vector3 InductionLatticePosition => m_world?.InductionLatticeObjective?.Position ?? Vector3.zero;
+        public Vector3 FluxShuntPosition => m_world?.FluxShuntObjective?.Position ?? Vector3.zero;
         public bool IsWeaponEvolved => m_overclockChoice?.IsWeaponEvolved ?? false;
         public Vector3 SafestReinforcementEntryPosition => m_world == null
             ? Vector3.zero
@@ -848,6 +850,18 @@ namespace DeadSignal.Application
             _showFeedback("DEBUG — CORE LATTICE CHARGED");
         }
 
+        public void DebugRouteFluxShunt()
+        {
+            DebugChargeInductionLattice();
+            if (m_model?.TryRouteFluxShunt() != true)
+            {
+                return;
+            }
+
+            m_world.UpdateFluxShuntPresentation(m_model);
+            _showFeedback("DEBUG — FLUX SHUNT ROUTED");
+        }
+
         public void DebugOpenShortcut()
         {
             DebugActivateTower();
@@ -971,6 +985,7 @@ namespace DeadSignal.Application
             }
             DebugActivateSpineTower();
             DebugChargeInductionLattice();
+            DebugRouteFluxShunt();
             DebugCollectNextCache();
         }
 
@@ -1374,6 +1389,7 @@ namespace DeadSignal.Application
             m_world.UpdateRelayPayloadPresentation(m_model);
             m_world.UpdateSpineVentingPresentation(m_model);
             m_world.UpdateInductionLatticePresentation(m_model);
+            m_world.UpdateFluxShuntPresentation(m_model);
             m_world.PlayerSignalWake.Tick(m_playerMovement.Velocity);
             m_world.TickGameplayAssists(dt, m_threats, aimDirection);
 
@@ -1689,6 +1705,21 @@ namespace DeadSignal.Application
 
         private void _handleInteraction()
         {
+            if (m_world.FluxShuntObjective != null &&
+                m_model.CurrentObjective.Id == MissionObjectiveId.FluxShunt &&
+                DeadSignalWorld.FlatDistance(m_world.Player.position, m_world.FluxShuntObjective.Position) <
+                TOWER_INTERACTION_RADIUS)
+            {
+                if (m_model.TryRouteFluxShunt())
+                {
+                    m_world.UpdateFluxShuntPresentation(m_model);
+                    m_audio.Play(DeadSignalAudioCue.Shortcut);
+                    _showFeedback("FLUX SHUNT ROUTED — CONVERGENCE FEED ONLINE");
+                }
+
+                return;
+            }
+
             if (m_combatChamber != null)
             {
                 if (m_combatChamber.TryCollectReward(m_world.Player.position))
@@ -2206,6 +2237,7 @@ namespace DeadSignal.Application
                 case DebugRouteAction.VentSpineBerth: DebugVentSpineBerth(); break;
                 case DebugRouteAction.ActivateSpineTower: DebugActivateSpineTower(); break;
                 case DebugRouteAction.ChargeInductionLattice: DebugChargeInductionLattice(); break;
+                case DebugRouteAction.RouteFluxShunt: DebugRouteFluxShunt(); break;
                 case DebugRouteAction.BeginStableExtraction: DebugBeginExtraction(ExtractionUplinkMode.Stable); break;
                 case DebugRouteAction.CaptureScreenshot: DebugCaptureScreenshot(); break;
             }
@@ -2257,6 +2289,7 @@ namespace DeadSignal.Application
                 DebugRouteAction.VentSpineBerth => m_model.SpineBerthVented && _debugObjectiveAdvanced(),
                 DebugRouteAction.ActivateSpineTower => m_model.SpineTowerOnline && _debugObjectiveAdvanced(),
                 DebugRouteAction.ChargeInductionLattice => m_model.InductionLatticeCharged && _debugObjectiveAdvanced(),
+                DebugRouteAction.RouteFluxShunt => m_model.FluxShuntRouted && _debugObjectiveAdvanced(),
                 DebugRouteAction.BeginStableExtraction => m_extractionUplink.IsActive,
                 _ => true
             };

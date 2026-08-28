@@ -19,7 +19,8 @@ namespace DeadSignal.Missions
         CentralInstallation,
         RelayInstallation,
         SpineVenting,
-        InductionLattice
+        InductionLattice,
+        FluxShunt
     }
 
     public enum MissionCompletionRule
@@ -39,7 +40,8 @@ namespace DeadSignal.Missions
         RelayPayloadStabilized,
         SpineBerthVented,
         SpineRelayResultInstalled,
-        InductionLatticeCharged
+        InductionLatticeCharged,
+        FluxShuntRouted
     }
 
     [Flags]
@@ -63,7 +65,8 @@ namespace DeadSignal.Missions
         SpineRelayResultInstalled = 1 << 14,
         DeepReturnNetworkPowered = 1 << 15,
         CoreRebuildUnlocked = 1 << 16,
-        InductionLatticeCharged = 1 << 17
+        InductionLatticeCharged = 1 << 17,
+        FluxShuntRouted = 1 << 18
     }
 
     public enum MissionRewardKind
@@ -381,12 +384,19 @@ namespace DeadSignal.Missions
                 Array.Empty<MissionReward>(),
                 new MissionGuidanceState(6, "REBUILD THE SIGNAL CORE", "CHARGE THE EMPTY LATTICE IN INDUCTION",
                     "ENTER THE POWERED GALLERY  //  CHARGE AT THE COIL"),
-                new[] { MissionObjectiveId.SpineTower }, new[] { MissionObjectiveId.SpinePayload }),
+                new[] { MissionObjectiveId.SpineTower }, new[] { MissionObjectiveId.FluxShunt }),
+            _definition(MissionObjectiveId.FluxShunt, MissionStage.SpinePayload,
+                "Flux Bypass", "Flux Shunt Regulator",
+                MissionCompletionRule.FluxShuntRouted, MissionWorldMutation.FluxShuntRouted,
+                Array.Empty<MissionReward>(),
+                new MissionGuidanceState(6, "LATTICE CHARGED", "THROW THE FLUX BYPASS SHUNT",
+                    "REROUTE CONVERGENCE FEED  //  OPENS RETURN FLANK"),
+                new[] { MissionObjectiveId.InductionLattice }, new[] { MissionObjectiveId.SpinePayload }),
             _definition(MissionObjectiveId.SpinePayload, MissionStage.SpinePayload, "Capacitor Spine", "Spine Payload Socket",
                 MissionCompletionRule.SpinePayloadSecured, MissionWorldMutation.SpinePayloadSecured,
                 Array.Empty<MissionReward>(),
                 new MissionGuidanceState(6, "FINAL PAYLOAD", "SECURE ONE SPINE PAYLOAD", "GALLERY OR FURNACE-SIDE ROUTE  //  ONE REQUIRED"),
-                new[] { MissionObjectiveId.InductionLattice }, new[] { MissionObjectiveId.Extraction }),
+                new[] { MissionObjectiveId.FluxShunt }, new[] { MissionObjectiveId.Extraction }),
             _definition(MissionObjectiveId.Extraction, MissionStage.Extraction, "Extraction Dock", "Dock Uplink",
                 MissionCompletionRule.ExtractionComplete, MissionWorldMutation.RunCompleted,
                 new[] { new MissionReward(MissionRewardKind.Victory) },

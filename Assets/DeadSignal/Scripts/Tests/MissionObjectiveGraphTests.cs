@@ -13,7 +13,7 @@ namespace DeadSignal.Tests
         {
             var definitions = CompatibilityMissionObjectiveGraph.Instance.Definitions;
 
-            Assert.That(definitions.Count, Is.EqualTo(14));
+            Assert.That(definitions.Count, Is.EqualTo(15));
             Assert.That(definitions.Select(definition => definition.Id), Is.Unique);
             Assert.That(definitions.All(definition => !string.IsNullOrWhiteSpace(definition.OwningRoom)), Is.True);
             Assert.That(definitions.All(definition => !string.IsNullOrWhiteSpace(definition.AnchorId)), Is.True);
@@ -28,7 +28,7 @@ namespace DeadSignal.Tests
                 Is.EquivalentTo(new[] { MissionRewardKind.WeaponCalibration }));
             Assert.That(definitions[10].Rewards.Select(reward => reward.Kind),
                 Is.EquivalentTo(new[] { MissionRewardKind.SignalRefill, MissionRewardKind.WeaponEvolution }));
-            Assert.That(definitions[13].Rewards.Single().Kind, Is.EqualTo(MissionRewardKind.Victory));
+            Assert.That(definitions[14].Rewards.Single().Kind, Is.EqualTo(MissionRewardKind.Victory));
         }
 
         [Test]
@@ -37,7 +37,7 @@ namespace DeadSignal.Tests
             var configuration = Resources.Load<MissionObjectiveGraphConfiguration>("Tuning/CompatibilityMissionObjectives");
 
             Assert.That(configuration, Is.Not.Null);
-            Assert.That(configuration.ObjectiveCount, Is.EqualTo(14));
+            Assert.That(configuration.ObjectiveCount, Is.EqualTo(15));
             var authored = configuration.BuildGraph().Definitions;
             var fallback = CompatibilityMissionObjectiveGraph.Instance.Definitions;
             Assert.That(authored.Count, Is.EqualTo(fallback.Count));
@@ -143,6 +143,12 @@ namespace DeadSignal.Tests
             Assert.That(run.TryChargeInductionLattice(), Is.True);
             Assert.That(run.TryChargeInductionLattice(), Is.False);
             Assert.That(run.InductionLatticeCharged, Is.True);
+            _assertObjective(run, MissionObjectiveId.FluxShunt, MissionStage.SpinePayload,
+                MissionCompletionRule.FluxShuntRouted, MissionWorldMutation.FluxShuntRouted,
+                "LATTICE CHARGED");
+            Assert.That(run.TryRouteFluxShunt(), Is.True);
+            Assert.That(run.TryRouteFluxShunt(), Is.False);
+            Assert.That(run.FluxShuntRouted, Is.True);
             _assertObjective(run, MissionObjectiveId.SpinePayload, MissionStage.SpinePayload,
                 MissionCompletionRule.SpinePayloadSecured, MissionWorldMutation.SpinePayloadSecured,
                 "FINAL PAYLOAD");

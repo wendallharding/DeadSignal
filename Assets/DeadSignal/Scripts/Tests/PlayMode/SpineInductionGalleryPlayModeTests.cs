@@ -94,13 +94,13 @@ namespace DeadSignal.Tests
                 player.position = game.InductionLatticePosition;
                 yield return _interact(gamepad);
                 Assert.That(game.IsInductionLatticeCharged, Is.True);
-                Assert.That(game.CurrentMissionObjectiveId, Is.EqualTo(MissionObjectiveId.SpinePayload));
+                Assert.That(game.CurrentMissionObjectiveId, Is.EqualTo(MissionObjectiveId.FluxShunt));
                 Assert.That(available.activeSelf, Is.False);
                 Assert.That(charged.activeSelf, Is.True,
                     "Charging should leave a persistent cyan lattice in the authored gallery.");
 
                 yield return _interact(gamepad);
-                Assert.That(game.CurrentMissionObjectiveId, Is.EqualTo(MissionObjectiveId.SpinePayload),
+                Assert.That(game.CurrentMissionObjectiveId, Is.EqualTo(MissionObjectiveId.FluxShunt),
                     "Repeated interaction must not duplicate or skip the compatibility objective.");
             }
             finally

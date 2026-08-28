@@ -180,6 +180,7 @@ namespace DeadSignal.Missions
         public bool DeepReturnNetworkPowered => SpineRelayResultInstalled;
         public bool CoreRebuildUnlocked => SpineRelayResultInstalled;
         public bool InductionLatticeCharged { get; private set; }
+        public bool FluxShuntRouted { get; private set; }
         public bool ShortcutOpen { get; private set; }
         public bool OptionalSalvageSecured { get; private set; }
         public bool CentralPayloadSecured { get; private set; }
@@ -346,6 +347,18 @@ namespace DeadSignal.Missions
             }
 
             InductionLatticeCharged = true;
+            return true;
+        }
+
+        public bool TryRouteFluxShunt()
+        {
+            if (!_isCurrentObjective(MissionObjectiveId.FluxShunt) || !InductionLatticeCharged ||
+                FluxShuntRouted || Outcome != RunOutcome.Running)
+            {
+                return false;
+            }
+
+            FluxShuntRouted = true;
             return true;
         }
 
@@ -539,6 +552,7 @@ namespace DeadSignal.Missions
                 MissionCompletionRule.SpineBerthVented => SpineBerthVented,
                 MissionCompletionRule.SpineRelayResultInstalled => SpineRelayResultInstalled,
                 MissionCompletionRule.InductionLatticeCharged => InductionLatticeCharged,
+                MissionCompletionRule.FluxShuntRouted => FluxShuntRouted,
                 _ => false
             };
         }
