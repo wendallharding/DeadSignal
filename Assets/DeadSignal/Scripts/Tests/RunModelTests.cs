@@ -245,8 +245,32 @@ namespace DeadSignal.Tests
             Assert.That(run.TryForgeLattice(), Is.False);
             Assert.That(run.TryStabilizeCore(), Is.True);
             Assert.That(run.CoreStabilized, Is.True);
-            Assert.That(run.CurrentObjective.Id, Is.EqualTo(MissionObjectiveId.SpinePayload));
+            Assert.That(run.CurrentObjective.Id, Is.EqualTo(MissionObjectiveId.TrialCommitment));
             Assert.That(run.TryStabilizeCore(), Is.False);
+        }
+
+        [Test]
+        public void SecurityTrial_RequiresCommitmentClearAndCapacitorInOrder()
+        {
+            var run = new RunModel();
+
+            Assert.That(run.TryCommitSecurityTrial(), Is.False);
+            Assert.That(run.TryCompleteSecurityTrial(), Is.False);
+            Assert.That(run.TryRecoverStationCapacitor(), Is.False);
+            _completeThroughBreaker(run);
+            Assert.That(run.TryForgeLattice(), Is.True);
+            Assert.That(run.TryStabilizeCore(), Is.True);
+
+            Assert.That(run.TryCompleteSecurityTrial(), Is.False);
+            Assert.That(run.TryCommitSecurityTrial(), Is.True);
+            Assert.That(run.CurrentObjective.Id, Is.EqualTo(MissionObjectiveId.TrialLockdown));
+            Assert.That(run.TryCommitSecurityTrial(), Is.False);
+            Assert.That(run.TryCompleteSecurityTrial(), Is.True);
+            Assert.That(run.CurrentObjective.Id, Is.EqualTo(MissionObjectiveId.StationCapacitor));
+            Assert.That(run.TryCompleteSecurityTrial(), Is.False);
+            Assert.That(run.TryRecoverStationCapacitor(), Is.True);
+            Assert.That(run.CurrentObjective.Id, Is.EqualTo(MissionObjectiveId.SpinePayload));
+            Assert.That(run.TryRecoverStationCapacitor(), Is.False);
         }
 
         [Test]
@@ -301,6 +325,9 @@ namespace DeadSignal.Tests
             Assert.That(run.TryResetBreakerDistribution(), Is.True);
             Assert.That(run.TryForgeLattice(), Is.True);
             Assert.That(run.TryStabilizeCore(), Is.True);
+            Assert.That(run.TryCommitSecurityTrial(), Is.True);
+            Assert.That(run.TryCompleteSecurityTrial(), Is.True);
+            Assert.That(run.TryRecoverStationCapacitor(), Is.True);
             Assert.That(run.CollectPayload(SignalRegion.Spine), Is.True);
 
             Assert.That(run.CanExtract, Is.True);
@@ -329,6 +356,9 @@ namespace DeadSignal.Tests
             Assert.That(run.TryResetBreakerDistribution(), Is.True);
             Assert.That(run.TryForgeLattice(), Is.True);
             Assert.That(run.TryStabilizeCore(), Is.True);
+            Assert.That(run.TryCommitSecurityTrial(), Is.True);
+            Assert.That(run.TryCompleteSecurityTrial(), Is.True);
+            Assert.That(run.TryRecoverStationCapacitor(), Is.True);
             Assert.That(run.CollectPayload(SignalRegion.Spine), Is.True);
 
             run.TrySpend(30f);

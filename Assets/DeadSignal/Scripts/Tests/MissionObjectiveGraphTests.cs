@@ -13,7 +13,7 @@ namespace DeadSignal.Tests
         {
             var definitions = CompatibilityMissionObjectiveGraph.Instance.Definitions;
 
-            Assert.That(definitions.Count, Is.EqualTo(19));
+            Assert.That(definitions.Count, Is.EqualTo(22));
             Assert.That(definitions.Select(definition => definition.Id), Is.Unique);
             Assert.That(definitions.All(definition => !string.IsNullOrWhiteSpace(definition.OwningRoom)), Is.True);
             Assert.That(definitions.All(definition => !string.IsNullOrWhiteSpace(definition.AnchorId)), Is.True);
@@ -28,7 +28,7 @@ namespace DeadSignal.Tests
                 Is.EquivalentTo(new[] { MissionRewardKind.WeaponCalibration }));
             Assert.That(definitions[10].Rewards.Select(reward => reward.Kind),
                 Is.EquivalentTo(new[] { MissionRewardKind.SignalRefill, MissionRewardKind.WeaponEvolution }));
-            Assert.That(definitions[18].Rewards.Single().Kind, Is.EqualTo(MissionRewardKind.Victory));
+            Assert.That(definitions[21].Rewards.Single().Kind, Is.EqualTo(MissionRewardKind.Victory));
         }
 
         [Test]
@@ -37,7 +37,7 @@ namespace DeadSignal.Tests
             var configuration = Resources.Load<MissionObjectiveGraphConfiguration>("Tuning/CompatibilityMissionObjectives");
 
             Assert.That(configuration, Is.Not.Null);
-            Assert.That(configuration.ObjectiveCount, Is.EqualTo(19));
+            Assert.That(configuration.ObjectiveCount, Is.EqualTo(22));
             var authored = configuration.BuildGraph().Definitions;
             var fallback = CompatibilityMissionObjectiveGraph.Instance.Definitions;
             Assert.That(authored.Count, Is.EqualTo(fallback.Count));
@@ -171,6 +171,18 @@ namespace DeadSignal.Tests
                 "LATTICE FORGED");
             Assert.That(run.TryStabilizeCore(), Is.True);
             Assert.That(run.CoreStabilized, Is.True);
+            _assertObjective(run, MissionObjectiveId.TrialCommitment, MissionStage.SpinePayload,
+                MissionCompletionRule.TrialCommitted, MissionWorldMutation.TrialCommitted,
+                "CORE STABILIZED");
+            Assert.That(run.TryCommitSecurityTrial(), Is.True);
+            _assertObjective(run, MissionObjectiveId.TrialLockdown, MissionStage.SpinePayload,
+                MissionCompletionRule.TrialCleared, MissionWorldMutation.TrialCleared,
+                "FINAL TRIAL ARMED");
+            Assert.That(run.TryCompleteSecurityTrial(), Is.True);
+            _assertObjective(run, MissionObjectiveId.StationCapacitor, MissionStage.SpinePayload,
+                MissionCompletionRule.StationCapacitorRecovered, MissionWorldMutation.StationCapacitorRecovered,
+                "SECURITY TRIAL CLEARED");
+            Assert.That(run.TryRecoverStationCapacitor(), Is.True);
             _assertObjective(run, MissionObjectiveId.SpinePayload, MissionStage.SpinePayload,
                 MissionCompletionRule.SpinePayloadSecured, MissionWorldMutation.SpinePayloadSecured,
                 "FINAL PAYLOAD");

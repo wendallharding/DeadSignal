@@ -187,6 +187,9 @@ namespace DeadSignal.Missions
         public bool BreakerDistributionReset { get; private set; }
         public bool LatticeForged { get; private set; }
         public bool CoreStabilized { get; private set; }
+        public bool TrialCommitted { get; private set; }
+        public bool TrialCleared { get; private set; }
+        public bool StationCapacitorRecovered { get; private set; }
         public float ConvergenceCalibrationProgress { get; private set; }
         public float ConvergenceCalibrationDuration => m_convergenceCalibrationDuration;
         public bool ShortcutOpen { get; private set; }
@@ -439,6 +442,42 @@ namespace DeadSignal.Missions
             return true;
         }
 
+        public bool TryCommitSecurityTrial()
+        {
+            if (!_isCurrentObjective(MissionObjectiveId.TrialCommitment) || !CoreStabilized ||
+                TrialCommitted || Outcome != RunOutcome.Running)
+            {
+                return false;
+            }
+
+            TrialCommitted = true;
+            return true;
+        }
+
+        public bool TryCompleteSecurityTrial()
+        {
+            if (!_isCurrentObjective(MissionObjectiveId.TrialLockdown) || !TrialCommitted ||
+                TrialCleared || Outcome != RunOutcome.Running)
+            {
+                return false;
+            }
+
+            TrialCleared = true;
+            return true;
+        }
+
+        public bool TryRecoverStationCapacitor()
+        {
+            if (!_isCurrentObjective(MissionObjectiveId.StationCapacitor) || !TrialCleared ||
+                StationCapacitorRecovered || Outcome != RunOutcome.Running)
+            {
+                return false;
+            }
+
+            StationCapacitorRecovered = true;
+            return true;
+        }
+
         public bool TryInstallRelayPayload()
         {
             if (!_isCurrentObjective(MissionObjectiveId.RelayInstallation) || !RelayPayloadStabilized ||
@@ -634,6 +673,9 @@ namespace DeadSignal.Missions
                 MissionCompletionRule.BreakerDistributionReset => BreakerDistributionReset,
                 MissionCompletionRule.LatticeForged => LatticeForged,
                 MissionCompletionRule.CoreStabilized => CoreStabilized,
+                MissionCompletionRule.TrialCommitted => TrialCommitted,
+                MissionCompletionRule.TrialCleared => TrialCleared,
+                MissionCompletionRule.StationCapacitorRecovered => StationCapacitorRecovered,
                 _ => false
             };
         }

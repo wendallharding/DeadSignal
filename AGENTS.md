@@ -185,6 +185,9 @@ Preferred layout, organize class members in this order:
 - Prefer EditMode tests for pure logic and PlayMode tests for scene bootstrap, Unity lifecycle, input, movement, rendering state, and runtime integration.
 - Add references to an assembly definition only when a test or runtime assembly genuinely requires them.
 - Run the smallest relevant test set first. For risky or cross-cutting changes, run the broader applicable EditMode and PlayMode suites.
+- Follow `VALIDATION.md` for test lanes and escalation. Normal bounded slices use focused filters in as few Unity invocations as practical; expensive route, LiveBalance, combat-evidence, and release lanes run only when their documented triggers apply.
+- Progression or navigation changes require the focused slice tests plus the single required `RouteRegression` journey. They do not require every optional, stochastic, duplicated release-route, and combat-evidence test on the same run.
+- Full EditMode/PlayMode plus Windows build/smoke is a separate weekly or milestone gate, and remains mandatory for phase/act completion, packaging or boot changes, scene-architecture integration, and release candidates.
 - Unity compilation and Unity Test Runner results are authoritative. `dotnet build` or `dotnet test` against Unity-generated project files is not equivalent.
 - Use the pinned Unity `6000.3.11f1` Editor for import, compilation, and tests when available.
 - If the project is already open in Unity, do not close the user's Editor or risk unsaved state. Use the live Test Runner when practical or validate against a safe isolated project copy and report that distinction.

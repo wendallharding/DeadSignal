@@ -75,6 +75,7 @@ namespace DeadSignal.World
         public AuthoredBreakerResetObjective BreakerResetObjective { get; private set; }
         public AuthoredFurnaceForgeObjective FurnaceForgeObjective { get; private set; }
         public AuthoredQuenchStabilizationObjective QuenchStabilizationObjective { get; private set; }
+        public AuthoredCombatChamber CombatChamber { get; private set; }
         public IReadOnlyList<GameObject> SalvagePickups => m_salvagePickups;
 
         public SignalRegion GetPayloadRegion(GameObject pickup) => m_salvageRegions.TryGetValue(pickup, out var region)
@@ -184,6 +185,7 @@ namespace DeadSignal.World
                 Object.FindFirstObjectByType<AuthoredFurnaceForgeObjective>(FindObjectsInactive.Include);
             QuenchStabilizationObjective =
                 Object.FindFirstObjectByType<AuthoredQuenchStabilizationObjective>(FindObjectsInactive.Include);
+            CombatChamber = Object.FindFirstObjectByType<AuthoredCombatChamber>(FindObjectsInactive.Include);
             _buildActors(comfortSettings);
             m_palette.RebindHierarchy(m_root);
             _configurePlayerCamera();
@@ -1712,6 +1714,12 @@ namespace DeadSignal.World
                     return QuenchStabilizationObjective != null
                         ? QuenchStabilizationObjective.Position
                         : SpineTowerInteractionPosition;
+                case MissionObjectiveId.TrialCommitment:
+                    return CombatChamber != null ? CombatChamber.CommitmentSwitch.position : SpineTowerInteractionPosition;
+                case MissionObjectiveId.TrialLockdown:
+                    return CombatChamber != null ? CombatChamber.LockdownThreshold.position : SpineTowerInteractionPosition;
+                case MissionObjectiveId.StationCapacitor:
+                    return CombatChamber != null ? CombatChamber.RewardPosition : SpineTowerInteractionPosition;
                 case MissionObjectiveId.Extraction:
                     return ExtractionPosition;
                 case MissionObjectiveId.CentralPayload:

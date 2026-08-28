@@ -37,6 +37,7 @@ namespace DeadSignal.Tests.PlayMode
         }
 
         [UnityTest]
+        [Category("OptionalRouteRegression")]
         public IEnumerator FullExtraction_TraversesThreeTowersOptionalCacheAndWeaponEvolution()
         {
             SceneManager.LoadScene("SampleScene");
@@ -50,7 +51,7 @@ namespace DeadSignal.Tests.PlayMode
             game.DebugStartRouteSequence(DebugRoutePreset.FullExtraction, DebugAutomationMode.DeterministicValidation,
                 DebugAutomationProfile.SafeNavigation);
 
-            var timeout = Time.realtimeSinceStartup + 45f;
+            var timeout = Time.realtimeSinceStartup + 65f;
             while ((game.DebugRouteSequenceState == DebugRouteRunState.Navigating ||
                     game.DebugRouteSequenceState == DebugRouteRunState.Verifying) && Time.realtimeSinceStartup < timeout)
             {
@@ -97,6 +98,7 @@ namespace DeadSignal.Tests.PlayMode
         }
 
         [UnityTest]
+        [Category("RouteRegression")]
         public IEnumerator RequiredExtraction_ReachesVictoryAndPreservesMatchedReport()
         {
             SceneManager.LoadScene("SampleScene");
@@ -109,7 +111,7 @@ namespace DeadSignal.Tests.PlayMode
             game.DebugStartRouteSequence(DebugRoutePreset.RequiredExtraction,
                 DebugAutomationMode.DeterministicValidation, DebugAutomationProfile.SafeNavigation);
 
-            var routeTimeout = Time.realtimeSinceStartup + 45f;
+            var routeTimeout = Time.realtimeSinceStartup + 65f;
             while (game.DebugRouteSequenceState is DebugRouteRunState.Navigating or DebugRouteRunState.Verifying &&
                    Time.realtimeSinceStartup < routeTimeout)
             {
@@ -156,8 +158,11 @@ namespace DeadSignal.Tests.PlayMode
             Assert.That(report, Does.Contain("PASS Breaker distribution reset"));
             Assert.That(report, Does.Contain("PASS Arc Furnace forging"));
             Assert.That(report, Does.Contain("PASS Quench stabilization"));
-            Assert.That(report, Does.Contain("Objective-room coverage 16/19"));
-            Assert.That(report, Does.Contain("Rooms without a compatibility-route objective 3"));
+            Assert.That(report, Does.Contain("PASS Room A commitment"));
+            Assert.That(report, Does.Contain("PASS Room B lockdown"));
+            Assert.That(report, Does.Contain("PASS Room C station capacitor"));
+            Assert.That(report, Does.Contain("Objective-room coverage 19/19"));
+            Assert.That(report, Does.Contain("Rooms without a compatibility-route objective 0"));
             game.DebugSetTimeScale(1f);
         }
 
@@ -184,6 +189,9 @@ namespace DeadSignal.Tests.PlayMode
             game.DebugResetBreakerDistribution();
             game.DebugForgeLattice();
             game.DebugStabilizeCore();
+            game.DebugCommitSecurityTrial();
+            game.DebugCompleteSecurityTrial();
+            game.DebugRecoverStationCapacitor();
             game.DebugCollectNextCache();
             yield return null;
 
@@ -203,6 +211,7 @@ namespace DeadSignal.Tests.PlayMode
         }
 
         [UnityTest]
+        [Category("LiveBalance")]
         public IEnumerator LiveBalanceRequiredExtraction_FightsEvadesAndReachesTerminalOutcome()
         {
             SceneManager.LoadScene("SampleScene");
@@ -234,6 +243,7 @@ namespace DeadSignal.Tests.PlayMode
         }
 
         [UnityTest]
+        [Category("LiveBalance")]
         public IEnumerator LiveBalanceFullExtraction_CommitsToGreedAndReachesTerminalOutcome()
         {
             SceneManager.LoadScene("SampleScene");

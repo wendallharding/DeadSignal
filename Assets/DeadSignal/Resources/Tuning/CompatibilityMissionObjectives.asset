@@ -243,6 +243,45 @@ MonoBehaviour:
     m_guidanceAction: STABILIZE THE CORE IN THE QUENCH LOOP
     m_guidanceAdvisory: CYCLE THE CONDENSER  //  OPENS THE DIRECT RETURN
     m_prerequisites: 12000000
+    m_successors: 14000000
+  - m_id: 20
+    m_legacyStage: 5
+    m_owningRoom: Room A / Commitment Room
+    m_anchorId: Security Trial Breaker
+    m_completionRule: 21
+    m_worldMutations: 16777216
+    m_rewards: []
+    m_guidancePhase: 6
+    m_guidanceTitle: CORE STABILIZED
+    m_guidanceAction: ARM THE FINAL TRIAL IN ROOM A
+    m_guidanceAdvisory: ARM THE BREAKER  //  CROSSING THE THRESHOLD SEALS THE ROOM
+    m_prerequisites: 13000000
+    m_successors: 15000000
+  - m_id: 21
+    m_legacyStage: 5
+    m_owningRoom: Room B / Lockdown Arena
+    m_anchorId: Lockdown Threshold
+    m_completionRule: 22
+    m_worldMutations: 33554432
+    m_rewards: []
+    m_guidancePhase: 6
+    m_guidanceTitle: FINAL TRIAL ARMED
+    m_guidanceAction: ENTER ROOM B AND PURGE THE LOCKDOWN
+    m_guidanceAdvisory: THREE BOUNDED PHASES  //  MOVEMENT IS DEFENSE
+    m_prerequisites: 14000000
+    m_successors: 16000000
+  - m_id: 22
+    m_legacyStage: 5
+    m_owningRoom: Room C / Reward Vault
+    m_anchorId: Trial Capacitor Reward
+    m_completionRule: 23
+    m_worldMutations: 67108864
+    m_rewards: []
+    m_guidancePhase: 6
+    m_guidanceTitle: SECURITY TRIAL CLEARED
+    m_guidanceAction: RECOVER THE STATION CAPACITOR IN ROOM C
+    m_guidanceAdvisory: INTEGRATES WITH THE STABILIZED CORE  //  ONE RECOVERY
+    m_prerequisites: 15000000
     m_successors: 05000000
   - m_id: 5
     m_legacyStage: 5
@@ -255,7 +294,7 @@ MonoBehaviour:
     m_guidanceTitle: FINAL PAYLOAD
     m_guidanceAction: SECURE ONE SPINE PAYLOAD
     m_guidanceAdvisory: GALLERY OR FURNACE-SIDE ROUTE  //  ONE REQUIRED
-    m_prerequisites: 13000000
+    m_prerequisites: 16000000
     m_successors: 06000000
   - m_id: 6
     m_legacyStage: 6

@@ -24,7 +24,10 @@ namespace DeadSignal.Missions
         ConvergenceCalibration,
         BreakerReset,
         FurnaceForge,
-        QuenchStabilization
+        QuenchStabilization,
+        TrialCommitment,
+        TrialLockdown,
+        StationCapacitor
     }
 
     public enum MissionCompletionRule
@@ -49,7 +52,10 @@ namespace DeadSignal.Missions
         ConvergenceCalibrated,
         BreakerDistributionReset,
         LatticeForged,
-        CoreStabilized
+        CoreStabilized,
+        TrialCommitted,
+        TrialCleared,
+        StationCapacitorRecovered
     }
 
     [Flags]
@@ -79,7 +85,10 @@ namespace DeadSignal.Missions
         BreakerDistributionReset = 1 << 20,
         LatticeForged = 1 << 21,
         CoreStabilized = 1 << 22,
-        QuenchReturnOpened = 1 << 23
+        QuenchReturnOpened = 1 << 23,
+        TrialCommitted = 1 << 24,
+        TrialCleared = 1 << 25,
+        StationCapacitorRecovered = 1 << 26
     }
 
     public enum MissionRewardKind
@@ -433,12 +442,33 @@ namespace DeadSignal.Missions
                 Array.Empty<MissionReward>(),
                 new MissionGuidanceState(6, "LATTICE FORGED", "STABILIZE THE CORE IN THE QUENCH LOOP",
                     "CYCLE THE CONDENSER  //  OPENS THE DIRECT RETURN"),
-                new[] { MissionObjectiveId.FurnaceForge }, new[] { MissionObjectiveId.SpinePayload }),
+                new[] { MissionObjectiveId.FurnaceForge }, new[] { MissionObjectiveId.TrialCommitment }),
+            _definition(MissionObjectiveId.TrialCommitment, MissionStage.SpinePayload,
+                "Room A / Commitment Room", "Security Trial Breaker",
+                MissionCompletionRule.TrialCommitted, MissionWorldMutation.TrialCommitted,
+                Array.Empty<MissionReward>(),
+                new MissionGuidanceState(6, "CORE STABILIZED", "ARM THE FINAL TRIAL IN ROOM A",
+                    "ARM THE BREAKER  //  CROSSING THE THRESHOLD SEALS THE ROOM"),
+                new[] { MissionObjectiveId.QuenchStabilization }, new[] { MissionObjectiveId.TrialLockdown }),
+            _definition(MissionObjectiveId.TrialLockdown, MissionStage.SpinePayload,
+                "Room B / Lockdown Arena", "Lockdown Threshold",
+                MissionCompletionRule.TrialCleared, MissionWorldMutation.TrialCleared,
+                Array.Empty<MissionReward>(),
+                new MissionGuidanceState(6, "FINAL TRIAL ARMED", "ENTER ROOM B AND PURGE THE LOCKDOWN",
+                    "THREE BOUNDED PHASES  //  MOVEMENT IS DEFENSE"),
+                new[] { MissionObjectiveId.TrialCommitment }, new[] { MissionObjectiveId.StationCapacitor }),
+            _definition(MissionObjectiveId.StationCapacitor, MissionStage.SpinePayload,
+                "Room C / Reward Vault", "Trial Capacitor Reward",
+                MissionCompletionRule.StationCapacitorRecovered, MissionWorldMutation.StationCapacitorRecovered,
+                Array.Empty<MissionReward>(),
+                new MissionGuidanceState(6, "SECURITY TRIAL CLEARED", "RECOVER THE STATION CAPACITOR IN ROOM C",
+                    "INTEGRATES WITH THE STABILIZED CORE  //  ONE RECOVERY"),
+                new[] { MissionObjectiveId.TrialLockdown }, new[] { MissionObjectiveId.SpinePayload }),
             _definition(MissionObjectiveId.SpinePayload, MissionStage.SpinePayload, "Capacitor Spine", "Spine Payload Socket",
                 MissionCompletionRule.SpinePayloadSecured, MissionWorldMutation.SpinePayloadSecured,
                 Array.Empty<MissionReward>(),
                 new MissionGuidanceState(6, "FINAL PAYLOAD", "SECURE ONE SPINE PAYLOAD", "GALLERY OR FURNACE-SIDE ROUTE  //  ONE REQUIRED"),
-                new[] { MissionObjectiveId.QuenchStabilization }, new[] { MissionObjectiveId.Extraction }),
+                new[] { MissionObjectiveId.StationCapacitor }, new[] { MissionObjectiveId.Extraction }),
             _definition(MissionObjectiveId.Extraction, MissionStage.Extraction, "Extraction Dock", "Dock Uplink",
                 MissionCompletionRule.ExtractionComplete, MissionWorldMutation.RunCompleted,
                 new[] { new MissionReward(MissionRewardKind.Victory) },

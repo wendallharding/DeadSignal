@@ -121,6 +121,9 @@ namespace DeadSignal.Application
         public bool IsBreakerDistributionReset => m_model?.BreakerDistributionReset ?? false;
         public bool IsLatticeForged => m_model?.LatticeForged ?? false;
         public bool IsCoreStabilized => m_model?.CoreStabilized ?? false;
+        public bool IsSecurityTrialCommitted => m_model?.TrialCommitted ?? false;
+        public bool IsSecurityTrialCleared => m_model?.TrialCleared ?? false;
+        public bool IsStationCapacitorRecovered => m_model?.StationCapacitorRecovered ?? false;
         public float ConvergenceCalibrationProgress => m_model?.ConvergenceCalibrationProgress ?? 0f;
         public bool IsCentralPayloadSecured => m_model?.CentralPayloadSecured ?? false;
         public bool IsCentralPayloadAssembled => m_model?.CentralPayloadAssembled ?? false;
@@ -924,6 +927,51 @@ namespace DeadSignal.Application
             _showFeedback("DEBUG — CORE STABILIZED  //  QUENCH RETURN OPEN");
         }
 
+        public void DebugCommitSecurityTrial()
+        {
+            DebugStabilizeCore();
+            m_threats?.ResetDebugScenario();
+            if (m_combatChamber == null ||
+                m_model?.TryCommitSecurityTrial() != true ||
+                !m_combatChamber.TryArm(m_combatChamber.CommitmentSwitch.position))
+            {
+                return;
+            }
+
+            m_world.RefreshNavigation();
+            _showFeedback("DEBUG — SECURITY TRIAL COMMITTED");
+        }
+
+        public void DebugCompleteSecurityTrial()
+        {
+            DebugCommitSecurityTrial();
+            if (m_combatChamber == null ||
+                !m_combatChamber.TryBeginLockdown(
+                    m_combatChamber.LockdownThreshold.TransformPoint(new Vector3(0f, 0f, 1f))) ||
+                m_model?.TryCompleteSecurityTrial() != true)
+            {
+                return;
+            }
+
+            m_threats.EndCombatChamber();
+            m_combatChamber.Complete();
+            m_world.RefreshNavigation();
+            _showFeedback("DEBUG — SECURITY TRIAL CLEARED");
+        }
+
+        public void DebugRecoverStationCapacitor()
+        {
+            DebugCompleteSecurityTrial();
+            if (m_model?.TryRecoverStationCapacitor() != true ||
+                !m_combatChamber.TryCollectReward(m_combatChamber.RewardPosition))
+            {
+                return;
+            }
+
+            m_model.RestoreSignal(m_combatChamber.RewardSignal);
+            _showFeedback("DEBUG — STATION CAPACITOR RECOVERED");
+        }
+
         public void DebugBeginConvergenceCalibration()
         {
             DebugRouteFluxShunt();
@@ -1067,6 +1115,9 @@ namespace DeadSignal.Application
             DebugResetBreakerDistribution();
             DebugForgeLattice();
             DebugStabilizeCore();
+            DebugCommitSecurityTrial();
+            DebugCompleteSecurityTrial();
+            DebugRecoverStationCapacitor();
             DebugCollectNextCache();
         }
 
@@ -1893,16 +1944,22 @@ namespace DeadSignal.Application
 
             if (m_combatChamber != null)
             {
-                if (m_combatChamber.TryCollectReward(m_world.Player.position))
+                if (m_model.CurrentObjective.Id == MissionObjectiveId.StationCapacitor &&
+                    m_combatChamber.RewardAvailable &&
+                    DeadSignalWorld.FlatDistance(m_world.Player.position, m_combatChamber.RewardPosition) <
+                    TOWER_INTERACTION_RADIUS &&
+                    m_model.TryRecoverStationCapacitor() &&
+                    m_combatChamber.TryCollectReward(m_world.Player.position))
                 {
                     var restored = m_model.RestoreSignal(m_combatChamber.RewardSignal);
                     m_combatFeedback.PlaySignalRecovery(m_world.Player.position + Vector3.up * 0.45f);
                     m_audio.Play(DeadSignalAudioCue.TowerOnline);
-                    _showFeedback($"SECURITY VAULT RECOVERED  +{restored:0} SIGNAL");
+                    _showFeedback($"STATION CAPACITOR RECOVERED — CORE COMPLETE  +{restored:0} SIGNAL");
                     return;
                 }
 
-                if (m_combatChamber.CanInteract(m_world.Player.position))
+                if (m_model.CurrentObjective.Id == MissionObjectiveId.TrialCommitment &&
+                    m_combatChamber.CanInteract(m_world.Player.position))
                 {
                     if (!m_threats.CanBeginCombatChamber)
                     {
@@ -1910,7 +1967,7 @@ namespace DeadSignal.Application
                         return;
                     }
 
-                    if (m_combatChamber.TryArm(m_world.Player.position))
+                    if (m_model.TryCommitSecurityTrial() && m_combatChamber.TryArm(m_world.Player.position))
                     {
                         m_world.RefreshNavigation();
                         m_audio.Play(DeadSignalAudioCue.Shortcut);
@@ -2413,6 +2470,9 @@ namespace DeadSignal.Application
                 case DebugRouteAction.ResetBreakerDistribution: DebugResetBreakerDistribution(); break;
                 case DebugRouteAction.ForgeLattice: DebugForgeLattice(); break;
                 case DebugRouteAction.StabilizeCore: DebugStabilizeCore(); break;
+                case DebugRouteAction.CommitSecurityTrial: DebugCommitSecurityTrial(); break;
+                case DebugRouteAction.CompleteSecurityTrial: DebugCompleteSecurityTrial(); break;
+                case DebugRouteAction.RecoverStationCapacitor: DebugRecoverStationCapacitor(); break;
                 case DebugRouteAction.BeginStableExtraction: DebugBeginExtraction(ExtractionUplinkMode.Stable); break;
                 case DebugRouteAction.CaptureScreenshot: DebugCaptureScreenshot(); break;
             }
@@ -2471,6 +2531,10 @@ namespace DeadSignal.Application
                     m_model.BreakerDistributionReset && _debugObjectiveAdvanced(),
                 DebugRouteAction.ForgeLattice => m_model.LatticeForged && _debugObjectiveAdvanced(),
                 DebugRouteAction.StabilizeCore => m_model.CoreStabilized && _debugObjectiveAdvanced(),
+                DebugRouteAction.CommitSecurityTrial => m_model.TrialCommitted && _debugObjectiveAdvanced(),
+                DebugRouteAction.CompleteSecurityTrial => m_model.TrialCleared && _debugObjectiveAdvanced(),
+                DebugRouteAction.RecoverStationCapacitor =>
+                    m_model.StationCapacitorRecovered && _debugObjectiveAdvanced(),
                 DebugRouteAction.BeginStableExtraction => m_extractionUplink.IsActive,
                 _ => true
             };
@@ -3268,6 +3332,10 @@ namespace DeadSignal.Application
             }
 
             m_threats.EndCombatChamber();
+            if (!m_model.TryCompleteSecurityTrial())
+            {
+                return;
+            }
             m_combatChamber.Complete();
             m_world.RefreshNavigation();
             m_audio.Play(DeadSignalAudioCue.TowerOnline);

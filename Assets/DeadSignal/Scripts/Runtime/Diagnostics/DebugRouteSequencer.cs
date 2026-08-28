@@ -50,6 +50,9 @@ namespace DeadSignal.Diagnostics
         ResetBreakerDistribution,
         ForgeLattice,
         StabilizeCore,
+        CommitSecurityTrial,
+        CompleteSecurityTrial,
+        RecoverStationCapacitor,
         BeginStableExtraction,
         CaptureScreenshot
     }
@@ -443,6 +446,12 @@ namespace DeadSignal.Diagnostics
                         DebugRouteAction.ForgeLattice, roomName: "Arc Furnace");
                     yield return new DebugRouteStep("Quench stabilization", DebugLocation.CurrentObjective, 1.7f,
                         DebugRouteAction.StabilizeCore, roomName: "Quench Loop");
+                    yield return new DebugRouteStep("Room A commitment", DebugLocation.CurrentObjective, 1.7f,
+                        DebugRouteAction.CommitSecurityTrial, roomName: "Room A");
+                    yield return new DebugRouteStep("Room B lockdown", DebugLocation.CurrentObjective, 1.7f,
+                        DebugRouteAction.CompleteSecurityTrial, roomName: "Room B");
+                    yield return new DebugRouteStep("Room C station capacitor", DebugLocation.CurrentObjective, 1.7f,
+                        DebugRouteAction.RecoverStationCapacitor, roomName: "Room C");
                     yield return new DebugRouteStep("Spine payload", DebugLocation.CurrentObjective, 2.3f,
                         DebugRouteAction.CollectCache, roomName: "Capacitor Spine");
                     if (preset == DebugRoutePreset.FullExtraction)

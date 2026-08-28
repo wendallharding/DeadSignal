@@ -127,13 +127,13 @@ namespace DeadSignal.Tests
                 Assert.That(cacheReturnSignal.activeSelf, Is.True,
                     "The opened cut-through should reveal its authored cyan return cue.");
                 Assert.That(game.IsCoreStabilized, Is.True);
-                Assert.That(game.CurrentMissionObjectiveId, Is.EqualTo(MissionObjectiveId.SpinePayload));
+                Assert.That(game.CurrentMissionObjectiveId, Is.EqualTo(MissionObjectiveId.TrialCommitment));
                 Assert.That(game.IsOptionalSalvageSecured, Is.False,
                     "Required Quench processing must not collect or reward the optional greed cache.");
                 Assert.That(loop.Find("Quench Stabilization Complete").gameObject.activeSelf, Is.True);
 
                 yield return _interact(gamepad);
-                Assert.That(game.CurrentMissionObjectiveId, Is.EqualTo(MissionObjectiveId.SpinePayload),
+                Assert.That(game.CurrentMissionObjectiveId, Is.EqualTo(MissionObjectiveId.TrialCommitment),
                     "Repeated stabilization must remain idempotent.");
                 player.position = new Vector3(51.75f, 0f, 24.2f);
                 yield return _move(gamepad, player, Vector2.up, () => player.position.z > 26.1f);

@@ -33,7 +33,11 @@
 
 ## P1 — Evidence and validation
 
-- [ ] Run the smallest focused EditMode and PlayMode coverage for the active slice, then complete-route regression when progression or navigation changes.
+- [ ] Use the tiered validation policy in `VALIDATION.md`. On normal development runs, compile/import once and run the smallest focused EditMode and PlayMode filters together in one invocation per platform.
+- [ ] Add the single `RouteRegression` required-journey lane when progression, navigation, room state, doors, extraction, boot, or outcome flow changes. Do not automatically run `OptionalRouteRegression`, `LiveBalance`, `CombatEvidence`, release-only route duplication, or the complete PlayMode suite on every slice.
+- [ ] Escalate to `OptionalRouteRegression` only when optional greed, weapon evolution, or its extraction response changes; to `CombatEvidence` only for combat population/timing/arena changes; and to `LiveBalance` only after an act completes or combat, Signal, recovery, spawn, pacing, or route-distance tuning changes.
+- [ ] Run the complete EditMode/PlayMode regression plus Windows build/smoke as a separate release/integration gate at least weekly and at phase, act, packaging, boot, scene-architecture, or release milestones. A known failing slow lane should not be rerun without a relevant change or explicit evidence goal.
+- [ ] After a failure, rerun the exact failed test and its focused neighborhood. Repeat the complete suite only when the fix changes production/shared setup; a test-only expectation or timeout correction does not by itself require another complete-suite pass.
 - [ ] Validate objective guidance, tactical map, command strip, collision/projectile blocking, NavMesh, doors, death/restart/re-entry, interrupted interactions, reward idempotency, and keyboard/controller completion.
 - [ ] Measure route duration, objective recognition, wrong turns, room entry, backtracking, dead-zone exposure, combat time, Signal minimum/final reserve, failure location, and altered-return recognition.
 - [ ] Build and smoke-test the Windows player for integration milestones. Never claim subjective fun from automation; leave a concise human play script when human evidence is unavailable.

@@ -325,6 +325,7 @@ namespace DeadSignal.Tests.PlayMode
         }
 
         [UnityTest]
+        [Category("ReleaseValidation")]
         public IEnumerator NavMeshRouteSequence_CompletesFullExtractionPlan()
         {
             SceneManager.LoadScene("SampleScene");
@@ -496,6 +497,7 @@ namespace DeadSignal.Tests.PlayMode
         }
 
         [UnityTest]
+        [Category("CombatEvidence")]
         public IEnumerator EasternRoomCombatWithoutSwarmers_PreservesMatchedSpecialistSchedule()
         {
             var originalWidth = Screen.width;
@@ -545,6 +547,7 @@ namespace DeadSignal.Tests.PlayMode
         }
 
         [UnityTest]
+        [Category("CombatEvidence")]
         public IEnumerator EasternRoomCombat_UsesAuthoredAnchorsAndSurvivesThirtySeconds()
         {
             var originalWidth = Screen.width;

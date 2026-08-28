@@ -82,7 +82,7 @@ namespace DeadSignal.Tests
             sequencer.Start(DebugRoutePreset.FullExtraction, DebugAutomationMode.DeterministicValidation,
                 DebugAutomationProfile.SafeNavigation, 72f);
 
-            Assert.That(sequencer.StepCount, Is.EqualTo(24));
+            Assert.That(sequencer.StepCount, Is.EqualTo(27));
             Assert.That(sequencer.CurrentStep.Action, Is.EqualTo(DebugRouteAction.ActivateCentralTower));
             _completeCurrentStep(sequencer);
             Assert.That(sequencer.CurrentStep.Action, Is.EqualTo(DebugRouteAction.CollectCache));
@@ -128,6 +128,12 @@ namespace DeadSignal.Tests
             _completeCurrentStep(sequencer);
             Assert.That(sequencer.CurrentStep.Action, Is.EqualTo(DebugRouteAction.StabilizeCore));
             _completeCurrentStep(sequencer);
+            Assert.That(sequencer.CurrentStep.Action, Is.EqualTo(DebugRouteAction.CommitSecurityTrial));
+            _completeCurrentStep(sequencer);
+            Assert.That(sequencer.CurrentStep.Action, Is.EqualTo(DebugRouteAction.CompleteSecurityTrial));
+            _completeCurrentStep(sequencer);
+            Assert.That(sequencer.CurrentStep.Action, Is.EqualTo(DebugRouteAction.RecoverStationCapacitor));
+            _completeCurrentStep(sequencer);
             Assert.That(sequencer.CurrentStep.Location, Is.EqualTo(DebugLocation.CurrentObjective));
             _completeCurrentStep(sequencer);
             Assert.That(sequencer.CurrentStep.Location, Is.EqualTo(DebugLocation.CacheFour));
@@ -147,8 +153,8 @@ namespace DeadSignal.Tests
             sequencer.Start(DebugRoutePreset.RequiredExtraction, DebugAutomationMode.DeterministicValidation,
                 DebugAutomationProfile.SafeNavigation, 72f);
 
-            Assert.That(sequencer.StepCount, Is.EqualTo(23));
-            for (var step = 0; step < 19; step++)
+            Assert.That(sequencer.StepCount, Is.EqualTo(26));
+            for (var step = 0; step < 22; step++)
             {
                 Assert.That(sequencer.CurrentStep.Location, Is.Not.EqualTo(DebugLocation.CacheFour));
                 _completeCurrentStep(sequencer);

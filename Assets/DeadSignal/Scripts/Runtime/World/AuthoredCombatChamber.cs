@@ -26,6 +26,8 @@ namespace DeadSignal.World
         public CombatChamberState State { get; private set; }
         public int Phase { get; private set; }
         public Transform CommitmentSwitch => m_commitmentSwitch;
+        public Transform LockdownThreshold => m_lockdownThreshold;
+        public Vector3 RewardPosition => m_reward != null ? m_reward.transform.position : transform.position;
         public AuthoredCombatScenario CombatScenario => m_combatScenario;
         public float RewardSignal => m_rewardSignal;
         public bool RewardAvailable => State == CombatChamberState.Cleared && m_reward != null && m_reward.activeSelf;

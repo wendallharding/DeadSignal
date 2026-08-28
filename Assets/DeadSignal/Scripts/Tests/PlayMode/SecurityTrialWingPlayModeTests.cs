@@ -54,8 +54,9 @@ namespace DeadSignal.Tests
             var entryDoor = chamber.transform.Find("Lockdown Entry Door").gameObject;
             var threshold = chamber.transform.Find("Lockdown Threshold");
 
+            game.DebugCommitSecurityTrial();
             player.position = chamber.CommitmentSwitch.position;
-            Assert.That(chamber.TryArm(player.position), Is.True);
+            Assert.That(game.IsSecurityTrialCommitted, Is.True);
             Assert.That(entryDoor.activeSelf, Is.False);
             player.position = threshold.TransformPoint(new Vector3(0f, 0f, 1f));
             yield return null;
@@ -108,8 +109,8 @@ namespace DeadSignal.Tests
             var clearedSignal = chamber.transform.Find("Cleared Return Signal").gameObject;
             var threshold = chamber.transform.Find("Lockdown Threshold");
 
+            game.DebugCommitSecurityTrial();
             player.position = chamber.CommitmentSwitch.position;
-            Assert.That(chamber.TryArm(player.position), Is.True);
             player.position = threshold.TransformPoint(new Vector3(0f, 0f, 1f));
             yield return null;
 
@@ -146,6 +147,9 @@ namespace DeadSignal.Tests
             }
 
             Assert.That(game.CurrentCombatChamberState, Is.EqualTo(CombatChamberState.Cleared));
+            Assert.That(game.IsSecurityTrialCleared, Is.True);
+            Assert.That(game.CurrentMissionObjectiveId,
+                Is.EqualTo(DeadSignal.Missions.MissionObjectiveId.StationCapacitor));
             Assert.That(game.CombatChamberPhase, Is.Zero);
             Assert.That(game.ActiveSwarmerCount, Is.Zero);
             Assert.That(game.PeakThreatConcurrency, Is.EqualTo(5));
@@ -155,7 +159,8 @@ namespace DeadSignal.Tests
             Assert.That(rewardDoor.activeSelf, Is.False);
             Assert.That(reward.activeSelf, Is.True);
             Assert.That(clearedSignal.activeSelf, Is.True);
-            Assert.That(chamber.TryCollectReward(reward.transform.position), Is.True);
+            game.DebugRecoverStationCapacitor();
+            Assert.That(game.IsStationCapacitorRecovered, Is.True);
             Assert.That(chamber.RewardAvailable, Is.False);
             TestContext.WriteLine(
                 $"Security trial peak={game.PeakThreatConcurrency} spawned={game.SwarmersSpawned} " +

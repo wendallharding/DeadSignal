@@ -68,6 +68,9 @@ namespace DeadSignal.Tests
             model.TryResetBreakerDistribution();
             model.TryForgeLattice();
             model.TryStabilizeCore();
+            model.TryCommitSecurityTrial();
+            model.TryCompleteSecurityTrial();
+            model.TryRecoverStationCapacitor();
             model.CollectPayload(SignalRegion.Spine);
         }
     }

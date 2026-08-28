@@ -95,6 +95,9 @@ namespace DeadSignal.Tests
             Assert.That(model.TryResetBreakerDistribution(), Is.True);
             Assert.That(model.TryForgeLattice(), Is.True);
             Assert.That(model.TryStabilizeCore(), Is.True);
+            Assert.That(model.TryCommitSecurityTrial(), Is.True);
+            Assert.That(model.TryCompleteSecurityTrial(), Is.True);
+            Assert.That(model.TryRecoverStationCapacitor(), Is.True);
             Assert.That(model.CollectPayload(SignalRegion.Spine), Is.True);
         }
     }
