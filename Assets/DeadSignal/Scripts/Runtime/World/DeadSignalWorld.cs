@@ -68,6 +68,7 @@ namespace DeadSignal.World
         public AuthoredTransferVaultObjective TransferVaultObjective { get; private set; }
         public AuthoredCentralInstallationObjective CentralInstallationObjective { get; private set; }
         public AuthoredRelayPayloadObjective RelayPayloadObjective { get; private set; }
+        public AuthoredSpineVentingObjective SpineVentingObjective { get; private set; }
         public IReadOnlyList<GameObject> SalvagePickups => m_salvagePickups;
 
         public SignalRegion GetPayloadRegion(GameObject pickup) => m_salvageRegions.TryGetValue(pickup, out var region)
@@ -163,6 +164,8 @@ namespace DeadSignal.World
                 Object.FindFirstObjectByType<AuthoredCentralInstallationObjective>(FindObjectsInactive.Include);
             RelayPayloadObjective =
                 Object.FindFirstObjectByType<AuthoredRelayPayloadObjective>(FindObjectsInactive.Include);
+            SpineVentingObjective =
+                Object.FindFirstObjectByType<AuthoredSpineVentingObjective>(FindObjectsInactive.Include);
             _buildActors(comfortSettings);
             m_palette.RebindHierarchy(m_root);
             _configurePlayerCamera();
@@ -339,6 +342,13 @@ namespace DeadSignal.World
                 model.RelayPayloadStabilized,
                 model.CurrentObjective.Id == MissionObjectiveId.RelayInstallation,
                 model.RelayPayloadSecured);
+        }
+
+        public void UpdateSpineVentingPresentation(RunModel model)
+        {
+            SpineVentingObjective?.SetState(
+                model.CurrentObjective.Id == MissionObjectiveId.SpineVenting,
+                model.SpineBerthVented);
         }
 
         public Vector3 GetObjectiveGuidanceWaypoint(RunModel model, float radius)
@@ -1634,6 +1644,8 @@ namespace DeadSignal.World
                     return RelayTowerPosition;
                 case MissionObjectiveId.SpineTower:
                     return SpineTowerInteractionPosition;
+                case MissionObjectiveId.SpineVenting:
+                    return SpineVentingObjective != null ? SpineVentingObjective.Position : SpineTowerInteractionPosition;
                 case MissionObjectiveId.Extraction:
                     return ExtractionPosition;
                 case MissionObjectiveId.CentralPayload:

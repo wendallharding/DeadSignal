@@ -152,8 +152,8 @@ namespace DeadSignal.Tests.PlayMode
             Assert.That(report, Does.Contain("PASS Central payload installation"));
             Assert.That(report, Does.Contain("PASS Cooling Gantry stabilization"));
             Assert.That(report, Does.Contain("PASS Foundry payload installation"));
-            Assert.That(report, Does.Contain("Objective-room coverage 9/19"));
-            Assert.That(report, Does.Contain("Rooms without a compatibility-route objective 10"));
+            Assert.That(report, Does.Contain("Objective-room coverage 10/19"));
+            Assert.That(report, Does.Contain("Rooms without a compatibility-route objective 9"));
             game.DebugSetTimeScale(1f);
         }
 

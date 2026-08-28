@@ -131,6 +131,7 @@ namespace DeadSignal.Application
         public Vector3 CoolantSealPosition => m_world?.CoolantReclamationObjective?.SealPosition ?? Vector3.zero;
         public Vector3 CoolantReleasePosition => m_world?.CoolantReclamationObjective?.ReleasePosition ?? Vector3.zero;
         public bool IsRelayPayloadSecured => m_model?.RelayPayloadSecured ?? false;
+        public bool IsSpineBerthVented => m_model?.SpineBerthVented ?? false;
         public bool IsRelayPayloadStabilized => m_model?.RelayPayloadStabilized ?? false;
         public bool IsSpinePayloadSecured => m_model?.SpinePayloadSecured ?? false;
         public bool IsExtractionReady => m_model?.CanExtract ?? false;
@@ -141,6 +142,7 @@ namespace DeadSignal.Application
         public string CurrentMissionGuidanceAction => m_model?.CurrentObjective.Guidance.Action ?? string.Empty;
         public Vector3 SpineTowerPosition => m_world?.SpineTowerPosition ?? Vector3.zero;
         public Vector3 SpineTowerInteractionPosition => m_world?.SpineTowerInteractionPosition ?? Vector3.zero;
+        public Vector3 SpineVentingPosition => m_world?.SpineVentingObjective?.Position ?? Vector3.zero;
         public bool IsWeaponEvolved => m_overclockChoice?.IsWeaponEvolved ?? false;
         public Vector3 SafestReinforcementEntryPosition => m_world == null
             ? Vector3.zero
@@ -804,6 +806,7 @@ namespace DeadSignal.Application
             {
                 DebugSelectWeapon(SignalWeaponOverclock.PiercingPulse);
             }
+            DebugVentSpineBerth();
             if (m_model.SpineTowerOnline)
             {
                 return;
@@ -816,6 +819,17 @@ namespace DeadSignal.Application
                 m_overclockChoice.NotifySpineActivated();
                 _showFeedback("DEBUG — SPINE TOWER ACTIVATED");
             }
+        }
+
+        public void DebugVentSpineBerth()
+        {
+            if (m_model?.TryVentSpineBerth() != true)
+            {
+                return;
+            }
+
+            m_world.UpdateSpineVentingPresentation(m_model);
+            _showFeedback("DEBUG — SPINE BERTH VENTED");
         }
 
         public void DebugOpenShortcut()
@@ -1341,6 +1355,7 @@ namespace DeadSignal.Application
             m_world.TickEnvironmentPresentation(dt, m_model.TowerOnline, powered);
             m_world.UpdateCentralTransferPresentation(m_model);
             m_world.UpdateRelayPayloadPresentation(m_model);
+            m_world.UpdateSpineVentingPresentation(m_model);
             m_world.PlayerSignalWake.Tick(m_playerMovement.Velocity);
             m_world.TickGameplayAssists(dt, m_model, m_threats, aimDirection);
 
@@ -1750,6 +1765,24 @@ namespace DeadSignal.Application
                 return;
             }
 
+            if (m_world.SpineVentingObjective != null &&
+                DeadSignalWorld.FlatDistance(m_world.Player.position, m_world.SpineVentingObjective.Position) <
+                TOWER_INTERACTION_RADIUS)
+            {
+                if (m_model.TryVentSpineBerth())
+                {
+                    m_world.UpdateSpineVentingPresentation(m_model);
+                    m_audio.Play(DeadSignalAudioCue.Shortcut);
+                    _showFeedback("SPINE BERTH VENTED — RETURN TO THE TOWER");
+                }
+                else if (!m_model.RelayPayloadSecured)
+                {
+                    _showFeedback("DISCHARGE CONTROL LOCKED — INSTALL THE RELAY PAYLOAD");
+                }
+
+                return;
+            }
+
             if (!m_model.SpineTowerOnline &&
                 m_world.IsSpineTowerInteractionInRange(m_world.Player.position))
             {
@@ -1770,6 +1803,10 @@ namespace DeadSignal.Application
                 else if (!m_model.RelayPayloadSecured)
                 {
                     _showFeedback("SPINE LOCKED — SECURE A RELAY PAYLOAD");
+                }
+                else if (!m_model.SpineBerthVented)
+                {
+                    _showFeedback("SPINE LOCKED — VENT THE BERTH IN THE DISCHARGE TRENCH");
                 }
                 else
                 {
@@ -2140,6 +2177,7 @@ namespace DeadSignal.Application
                     DebugInstallRelayPayload();
                     DebugSelectWeapon(SignalWeaponOverclock.PiercingPulse);
                     break;
+                case DebugRouteAction.VentSpineBerth: DebugVentSpineBerth(); break;
                 case DebugRouteAction.ActivateSpineTower: DebugActivateSpineTower(); break;
                 case DebugRouteAction.BeginStableExtraction: DebugBeginExtraction(ExtractionUplinkMode.Stable); break;
                 case DebugRouteAction.CaptureScreenshot: DebugCaptureScreenshot(); break;
@@ -2189,6 +2227,7 @@ namespace DeadSignal.Application
                                                           _debugObjectiveAdvanced(),
                 DebugRouteAction.ActivateRelayTower => m_model.RelayTowerOnline && _debugObjectiveAdvanced(),
                 DebugRouteAction.SelectWeaponOverclock => m_overclockChoice.SelectedWeapon != SignalWeaponOverclock.None,
+                DebugRouteAction.VentSpineBerth => m_model.SpineBerthVented && _debugObjectiveAdvanced(),
                 DebugRouteAction.ActivateSpineTower => m_model.SpineTowerOnline && _debugObjectiveAdvanced(),
                 DebugRouteAction.BeginStableExtraction => m_extractionUplink.IsActive,
                 _ => true

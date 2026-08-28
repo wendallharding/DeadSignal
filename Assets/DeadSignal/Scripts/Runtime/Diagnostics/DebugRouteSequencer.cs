@@ -42,6 +42,7 @@ namespace DeadSignal.Diagnostics
         InstallCentralPayload,
         ActivateRelayTower,
         SelectWeaponOverclock,
+        VentSpineBerth,
         ActivateSpineTower,
         BeginStableExtraction,
         CaptureScreenshot
@@ -418,6 +419,10 @@ namespace DeadSignal.Diagnostics
                         DebugRouteAction.CollectCache, roomName: "Cooling Gantry");
                     yield return new DebugRouteStep("Foundry payload installation", DebugLocation.RelayTower, 2f,
                         DebugRouteAction.SelectWeaponOverclock, roomName: "Relay Foundry", isBacktrack: true);
+                    yield return new DebugRouteStep("Capacitor Spine arrival", DebugLocation.SpineTower, 2f,
+                        DebugRouteAction.CaptureScreenshot, roomName: "Capacitor Spine");
+                    yield return new DebugRouteStep("Spine berth venting", DebugLocation.CurrentObjective, 1.7f,
+                        DebugRouteAction.VentSpineBerth, roomName: "Spine Discharge Trench");
                     yield return new DebugRouteStep("Spine tower", DebugLocation.SpineTower, 2f,
                         DebugRouteAction.ActivateSpineTower, roomName: "Capacitor Spine");
                     yield return new DebugRouteStep("Spine payload", DebugLocation.CurrentObjective, 2.3f,

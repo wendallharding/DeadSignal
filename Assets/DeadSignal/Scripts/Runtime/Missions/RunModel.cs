@@ -187,6 +187,7 @@ namespace DeadSignal.Missions
         public bool RelayFeedsRouted { get; private set; }
         public bool RelayPayloadStabilized { get; private set; }
         public bool RelayPayloadSecured { get; private set; }
+        public bool SpineBerthVented { get; private set; }
         public bool SpinePayloadSecured { get; private set; }
         public RunOutcome Outcome { get; private set; } = RunOutcome.Running;
         public float CriticalRecoveryRemaining { get; private set; }
@@ -311,7 +312,7 @@ namespace DeadSignal.Missions
         public bool TryActivateSpineTower()
         {
             if (!_isCurrentObjective(MissionObjectiveId.SpineTower) || !RelayTowerOnline || !RelayPayloadSecured ||
-                SpineTowerOnline || Outcome != RunOutcome.Running || Signal <= SpineTowerCost)
+                !SpineBerthVented || SpineTowerOnline || Outcome != RunOutcome.Running || Signal <= SpineTowerCost)
             {
                 return false;
             }
@@ -319,6 +320,18 @@ namespace DeadSignal.Missions
             Signal = Math.Min(MaximumSignal, Signal - SpineTowerCost + SpineTowerRefill);
             SpineTowerOnline = true;
             CriticalRecoveryRemaining = 0f;
+            return true;
+        }
+
+        public bool TryVentSpineBerth()
+        {
+            if (!_isCurrentObjective(MissionObjectiveId.SpineVenting) || !RelayPayloadSecured ||
+                SpineBerthVented || Outcome != RunOutcome.Running)
+            {
+                return false;
+            }
+
+            SpineBerthVented = true;
             return true;
         }
 
@@ -509,6 +522,7 @@ namespace DeadSignal.Missions
                 MissionCompletionRule.CentralPayloadAssembled => CentralPayloadAssembled,
                 MissionCompletionRule.CentralPayloadInstalled => CentralPayloadSecured,
                 MissionCompletionRule.RelayPayloadStabilized => RelayPayloadStabilized,
+                MissionCompletionRule.SpineBerthVented => SpineBerthVented,
                 _ => false
             };
         }

@@ -8,6 +8,7 @@ using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
 using DeadSignal.Application;
 using DeadSignal.Diagnostics;
+using DeadSignal.Missions;
 using DeadSignal.World;
 
 namespace DeadSignal.Tests
@@ -28,6 +29,7 @@ namespace DeadSignal.Tests
                 var spine = game.transform.Find("Capacitor Spine Region");
                 var trench = spine.Find("Spine Discharge Trench Region");
                 var territory = trench.GetComponent<AuthoredPoweredTerritory>();
+                var venting = trench.GetComponent<AuthoredSpineVentingObjective>();
                 var signalLines = trench.Find("Discharge Trench Signal Lines").gameObject;
 
                 Assert.That(trench, Is.Not.Null);
@@ -36,6 +38,11 @@ namespace DeadSignal.Tests
                 Assert.That(trench.GetComponentsInChildren<Collider>().Length, Is.Zero);
                 Assert.That(trench.GetComponentsInChildren<AuthoredInterceptorEntrance>().Length, Is.EqualTo(1));
                 Assert.That(territory.Source, Is.EqualTo(PoweredTerritorySource.SpineTower));
+                Assert.That(venting, Is.Not.Null);
+                Assert.That(venting.IsConfigured, Is.True);
+                Assert.That(venting.Position, Is.EqualTo(trench.Find("Spine Berth Discharge Control").position));
+                Assert.That(trench.Find("Spine Berth Discharge Control/Vent Available"), Is.Not.Null);
+                Assert.That(trench.Find("Spine Berth Discharge Control/Berth Vented"), Is.Not.Null);
                 Assert.That(signalLines.activeSelf, Is.False);
                 Assert.That(Resources.Load<GameObject>("Environment/SpineDischargeTrenchRegion"), Is.Not.Null);
                 Assert.That(Resources.Load<Texture2D>("Environment/SpineDischargeTrenchRouteDecal"), Is.Not.Null);
@@ -63,8 +70,37 @@ namespace DeadSignal.Tests
                 Assert.That(game.LastSignalBoltBlockedByEnvironment, Is.True,
                     "The central discharge coil should block projectiles as well as movement.");
 
-                game.DebugActivateSpineTower();
+                game.DebugActivateRelayTower();
+                game.DebugCollectNextCache();
+                game.DebugInstallRelayPayload();
+                game.DebugSelectOverclock(SignalOverclock.ChainArc);
+                game.DebugSelectAuxiliary(SignalAuxiliaryOverclock.FeedbackShield);
+                game.DebugSelectWeapon(SignalWeaponOverclock.PiercingPulse);
                 yield return null;
+                Assert.That(game.CurrentMissionObjectiveId, Is.EqualTo(MissionObjectiveId.SpineVenting));
+                Assert.That(game.IsSpineBerthVented, Is.False);
+                Assert.That(trench.Find("Spine Berth Discharge Control/Vent Available").gameObject.activeSelf, Is.True);
+
+                player.position = game.SpineTowerInteractionPosition;
+                yield return _interact(gamepad);
+                Assert.That(game.IsSpineTowerOnline, Is.False,
+                    "The pressurized berth must reject early Spine activation.");
+
+                player.position = game.SpineVentingPosition;
+                yield return _interact(gamepad);
+                Assert.That(game.IsSpineBerthVented, Is.True);
+                Assert.That(game.CurrentMissionObjectiveId, Is.EqualTo(MissionObjectiveId.SpineTower));
+                Assert.That(trench.Find("Spine Berth Discharge Control/Vent Available").gameObject.activeSelf, Is.False);
+                Assert.That(trench.Find("Spine Berth Discharge Control/Berth Vented").gameObject.activeSelf, Is.True);
+
+                yield return _interact(gamepad);
+                Assert.That(game.CurrentMissionObjectiveId, Is.EqualTo(MissionObjectiveId.SpineTower),
+                    "The one-shot vent control must not duplicate or skip progression.");
+
+                player.position = game.SpineTowerInteractionPosition;
+                yield return _interact(gamepad);
+                yield return null;
+                Assert.That(game.IsSpineTowerOnline, Is.True);
                 Assert.That(signalLines.activeSelf, Is.True,
                     "The dead-zone trench should become a powered return foothold with the Spine tower.");
             }
@@ -129,6 +165,14 @@ namespace DeadSignal.Tests
                 yield return null;
             }
 
+            InputSystem.QueueStateEvent(gamepad, new GamepadState());
+            yield return null;
+        }
+
+        private static IEnumerator _interact(Gamepad gamepad)
+        {
+            InputSystem.QueueStateEvent(gamepad, new GamepadState().WithButton(GamepadButton.West));
+            yield return null;
             InputSystem.QueueStateEvent(gamepad, new GamepadState());
             yield return null;
         }

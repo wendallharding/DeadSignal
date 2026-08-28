@@ -26,6 +26,8 @@ namespace DeadSignal.Editor
             "Assets/DeadSignal/Resources/Materials/RelayFoundry/RelayFoundryDeck.mat";
         private const string CYAN_MATERIAL_PATH =
             "Assets/DeadSignal/Resources/Materials/RelayFoundry/RelayFoundryCyan.mat";
+        private const string AMBER_MATERIAL_PATH =
+            "Assets/DeadSignal/Resources/Materials/RelayFoundry/RelayFoundryAmber.mat";
         private const string CERAMIC_MATERIAL_PATH =
             "Assets/DeadSignal/Resources/Materials/SapperCradleCeramic.mat";
         private const string COPPER_MATERIAL_PATH =
@@ -44,7 +46,8 @@ namespace DeadSignal.Editor
                        spine.transform.Find("Capacitor Spine South Bulkhead") == null &&
                        region.GetComponentsInChildren<AuthoredMapObstacle>().Length == 6 &&
                        region.GetComponentsInChildren<AuthoredInterceptorEntrance>().Length == 1 &&
-                       region.GetComponent<AuthoredPoweredTerritory>() != null;
+                       region.GetComponent<AuthoredPoweredTerritory>() != null &&
+                       region.GetComponent<AuthoredSpineVentingObjective>()?.IsConfigured == true;
             }
         }
 
@@ -116,6 +119,7 @@ namespace DeadSignal.Editor
                 Armor = AssetDatabase.LoadAssetAtPath<Material>(ARMOR_MATERIAL_PATH),
                 Deck = AssetDatabase.LoadAssetAtPath<Material>(DECK_MATERIAL_PATH),
                 Cyan = AssetDatabase.LoadAssetAtPath<Material>(CYAN_MATERIAL_PATH),
+                Amber = AssetDatabase.LoadAssetAtPath<Material>(AMBER_MATERIAL_PATH),
                 Ceramic = AssetDatabase.LoadAssetAtPath<Material>(CERAMIC_MATERIAL_PATH),
                 Copper = AssetDatabase.LoadAssetAtPath<Material>(COPPER_MATERIAL_PATH),
                 Decal = decal
@@ -167,6 +171,14 @@ namespace DeadSignal.Editor
                 entrance.transform.SetParent(root.transform, false);
                 entrance.transform.localPosition = new Vector3(0f, 0f, -2.5f);
                 entrance.AddComponent<AuthoredInterceptorEntrance>().Configure(15);
+
+                var controlAnchor = new GameObject("Spine Berth Discharge Control");
+                controlAnchor.transform.SetParent(root.transform, false);
+                controlAnchor.transform.localPosition = new Vector3(0f, 0f, -2.05f);
+                var availableMarker = _marker(controlAnchor.transform, "Vent Available", materials.Amber);
+                var ventedMarker = _marker(controlAnchor.transform, "Berth Vented", materials.Cyan);
+                root.AddComponent<AuthoredSpineVentingObjective>().Configure(
+                    controlAnchor.transform, availableMarker, ventedMarker);
 
                 root.AddComponent<AuthoredPoweredTerritory>().Configure(
                     PoweredTerritorySource.SpineTower, new Vector2(4.7f, 2.7f), routing);
@@ -261,11 +273,24 @@ namespace DeadSignal.Editor
             return result;
         }
 
+        private static GameObject _marker(Transform parent, string objectName, Material material)
+        {
+            var marker = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+            marker.name = objectName;
+            marker.transform.SetParent(parent, false);
+            marker.transform.localPosition = new Vector3(0f, 0.08f, 0f);
+            marker.transform.localScale = new Vector3(0.72f, 0.03f, 0.72f);
+            marker.GetComponent<Renderer>().sharedMaterial = material;
+            UnityEngine.Object.DestroyImmediate(marker.GetComponent<Collider>());
+            return marker;
+        }
+
         private sealed class Materials
         {
             public Material Armor;
             public Material Deck;
             public Material Cyan;
+            public Material Amber;
             public Material Ceramic;
             public Material Copper;
             public Material Decal;

@@ -59,6 +59,7 @@ namespace DeadSignal.Tests
             model.TryActivateRelayTower();
             model.CollectPayload(SignalRegion.Relay);
             model.TryInstallRelayPayload();
+            model.TryVentSpineBerth();
             model.TryActivateSpineTower();
             model.CollectPayload(SignalRegion.Spine);
         }

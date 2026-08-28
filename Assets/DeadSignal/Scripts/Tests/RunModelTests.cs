@@ -113,6 +113,9 @@ namespace DeadSignal.Tests
             Assert.That(run.CollectPayload(SignalRegion.Relay), Is.True);
             Assert.That(run.TryActivateSpineTower(), Is.False);
             Assert.That(run.TryInstallRelayPayload(), Is.True);
+            Assert.That(run.TryActivateSpineTower(), Is.False);
+            Assert.That(run.TryVentSpineBerth(), Is.True);
+            Assert.That(run.TryVentSpineBerth(), Is.False);
             Assert.That(run.TrySpend(run.Signal - RunModel.SpineTowerCost), Is.True);
             Assert.That(run.TryActivateSpineTower(), Is.False);
             Assert.That(run.SpineTowerOnline, Is.False);
@@ -168,6 +171,7 @@ namespace DeadSignal.Tests
             Assert.That(run.CollectPayload(SignalRegion.Relay), Is.True);
             Assert.That(run.TryInstallRelayPayload(), Is.True);
             Assert.That(run.CanExtract, Is.False);
+            Assert.That(run.TryVentSpineBerth(), Is.True);
             Assert.That(run.TryActivateSpineTower(), Is.True);
             Assert.That(run.CollectPayload(SignalRegion.Spine), Is.True);
 
@@ -188,6 +192,7 @@ namespace DeadSignal.Tests
             Assert.That(run.TryActivateRelayTower(), Is.True);
             Assert.That(run.CollectPayload(SignalRegion.Relay), Is.True);
             Assert.That(run.TryInstallRelayPayload(), Is.True);
+            Assert.That(run.TryVentSpineBerth(), Is.True);
             Assert.That(run.TryActivateSpineTower(), Is.True);
             Assert.That(run.CollectPayload(SignalRegion.Spine), Is.True);
 

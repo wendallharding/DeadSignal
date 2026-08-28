@@ -93,10 +93,16 @@ namespace DeadSignal.Tests
                 game.DebugInstallRelayPayload();
                 game.DebugSelectWeapon(DeadSignal.Missions.SignalWeaponOverclock.PiercingPulse);
                 player.position = game.SpineTowerInteractionPosition;
-                InputSystem.QueueStateEvent(gamepad, new GamepadState().WithButton(GamepadButton.West));
-                yield return null;
-                InputSystem.QueueStateEvent(gamepad, new GamepadState());
-                yield return null;
+                yield return _interact(gamepad);
+                Assert.That(game.IsSpineTowerOnline, Is.False,
+                    "The third tower must remain locked until its adjacent berth is vented.");
+
+                player.position = game.SpineVentingPosition;
+                yield return _interact(gamepad);
+                Assert.That(game.IsSpineBerthVented, Is.True);
+
+                player.position = game.SpineTowerInteractionPosition;
+                yield return _interact(gamepad);
 
                 Assert.That(game.IsSpineTowerOnline, Is.True);
                 Assert.That(game.IsWeaponEvolved, Is.True);
@@ -137,6 +143,14 @@ namespace DeadSignal.Tests
             {
                 InputSystem.RemoveDevice(gamepad);
             }
+        }
+
+        private static IEnumerator _interact(Gamepad gamepad)
+        {
+            InputSystem.QueueStateEvent(gamepad, new GamepadState().WithButton(GamepadButton.West));
+            yield return null;
+            InputSystem.QueueStateEvent(gamepad, new GamepadState());
+            yield return null;
         }
 
         private static IEnumerator _moveRight(Gamepad gamepad, Transform player, float targetX)

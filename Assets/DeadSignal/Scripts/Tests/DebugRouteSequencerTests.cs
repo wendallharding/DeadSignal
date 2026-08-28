@@ -82,7 +82,7 @@ namespace DeadSignal.Tests
             sequencer.Start(DebugRoutePreset.FullExtraction, DebugAutomationMode.DeterministicValidation,
                 DebugAutomationProfile.SafeNavigation, 72f);
 
-            Assert.That(sequencer.StepCount, Is.EqualTo(16));
+            Assert.That(sequencer.StepCount, Is.EqualTo(18));
             Assert.That(sequencer.CurrentStep.Action, Is.EqualTo(DebugRouteAction.ActivateCentralTower));
             _completeCurrentStep(sequencer);
             Assert.That(sequencer.CurrentStep.Action, Is.EqualTo(DebugRouteAction.CollectCache));
@@ -103,6 +103,12 @@ namespace DeadSignal.Tests
             _completeCurrentStep(sequencer);
             Assert.That(sequencer.CurrentStep.Action, Is.EqualTo(DebugRouteAction.SelectWeaponOverclock));
             Assert.That(sequencer.CurrentStep.Location, Is.EqualTo(DebugLocation.RelayTower));
+            _completeCurrentStep(sequencer);
+            Assert.That(sequencer.CurrentStep.Action, Is.EqualTo(DebugRouteAction.CaptureScreenshot));
+            Assert.That(sequencer.CurrentStep.Location, Is.EqualTo(DebugLocation.SpineTower));
+            _completeCurrentStep(sequencer);
+            Assert.That(sequencer.CurrentStep.Action, Is.EqualTo(DebugRouteAction.VentSpineBerth));
+            Assert.That(sequencer.CurrentStep.Location, Is.EqualTo(DebugLocation.CurrentObjective));
             _completeCurrentStep(sequencer);
             Assert.That(sequencer.CurrentStep.Action, Is.EqualTo(DebugRouteAction.ActivateSpineTower));
             _completeCurrentStep(sequencer);
@@ -125,8 +131,8 @@ namespace DeadSignal.Tests
             sequencer.Start(DebugRoutePreset.RequiredExtraction, DebugAutomationMode.DeterministicValidation,
                 DebugAutomationProfile.SafeNavigation, 72f);
 
-            Assert.That(sequencer.StepCount, Is.EqualTo(15));
-            for (var step = 0; step < 11; step++)
+            Assert.That(sequencer.StepCount, Is.EqualTo(17));
+            for (var step = 0; step < 13; step++)
             {
                 Assert.That(sequencer.CurrentStep.Location, Is.Not.EqualTo(DebugLocation.CacheFour));
                 _completeCurrentStep(sequencer);
@@ -201,6 +207,7 @@ namespace DeadSignal.Tests
             Assert.That(report, Does.Contain("Central Chamber"));
             Assert.That(report, Does.Contain("Relay Foundry"));
             Assert.That(report, Does.Contain("Cooling Gantry"));
+            Assert.That(report, Does.Contain("Spine Discharge Trench"));
             Assert.That(report, Does.Contain("Capacitor Spine"));
         }
 

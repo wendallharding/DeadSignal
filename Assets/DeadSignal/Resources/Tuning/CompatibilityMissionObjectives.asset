@@ -135,6 +135,19 @@ MonoBehaviour:
     m_guidanceAction: RETURN TO FOUNDRY AND INSTALL THE RELAY PAYLOAD
     m_guidanceAdvisory: ONE INSTALLATION RETURN  //  CHOOSE WEAPON CALIBRATION
     m_prerequisites: 03000000
+    m_successors: 0d000000
+  - m_id: 13
+    m_legacyStage: 4
+    m_owningRoom: Spine Discharge Trench
+    m_anchorId: Spine Berth Discharge Control
+    m_completionRule: 13
+    m_worldMutations: 8192
+    m_rewards: []
+    m_guidancePhase: 5
+    m_guidanceTitle: SPINE BERTH PRESSURIZED
+    m_guidanceAction: VENT THE BERTH IN THE DISCHARGE TRENCH
+    m_guidanceAdvisory: TRAVERSE EITHER BAFFLE LANE  //  RELEASE INTERLOCK
+    m_prerequisites: 0c000000
     m_successors: 04000000
   - m_id: 4
     m_legacyStage: 4
@@ -151,7 +164,7 @@ MonoBehaviour:
     m_guidanceTitle: POWER THE SPINE
     m_guidanceAction: RESTORE THE CAPACITOR SPINE TOWER
     m_guidanceAdvisory: SIGNAL -18  //  EVOLVE WEAPON
-    m_prerequisites: 0c000000
+    m_prerequisites: 0d000000
     m_successors: 05000000
   - m_id: 5
     m_legacyStage: 5

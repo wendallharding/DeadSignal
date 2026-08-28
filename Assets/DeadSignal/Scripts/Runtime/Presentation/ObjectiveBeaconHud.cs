@@ -137,7 +137,7 @@ namespace DeadSignal.Presentation
             CurrentPhase = m_model.CurrentObjective.Id switch
             {
                 MissionObjectiveId.CentralTower or MissionObjectiveId.CentralInstallation or
-                    MissionObjectiveId.RelayTower or MissionObjectiveId.SpineTower =>
+                    MissionObjectiveId.RelayTower or MissionObjectiveId.SpineVenting or MissionObjectiveId.SpineTower =>
                     ObjectiveBeaconPhase.Tower,
                 MissionObjectiveId.Extraction => ObjectiveBeaconPhase.Extraction,
                 _ => ObjectiveBeaconPhase.Salvage

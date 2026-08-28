@@ -48,7 +48,7 @@ namespace DeadSignal.Diagnostics
 
             var game = FindFirstObjectByType<DeadSignalGame>();
             var missionObjectives = Resources.Load<MissionObjectiveGraphConfiguration>("Tuning/CompatibilityMissionObjectives");
-            var missionObjectivesReady = missionObjectives != null && missionObjectives.ObjectiveCount == 12;
+            var missionObjectivesReady = missionObjectives != null && missionObjectives.ObjectiveCount == 13;
             var objectiveConsumersReady = game != null &&
                                           game.CurrentMissionObjectiveId == MissionObjectiveId.CentralTower &&
                                           game.CurrentMissionGuidanceTitle == "RESTORE CENTRAL" &&
@@ -65,11 +65,15 @@ namespace DeadSignal.Diagnostics
                 FindFirstObjectByType<AuthoredCentralInstallationObjective>(FindObjectsInactive.Include);
             var relayPayloadObjective =
                 FindFirstObjectByType<AuthoredRelayPayloadObjective>(FindObjectsInactive.Include);
+            var spineVentingObjective =
+                FindFirstObjectByType<AuthoredSpineVentingObjective>(FindObjectsInactive.Include);
             var centralTransferReady = relayForkObjective != null && relayForkObjective.IsConfigured &&
                                        transferVaultObjective != null && transferVaultObjective.IsConfigured &&
                                        centralInstallationObjective != null && centralInstallationObjective.IsConfigured &&
                                        transferVaultObjective.IsRouteConfigured && !transferVaultObjective.IsRelayRouteOpen;
             var relayPayloadReady = relayPayloadObjective != null && relayPayloadObjective.IsConfigured;
+            var spineVentingReady = spineVentingObjective != null && spineVentingObjective.IsConfigured &&
+                                    game != null && !game.IsSpineBerthVented;
             var weaponTextureReady = Resources.Load<Texture2D>("Environment/RelayFoundryWeaponCalibrationDecal") != null;
             var weaponMaterialReady =
                 Resources.Load<Material>("Materials/RelayFoundry/RelayFoundryWeaponCalibrationDecal") != null;
@@ -160,6 +164,9 @@ namespace DeadSignal.Diagnostics
             Debug.Log($"[DEAD SIGNAL STANDALONE SMOKE] RELAY PAYLOAD | " +
                       $"configured={relayPayloadObjective?.IsConfigured ?? false} " +
                       $"stabilized={game?.IsRelayPayloadStabilized ?? false}");
+            Debug.Log($"[DEAD SIGNAL STANDALONE SMOKE] SPINE VENTING | " +
+                      $"configured={spineVentingObjective?.IsConfigured ?? false} " +
+                      $"vented={game?.IsSpineBerthVented ?? false}");
             var runtimeReady = game != null &&
                                 missionObjectivesReady &&
                                 objectiveConsumersReady &&
@@ -167,6 +174,7 @@ namespace DeadSignal.Diagnostics
                                 coolantReady &&
                                 centralTransferReady &&
                                 relayPayloadReady &&
+                                spineVentingReady &&
                                 game.transform.Find("Maintenance Drone") != null &&
                                 game.transform.Find("Shortcut Gate Assembly/Signal Shortcut Gate") != null &&
                                 game.transform.Find("Tower Signal Lines/Signal Trunk West") != null &&

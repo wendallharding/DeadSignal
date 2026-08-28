@@ -17,7 +17,8 @@ namespace DeadSignal.Missions
         RelayFork,
         CentralAssembly,
         CentralInstallation,
-        RelayInstallation
+        RelayInstallation,
+        SpineVenting
     }
 
     public enum MissionCompletionRule
@@ -34,7 +35,8 @@ namespace DeadSignal.Missions
         RelayFeedsRouted,
         CentralPayloadAssembled,
         CentralPayloadInstalled,
-        RelayPayloadStabilized
+        RelayPayloadStabilized,
+        SpineBerthVented
     }
 
     [Flags]
@@ -53,7 +55,8 @@ namespace DeadSignal.Missions
         RelayFeedsRouted = 1 << 9,
         CentralPayloadAssembled = 1 << 10,
         CentralPayloadInstalled = 1 << 11,
-        RelayPayloadStabilized = 1 << 12
+        RelayPayloadStabilized = 1 << 12,
+        SpineBerthVented = 1 << 13
     }
 
     public enum MissionRewardKind
@@ -345,7 +348,14 @@ namespace DeadSignal.Missions
                 new[] { new MissionReward(MissionRewardKind.WeaponCalibration) },
                 new MissionGuidanceState(4, "PAYLOAD STABILIZED", "RETURN TO FOUNDRY AND INSTALL THE RELAY PAYLOAD",
                     "ONE INSTALLATION RETURN  //  CHOOSE WEAPON CALIBRATION"),
-                new[] { MissionObjectiveId.RelayPayload }, new[] { MissionObjectiveId.SpineTower }),
+                new[] { MissionObjectiveId.RelayPayload }, new[] { MissionObjectiveId.SpineVenting }),
+            _definition(MissionObjectiveId.SpineVenting, MissionStage.SpineTower,
+                "Spine Discharge Trench", "Spine Berth Discharge Control",
+                MissionCompletionRule.SpineBerthVented, MissionWorldMutation.SpineBerthVented,
+                Array.Empty<MissionReward>(),
+                new MissionGuidanceState(5, "SPINE BERTH PRESSURIZED", "VENT THE BERTH IN THE DISCHARGE TRENCH",
+                    "TRAVERSE EITHER BAFFLE LANE  //  RELEASE INTERLOCK"),
+                new[] { MissionObjectiveId.RelayInstallation }, new[] { MissionObjectiveId.SpineTower }),
             _definition(MissionObjectiveId.SpineTower, MissionStage.SpineTower, "Capacitor Spine", "Capacitor Spine Activation Decal",
                 MissionCompletionRule.SpineTowerOnline, MissionWorldMutation.SpineTerritoryPowered,
                 new[]
@@ -355,7 +365,7 @@ namespace DeadSignal.Missions
                 },
                 new MissionGuidanceState(5, "POWER THE SPINE", "RESTORE THE CAPACITOR SPINE TOWER",
                     $"SIGNAL -{RunModel.SpineTowerCost:0}  //  EVOLVE WEAPON"),
-                new[] { MissionObjectiveId.RelayInstallation }, new[] { MissionObjectiveId.SpinePayload }),
+                new[] { MissionObjectiveId.SpineVenting }, new[] { MissionObjectiveId.SpinePayload }),
             _definition(MissionObjectiveId.SpinePayload, MissionStage.SpinePayload, "Capacitor Spine", "Spine Payload Socket",
                 MissionCompletionRule.SpinePayloadSecured, MissionWorldMutation.SpinePayloadSecured,
                 Array.Empty<MissionReward>(),
