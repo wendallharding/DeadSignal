@@ -28,7 +28,8 @@ namespace DeadSignal.Salvage
 
         public int ChainCount => m_chain.Count;
         public float ChainSecondsRemaining => m_chain.SecondsRemaining;
-        public bool IsOptionalCacheAvailable => m_model.CanExtract && !m_model.OptionalSalvageSecured && _hasActiveOptionalCache();
+        public bool IsOptionalCacheAvailable =>
+            m_model.CanRaidOptionalCache && !m_model.OptionalSalvageSecured && _hasActiveOptionalCache();
         public float OptionalCacheSignalReward => m_tuning.OptionalCacheSignalReward;
         public float OptionalCacheDistance => _optionalCacheDistance();
         public bool IsRecoveryFieldActive => m_recoveryFieldSecondsRemaining > 0f;
@@ -94,7 +95,7 @@ namespace DeadSignal.Salvage
                     continue;
                 }
 
-                if (isOptionalCache && !m_model.CanExtract)
+                if (isOptionalCache && !m_model.CanRaidOptionalCache)
                 {
                     continue;
                 }

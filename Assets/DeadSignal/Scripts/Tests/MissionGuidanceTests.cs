@@ -53,6 +53,20 @@ namespace DeadSignal.Tests
         }
 
         [Test]
+        public void Evaluate_PoweredWithdrawal_DirectsTheChangedReturnBeforeDock()
+        {
+            var model = _createOnlineModel();
+            _completeCoreInstallation(model);
+
+            var guidance = MissionGuidance.Evaluate(model, false, false, 0f);
+
+            Assert.That(guidance.Phase, Is.EqualTo(7));
+            Assert.That(guidance.Title, Is.EqualTo("WITHDRAW THROUGH POWER"));
+            Assert.That(guidance.Action, Does.Contain("RELAY AND CENTRAL"));
+            Assert.That(guidance.Advisory, Does.Contain("OPEN SHORTCUTS"));
+        }
+
+        [Test]
         public void Evaluate_UsesCurrentObjectiveAuthoredGuidanceInsteadOfLegacyStageCopy()
         {
             var authoredGuidance = new MissionGuidanceState(9, "AUTHORED TITLE", "AUTHORED ACTION", "AUTHORED ADVISORY");
@@ -78,6 +92,14 @@ namespace DeadSignal.Tests
         }
 
         private static void _completeNetworkJourney(RunModel model)
+        {
+            _completeCoreInstallation(model);
+            Assert.That(model.TryAdvancePoweredWithdrawal(PoweredWithdrawalPhase.RelayShortcut), Is.True);
+            Assert.That(model.TryAdvancePoweredWithdrawal(PoweredWithdrawalPhase.TransferVault), Is.True);
+            Assert.That(model.TryAdvancePoweredWithdrawal(PoweredWithdrawalPhase.CentralFoothold), Is.True);
+        }
+
+        private static void _completeCoreInstallation(RunModel model)
         {
             Assert.That(model.CollectPayload(SignalRegion.Central), Is.True);
             Assert.That(model.TryRouteCentralComponents(), Is.True);

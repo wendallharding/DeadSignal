@@ -273,6 +273,14 @@ namespace DeadSignal.Tests
             Assert.That(run.TryRecoverStationCapacitor(), Is.False);
             Assert.That(run.TryInstallSpineCore(), Is.True);
             Assert.That(run.SpineCoreInstalled, Is.True);
+            Assert.That(run.CurrentObjective.Id, Is.EqualTo(MissionObjectiveId.PoweredWithdrawal));
+            Assert.That(run.CanExtract, Is.False);
+            Assert.That(run.TryAdvancePoweredWithdrawal(PoweredWithdrawalPhase.TransferVault), Is.False,
+                "The powered return checkpoints must not be skipped or completed out of order.");
+            Assert.That(run.TryAdvancePoweredWithdrawal(PoweredWithdrawalPhase.RelayShortcut), Is.True);
+            Assert.That(run.TryAdvancePoweredWithdrawal(PoweredWithdrawalPhase.TransferVault), Is.True);
+            Assert.That(run.TryAdvancePoweredWithdrawal(PoweredWithdrawalPhase.CentralFoothold), Is.True);
+            Assert.That(run.CurrentObjective.Id, Is.EqualTo(MissionObjectiveId.Extraction));
             Assert.That(run.TryInstallSpineCore(), Is.False);
         }
 
@@ -332,6 +340,11 @@ namespace DeadSignal.Tests
             Assert.That(run.TryCompleteSecurityTrial(), Is.True);
             Assert.That(run.TryRecoverStationCapacitor(), Is.True);
             Assert.That(run.TryInstallSpineCore(), Is.True);
+            Assert.That(run.TryExtract(), Is.False,
+                "Installing the core must not permit bypassing the required powered withdrawal.");
+            Assert.That(run.TryAdvancePoweredWithdrawal(PoweredWithdrawalPhase.RelayShortcut), Is.True);
+            Assert.That(run.TryAdvancePoweredWithdrawal(PoweredWithdrawalPhase.TransferVault), Is.True);
+            Assert.That(run.TryAdvancePoweredWithdrawal(PoweredWithdrawalPhase.CentralFoothold), Is.True);
 
             Assert.That(run.CanExtract, Is.True);
             Assert.That(run.TryExtract(), Is.True);

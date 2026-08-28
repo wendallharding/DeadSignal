@@ -2,6 +2,14 @@ using System;
 
 namespace DeadSignal.Missions
 {
+    public enum PoweredWithdrawalPhase
+    {
+        RelayShortcut,
+        TransferVault,
+        CentralFoothold,
+        Complete
+    }
+
     public enum RunOutcome
     {
         Running,
@@ -191,6 +199,7 @@ namespace DeadSignal.Missions
         public bool TrialCleared { get; private set; }
         public bool StationCapacitorRecovered { get; private set; }
         public bool SpineCoreInstalled { get; private set; }
+        public PoweredWithdrawalPhase CurrentPoweredWithdrawalPhase { get; private set; }
         public float ConvergenceCalibrationProgress { get; private set; }
         public float ConvergenceCalibrationDuration => m_convergenceCalibrationDuration;
         public bool ShortcutOpen { get; private set; }
@@ -209,8 +218,10 @@ namespace DeadSignal.Missions
         public bool IsCriticalRecovery => CriticalRecoveryRemaining > 0f && Outcome == RunOutcome.Running;
 
         public bool HasAllRegionalPayloads => CentralPayloadSecured && RelayPayloadSecured && SpinePayloadSecured;
-        public bool CanExtract => Outcome == RunOutcome.Running && TowerOnline && RelayTowerOnline && SpineTowerOnline &&
-                                  HasAllRegionalPayloads;
+        public bool PoweredWithdrawalComplete => CurrentPoweredWithdrawalPhase == PoweredWithdrawalPhase.Complete;
+        public bool CanRaidOptionalCache => Outcome == RunOutcome.Running && TowerOnline && RelayTowerOnline &&
+                                            SpineTowerOnline && HasAllRegionalPayloads;
+        public bool CanExtract => CanRaidOptionalCache && PoweredWithdrawalComplete;
         public MissionObjectiveDefinition CurrentObjective => m_objectiveGraph.Evaluate(_isObjectiveComplete);
         public MissionStage CurrentMissionStage => CurrentObjective.LegacyStage;
 
@@ -492,6 +503,18 @@ namespace DeadSignal.Missions
             return true;
         }
 
+        public bool TryAdvancePoweredWithdrawal(PoweredWithdrawalPhase reachedPhase)
+        {
+            if (!_isCurrentObjective(MissionObjectiveId.PoweredWithdrawal) ||
+                CurrentPoweredWithdrawalPhase != reachedPhase || PoweredWithdrawalComplete || Outcome != RunOutcome.Running)
+            {
+                return false;
+            }
+
+            CurrentPoweredWithdrawalPhase++;
+            return true;
+        }
+
         public bool TryInstallRelayPayload()
         {
             if (!_isCurrentObjective(MissionObjectiveId.RelayInstallation) || !RelayPayloadStabilized ||
@@ -611,7 +634,7 @@ namespace DeadSignal.Missions
 
         public float CollectOptionalSalvage(float signalReward)
         {
-            if (!CanExtract || OptionalSalvageSecured)
+            if (!CanRaidOptionalCache || OptionalSalvageSecured)
             {
                 return 0f;
             }
@@ -687,6 +710,7 @@ namespace DeadSignal.Missions
                 MissionCompletionRule.TrialCleared => TrialCleared,
                 MissionCompletionRule.StationCapacitorRecovered => StationCapacitorRecovered,
                 MissionCompletionRule.SpineCoreInstalled => SpineCoreInstalled,
+                MissionCompletionRule.PoweredWithdrawalComplete => PoweredWithdrawalComplete,
                 _ => false
             };
         }

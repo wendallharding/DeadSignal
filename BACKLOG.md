@@ -50,7 +50,7 @@ This is the controlling workstream for scheduled development. Complete it from t
 
 ### Phase 5 — Act IV: changed-station withdrawal
 
-- [ ] Route the required withdrawal through visibly powered territory and shortcuts opened by earlier objectives rather than retracing the outbound path unchanged
+- [x] Route the required withdrawal through visibly powered territory and shortcuts opened by earlier objectives rather than retracing the outbound path unchanged
 - [ ] Give Warden Bay and Sapper Cradle explicit return-pursuit functions using their established enemy identities and counterplay
 - [ ] Preserve the Departure Channel cargo release and one-shot surge as the final recovery/readability beat
 - [ ] Complete the live extraction uplink at the Dock with movement, combat, and chosen build still relevant

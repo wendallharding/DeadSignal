@@ -295,6 +295,19 @@ MonoBehaviour:
     m_guidanceAction: RETURN TO SPINE AND INSTALL THE FINAL CORE
     m_guidanceAdvisory: ONE INSTALLATION RETURN  //  ENABLES WITHDRAWAL
     m_prerequisites: 16000000
+    m_successors: 18000000
+  - m_id: 24
+    m_legacyStage: 6
+    m_owningRoom: Relay Foundry / East Transfer Vault / Central Maintenance Concourse
+    m_anchorId: Powered Withdrawal Route
+    m_completionRule: 25
+    m_worldMutations: 268435456
+    m_rewards: []
+    m_guidancePhase: 7
+    m_guidanceTitle: WITHDRAW THROUGH POWER
+    m_guidanceAction: FOLLOW THE CYAN RETURN THROUGH RELAY AND CENTRAL
+    m_guidanceAdvisory: OPEN SHORTCUTS + POWERED FOOTHOLDS  //  DOCK ROUTE FOLLOWS
+    m_prerequisites: 17000000
     m_successors: 06000000
   - m_id: 6
     m_legacyStage: 6
@@ -309,5 +322,5 @@ MonoBehaviour:
     m_guidanceTitle: EXTRACT OR GREED
     m_guidanceAction: RETURN TO THE CYAN DOCK
     m_guidanceAdvisory: THREE TOWERS + THREE PAYLOADS SECURED  //  QUENCH CACHE OPTIONAL
-    m_prerequisites: 17000000
+    m_prerequisites: 18000000
     m_successors: 

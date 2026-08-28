@@ -13,7 +13,7 @@ namespace DeadSignal.Tests
         {
             var definitions = CompatibilityMissionObjectiveGraph.Instance.Definitions;
 
-            Assert.That(definitions.Count, Is.EqualTo(22));
+            Assert.That(definitions.Count, Is.EqualTo(23));
             Assert.That(definitions.Select(definition => definition.Id), Is.Unique);
             Assert.That(definitions.All(definition => !string.IsNullOrWhiteSpace(definition.OwningRoom)), Is.True);
             Assert.That(definitions.All(definition => !string.IsNullOrWhiteSpace(definition.AnchorId)), Is.True);
@@ -28,7 +28,7 @@ namespace DeadSignal.Tests
                 Is.EquivalentTo(new[] { MissionRewardKind.WeaponCalibration }));
             Assert.That(definitions[10].Rewards.Select(reward => reward.Kind),
                 Is.EquivalentTo(new[] { MissionRewardKind.SignalRefill, MissionRewardKind.WeaponEvolution }));
-            Assert.That(definitions[21].Rewards.Single().Kind, Is.EqualTo(MissionRewardKind.Victory));
+            Assert.That(definitions[22].Rewards.Single().Kind, Is.EqualTo(MissionRewardKind.Victory));
         }
 
         [Test]
@@ -37,7 +37,7 @@ namespace DeadSignal.Tests
             var configuration = Resources.Load<MissionObjectiveGraphConfiguration>("Tuning/CompatibilityMissionObjectives");
 
             Assert.That(configuration, Is.Not.Null);
-            Assert.That(configuration.ObjectiveCount, Is.EqualTo(22));
+            Assert.That(configuration.ObjectiveCount, Is.EqualTo(23));
             var authored = configuration.BuildGraph().Definitions;
             var fallback = CompatibilityMissionObjectiveGraph.Instance.Definitions;
             Assert.That(authored.Count, Is.EqualTo(fallback.Count));
@@ -189,6 +189,14 @@ namespace DeadSignal.Tests
             Assert.That(run.TryExtract(), Is.False);
             Assert.That(run.TryInstallSpineCore(), Is.True);
             Assert.That(run.Salvage, Is.EqualTo(3));
+            _assertObjective(run, MissionObjectiveId.PoweredWithdrawal, MissionStage.Extraction,
+                MissionCompletionRule.PoweredWithdrawalComplete, MissionWorldMutation.PoweredWithdrawalComplete,
+                "WITHDRAW THROUGH POWER");
+            Assert.That(run.TryExtract(), Is.False);
+            Assert.That(run.TryAdvancePoweredWithdrawal(PoweredWithdrawalPhase.TransferVault), Is.False);
+            Assert.That(run.TryAdvancePoweredWithdrawal(PoweredWithdrawalPhase.RelayShortcut), Is.True);
+            Assert.That(run.TryAdvancePoweredWithdrawal(PoweredWithdrawalPhase.TransferVault), Is.True);
+            Assert.That(run.TryAdvancePoweredWithdrawal(PoweredWithdrawalPhase.CentralFoothold), Is.True);
             _assertObjective(run, MissionObjectiveId.Extraction, MissionStage.Extraction,
                 MissionCompletionRule.ExtractionComplete, MissionWorldMutation.RunCompleted,
                 "EXTRACT OR GREED");

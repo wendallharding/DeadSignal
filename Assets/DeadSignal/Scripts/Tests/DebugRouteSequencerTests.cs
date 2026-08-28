@@ -82,7 +82,7 @@ namespace DeadSignal.Tests
             sequencer.Start(DebugRoutePreset.FullExtraction, DebugAutomationMode.DeterministicValidation,
                 DebugAutomationProfile.SafeNavigation, 72f);
 
-            Assert.That(sequencer.StepCount, Is.EqualTo(27));
+            Assert.That(sequencer.StepCount, Is.EqualTo(28));
             Assert.That(sequencer.CurrentStep.Action, Is.EqualTo(DebugRouteAction.ActivateCentralTower));
             _completeCurrentStep(sequencer);
             Assert.That(sequencer.CurrentStep.Action, Is.EqualTo(DebugRouteAction.CollectCache));
@@ -142,9 +142,14 @@ namespace DeadSignal.Tests
             _completeCurrentStep(sequencer);
             Assert.That(sequencer.CurrentStep.Location, Is.EqualTo(DebugLocation.SpineTower));
             _completeCurrentStep(sequencer);
-            Assert.That(sequencer.CurrentStep.Location, Is.EqualTo(DebugLocation.RelayTower));
+            Assert.That(sequencer.CurrentStep.Location, Is.EqualTo(DebugLocation.CurrentObjective));
+            Assert.That(sequencer.CurrentStep.Name, Does.Contain("Relay powered shortcut"));
             _completeCurrentStep(sequencer);
-            Assert.That(sequencer.CurrentStep.Location, Is.EqualTo(DebugLocation.CentralTower));
+            Assert.That(sequencer.CurrentStep.Location, Is.EqualTo(DebugLocation.CurrentObjective));
+            Assert.That(sequencer.CurrentStep.Name, Does.Contain("Transfer-vault return feed"));
+            _completeCurrentStep(sequencer);
+            Assert.That(sequencer.CurrentStep.Location, Is.EqualTo(DebugLocation.CurrentObjective));
+            Assert.That(sequencer.CurrentStep.Name, Does.Contain("Central powered foothold"));
         }
 
         [Test]
@@ -154,16 +159,18 @@ namespace DeadSignal.Tests
             sequencer.Start(DebugRoutePreset.RequiredExtraction, DebugAutomationMode.DeterministicValidation,
                 DebugAutomationProfile.SafeNavigation, 72f);
 
-            Assert.That(sequencer.StepCount, Is.EqualTo(25));
+            Assert.That(sequencer.StepCount, Is.EqualTo(26));
             for (var step = 0; step < 22; step++)
             {
                 Assert.That(sequencer.CurrentStep.Location, Is.Not.EqualTo(DebugLocation.CacheFour));
                 _completeCurrentStep(sequencer);
             }
 
-            Assert.That(sequencer.CurrentStep.Location, Is.EqualTo(DebugLocation.RelayTower));
+            Assert.That(sequencer.CurrentStep.Location, Is.EqualTo(DebugLocation.CurrentObjective));
             _completeCurrentStep(sequencer);
-            Assert.That(sequencer.CurrentStep.Location, Is.EqualTo(DebugLocation.CentralTower));
+            Assert.That(sequencer.CurrentStep.Location, Is.EqualTo(DebugLocation.CurrentObjective));
+            _completeCurrentStep(sequencer);
+            Assert.That(sequencer.CurrentStep.Location, Is.EqualTo(DebugLocation.CurrentObjective));
             _completeCurrentStep(sequencer);
             Assert.That(sequencer.CurrentStep.Location, Is.EqualTo(DebugLocation.Extraction));
             Assert.That(sequencer.CurrentStep.Action, Is.EqualTo(DebugRouteAction.BeginStableExtraction));
@@ -273,7 +280,7 @@ namespace DeadSignal.Tests
             var report = sequencer.FinishReport(72f, metrics, false, false, Vector3.zero, RunOutcome.Victory);
 
             Assert.That(report, Does.Contain("Guidance response proxy avg 0.30s"));
-            Assert.That(report, Does.Contain("Wrong-turn proxies 0  Backtrack legs 6"));
+            Assert.That(report, Does.Contain("Wrong-turn proxies 0  Backtrack legs 7"));
             Assert.That(report, Does.Contain("Extraction Dock"));
             Assert.That(report, Does.Contain("Central Chamber"));
             Assert.That(report, Does.Contain("Relay Foundry"));

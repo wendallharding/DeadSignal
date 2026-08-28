@@ -15,7 +15,7 @@ namespace DeadSignal.Tests
     public sealed class CapacitorSpinePlayModeTests
     {
         [UnityTest]
-        public IEnumerator CompletedCore_GamepadInstallsAtSpineOnceAndEnablesExtraction()
+        public IEnumerator CompletedCore_GamepadInstallsThenPoweredReturnEnablesExtraction()
         {
             yield return SceneManager.LoadSceneAsync("SampleScene");
             yield return null;
@@ -24,8 +24,11 @@ namespace DeadSignal.Tests
             try
             {
                 var game = Object.FindFirstObjectByType<DeadSignalGame>();
+                var scene = Object.FindFirstObjectByType<DeadSignalSceneReferences>();
                 var player = game.transform.Find("Maintenance Drone");
                 var spine = GameObject.Find("Capacitor Spine Region").transform;
+                var transferVault = GameObject.Find("Optional East Salvage Vault")
+                    .GetComponent<AuthoredTransferVaultObjective>();
                 var objective = spine.GetComponent<AuthoredSpineCoreInstallationObjective>();
                 var availableMarker = spine.Find("Core Installation Available").gameObject;
                 var installedMarker = spine.Find("Core Installation Complete").gameObject;
@@ -50,15 +53,34 @@ namespace DeadSignal.Tests
                 yield return _interact(gamepad);
 
                 Assert.That(game.IsSpineCoreInstalled, Is.True);
-                Assert.That(game.IsExtractionReady, Is.True);
-                Assert.That(game.CurrentMissionObjectiveId, Is.EqualTo(MissionObjectiveId.Extraction));
+                Assert.That(game.IsExtractionReady, Is.False);
+                Assert.That(game.CurrentMissionObjectiveId, Is.EqualTo(MissionObjectiveId.PoweredWithdrawal));
+                Assert.That(game.CurrentPoweredWithdrawalPhase, Is.EqualTo(PoweredWithdrawalPhase.RelayShortcut));
                 Assert.That(availableMarker.activeSelf, Is.False);
                 Assert.That(installedMarker.activeSelf, Is.True);
                 Assert.That(game.CurrentSalvage, Is.EqualTo(RunModel.SalvageRequired));
+                Assert.That(scene.RelayShortcutGate.activeSelf, Is.False,
+                    "Relay activation should leave its authored shortcut open for withdrawal.");
+                Assert.That(scene.RelaySignalRouting.activeSelf, Is.True,
+                    "The first required return checkpoint should retain Relay's visible cyan routing.");
 
                 yield return _interact(gamepad);
                 Assert.That(game.CurrentSalvage, Is.EqualTo(RunModel.SalvageRequired),
-                    "Repeated interaction must not duplicate final-payload progress.");
+                    "Repeated installation interaction must not duplicate final-payload progress.");
+
+                player.position = scene.RelayShortcutPosition;
+                yield return null;
+                Assert.That(game.CurrentPoweredWithdrawalPhase, Is.EqualTo(PoweredWithdrawalPhase.TransferVault));
+                player.position = transferVault.Position;
+                yield return null;
+                Assert.That(game.CurrentPoweredWithdrawalPhase, Is.EqualTo(PoweredWithdrawalPhase.CentralFoothold));
+                player.position = scene.TowerPosition;
+                yield return null;
+
+                Assert.That(game.IsExtractionReady, Is.True);
+                Assert.That(game.CurrentMissionObjectiveId, Is.EqualTo(MissionObjectiveId.Extraction));
+                Assert.That(game.DebugIsPoweredAt(scene.TowerPosition), Is.True,
+                    "The required return should finish inside the persistent Central foothold.");
             }
             finally
             {

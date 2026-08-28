@@ -146,7 +146,7 @@ namespace DeadSignal.Tests.PlayMode
             Assert.That(report, Does.Contain("Journey REQUIRED WITHDRAWAL"));
             Assert.That(report, Does.Contain("Combat "));
             Assert.That(report, Does.Contain("Guidance response proxy"));
-            Assert.That(report, Does.Contain("Wrong-turn proxies 0  Backtrack legs 6"));
+            Assert.That(report, Does.Contain("Wrong-turn proxies 0  Backtrack legs 7"));
             Assert.That(report, Does.Contain("PASS Cargo coupling"));
             Assert.That(report, Does.Contain("PASS Coolant seal"));
             Assert.That(report, Does.Contain("PASS Relay Fork routing"));
@@ -161,6 +161,9 @@ namespace DeadSignal.Tests.PlayMode
             Assert.That(report, Does.Contain("PASS Room A commitment"));
             Assert.That(report, Does.Contain("PASS Room B lockdown"));
             Assert.That(report, Does.Contain("PASS Room C station capacitor"));
+            Assert.That(report, Does.Contain("PASS Relay powered shortcut"));
+            Assert.That(report, Does.Contain("PASS Transfer-vault return feed"));
+            Assert.That(report, Does.Contain("PASS Central powered foothold"));
             Assert.That(report, Does.Contain("Objective-room coverage 19/19"));
             Assert.That(report, Does.Contain("Rooms without a compatibility-route objective 0"));
             game.DebugSetTimeScale(1f);
@@ -193,6 +196,7 @@ namespace DeadSignal.Tests.PlayMode
             game.DebugCompleteSecurityTrial();
             game.DebugRecoverStationCapacitor();
             game.DebugInstallSpineCore();
+            game.DebugCompletePoweredWithdrawal();
             yield return null;
 
             Assert.That(game.IsExtractionReady, Is.True);

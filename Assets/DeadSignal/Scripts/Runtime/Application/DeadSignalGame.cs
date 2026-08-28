@@ -150,6 +150,8 @@ namespace DeadSignal.Application
         public bool IsRelayPayloadStabilized => m_model?.RelayPayloadStabilized ?? false;
         public bool IsSpinePayloadSecured => m_model?.SpinePayloadSecured ?? false;
         public bool IsSpineCoreInstalled => m_model?.SpineCoreInstalled ?? false;
+        public PoweredWithdrawalPhase CurrentPoweredWithdrawalPhase =>
+            m_model?.CurrentPoweredWithdrawalPhase ?? PoweredWithdrawalPhase.RelayShortcut;
         public bool IsExtractionReady => m_model?.CanExtract ?? false;
         public bool IsDepartureSurgeConsumed => m_world?.IsDepartureSurgeConsumed ?? false;
         public MissionStage CurrentMissionStage => m_model?.CurrentMissionStage ?? MissionStage.CentralTower;
@@ -986,6 +988,14 @@ namespace DeadSignal.Application
             _showFeedback("DEBUG — SIGNAL CORE INSTALLED  //  WITHDRAWAL ENABLED");
         }
 
+        public void DebugCompletePoweredWithdrawal()
+        {
+            DebugInstallSpineCore();
+            m_model.TryAdvancePoweredWithdrawal(PoweredWithdrawalPhase.RelayShortcut);
+            m_model.TryAdvancePoweredWithdrawal(PoweredWithdrawalPhase.TransferVault);
+            m_model.TryAdvancePoweredWithdrawal(PoweredWithdrawalPhase.CentralFoothold);
+        }
+
         public void DebugBeginConvergenceCalibration()
         {
             DebugRouteFluxShunt();
@@ -1086,7 +1096,7 @@ namespace DeadSignal.Application
                 return;
             }
 
-            if (!m_model.CanExtract || m_model.OptionalSalvageSecured)
+            if (!m_model.CanRaidOptionalCache || m_model.OptionalSalvageSecured)
             {
                 return;
             }
@@ -1133,6 +1143,7 @@ namespace DeadSignal.Application
             DebugCompleteSecurityTrial();
             DebugRecoverStationCapacitor();
             DebugInstallSpineCore();
+            DebugCompletePoweredWithdrawal();
         }
 
         public void DebugSpawnThreat(SecurityReinforcement reinforcement)
@@ -3285,6 +3296,7 @@ namespace DeadSignal.Application
         {
             _tickConvergenceCalibration(dt);
             _tickCombatChamber();
+            _tickPoweredWithdrawal();
             m_world.TickTower(dt, m_model.TowerOnline);
             m_threats.Tick(dt, powered);
             _tryTriggerEmergencyCapacitor();
@@ -3311,6 +3323,31 @@ namespace DeadSignal.Application
                 _completeExtraction();
             }
             m_metrics.RecordSignal(m_model.Signal);
+        }
+
+        private void _tickPoweredWithdrawal()
+        {
+            if (m_model.CurrentObjective.Id != MissionObjectiveId.PoweredWithdrawal)
+            {
+                return;
+            }
+
+            var phase = m_model.CurrentPoweredWithdrawalPhase;
+            var target = m_world.GetObjectiveTarget(m_model);
+            if (DeadSignalWorld.FlatDistance(m_world.Player.position, target) > 1.7f ||
+                !m_model.TryAdvancePoweredWithdrawal(phase))
+            {
+                return;
+            }
+
+            var feedback = phase switch
+            {
+                PoweredWithdrawalPhase.RelayShortcut => "RELAY SHORTCUT CROSSED — FOLLOW THE CYAN TRANSFER FEED",
+                PoweredWithdrawalPhase.TransferVault => "TRANSFER ROUTE CROSSED — RETURN THROUGH POWERED CENTRAL",
+                PoweredWithdrawalPhase.CentralFoothold => "POWERED WITHDRAWAL COMPLETE — DEPARTURE CHANNEL OPEN",
+                _ => string.Empty
+            };
+            _showFeedback(feedback);
         }
 
         private void _tickConvergenceCalibration(float dt)

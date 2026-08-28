@@ -72,6 +72,9 @@ namespace DeadSignal.Tests
             model.TryCompleteSecurityTrial();
             model.TryRecoverStationCapacitor();
             model.TryInstallSpineCore();
+            model.TryAdvancePoweredWithdrawal(PoweredWithdrawalPhase.RelayShortcut);
+            model.TryAdvancePoweredWithdrawal(PoweredWithdrawalPhase.TransferVault);
+            model.TryAdvancePoweredWithdrawal(PoweredWithdrawalPhase.CentralFoothold);
         }
     }
 }

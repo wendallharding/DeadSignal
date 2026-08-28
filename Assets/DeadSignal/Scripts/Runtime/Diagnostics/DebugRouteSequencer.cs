@@ -462,9 +462,11 @@ namespace DeadSignal.Diagnostics
                         yield return new DebugRouteStep("Quench return to Spine", DebugLocation.SpineTower, 2f,
                             DebugRouteAction.CaptureScreenshot, roomName: "Capacitor Spine", isBacktrack: true);
                     }
-                    yield return new DebugRouteStep("Relay powered foothold", DebugLocation.RelayTower, 2f,
+                    yield return new DebugRouteStep("Relay powered shortcut", DebugLocation.CurrentObjective, 1.7f,
                         DebugRouteAction.None, roomName: "Relay Foundry", isBacktrack: true);
-                    yield return new DebugRouteStep("Central powered foothold", DebugLocation.CentralTower, 2f,
+                    yield return new DebugRouteStep("Transfer-vault return feed", DebugLocation.CurrentObjective, 1.7f,
+                        DebugRouteAction.None, roomName: "East Transfer Vault", isBacktrack: true);
+                    yield return new DebugRouteStep("Central powered foothold", DebugLocation.CurrentObjective, 1.7f,
                         DebugRouteAction.None, roomName: "Central Chamber", isBacktrack: true);
                     yield return new DebugRouteStep("Extraction", DebugLocation.Extraction, 1.5f, DebugRouteAction.BeginStableExtraction,
                         DebugRouteAssertion.SignalAboveTwenty, "Extraction Dock", true);

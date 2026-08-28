@@ -1,6 +1,6 @@
 # DEAD SIGNAL — Current station room inventory
 
-Status: Phase 2 Central act implemented through the payload installation return, 2026-08-27. The inventory sections record current playable authority; the target schematic and ordered ledger still define later Relay, deep-core, and withdrawal work without claiming those acts are implemented.
+Status: Phase 5 withdrawal implemented through the required powered-return route, 2026-08-28. The inventory sections record current playable authority; the target schematic and ordered ledger still define the later Warden Bay, Sapper Cradle, Departure surge, and live-uplink slices without claiming those beats are implemented.
 
 ## Authority and coordinate contract
 
@@ -157,6 +157,8 @@ The schematic never implies a direct portal between Central's branch landmarks: 
 | 24 | Withdraw | Extraction Dock | Extract | Departure -> live uplink | Completes the mission with movement, combat, and build still relevant. | No |
 
 Ledger constraints: the 19 mission rooms appear at least once; the connector and both combat landmarks appear only as route support; Room B is the only full lockdown; Cargo/Coolant remain order-independent; and Acts I–III each contain exactly one installation return while withdrawal contains none. Phase 1 must first reproduce the current seven-stage route, so this target ledger does not authorize a progression-order change by itself.
+
+Phase 5 implementation note (Run 153): completed-core installation now exposes one traversal-only `PoweredWithdrawal` objective. Its ordered, interaction-free checkpoints cross Relay's already-open shortcut, the completed East Transfer Vault feed, and Central's persistent powered foothold before the Dock objective becomes available. The objective beacon follows the active checkpoint, optional Quench greed remains available without bypassing the return, and no room, encounter, reward, Signal value, or shortcut transaction was added. Warden Bay and Sapper Cradle pursuit remain the next unimplemented withdrawal slice.
 
 ## Opening and Central inventory
 

@@ -1730,6 +1730,16 @@ namespace DeadSignal.World
                     return SpineCoreInstallationObjective != null
                         ? SpineCoreInstallationObjective.Position
                         : SpineTowerInteractionPosition;
+                case MissionObjectiveId.PoweredWithdrawal:
+                    return model.CurrentPoweredWithdrawalPhase switch
+                    {
+                        PoweredWithdrawalPhase.RelayShortcut => m_scene.RelayShortcutPosition,
+                        PoweredWithdrawalPhase.TransferVault => TransferVaultObjective != null
+                            ? TransferVaultObjective.Position
+                            : RelayTowerPosition,
+                        PoweredWithdrawalPhase.CentralFoothold => TowerPosition,
+                        _ => ExtractionPosition
+                    };
                 case MissionObjectiveId.Extraction:
                     return ExtractionPosition;
                 case MissionObjectiveId.CentralPayload:

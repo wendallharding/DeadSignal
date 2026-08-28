@@ -28,7 +28,8 @@ namespace DeadSignal.Missions
         TrialCommitment,
         TrialLockdown,
         StationCapacitor,
-        SpineCoreInstallation
+        SpineCoreInstallation,
+        PoweredWithdrawal
     }
 
     public enum MissionCompletionRule
@@ -57,7 +58,8 @@ namespace DeadSignal.Missions
         TrialCommitted,
         TrialCleared,
         StationCapacitorRecovered,
-        SpineCoreInstalled
+        SpineCoreInstalled,
+        PoweredWithdrawalComplete
     }
 
     [Flags]
@@ -91,7 +93,8 @@ namespace DeadSignal.Missions
         TrialCommitted = 1 << 24,
         TrialCleared = 1 << 25,
         StationCapacitorRecovered = 1 << 26,
-        SpineCoreInstalled = 1 << 27
+        SpineCoreInstalled = 1 << 27,
+        PoweredWithdrawalComplete = 1 << 28
     }
 
     public enum MissionRewardKind
@@ -473,13 +476,20 @@ namespace DeadSignal.Missions
                 Array.Empty<MissionReward>(),
                 new MissionGuidanceState(6, "SIGNAL CORE COMPLETE", "RETURN TO SPINE AND INSTALL THE FINAL CORE",
                     "ONE INSTALLATION RETURN  //  ENABLES WITHDRAWAL"),
-                new[] { MissionObjectiveId.StationCapacitor }, new[] { MissionObjectiveId.Extraction }),
+                new[] { MissionObjectiveId.StationCapacitor }, new[] { MissionObjectiveId.PoweredWithdrawal }),
+            _definition(MissionObjectiveId.PoweredWithdrawal, MissionStage.Extraction,
+                "Relay Foundry / East Transfer Vault / Central Maintenance Concourse", "Powered Withdrawal Route",
+                MissionCompletionRule.PoweredWithdrawalComplete, MissionWorldMutation.PoweredWithdrawalComplete,
+                Array.Empty<MissionReward>(),
+                new MissionGuidanceState(7, "WITHDRAW THROUGH POWER", "FOLLOW THE CYAN RETURN THROUGH RELAY AND CENTRAL",
+                    "OPEN SHORTCUTS + POWERED FOOTHOLDS  //  DOCK ROUTE FOLLOWS"),
+                new[] { MissionObjectiveId.SpineCoreInstallation }, new[] { MissionObjectiveId.Extraction }),
             _definition(MissionObjectiveId.Extraction, MissionStage.Extraction, "Extraction Dock", "Dock Uplink",
                 MissionCompletionRule.ExtractionComplete, MissionWorldMutation.RunCompleted,
                 new[] { new MissionReward(MissionRewardKind.Victory) },
                 new MissionGuidanceState(7, "EXTRACT OR GREED", "RETURN TO THE CYAN DOCK",
                     "THREE TOWERS + THREE PAYLOADS SECURED  //  QUENCH CACHE OPTIONAL"),
-                new[] { MissionObjectiveId.SpineCoreInstallation }, Array.Empty<MissionObjectiveId>()));
+                new[] { MissionObjectiveId.PoweredWithdrawal }, Array.Empty<MissionObjectiveId>()));
 
         private static MissionObjectiveDefinition _definition(
             MissionObjectiveId id,

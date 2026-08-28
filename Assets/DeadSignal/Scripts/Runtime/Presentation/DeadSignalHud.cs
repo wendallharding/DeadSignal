@@ -306,8 +306,9 @@ namespace DeadSignal.Presentation
                   $"SURVIVE PURSUIT  {m_extractionUplink.SecondsRemaining:0.0}s\n" +
                   _extractionPursuitAdvisory()
                 : m_salvage.IsOptionalCacheAvailable
-                ? $"PHASE 3/3  //  EXTRACTION READY\n" +
-                  $"RETURN TO DOCK OR RAID OPTIONAL CACHE  {m_salvage.OptionalCacheDistance:0}m\n" +
+                ? $"PHASE 3/3  //  {(m_model.PoweredWithdrawalComplete ? "EXTRACTION READY" : "WITHDRAWAL ACTIVE")}\n" +
+                  $"{(m_model.PoweredWithdrawalComplete ? "RETURN TO DOCK" : "FOLLOW CYAN RETURN")} OR RAID OPTIONAL CACHE  " +
+                  $"{m_salvage.OptionalCacheDistance:0}m\n" +
                   $"GREED +{m_salvage.OptionalCacheSignalReward:0} SIGNAL — {_optionalGreedCountertrace()}"
                 : $"PHASE {guidance.Phase}/3  //  {guidance.Title}\n{guidance.Action}\n{guidance.Advisory}";
             m_threatText.text = _threatStatus();
