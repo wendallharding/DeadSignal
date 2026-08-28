@@ -6,6 +6,8 @@ using UnityEngine.InputSystem.LowLevel;
 using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
 using DeadSignal.Application;
+using DeadSignal.Missions;
+using DeadSignal.Player;
 using DeadSignal.World;
 
 namespace DeadSignal.Tests
@@ -27,11 +29,16 @@ namespace DeadSignal.Tests
                 var gallery = game.transform.Find("Spine Induction Gallery Region");
                 var territory = gallery.GetComponent<AuthoredPoweredTerritory>();
                 var routing = gallery.Find("Induction Gallery Signal Lines").gameObject;
+                var objective = gallery.GetComponent<AuthoredInductionLatticeObjective>();
+                var available = gallery.Find("Induction Lattice Objective/Empty Lattice Available").gameObject;
+                var charged = gallery.Find("Induction Lattice Objective/Charged Lattice Complete").gameObject;
 
                 Assert.That(gallery.position, Is.EqualTo(new Vector3(42.5f, 0f, 8.5f)));
                 Assert.That(gallery.GetComponentsInChildren<AuthoredMapObstacle>().Length, Is.EqualTo(76));
                 Assert.That(gallery.GetComponentsInChildren<Collider>().Length, Is.Zero);
                 Assert.That(gallery.Find("Induction Coil"), Is.Not.Null);
+                Assert.That(objective, Is.Not.Null);
+                Assert.That(objective.IsConfigured, Is.True);
                 Assert.That(gallery.Find("West Deflection Baffle"), Is.Not.Null);
                 Assert.That(gallery.Find("East Deflection Baffle"), Is.Not.Null);
                 Assert.That(gallery.Find("Induction Gallery Route Decal"), Is.Not.Null);
@@ -74,9 +81,27 @@ namespace DeadSignal.Tests
                 Assert.That(routing.activeSelf, Is.False);
 
                 game.DebugActivateSpineTower();
+                game.DebugSelectOverclock(SignalOverclock.ChainArc);
+                game.DebugSelectAuxiliary(SignalAuxiliaryOverclock.FeedbackShield);
+                yield return null;
                 Assert.That(game.DebugIsPoweredAt(galleryCenter), Is.True,
                     "The deepest tower should turn the gallery into a powered return foothold.");
                 Assert.That(routing.activeSelf, Is.True);
+                Assert.That(game.CurrentMissionObjectiveId, Is.EqualTo(MissionObjectiveId.InductionLattice));
+                Assert.That(available.activeSelf, Is.True);
+                Assert.That(charged.activeSelf, Is.False);
+
+                player.position = game.InductionLatticePosition;
+                yield return _interact(gamepad);
+                Assert.That(game.IsInductionLatticeCharged, Is.True);
+                Assert.That(game.CurrentMissionObjectiveId, Is.EqualTo(MissionObjectiveId.SpinePayload));
+                Assert.That(available.activeSelf, Is.False);
+                Assert.That(charged.activeSelf, Is.True,
+                    "Charging should leave a persistent cyan lattice in the authored gallery.");
+
+                yield return _interact(gamepad);
+                Assert.That(game.CurrentMissionObjectiveId, Is.EqualTo(MissionObjectiveId.SpinePayload),
+                    "Repeated interaction must not duplicate or skip the compatibility objective.");
             }
             finally
             {
@@ -93,6 +118,14 @@ namespace DeadSignal.Tests
                 yield return null;
             }
 
+            InputSystem.QueueStateEvent(gamepad, new GamepadState());
+            yield return null;
+        }
+
+        private static IEnumerator _interact(Gamepad gamepad)
+        {
+            InputSystem.QueueStateEvent(gamepad, new GamepadState().WithButton(GamepadButton.West));
+            yield return null;
             InputSystem.QueueStateEvent(gamepad, new GamepadState());
             yield return null;
         }

@@ -165,6 +165,19 @@ MonoBehaviour:
     m_guidanceAction: SEAT IT IN THE CAPACITOR SPINE TOWER
     m_guidanceAdvisory: FREE INSTALLATION  //  REFILL +34  //  EVOLVE + POWER RETURN
     m_prerequisites: 0d000000
+    m_successors: 0e000000
+  - m_id: 14
+    m_legacyStage: 5
+    m_owningRoom: Induction Gallery
+    m_anchorId: Induction Lattice Socket
+    m_completionRule: 15
+    m_worldMutations: 131072
+    m_rewards: []
+    m_guidancePhase: 6
+    m_guidanceTitle: REBUILD THE SIGNAL CORE
+    m_guidanceAction: CHARGE THE EMPTY LATTICE IN INDUCTION
+    m_guidanceAdvisory: ENTER THE POWERED GALLERY  //  CHARGE AT THE COIL
+    m_prerequisites: 04000000
     m_successors: 05000000
   - m_id: 5
     m_legacyStage: 5
@@ -177,7 +190,7 @@ MonoBehaviour:
     m_guidanceTitle: FINAL PAYLOAD
     m_guidanceAction: SECURE ONE SPINE PAYLOAD
     m_guidanceAdvisory: GALLERY OR FURNACE-SIDE ROUTE  //  ONE REQUIRED
-    m_prerequisites: 04000000
+    m_prerequisites: 0e000000
     m_successors: 06000000
   - m_id: 6
     m_legacyStage: 6

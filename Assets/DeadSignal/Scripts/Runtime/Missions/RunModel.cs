@@ -179,6 +179,7 @@ namespace DeadSignal.Missions
         public bool SpineTowerOnline => SpineRelayResultInstalled;
         public bool DeepReturnNetworkPowered => SpineRelayResultInstalled;
         public bool CoreRebuildUnlocked => SpineRelayResultInstalled;
+        public bool InductionLatticeCharged { get; private set; }
         public bool ShortcutOpen { get; private set; }
         public bool OptionalSalvageSecured { get; private set; }
         public bool CentralPayloadSecured { get; private set; }
@@ -333,6 +334,18 @@ namespace DeadSignal.Missions
             }
 
             SpineBerthVented = true;
+            return true;
+        }
+
+        public bool TryChargeInductionLattice()
+        {
+            if (!_isCurrentObjective(MissionObjectiveId.InductionLattice) || !CoreRebuildUnlocked ||
+                InductionLatticeCharged || Outcome != RunOutcome.Running)
+            {
+                return false;
+            }
+
+            InductionLatticeCharged = true;
             return true;
         }
 
@@ -525,6 +538,7 @@ namespace DeadSignal.Missions
                 MissionCompletionRule.RelayPayloadStabilized => RelayPayloadStabilized,
                 MissionCompletionRule.SpineBerthVented => SpineBerthVented,
                 MissionCompletionRule.SpineRelayResultInstalled => SpineRelayResultInstalled,
+                MissionCompletionRule.InductionLatticeCharged => InductionLatticeCharged,
                 _ => false
             };
         }

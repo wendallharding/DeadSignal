@@ -24,6 +24,8 @@ namespace DeadSignal.Editor
             "Assets/DeadSignal/Resources/Materials/RelayFoundry/RelayFoundryDeck.mat";
         private const string CYAN_MATERIAL_PATH =
             "Assets/DeadSignal/Resources/Materials/WorldPalette/SignalCyan.mat";
+        private const string AMBER_MATERIAL_PATH =
+            "Assets/DeadSignal/Resources/Materials/WorldPalette/SalvageAmber.mat";
 
         private static readonly Vector3 s_regionPosition = new(42.5f, 0f, 8.5f);
 
@@ -37,6 +39,7 @@ namespace DeadSignal.Editor
                        AssetDatabase.LoadAssetAtPath<Material>(DECAL_MATERIAL_PATH) != null &&
                        prefab.GetComponentsInChildren<AuthoredMapObstacle>().Length >= 17 &&
                        prefab.GetComponent<AuthoredPoweredTerritory>() != null &&
+                       prefab.GetComponent<AuthoredInductionLatticeObjective>()?.IsConfigured == true &&
                        prefab.transform.Find("Induction Gallery Signal Lines") != null &&
                        prefab.transform.Find("Induction Gallery Route Decal") != null &&
                        prefab.transform.Find("Induction Coil") != null;
@@ -110,6 +113,7 @@ namespace DeadSignal.Editor
                 Armor = AssetDatabase.LoadAssetAtPath<Material>(ARMOR_MATERIAL_PATH),
                 Deck = AssetDatabase.LoadAssetAtPath<Material>(DECK_MATERIAL_PATH),
                 Cyan = AssetDatabase.LoadAssetAtPath<Material>(CYAN_MATERIAL_PATH),
+                Amber = AssetDatabase.LoadAssetAtPath<Material>(AMBER_MATERIAL_PATH),
                 Decal = decal
             };
         }
@@ -118,6 +122,7 @@ namespace DeadSignal.Editor
         {
             if (AssetDatabase.LoadAssetAtPath<GameObject>(PREFAB_PATH) != null)
             {
+                _ensureObjectiveMarkers(materials);
                 return;
             }
 
@@ -171,12 +176,84 @@ namespace DeadSignal.Editor
 
                 root.AddComponent<AuthoredPoweredTerritory>().Configure(
                     PoweredTerritorySource.SpineTower, new Vector2(6.65f, 3.15f), routing);
+                _addObjectiveMarkers(root, materials);
                 PrefabUtility.SaveAsPrefabAsset(root, PREFAB_PATH);
             }
             finally
             {
                 UnityEngine.Object.DestroyImmediate(root);
             }
+        }
+
+        private static void _ensureObjectiveMarkers(Materials materials)
+        {
+            if (materials.Amber == null || materials.Cyan == null)
+            {
+                throw new InvalidOperationException("The Induction lattice requires amber and cyan state materials.");
+            }
+
+            var root = PrefabUtility.LoadPrefabContents(PREFAB_PATH);
+            try
+            {
+                if (root.GetComponent<AuthoredInductionLatticeObjective>()?.IsConfigured != true)
+                {
+                    var existing = root.transform.Find("Induction Lattice Objective");
+                    if (existing != null)
+                    {
+                        UnityEngine.Object.DestroyImmediate(existing.gameObject);
+                    }
+
+                    _addObjectiveMarkers(root, materials);
+                    PrefabUtility.SaveAsPrefabAsset(root, PREFAB_PATH);
+                }
+            }
+            finally
+            {
+                PrefabUtility.UnloadPrefabContents(root);
+            }
+        }
+
+        private static void _addObjectiveMarkers(GameObject root, Materials materials)
+        {
+            var objectiveRoot = new GameObject("Induction Lattice Objective");
+            objectiveRoot.transform.SetParent(root.transform, false);
+            objectiveRoot.transform.localPosition = new Vector3(0f, 0f, 1.05f);
+
+            var anchor = new GameObject("Induction Lattice Socket");
+            anchor.transform.SetParent(objectiveRoot.transform, false);
+
+            var available = new GameObject("Empty Lattice Available");
+            available.transform.SetParent(objectiveRoot.transform, false);
+            _markerPart(available.transform, "Amber Charge Ring", PrimitiveType.Cylinder,
+                new Vector3(0f, 0.08f, 0f), new Vector3(0.82f, 0.025f, 0.82f), materials.Amber);
+            _markerPart(available.transform, "Empty Lattice", PrimitiveType.Cube,
+                new Vector3(0f, 0.34f, 0f), new Vector3(0.36f, 0.52f, 0.36f), materials.Amber);
+
+            var charged = new GameObject("Charged Lattice Complete");
+            charged.transform.SetParent(objectiveRoot.transform, false);
+            _markerPart(charged.transform, "Cyan Charge Ring", PrimitiveType.Cylinder,
+                new Vector3(0f, 0.08f, 0f), new Vector3(0.82f, 0.025f, 0.82f), materials.Cyan);
+            _markerPart(charged.transform, "Charged Lattice", PrimitiveType.Cube,
+                new Vector3(0f, 0.46f, 0f), new Vector3(0.42f, 0.76f, 0.42f), materials.Cyan);
+
+            var objective = root.GetComponent<AuthoredInductionLatticeObjective>();
+            if (objective == null)
+            {
+                objective = root.AddComponent<AuthoredInductionLatticeObjective>();
+            }
+            objective.Configure(anchor.transform, available, charged);
+        }
+
+        private static void _markerPart(Transform parent, string name, PrimitiveType primitiveType,
+            Vector3 position, Vector3 scale, Material material)
+        {
+            var part = GameObject.CreatePrimitive(primitiveType);
+            part.name = name;
+            part.transform.SetParent(parent, false);
+            part.transform.localPosition = position;
+            part.transform.localScale = scale;
+            part.GetComponent<Renderer>().sharedMaterial = material;
+            UnityEngine.Object.DestroyImmediate(part.GetComponent<Collider>());
         }
 
         private static void _ensureScenePlacement()
@@ -236,6 +313,7 @@ namespace DeadSignal.Editor
             public Material Armor;
             public Material Deck;
             public Material Cyan;
+            public Material Amber;
             public Material Decal;
         }
     }

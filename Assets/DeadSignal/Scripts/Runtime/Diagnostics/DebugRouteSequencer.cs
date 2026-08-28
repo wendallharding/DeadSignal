@@ -44,6 +44,7 @@ namespace DeadSignal.Diagnostics
         SelectWeaponOverclock,
         VentSpineBerth,
         ActivateSpineTower,
+        ChargeInductionLattice,
         BeginStableExtraction,
         CaptureScreenshot
     }
@@ -425,6 +426,8 @@ namespace DeadSignal.Diagnostics
                         DebugRouteAction.VentSpineBerth, roomName: "Spine Discharge Trench");
                     yield return new DebugRouteStep("Spine tower", DebugLocation.SpineTower, 2f,
                         DebugRouteAction.ActivateSpineTower, roomName: "Capacitor Spine");
+                    yield return new DebugRouteStep("Induction lattice charging", DebugLocation.CurrentObjective, 1.7f,
+                        DebugRouteAction.ChargeInductionLattice, roomName: "Induction Gallery");
                     yield return new DebugRouteStep("Spine payload", DebugLocation.CurrentObjective, 2.3f,
                         DebugRouteAction.CollectCache, roomName: "Capacitor Spine");
                     if (preset == DebugRoutePreset.FullExtraction)

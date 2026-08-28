@@ -88,6 +88,7 @@ namespace DeadSignal.Tests
             Assert.That(model.TryInstallRelayPayload(), Is.True);
             Assert.That(model.TryVentSpineBerth(), Is.True);
             Assert.That(model.TryActivateSpineTower(), Is.True);
+            Assert.That(model.TryChargeInductionLattice(), Is.True);
             Assert.That(model.CollectPayload(SignalRegion.Spine), Is.True);
         }
     }

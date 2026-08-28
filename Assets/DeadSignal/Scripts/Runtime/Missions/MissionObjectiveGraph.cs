@@ -18,7 +18,8 @@ namespace DeadSignal.Missions
         CentralAssembly,
         CentralInstallation,
         RelayInstallation,
-        SpineVenting
+        SpineVenting,
+        InductionLattice
     }
 
     public enum MissionCompletionRule
@@ -37,7 +38,8 @@ namespace DeadSignal.Missions
         CentralPayloadInstalled,
         RelayPayloadStabilized,
         SpineBerthVented,
-        SpineRelayResultInstalled
+        SpineRelayResultInstalled,
+        InductionLatticeCharged
     }
 
     [Flags]
@@ -60,7 +62,8 @@ namespace DeadSignal.Missions
         SpineBerthVented = 1 << 13,
         SpineRelayResultInstalled = 1 << 14,
         DeepReturnNetworkPowered = 1 << 15,
-        CoreRebuildUnlocked = 1 << 16
+        CoreRebuildUnlocked = 1 << 16,
+        InductionLatticeCharged = 1 << 17
     }
 
     public enum MissionRewardKind
@@ -371,12 +374,19 @@ namespace DeadSignal.Missions
                 },
                 new MissionGuidanceState(5, "INSTALL THE RELAY RESULT", "SEAT IT IN THE CAPACITOR SPINE TOWER",
                     $"FREE INSTALLATION  //  REFILL +{RunModel.SpineTowerRefill:0}  //  EVOLVE + POWER RETURN"),
-                new[] { MissionObjectiveId.SpineVenting }, new[] { MissionObjectiveId.SpinePayload }),
+                new[] { MissionObjectiveId.SpineVenting }, new[] { MissionObjectiveId.InductionLattice }),
+            _definition(MissionObjectiveId.InductionLattice, MissionStage.SpinePayload,
+                "Induction Gallery", "Induction Lattice Socket",
+                MissionCompletionRule.InductionLatticeCharged, MissionWorldMutation.InductionLatticeCharged,
+                Array.Empty<MissionReward>(),
+                new MissionGuidanceState(6, "REBUILD THE SIGNAL CORE", "CHARGE THE EMPTY LATTICE IN INDUCTION",
+                    "ENTER THE POWERED GALLERY  //  CHARGE AT THE COIL"),
+                new[] { MissionObjectiveId.SpineTower }, new[] { MissionObjectiveId.SpinePayload }),
             _definition(MissionObjectiveId.SpinePayload, MissionStage.SpinePayload, "Capacitor Spine", "Spine Payload Socket",
                 MissionCompletionRule.SpinePayloadSecured, MissionWorldMutation.SpinePayloadSecured,
                 Array.Empty<MissionReward>(),
                 new MissionGuidanceState(6, "FINAL PAYLOAD", "SECURE ONE SPINE PAYLOAD", "GALLERY OR FURNACE-SIDE ROUTE  //  ONE REQUIRED"),
-                new[] { MissionObjectiveId.SpineTower }, new[] { MissionObjectiveId.Extraction }),
+                new[] { MissionObjectiveId.InductionLattice }, new[] { MissionObjectiveId.Extraction }),
             _definition(MissionObjectiveId.Extraction, MissionStage.Extraction, "Extraction Dock", "Dock Uplink",
                 MissionCompletionRule.ExtractionComplete, MissionWorldMutation.RunCompleted,
                 new[] { new MissionReward(MissionRewardKind.Victory) },

@@ -69,6 +69,7 @@ namespace DeadSignal.World
         public AuthoredCentralInstallationObjective CentralInstallationObjective { get; private set; }
         public AuthoredRelayPayloadObjective RelayPayloadObjective { get; private set; }
         public AuthoredSpineVentingObjective SpineVentingObjective { get; private set; }
+        public AuthoredInductionLatticeObjective InductionLatticeObjective { get; private set; }
         public IReadOnlyList<GameObject> SalvagePickups => m_salvagePickups;
 
         public SignalRegion GetPayloadRegion(GameObject pickup) => m_salvageRegions.TryGetValue(pickup, out var region)
@@ -166,6 +167,8 @@ namespace DeadSignal.World
                 Object.FindFirstObjectByType<AuthoredRelayPayloadObjective>(FindObjectsInactive.Include);
             SpineVentingObjective =
                 Object.FindFirstObjectByType<AuthoredSpineVentingObjective>(FindObjectsInactive.Include);
+            InductionLatticeObjective =
+                Object.FindFirstObjectByType<AuthoredInductionLatticeObjective>(FindObjectsInactive.Include);
             _buildActors(comfortSettings);
             m_palette.RebindHierarchy(m_root);
             _configurePlayerCamera();
@@ -349,6 +352,13 @@ namespace DeadSignal.World
             SpineVentingObjective?.SetState(
                 model.CurrentObjective.Id == MissionObjectiveId.SpineVenting,
                 model.SpineBerthVented);
+        }
+
+        public void UpdateInductionLatticePresentation(RunModel model)
+        {
+            InductionLatticeObjective?.SetState(
+                model.CurrentObjective.Id == MissionObjectiveId.InductionLattice,
+                model.InductionLatticeCharged);
         }
 
         public Vector3 GetObjectiveGuidanceWaypoint(RunModel model, float radius)
@@ -1631,6 +1641,10 @@ namespace DeadSignal.World
                     return SpineTowerInteractionPosition;
                 case MissionObjectiveId.SpineVenting:
                     return SpineVentingObjective != null ? SpineVentingObjective.Position : SpineTowerInteractionPosition;
+                case MissionObjectiveId.InductionLattice:
+                    return InductionLatticeObjective != null
+                        ? InductionLatticeObjective.Position
+                        : SpineTowerInteractionPosition;
                 case MissionObjectiveId.Extraction:
                     return ExtractionPosition;
                 case MissionObjectiveId.CentralPayload:

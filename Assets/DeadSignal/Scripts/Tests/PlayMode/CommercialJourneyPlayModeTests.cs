@@ -152,8 +152,8 @@ namespace DeadSignal.Tests.PlayMode
             Assert.That(report, Does.Contain("PASS Central payload installation"));
             Assert.That(report, Does.Contain("PASS Cooling Gantry stabilization"));
             Assert.That(report, Does.Contain("PASS Foundry payload installation"));
-            Assert.That(report, Does.Contain("Objective-room coverage 10/19"));
-            Assert.That(report, Does.Contain("Rooms without a compatibility-route objective 9"));
+            Assert.That(report, Does.Contain("Objective-room coverage 11/19"));
+            Assert.That(report, Does.Contain("Rooms without a compatibility-route objective 8"));
             game.DebugSetTimeScale(1f);
         }
 
@@ -174,6 +174,7 @@ namespace DeadSignal.Tests.PlayMode
             game.DebugCollectNextCache();
             game.DebugSelectAuxiliary(SignalAuxiliaryOverclock.FeedbackShield);
             game.DebugActivateSpineTower();
+            game.DebugChargeInductionLattice();
             game.DebugCollectNextCache();
             yield return null;
 
@@ -236,7 +237,7 @@ namespace DeadSignal.Tests.PlayMode
             game.DebugStartRouteSequence(DebugRoutePreset.FullExtraction,
                 DebugAutomationMode.AssistedPlaythrough, DebugAutomationProfile.LiveBalance);
 
-            var timeout = Time.realtimeSinceStartup + 70f;
+            var timeout = Time.realtimeSinceStartup + 95f;
             while (game.CurrentRunOutcome == RunOutcome.Running && Time.realtimeSinceStartup < timeout)
             {
                 yield return null;

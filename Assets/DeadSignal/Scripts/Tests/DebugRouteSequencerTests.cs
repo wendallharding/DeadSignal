@@ -82,7 +82,7 @@ namespace DeadSignal.Tests
             sequencer.Start(DebugRoutePreset.FullExtraction, DebugAutomationMode.DeterministicValidation,
                 DebugAutomationProfile.SafeNavigation, 72f);
 
-            Assert.That(sequencer.StepCount, Is.EqualTo(18));
+            Assert.That(sequencer.StepCount, Is.EqualTo(19));
             Assert.That(sequencer.CurrentStep.Action, Is.EqualTo(DebugRouteAction.ActivateCentralTower));
             _completeCurrentStep(sequencer);
             Assert.That(sequencer.CurrentStep.Action, Is.EqualTo(DebugRouteAction.CollectCache));
@@ -112,6 +112,9 @@ namespace DeadSignal.Tests
             _completeCurrentStep(sequencer);
             Assert.That(sequencer.CurrentStep.Action, Is.EqualTo(DebugRouteAction.ActivateSpineTower));
             _completeCurrentStep(sequencer);
+            Assert.That(sequencer.CurrentStep.Action, Is.EqualTo(DebugRouteAction.ChargeInductionLattice));
+            Assert.That(sequencer.CurrentStep.Location, Is.EqualTo(DebugLocation.CurrentObjective));
+            _completeCurrentStep(sequencer);
             Assert.That(sequencer.CurrentStep.Location, Is.EqualTo(DebugLocation.CurrentObjective));
             _completeCurrentStep(sequencer);
             Assert.That(sequencer.CurrentStep.Location, Is.EqualTo(DebugLocation.CacheFour));
@@ -131,8 +134,8 @@ namespace DeadSignal.Tests
             sequencer.Start(DebugRoutePreset.RequiredExtraction, DebugAutomationMode.DeterministicValidation,
                 DebugAutomationProfile.SafeNavigation, 72f);
 
-            Assert.That(sequencer.StepCount, Is.EqualTo(17));
-            for (var step = 0; step < 13; step++)
+            Assert.That(sequencer.StepCount, Is.EqualTo(18));
+            for (var step = 0; step < 14; step++)
             {
                 Assert.That(sequencer.CurrentStep.Location, Is.Not.EqualTo(DebugLocation.CacheFour));
                 _completeCurrentStep(sequencer);
@@ -196,8 +199,8 @@ namespace DeadSignal.Tests
             }));
             Assert.That(installationReturns, Is.EqualTo(1),
                 "Act II should require only the Gantry-to-Foundry installation return.");
-            Assert.That(sequencer.CurrentStep.Action, Is.EqualTo(DebugRouteAction.CollectCache),
-                "The accepted Relay network act should hand off to the temporary core-rebuild compatibility objective.");
+            Assert.That(sequencer.CurrentStep.Action, Is.EqualTo(DebugRouteAction.ChargeInductionLattice),
+                "The accepted Relay network act should hand off to Induction charging.");
         }
 
         [Test]

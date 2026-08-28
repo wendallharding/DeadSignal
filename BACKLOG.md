@@ -39,7 +39,7 @@ This is the controlling workstream for scheduled development. Complete it from t
 
 ### Phase 4 — Act III: rebuild the Signal core
 
-- [ ] Induction Gallery charges the empty lattice
+- [x] Induction Gallery charges the empty lattice
 - [ ] Flux Bypass throws the shunt that makes Convergence calibration possible and changes the later return route
 - [ ] Convergence Chamber runs one bounded, shorter calibration holdout distinct from the full lockdown trial
 - [ ] Breaker Gallery resets distribution and unlocks the Furnace process

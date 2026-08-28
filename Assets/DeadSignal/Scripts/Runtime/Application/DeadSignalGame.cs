@@ -113,6 +113,7 @@ namespace DeadSignal.Application
         public bool IsSpineRelayResultInstalled => m_model?.SpineRelayResultInstalled ?? false;
         public bool IsDeepReturnNetworkPowered => m_model?.DeepReturnNetworkPowered ?? false;
         public bool IsCoreRebuildUnlocked => m_model?.CoreRebuildUnlocked ?? false;
+        public bool IsInductionLatticeCharged => m_model?.InductionLatticeCharged ?? false;
         public bool IsCentralPayloadSecured => m_model?.CentralPayloadSecured ?? false;
         public bool IsCentralPayloadAssembled => m_model?.CentralPayloadAssembled ?? false;
         public bool IsCargoCouplingSecured => m_model?.CargoCouplingSecured ?? false;
@@ -146,6 +147,7 @@ namespace DeadSignal.Application
         public Vector3 SpineTowerPosition => m_world?.SpineTowerPosition ?? Vector3.zero;
         public Vector3 SpineTowerInteractionPosition => m_world?.SpineTowerInteractionPosition ?? Vector3.zero;
         public Vector3 SpineVentingPosition => m_world?.SpineVentingObjective?.Position ?? Vector3.zero;
+        public Vector3 InductionLatticePosition => m_world?.InductionLatticeObjective?.Position ?? Vector3.zero;
         public bool IsWeaponEvolved => m_overclockChoice?.IsWeaponEvolved ?? false;
         public Vector3 SafestReinforcementEntryPosition => m_world == null
             ? Vector3.zero
@@ -834,6 +836,18 @@ namespace DeadSignal.Application
             _showFeedback("DEBUG — SPINE BERTH VENTED");
         }
 
+        public void DebugChargeInductionLattice()
+        {
+            DebugActivateSpineTower();
+            if (m_model?.TryChargeInductionLattice() != true)
+            {
+                return;
+            }
+
+            m_world.UpdateInductionLatticePresentation(m_model);
+            _showFeedback("DEBUG — CORE LATTICE CHARGED");
+        }
+
         public void DebugOpenShortcut()
         {
             DebugActivateTower();
@@ -956,6 +970,7 @@ namespace DeadSignal.Application
                 m_overclockChoice.TrySelect(SignalAuxiliaryOverclock.FeedbackShield);
             }
             DebugActivateSpineTower();
+            DebugChargeInductionLattice();
             DebugCollectNextCache();
         }
 
@@ -1358,6 +1373,7 @@ namespace DeadSignal.Application
             m_world.UpdateCentralTransferPresentation(m_model);
             m_world.UpdateRelayPayloadPresentation(m_model);
             m_world.UpdateSpineVentingPresentation(m_model);
+            m_world.UpdateInductionLatticePresentation(m_model);
             m_world.PlayerSignalWake.Tick(m_playerMovement.Velocity);
             m_world.TickGameplayAssists(dt, m_threats, aimDirection);
 
@@ -1785,6 +1801,24 @@ namespace DeadSignal.Application
                 return;
             }
 
+            if (m_world.InductionLatticeObjective != null &&
+                DeadSignalWorld.FlatDistance(m_world.Player.position, m_world.InductionLatticeObjective.Position) <
+                TOWER_INTERACTION_RADIUS)
+            {
+                if (m_model.TryChargeInductionLattice())
+                {
+                    m_world.UpdateInductionLatticePresentation(m_model);
+                    m_audio.Play(DeadSignalAudioCue.TowerOnline);
+                    _showFeedback("CORE LATTICE CHARGED — ROUTE THE FLUX SHUNT");
+                }
+                else if (!m_model.CoreRebuildUnlocked)
+                {
+                    _showFeedback("INDUCTION LOCKED — INSTALL THE RELAY RESULT AT SPINE");
+                }
+
+                return;
+            }
+
             if (!m_model.SpineTowerOnline &&
                 m_world.IsSpineTowerInteractionInRange(m_world.Player.position))
             {
@@ -2171,6 +2205,7 @@ namespace DeadSignal.Application
                     break;
                 case DebugRouteAction.VentSpineBerth: DebugVentSpineBerth(); break;
                 case DebugRouteAction.ActivateSpineTower: DebugActivateSpineTower(); break;
+                case DebugRouteAction.ChargeInductionLattice: DebugChargeInductionLattice(); break;
                 case DebugRouteAction.BeginStableExtraction: DebugBeginExtraction(ExtractionUplinkMode.Stable); break;
                 case DebugRouteAction.CaptureScreenshot: DebugCaptureScreenshot(); break;
             }
@@ -2221,6 +2256,7 @@ namespace DeadSignal.Application
                 DebugRouteAction.SelectWeaponOverclock => m_overclockChoice.SelectedWeapon != SignalWeaponOverclock.None,
                 DebugRouteAction.VentSpineBerth => m_model.SpineBerthVented && _debugObjectiveAdvanced(),
                 DebugRouteAction.ActivateSpineTower => m_model.SpineTowerOnline && _debugObjectiveAdvanced(),
+                DebugRouteAction.ChargeInductionLattice => m_model.InductionLatticeCharged && _debugObjectiveAdvanced(),
                 DebugRouteAction.BeginStableExtraction => m_extractionUplink.IsActive,
                 _ => true
             };
