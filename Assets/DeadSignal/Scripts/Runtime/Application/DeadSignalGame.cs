@@ -149,6 +149,7 @@ namespace DeadSignal.Application
         public bool IsSpineBerthVented => m_model?.SpineBerthVented ?? false;
         public bool IsRelayPayloadStabilized => m_model?.RelayPayloadStabilized ?? false;
         public bool IsSpinePayloadSecured => m_model?.SpinePayloadSecured ?? false;
+        public bool IsSpineCoreInstalled => m_model?.SpineCoreInstalled ?? false;
         public bool IsExtractionReady => m_model?.CanExtract ?? false;
         public bool IsDepartureSurgeConsumed => m_world?.IsDepartureSurgeConsumed ?? false;
         public MissionStage CurrentMissionStage => m_model?.CurrentMissionStage ?? MissionStage.CentralTower;
@@ -157,6 +158,7 @@ namespace DeadSignal.Application
         public string CurrentMissionGuidanceAction => m_model?.CurrentObjective.Guidance.Action ?? string.Empty;
         public Vector3 SpineTowerPosition => m_world?.SpineTowerPosition ?? Vector3.zero;
         public Vector3 SpineTowerInteractionPosition => m_world?.SpineTowerInteractionPosition ?? Vector3.zero;
+        public Vector3 SpineCoreInstallationPosition => m_world?.SpineCoreInstallationObjective?.Position ?? Vector3.zero;
         public Vector3 SpineVentingPosition => m_world?.SpineVentingObjective?.Position ?? Vector3.zero;
         public Vector3 InductionLatticePosition => m_world?.InductionLatticeObjective?.Position ?? Vector3.zero;
         public Vector3 FluxShuntPosition => m_world?.FluxShuntObjective?.Position ?? Vector3.zero;
@@ -972,6 +974,18 @@ namespace DeadSignal.Application
             _showFeedback("DEBUG — STATION CAPACITOR RECOVERED");
         }
 
+        public void DebugInstallSpineCore()
+        {
+            DebugRecoverStationCapacitor();
+            if (m_model?.TryInstallSpineCore() != true)
+            {
+                return;
+            }
+
+            m_world.UpdateSpineCoreInstallationPresentation(m_model);
+            _showFeedback("DEBUG — SIGNAL CORE INSTALLED  //  WITHDRAWAL ENABLED");
+        }
+
         public void DebugBeginConvergenceCalibration()
         {
             DebugRouteFluxShunt();
@@ -1118,7 +1132,7 @@ namespace DeadSignal.Application
             DebugCommitSecurityTrial();
             DebugCompleteSecurityTrial();
             DebugRecoverStationCapacitor();
-            DebugCollectNextCache();
+            DebugInstallSpineCore();
         }
 
         public void DebugSpawnThreat(SecurityReinforcement reinforcement)
@@ -1531,6 +1545,7 @@ namespace DeadSignal.Application
             m_world.UpdateCentralTransferPresentation(m_model);
             m_world.UpdateRelayPayloadPresentation(m_model);
             m_world.UpdateSpineVentingPresentation(m_model);
+            m_world.UpdateSpineCoreInstallationPresentation(m_model);
             m_world.UpdateInductionLatticePresentation(m_model);
             m_world.UpdateFluxShuntPresentation(m_model);
             m_world.UpdateConvergenceCalibrationPresentation(m_model);
@@ -2060,6 +2075,22 @@ namespace DeadSignal.Application
                 return;
             }
 
+            if (m_model.CurrentObjective.Id == MissionObjectiveId.SpineCoreInstallation &&
+                m_world.SpineCoreInstallationObjective != null &&
+                DeadSignalWorld.FlatDistance(
+                    m_world.Player.position,
+                    m_world.SpineCoreInstallationObjective.Position) < TOWER_INTERACTION_RADIUS)
+            {
+                if (m_model.TryInstallSpineCore())
+                {
+                    m_world.UpdateSpineCoreInstallationPresentation(m_model);
+                    m_audio.Play(DeadSignalAudioCue.TowerOnline);
+                    _showFeedback("SIGNAL CORE INSTALLED — WITHDRAWAL ENABLED");
+                }
+
+                return;
+            }
+
             if (m_world.InductionLatticeObjective != null &&
                 DeadSignalWorld.FlatDistance(m_world.Player.position, m_world.InductionLatticeObjective.Position) <
                 TOWER_INTERACTION_RADIUS)
@@ -2473,6 +2504,7 @@ namespace DeadSignal.Application
                 case DebugRouteAction.CommitSecurityTrial: DebugCommitSecurityTrial(); break;
                 case DebugRouteAction.CompleteSecurityTrial: DebugCompleteSecurityTrial(); break;
                 case DebugRouteAction.RecoverStationCapacitor: DebugRecoverStationCapacitor(); break;
+                case DebugRouteAction.InstallSpineCore: DebugInstallSpineCore(); break;
                 case DebugRouteAction.BeginStableExtraction: DebugBeginExtraction(ExtractionUplinkMode.Stable); break;
                 case DebugRouteAction.CaptureScreenshot: DebugCaptureScreenshot(); break;
             }
@@ -2535,6 +2567,7 @@ namespace DeadSignal.Application
                 DebugRouteAction.CompleteSecurityTrial => m_model.TrialCleared && _debugObjectiveAdvanced(),
                 DebugRouteAction.RecoverStationCapacitor =>
                     m_model.StationCapacitorRecovered && _debugObjectiveAdvanced(),
+                DebugRouteAction.InstallSpineCore => m_model.SpineCoreInstalled && _debugObjectiveAdvanced(),
                 DebugRouteAction.BeginStableExtraction => m_extractionUplink.IsActive,
                 _ => true
             };

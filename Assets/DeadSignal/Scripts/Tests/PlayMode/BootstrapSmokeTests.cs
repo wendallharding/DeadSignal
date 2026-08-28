@@ -1557,7 +1557,7 @@ namespace DeadSignal.Tests
             var salvageCaches = game.transform.Cast<Transform>().Where(child => child.name == "Salvage Cache").ToArray();
             Assert.That(game.HasSalvageCacheAssets, Is.True,
                 "The salvage-cache prefab and original containment texture should load from Resources.");
-            const int REGIONAL_CACHE_COUNT = RunModel.SalvageRequired * 2;
+            const int REGIONAL_CACHE_COUNT = RunModel.SalvageRequired + 1;
             Assert.That(game.SalvageCacheInstanceCount, Is.EqualTo(REGIONAL_CACHE_COUNT));
             Assert.That(game.SalvageCachePartCount, Is.EqualTo(REGIONAL_CACHE_COUNT * 4));
             Assert.That(salvageCaches.Length, Is.EqualTo(REGIONAL_CACHE_COUNT));
@@ -2219,6 +2219,7 @@ namespace DeadSignal.Tests
                     "Leaving the locked field should remain a meaningful decision before extraction resolves.");
                 var countdownBeforePurge = game.ExtractionUplinkSecondsRemaining;
                 var purgeStartedAt = Time.time;
+                game.DebugSpawnThreat(SecurityReinforcement.Warden);
                 suppressor.position = player.position + Vector3.right * 2f;
                 securityWarden.position = suppressor.position + Vector3.forward * 1.2f;
                 interceptor.position = suppressor.position - Vector3.forward * 1.2f;
@@ -2227,11 +2228,17 @@ namespace DeadSignal.Tests
                     new GamepadState { rightStick = Vector2.right }.WithButton(GamepadButton.RightShoulder));
                 yield return null;
                 InputSystem.QueueStateEvent(gamepad, new GamepadState { rightStick = Vector2.right });
-                yield return new WaitForSeconds(0.18f);
+                var reactiveArcImpactDeadline = Time.time + 0.25f;
+                while (game.ChainArcsPlayed < chainArcsBeforeOverload + 2 && Time.time < reactiveArcImpactDeadline)
+                {
+                    yield return null;
+                }
+
                 Assert.That(game.ChainArcsPlayed, Is.EqualTo(chainArcsBeforeOverload + 2),
                     "The primed Reactive Arc should jump through two different secondary threats on the next successful bolt.");
                 Assert.That(game.IsChainArcOverloadReady, Is.False,
                     "The double-jump charge should be consumed by exactly one successful Chain Arc.");
+                yield return new WaitForSeconds(0.18f);
                 securityWarden.position = new Vector3(18f, 0f, 9f);
                 interceptor.position = new Vector3(18f, 0f, -9f);
                 for (var shotIndex = 0; shotIndex < 2; shotIndex++)

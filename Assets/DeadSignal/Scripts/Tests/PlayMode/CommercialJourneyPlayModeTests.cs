@@ -192,7 +192,7 @@ namespace DeadSignal.Tests.PlayMode
             game.DebugCommitSecurityTrial();
             game.DebugCompleteSecurityTrial();
             game.DebugRecoverStationCapacitor();
-            game.DebugCollectNextCache();
+            game.DebugInstallSpineCore();
             yield return null;
 
             Assert.That(game.IsExtractionReady, Is.True);

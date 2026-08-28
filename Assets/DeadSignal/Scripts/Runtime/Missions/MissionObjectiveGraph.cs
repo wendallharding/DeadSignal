@@ -27,7 +27,8 @@ namespace DeadSignal.Missions
         QuenchStabilization,
         TrialCommitment,
         TrialLockdown,
-        StationCapacitor
+        StationCapacitor,
+        SpineCoreInstallation
     }
 
     public enum MissionCompletionRule
@@ -55,7 +56,8 @@ namespace DeadSignal.Missions
         CoreStabilized,
         TrialCommitted,
         TrialCleared,
-        StationCapacitorRecovered
+        StationCapacitorRecovered,
+        SpineCoreInstalled
     }
 
     [Flags]
@@ -88,7 +90,8 @@ namespace DeadSignal.Missions
         QuenchReturnOpened = 1 << 23,
         TrialCommitted = 1 << 24,
         TrialCleared = 1 << 25,
-        StationCapacitorRecovered = 1 << 26
+        StationCapacitorRecovered = 1 << 26,
+        SpineCoreInstalled = 1 << 27
     }
 
     public enum MissionRewardKind
@@ -463,18 +466,20 @@ namespace DeadSignal.Missions
                 Array.Empty<MissionReward>(),
                 new MissionGuidanceState(6, "SECURITY TRIAL CLEARED", "RECOVER THE STATION CAPACITOR IN ROOM C",
                     "INTEGRATES WITH THE STABILIZED CORE  //  ONE RECOVERY"),
-                new[] { MissionObjectiveId.TrialLockdown }, new[] { MissionObjectiveId.SpinePayload }),
-            _definition(MissionObjectiveId.SpinePayload, MissionStage.SpinePayload, "Capacitor Spine", "Spine Payload Socket",
-                MissionCompletionRule.SpinePayloadSecured, MissionWorldMutation.SpinePayloadSecured,
+                new[] { MissionObjectiveId.TrialLockdown }, new[] { MissionObjectiveId.SpineCoreInstallation }),
+            _definition(MissionObjectiveId.SpineCoreInstallation, MissionStage.SpinePayload,
+                "Capacitor Spine", "Capacitor Spine Activation Decal",
+                MissionCompletionRule.SpineCoreInstalled, MissionWorldMutation.SpineCoreInstalled,
                 Array.Empty<MissionReward>(),
-                new MissionGuidanceState(6, "FINAL PAYLOAD", "SECURE ONE SPINE PAYLOAD", "GALLERY OR FURNACE-SIDE ROUTE  //  ONE REQUIRED"),
+                new MissionGuidanceState(6, "SIGNAL CORE COMPLETE", "RETURN TO SPINE AND INSTALL THE FINAL CORE",
+                    "ONE INSTALLATION RETURN  //  ENABLES WITHDRAWAL"),
                 new[] { MissionObjectiveId.StationCapacitor }, new[] { MissionObjectiveId.Extraction }),
             _definition(MissionObjectiveId.Extraction, MissionStage.Extraction, "Extraction Dock", "Dock Uplink",
                 MissionCompletionRule.ExtractionComplete, MissionWorldMutation.RunCompleted,
                 new[] { new MissionReward(MissionRewardKind.Victory) },
                 new MissionGuidanceState(7, "EXTRACT OR GREED", "RETURN TO THE CYAN DOCK",
                     "THREE TOWERS + THREE PAYLOADS SECURED  //  QUENCH CACHE OPTIONAL"),
-                new[] { MissionObjectiveId.SpinePayload }, Array.Empty<MissionObjectiveId>()));
+                new[] { MissionObjectiveId.SpineCoreInstallation }, Array.Empty<MissionObjectiveId>()));
 
         private static MissionObjectiveDefinition _definition(
             MissionObjectiveId id,

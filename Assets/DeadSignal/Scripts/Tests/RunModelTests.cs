@@ -269,8 +269,11 @@ namespace DeadSignal.Tests
             Assert.That(run.CurrentObjective.Id, Is.EqualTo(MissionObjectiveId.StationCapacitor));
             Assert.That(run.TryCompleteSecurityTrial(), Is.False);
             Assert.That(run.TryRecoverStationCapacitor(), Is.True);
-            Assert.That(run.CurrentObjective.Id, Is.EqualTo(MissionObjectiveId.SpinePayload));
+            Assert.That(run.CurrentObjective.Id, Is.EqualTo(MissionObjectiveId.SpineCoreInstallation));
             Assert.That(run.TryRecoverStationCapacitor(), Is.False);
+            Assert.That(run.TryInstallSpineCore(), Is.True);
+            Assert.That(run.SpineCoreInstalled, Is.True);
+            Assert.That(run.TryInstallSpineCore(), Is.False);
         }
 
         [Test]
@@ -328,7 +331,7 @@ namespace DeadSignal.Tests
             Assert.That(run.TryCommitSecurityTrial(), Is.True);
             Assert.That(run.TryCompleteSecurityTrial(), Is.True);
             Assert.That(run.TryRecoverStationCapacitor(), Is.True);
-            Assert.That(run.CollectPayload(SignalRegion.Spine), Is.True);
+            Assert.That(run.TryInstallSpineCore(), Is.True);
 
             Assert.That(run.CanExtract, Is.True);
             Assert.That(run.TryExtract(), Is.True);
@@ -359,7 +362,7 @@ namespace DeadSignal.Tests
             Assert.That(run.TryCommitSecurityTrial(), Is.True);
             Assert.That(run.TryCompleteSecurityTrial(), Is.True);
             Assert.That(run.TryRecoverStationCapacitor(), Is.True);
-            Assert.That(run.CollectPayload(SignalRegion.Spine), Is.True);
+            Assert.That(run.TryInstallSpineCore(), Is.True);
 
             run.TrySpend(30f);
             Assert.That(run.CollectOptionalSalvage(18f), Is.EqualTo(18f));

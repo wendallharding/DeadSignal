@@ -282,18 +282,18 @@ MonoBehaviour:
     m_guidanceAction: RECOVER THE STATION CAPACITOR IN ROOM C
     m_guidanceAdvisory: INTEGRATES WITH THE STABILIZED CORE  //  ONE RECOVERY
     m_prerequisites: 15000000
-    m_successors: 05000000
-  - m_id: 5
+    m_successors: 17000000
+  - m_id: 23
     m_legacyStage: 5
     m_owningRoom: Capacitor Spine
-    m_anchorId: Spine Payload Socket
-    m_completionRule: 5
-    m_worldMutations: 32
+    m_anchorId: Capacitor Spine Activation Decal
+    m_completionRule: 24
+    m_worldMutations: 134217728
     m_rewards: []
     m_guidancePhase: 6
-    m_guidanceTitle: FINAL PAYLOAD
-    m_guidanceAction: SECURE ONE SPINE PAYLOAD
-    m_guidanceAdvisory: GALLERY OR FURNACE-SIDE ROUTE  //  ONE REQUIRED
+    m_guidanceTitle: SIGNAL CORE COMPLETE
+    m_guidanceAction: RETURN TO SPINE AND INSTALL THE FINAL CORE
+    m_guidanceAdvisory: ONE INSTALLATION RETURN  //  ENABLES WITHDRAWAL
     m_prerequisites: 16000000
     m_successors: 06000000
   - m_id: 6
@@ -309,5 +309,5 @@ MonoBehaviour:
     m_guidanceTitle: EXTRACT OR GREED
     m_guidanceAction: RETURN TO THE CYAN DOCK
     m_guidanceAdvisory: THREE TOWERS + THREE PAYLOADS SECURED  //  QUENCH CACHE OPTIONAL
-    m_prerequisites: 05000000
+    m_prerequisites: 17000000
     m_successors: 

@@ -45,8 +45,8 @@ This is the controlling workstream for scheduled development. Complete it from t
 - [x] Breaker Gallery resets distribution and unlocks the Furnace process
 - [x] Arc Furnace forges the charged lattice; Quench Loop stabilizes it while opening its existing return shortcut
 - [x] Room A commits the player to the final trial, Room B provides the required Geometry Wars-inspired combat climax, and Room C supplies the mission-critical station capacitor
-- [ ] Returning the completed core to the Spine Tower installs the final payload and enables withdrawal
-- [ ] Do not replicate the Room B wave structure in the other deep rooms; use routing, processing, short defense, or mixed-role pressure instead
+- [x] Returning the completed core to the Spine Tower installs the final payload and enables withdrawal
+- [x] Do not replicate the Room B wave structure in the other deep rooms; use routing, processing, short defense, or mixed-role pressure instead
 
 ### Phase 5 — Act IV: changed-station withdrawal
 

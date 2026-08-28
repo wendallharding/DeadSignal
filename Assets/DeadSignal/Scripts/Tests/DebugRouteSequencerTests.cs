@@ -135,6 +135,7 @@ namespace DeadSignal.Tests
             Assert.That(sequencer.CurrentStep.Action, Is.EqualTo(DebugRouteAction.RecoverStationCapacitor));
             _completeCurrentStep(sequencer);
             Assert.That(sequencer.CurrentStep.Location, Is.EqualTo(DebugLocation.CurrentObjective));
+            Assert.That(sequencer.CurrentStep.Action, Is.EqualTo(DebugRouteAction.InstallSpineCore));
             _completeCurrentStep(sequencer);
             Assert.That(sequencer.CurrentStep.Location, Is.EqualTo(DebugLocation.CacheFour));
             Assert.That(sequencer.CurrentStep.Action, Is.EqualTo(DebugRouteAction.CollectCache));
@@ -153,16 +154,13 @@ namespace DeadSignal.Tests
             sequencer.Start(DebugRoutePreset.RequiredExtraction, DebugAutomationMode.DeterministicValidation,
                 DebugAutomationProfile.SafeNavigation, 72f);
 
-            Assert.That(sequencer.StepCount, Is.EqualTo(26));
+            Assert.That(sequencer.StepCount, Is.EqualTo(25));
             for (var step = 0; step < 22; step++)
             {
                 Assert.That(sequencer.CurrentStep.Location, Is.Not.EqualTo(DebugLocation.CacheFour));
                 _completeCurrentStep(sequencer);
             }
 
-            Assert.That(sequencer.CurrentStep.Location, Is.EqualTo(DebugLocation.SpineTower));
-            Assert.That(sequencer.CurrentStep.Action, Is.EqualTo(DebugRouteAction.CaptureScreenshot));
-            _completeCurrentStep(sequencer);
             Assert.That(sequencer.CurrentStep.Location, Is.EqualTo(DebugLocation.RelayTower));
             _completeCurrentStep(sequencer);
             Assert.That(sequencer.CurrentStep.Location, Is.EqualTo(DebugLocation.CentralTower));

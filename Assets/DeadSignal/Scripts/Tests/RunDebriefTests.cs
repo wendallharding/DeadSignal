@@ -71,7 +71,7 @@ namespace DeadSignal.Tests
             model.TryCommitSecurityTrial();
             model.TryCompleteSecurityTrial();
             model.TryRecoverStationCapacitor();
-            model.CollectPayload(SignalRegion.Spine);
+            model.TryInstallSpineCore();
         }
     }
 }

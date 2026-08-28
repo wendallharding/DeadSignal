@@ -32,6 +32,8 @@ namespace DeadSignal.Editor
             "Assets/DeadSignal/Resources/Materials/RelayFoundry/RelayFoundryDormant.mat";
         private const string CYAN_MATERIAL_PATH =
             "Assets/DeadSignal/Resources/Materials/WorldPalette/SignalCyan.mat";
+        private const string AMBER_MATERIAL_PATH =
+            "Assets/DeadSignal/Resources/Materials/WorldPalette/SalvageAmber.mat";
 
         private static readonly Vector3 s_regionPosition = new(42.5f, 0f, 0f);
         private static readonly Vector3 s_northShieldPresentationScale = new(1f, 0.62f, 1f);
@@ -56,6 +58,9 @@ namespace DeadSignal.Editor
                        prefab.transform.Find("Third Tower Berth") != null &&
                        prefab.transform.Find("Spine Signal Lines") != null &&
                        prefab.transform.Find("Capacitor Spine Activation Decal") != null &&
+                       prefab.transform.Find("Core Installation Available") != null &&
+                       prefab.transform.Find("Core Installation Complete") != null &&
+                       prefab.GetComponent<AuthoredSpineCoreInstallationObjective>()?.IsConfigured == true &&
                        prefab.transform.Find("Capacitor Spine Return Decal") != null &&
                        prefab.transform.Find("Capacitor Spine Route Decal") != null &&
                        foundry.transform.Find("Foundry East Bulkhead") == null &&
@@ -212,6 +217,7 @@ namespace DeadSignal.Editor
                 Deck = AssetDatabase.LoadAssetAtPath<Material>(DECK_MATERIAL_PATH),
                 Dormant = AssetDatabase.LoadAssetAtPath<Material>(DORMANT_MATERIAL_PATH),
                 Cyan = AssetDatabase.LoadAssetAtPath<Material>(CYAN_MATERIAL_PATH),
+                Amber = AssetDatabase.LoadAssetAtPath<Material>(AMBER_MATERIAL_PATH),
                 Decal = decalMaterial,
                 ActivationDecal = activationDecalMaterial,
                 ReturnDecal = returnDecalMaterial
@@ -379,6 +385,35 @@ namespace DeadSignal.Editor
                 decal.transform.localScale = Vector3.one * 2.8f;
                 decal.GetComponent<Renderer>().sharedMaterial = materials.ActivationDecal;
 
+                var coreAvailable = root.transform.Find("Core Installation Available")?.gameObject;
+                if (coreAvailable == null)
+                {
+                    coreAvailable = _wall(root.transform, "Core Installation Available",
+                        new Vector3(5f, -0.06f, -2.05f), new Vector3(1.65f, 0.04f, 0.18f), materials.Amber, false);
+                    changed = true;
+                }
+                changed |= coreAvailable.GetComponent<Renderer>().sharedMaterial != materials.Amber;
+                coreAvailable.GetComponent<Renderer>().sharedMaterial = materials.Amber;
+
+                var coreComplete = root.transform.Find("Core Installation Complete")?.gameObject;
+                if (coreComplete == null)
+                {
+                    coreComplete = _wall(root.transform, "Core Installation Complete",
+                        new Vector3(5f, -0.055f, -2.05f), new Vector3(1.65f, 0.045f, 0.18f), materials.Cyan, false);
+                    changed = true;
+                }
+                changed |= coreComplete.GetComponent<Renderer>().sharedMaterial != materials.Cyan;
+                coreComplete.GetComponent<Renderer>().sharedMaterial = materials.Cyan;
+
+                var coreInstallation = root.GetComponent<AuthoredSpineCoreInstallationObjective>();
+                if (coreInstallation == null)
+                {
+                    coreInstallation = root.AddComponent<AuthoredSpineCoreInstallationObjective>();
+                    changed = true;
+                }
+                coreInstallation.Configure(decal.transform, coreAvailable, coreComplete);
+                EditorUtility.SetDirty(coreInstallation);
+
                 var returnDecal = root.transform.Find("Capacitor Spine Return Decal")?.gameObject;
                 if (returnDecal == null)
                 {
@@ -494,6 +529,7 @@ namespace DeadSignal.Editor
             public Material Deck;
             public Material Dormant;
             public Material Cyan;
+            public Material Amber;
             public Material Decal;
             public Material ActivationDecal;
             public Material ReturnDecal;

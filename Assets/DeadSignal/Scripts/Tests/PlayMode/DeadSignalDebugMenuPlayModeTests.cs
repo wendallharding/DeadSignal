@@ -339,7 +339,7 @@ namespace DeadSignal.Tests.PlayMode
             game.DebugStartRouteSequence(DebugRoutePreset.FullExtraction, DebugAutomationMode.DeterministicValidation,
                 DebugAutomationProfile.SafeNavigation);
 
-            var timeout = Time.realtimeSinceStartup + 45f;
+            var timeout = Time.realtimeSinceStartup + 65f;
             while ((game.DebugRouteSequenceState == DebugRouteRunState.Navigating ||
                     game.DebugRouteSequenceState == DebugRouteRunState.Verifying) && Time.realtimeSinceStartup < timeout)
             {

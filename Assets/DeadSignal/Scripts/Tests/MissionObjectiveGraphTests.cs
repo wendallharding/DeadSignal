@@ -183,11 +183,11 @@ namespace DeadSignal.Tests
                 MissionCompletionRule.StationCapacitorRecovered, MissionWorldMutation.StationCapacitorRecovered,
                 "SECURITY TRIAL CLEARED");
             Assert.That(run.TryRecoverStationCapacitor(), Is.True);
-            _assertObjective(run, MissionObjectiveId.SpinePayload, MissionStage.SpinePayload,
-                MissionCompletionRule.SpinePayloadSecured, MissionWorldMutation.SpinePayloadSecured,
-                "FINAL PAYLOAD");
+            _assertObjective(run, MissionObjectiveId.SpineCoreInstallation, MissionStage.SpinePayload,
+                MissionCompletionRule.SpineCoreInstalled, MissionWorldMutation.SpineCoreInstalled,
+                "SIGNAL CORE COMPLETE");
             Assert.That(run.TryExtract(), Is.False);
-            Assert.That(run.CollectPayload(SignalRegion.Spine), Is.True);
+            Assert.That(run.TryInstallSpineCore(), Is.True);
             Assert.That(run.Salvage, Is.EqualTo(3));
             _assertObjective(run, MissionObjectiveId.Extraction, MissionStage.Extraction,
                 MissionCompletionRule.ExtractionComplete, MissionWorldMutation.RunCompleted,

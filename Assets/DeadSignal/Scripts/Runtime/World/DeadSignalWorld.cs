@@ -69,6 +69,7 @@ namespace DeadSignal.World
         public AuthoredCentralInstallationObjective CentralInstallationObjective { get; private set; }
         public AuthoredRelayPayloadObjective RelayPayloadObjective { get; private set; }
         public AuthoredSpineVentingObjective SpineVentingObjective { get; private set; }
+        public AuthoredSpineCoreInstallationObjective SpineCoreInstallationObjective { get; private set; }
         public AuthoredInductionLatticeObjective InductionLatticeObjective { get; private set; }
         public AuthoredFluxShuntObjective FluxShuntObjective { get; private set; }
         public AuthoredConvergenceCalibrationObjective ConvergenceCalibrationObjective { get; private set; }
@@ -173,6 +174,8 @@ namespace DeadSignal.World
                 Object.FindFirstObjectByType<AuthoredRelayPayloadObjective>(FindObjectsInactive.Include);
             SpineVentingObjective =
                 Object.FindFirstObjectByType<AuthoredSpineVentingObjective>(FindObjectsInactive.Include);
+            SpineCoreInstallationObjective =
+                Object.FindFirstObjectByType<AuthoredSpineCoreInstallationObjective>(FindObjectsInactive.Include);
             InductionLatticeObjective =
                 Object.FindFirstObjectByType<AuthoredInductionLatticeObjective>(FindObjectsInactive.Include);
             FluxShuntObjective =
@@ -369,6 +372,13 @@ namespace DeadSignal.World
             SpineVentingObjective?.SetState(
                 model.CurrentObjective.Id == MissionObjectiveId.SpineVenting,
                 model.SpineBerthVented);
+        }
+
+        public void UpdateSpineCoreInstallationPresentation(RunModel model)
+        {
+            SpineCoreInstallationObjective?.SetState(
+                model.CurrentObjective.Id == MissionObjectiveId.SpineCoreInstallation,
+                model.SpineCoreInstalled);
         }
 
         public void UpdateInductionLatticePresentation(RunModel model)
@@ -1273,8 +1283,6 @@ namespace DeadSignal.World
             var southCache = CoolantReclamationObjective != null
                 ? CoolantReclamationObjective.SealPosition
                 : routeVariant == 2 ? new Vector3(9.2f, 0f, -6.5f) : new Vector3(10.4f, 0f, -6.4f);
-            var spineNorthCache = new Vector3(39f, 0f, 3f);
-            var spineSouthCache = new Vector3(39f, 0f, -3f);
             _createSalvage(northCache, SignalRegion.Central, centralComponent: CentralComponentKind.PowerCoupling);
             _createSalvage(southCache, SignalRegion.Central, centralComponent: CentralComponentKind.CoolantSeal);
             var authoredSockets = Object.FindObjectsByType<AuthoredSalvageSocket>(FindObjectsSortMode.None);
@@ -1291,8 +1299,6 @@ namespace DeadSignal.World
                 }
             }
 
-            _createSalvage(spineNorthCache, SignalRegion.Spine);
-            _createSalvage(spineSouthCache, SignalRegion.Spine);
             foreach (var socket in authoredSockets)
             {
                 if (socket.IsOptional)
@@ -1720,6 +1726,10 @@ namespace DeadSignal.World
                     return CombatChamber != null ? CombatChamber.LockdownThreshold.position : SpineTowerInteractionPosition;
                 case MissionObjectiveId.StationCapacitor:
                     return CombatChamber != null ? CombatChamber.RewardPosition : SpineTowerInteractionPosition;
+                case MissionObjectiveId.SpineCoreInstallation:
+                    return SpineCoreInstallationObjective != null
+                        ? SpineCoreInstallationObjective.Position
+                        : SpineTowerInteractionPosition;
                 case MissionObjectiveId.Extraction:
                     return ExtractionPosition;
                 case MissionObjectiveId.CentralPayload:

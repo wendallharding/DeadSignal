@@ -53,6 +53,7 @@ namespace DeadSignal.Diagnostics
         CommitSecurityTrial,
         CompleteSecurityTrial,
         RecoverStationCapacitor,
+        InstallSpineCore,
         BeginStableExtraction,
         CaptureScreenshot
     }
@@ -452,18 +453,13 @@ namespace DeadSignal.Diagnostics
                         DebugRouteAction.CompleteSecurityTrial, roomName: "Room B");
                     yield return new DebugRouteStep("Room C station capacitor", DebugLocation.CurrentObjective, 1.7f,
                         DebugRouteAction.RecoverStationCapacitor, roomName: "Room C");
-                    yield return new DebugRouteStep("Spine payload", DebugLocation.CurrentObjective, 2.3f,
-                        DebugRouteAction.CollectCache, roomName: "Capacitor Spine");
+                    yield return new DebugRouteStep("Install completed core", DebugLocation.CurrentObjective, 2.3f,
+                        DebugRouteAction.InstallSpineCore, roomName: "Capacitor Spine", isBacktrack: true);
                     if (preset == DebugRoutePreset.FullExtraction)
                     {
                         yield return new DebugRouteStep("Optional Quench cache", DebugLocation.CacheFour, 2.3f,
                             DebugRouteAction.CollectCache, roomName: "Quench Loop");
                         yield return new DebugRouteStep("Quench return to Spine", DebugLocation.SpineTower, 2f,
-                            DebugRouteAction.CaptureScreenshot, roomName: "Capacitor Spine", isBacktrack: true);
-                    }
-                    else
-                    {
-                        yield return new DebugRouteStep("Spine discharge withdrawal", DebugLocation.SpineTower, 2f,
                             DebugRouteAction.CaptureScreenshot, roomName: "Capacitor Spine", isBacktrack: true);
                     }
                     yield return new DebugRouteStep("Relay powered foothold", DebugLocation.RelayTower, 2f,

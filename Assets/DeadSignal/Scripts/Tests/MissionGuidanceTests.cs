@@ -98,7 +98,7 @@ namespace DeadSignal.Tests
             Assert.That(model.TryCommitSecurityTrial(), Is.True);
             Assert.That(model.TryCompleteSecurityTrial(), Is.True);
             Assert.That(model.TryRecoverStationCapacitor(), Is.True);
-            Assert.That(model.CollectPayload(SignalRegion.Spine), Is.True);
+            Assert.That(model.TryInstallSpineCore(), Is.True);
         }
     }
 }

@@ -15,6 +15,58 @@ namespace DeadSignal.Tests
     public sealed class CapacitorSpinePlayModeTests
     {
         [UnityTest]
+        public IEnumerator CompletedCore_GamepadInstallsAtSpineOnceAndEnablesExtraction()
+        {
+            yield return SceneManager.LoadSceneAsync("SampleScene");
+            yield return null;
+
+            var gamepad = InputSystem.AddDevice<Gamepad>();
+            try
+            {
+                var game = Object.FindFirstObjectByType<DeadSignalGame>();
+                var player = game.transform.Find("Maintenance Drone");
+                var spine = GameObject.Find("Capacitor Spine Region").transform;
+                var objective = spine.GetComponent<AuthoredSpineCoreInstallationObjective>();
+                var availableMarker = spine.Find("Core Installation Available").gameObject;
+                var installedMarker = spine.Find("Core Installation Complete").gameObject;
+
+                Assert.That(objective, Is.Not.Null);
+                Assert.That(objective.IsConfigured, Is.True);
+                Assert.That(game.SpineCoreInstallationPosition, Is.EqualTo(game.SpineTowerInteractionPosition));
+
+                player.position = game.SpineTowerInteractionPosition;
+                yield return _interact(gamepad);
+                Assert.That(game.IsSpineCoreInstalled, Is.False,
+                    "The final installation must reject before Room C completes the core.");
+
+                game.DebugRecoverStationCapacitor();
+                Assert.That(game.CurrentMissionObjectiveId, Is.EqualTo(MissionObjectiveId.SpineCoreInstallation));
+                game.DebugSelectAuxiliary(SignalAuxiliaryOverclock.FeedbackShield);
+                yield return null;
+                Assert.That(availableMarker.activeSelf, Is.True);
+                Assert.That(installedMarker.activeSelf, Is.False);
+
+                player.position = game.SpineCoreInstallationPosition;
+                yield return _interact(gamepad);
+
+                Assert.That(game.IsSpineCoreInstalled, Is.True);
+                Assert.That(game.IsExtractionReady, Is.True);
+                Assert.That(game.CurrentMissionObjectiveId, Is.EqualTo(MissionObjectiveId.Extraction));
+                Assert.That(availableMarker.activeSelf, Is.False);
+                Assert.That(installedMarker.activeSelf, Is.True);
+                Assert.That(game.CurrentSalvage, Is.EqualTo(RunModel.SalvageRequired));
+
+                yield return _interact(gamepad);
+                Assert.That(game.CurrentSalvage, Is.EqualTo(RunModel.SalvageRequired),
+                    "Repeated interaction must not duplicate final-payload progress.");
+            }
+            finally
+            {
+                InputSystem.RemoveDevice(gamepad);
+            }
+        }
+
+        [UnityTest]
         public IEnumerator Region_ProvidesTwoApproachesLandmarkAndRelocatedGreedCache()
         {
             yield return SceneManager.LoadSceneAsync("SampleScene");

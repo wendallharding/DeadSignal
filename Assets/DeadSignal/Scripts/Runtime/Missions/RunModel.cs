@@ -190,6 +190,7 @@ namespace DeadSignal.Missions
         public bool TrialCommitted { get; private set; }
         public bool TrialCleared { get; private set; }
         public bool StationCapacitorRecovered { get; private set; }
+        public bool SpineCoreInstalled { get; private set; }
         public float ConvergenceCalibrationProgress { get; private set; }
         public float ConvergenceCalibrationDuration => m_convergenceCalibrationDuration;
         public bool ShortcutOpen { get; private set; }
@@ -202,7 +203,7 @@ namespace DeadSignal.Missions
         public bool RelayPayloadStabilized { get; private set; }
         public bool RelayPayloadSecured { get; private set; }
         public bool SpineBerthVented { get; private set; }
-        public bool SpinePayloadSecured { get; private set; }
+        public bool SpinePayloadSecured => SpineCoreInstalled;
         public RunOutcome Outcome { get; private set; } = RunOutcome.Running;
         public float CriticalRecoveryRemaining { get; private set; }
         public bool IsCriticalRecovery => CriticalRecoveryRemaining > 0f && Outcome == RunOutcome.Running;
@@ -478,6 +479,19 @@ namespace DeadSignal.Missions
             return true;
         }
 
+        public bool TryInstallSpineCore()
+        {
+            if (!_isCurrentObjective(MissionObjectiveId.SpineCoreInstallation) || !StationCapacitorRecovered ||
+                SpineCoreInstalled || Outcome != RunOutcome.Running)
+            {
+                return false;
+            }
+
+            SpineCoreInstalled = true;
+            Salvage++;
+            return true;
+        }
+
         public bool TryInstallRelayPayload()
         {
             if (!_isCurrentObjective(MissionObjectiveId.RelayInstallation) || !RelayPayloadStabilized ||
@@ -535,8 +549,7 @@ namespace DeadSignal.Missions
                 SignalRegion.Central => _canCollectCentralComponent(centralComponent),
                 SignalRegion.Relay => _isCurrentObjective(MissionObjectiveId.RelayPayload) && RelayTowerOnline &&
                                       CentralPayloadSecured && !RelayPayloadStabilized,
-                SignalRegion.Spine => _isCurrentObjective(MissionObjectiveId.SpinePayload) && SpineTowerOnline &&
-                                      RelayPayloadSecured && !SpinePayloadSecured,
+                SignalRegion.Spine => false,
                 _ => false
             };
         }
@@ -568,9 +581,6 @@ namespace DeadSignal.Missions
                     break;
                 case SignalRegion.Relay:
                     RelayPayloadStabilized = true;
-                    break;
-                case SignalRegion.Spine:
-                    SpinePayloadSecured = true;
                     break;
                 default:
                     return false;
@@ -676,6 +686,7 @@ namespace DeadSignal.Missions
                 MissionCompletionRule.TrialCommitted => TrialCommitted,
                 MissionCompletionRule.TrialCleared => TrialCleared,
                 MissionCompletionRule.StationCapacitorRecovered => StationCapacitorRecovered,
+                MissionCompletionRule.SpineCoreInstalled => SpineCoreInstalled,
                 _ => false
             };
         }

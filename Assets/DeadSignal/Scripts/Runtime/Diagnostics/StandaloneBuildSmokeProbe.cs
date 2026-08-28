@@ -67,6 +67,8 @@ namespace DeadSignal.Diagnostics
                 FindFirstObjectByType<AuthoredRelayPayloadObjective>(FindObjectsInactive.Include);
             var spineVentingObjective =
                 FindFirstObjectByType<AuthoredSpineVentingObjective>(FindObjectsInactive.Include);
+            var spineCoreInstallationObjective =
+                FindFirstObjectByType<AuthoredSpineCoreInstallationObjective>(FindObjectsInactive.Include);
             var inductionLatticeObjective =
                 FindFirstObjectByType<AuthoredInductionLatticeObjective>(FindObjectsInactive.Include);
             var fluxShuntObjective =
@@ -86,6 +88,9 @@ namespace DeadSignal.Diagnostics
             var relayPayloadReady = relayPayloadObjective != null && relayPayloadObjective.IsConfigured;
             var spineVentingReady = spineVentingObjective != null && spineVentingObjective.IsConfigured &&
                                     game != null && !game.IsSpineBerthVented;
+            var spineCoreInstallationReady = spineCoreInstallationObjective != null &&
+                                             spineCoreInstallationObjective.IsConfigured &&
+                                             game != null && !game.IsSpineCoreInstalled;
             var inductionLatticeReady = inductionLatticeObjective != null && inductionLatticeObjective.IsConfigured &&
                                         game != null && !game.IsInductionLatticeCharged;
             var fluxShuntReady = fluxShuntObjective != null && fluxShuntObjective.IsConfigured &&
@@ -193,6 +198,9 @@ namespace DeadSignal.Diagnostics
             Debug.Log($"[DEAD SIGNAL STANDALONE SMOKE] SPINE VENTING | " +
                       $"configured={spineVentingObjective?.IsConfigured ?? false} " +
                       $"vented={game?.IsSpineBerthVented ?? false}");
+            Debug.Log($"[DEAD SIGNAL STANDALONE SMOKE] SPINE CORE INSTALLATION | " +
+                      $"configured={spineCoreInstallationObjective?.IsConfigured ?? false} " +
+                      $"installed={game?.IsSpineCoreInstalled ?? false}");
             Debug.Log($"[DEAD SIGNAL STANDALONE SMOKE] INDUCTION LATTICE | " +
                       $"configured={inductionLatticeObjective?.IsConfigured ?? false} " +
                       $"charged={game?.IsInductionLatticeCharged ?? false}");
@@ -218,6 +226,7 @@ namespace DeadSignal.Diagnostics
                                 centralTransferReady &&
                                 relayPayloadReady &&
                                 spineVentingReady &&
+                                spineCoreInstallationReady &&
                                 inductionLatticeReady &&
                                 fluxShuntReady &&
                                 convergenceCalibrationReady &&
@@ -235,7 +244,7 @@ namespace DeadSignal.Diagnostics
                                 game.HasSignalRoutingAssets &&
                                 game.HasStationMachineAssets &&
                                 game.HasSalvageCacheAssets &&
-                                game.SalvageCacheInstanceCount == RunModel.SalvageRequired * 2 &&
+                                game.SalvageCacheInstanceCount == RunModel.SalvageRequired + 1 &&
                                 game.AuthoredSalvageSocketCount == 2 &&
                                 game.HasSalvagePresentationTuning &&
                                 game.HasPlayerDroneAssets &&
