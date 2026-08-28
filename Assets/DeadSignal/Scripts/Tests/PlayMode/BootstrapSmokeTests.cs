@@ -128,6 +128,9 @@ namespace DeadSignal.Tests
                 var promptScreenPosition = RectTransformUtility.WorldToScreenPoint(
                     null, contextPrompt.GetComponent<RectTransform>().position);
                 var iconScreenPosition = RectTransformUtility.WorldToScreenPoint(null, objectiveIcon.position);
+                Assert.That(promptScreenPosition.x, Is.InRange(0f, (float)Screen.width));
+                Assert.That(promptScreenPosition.y, Is.InRange(0f, (float)Screen.height),
+                    "The center-anchored prompt conversion must keep the interaction callout inside the viewport.");
                 Assert.That(Mathf.Abs(promptScreenPosition.y - iconScreenPosition.y), Is.LessThan(35f),
                     "The in-range interaction prompt should sit beside the on-objective icon, not at the screen bottom.");
                 Assert.That(game.SafestReinforcementEntryPosition.x, Is.GreaterThan(34f),

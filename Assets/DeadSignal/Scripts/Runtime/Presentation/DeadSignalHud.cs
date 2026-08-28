@@ -546,7 +546,10 @@ namespace DeadSignal.Presentation
                 parentRect.xMax - halfSize.x - 8f);
             desiredPosition.y = Mathf.Clamp(desiredPosition.y, parentRect.yMin + halfSize.y + 8f,
                 parentRect.yMax - halfSize.y - 8f);
-            m_contextPromptRect.anchoredPosition = desiredPosition;
+            var anchorReference = new Vector2(
+                Mathf.Lerp(parentRect.xMin, parentRect.xMax, m_contextPromptRect.anchorMin.x),
+                Mathf.Lerp(parentRect.yMin, parentRect.yMax, m_contextPromptRect.anchorMin.y));
+            m_contextPromptRect.anchoredPosition = desiredPosition - anchorReference;
         }
 
         private string _contextPrompt()
