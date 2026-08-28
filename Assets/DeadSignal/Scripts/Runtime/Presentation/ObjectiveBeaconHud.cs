@@ -37,6 +37,7 @@ namespace DeadSignal.Presentation
     {
         private const string ICON_PATH = "UI/ObjectiveBeaconIcon";
         private const string TUNING_PATH = "Tuning/EdgeIndicatorTuning";
+        private const float OBJECTIVE_ICON_ROTATION_OFFSET = 180f;
 
         private RunModel m_model;
         private DeadSignalWorld m_world;
@@ -173,7 +174,8 @@ namespace DeadSignal.Presentation
                 color.a = Mathf.Lerp(0.72f, 0.96f, m_guidanceStrength);
                 panelImage.color = color;
             }
-            m_icon.rectTransform.localRotation = Quaternion.Euler(0f, 0f, _directionAngle(direction));
+            m_icon.rectTransform.localRotation = Quaternion.Euler(
+                0f, 0f, _directionAngle(direction) + OBJECTIVE_ICON_ROTATION_OFFSET);
             m_objectiveTail.anchoredPosition = edgePosition - direction * 28f;
             m_objectiveTail.localRotation = Quaternion.Euler(0f, 0f, _directionAngle(direction));
             m_label.text = $"NEXT  {_currentLabel()}";
