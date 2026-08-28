@@ -60,6 +60,12 @@ namespace DeadSignal.Tests
             Assert.That(game.IsObjectiveIndicatorCompact, Is.False);
             Assert.That(objectivePanel.GetComponent<Image>().enabled, Is.True);
             Assert.That(objectivePanel.transform.Find("Objective").gameObject.activeSelf, Is.True);
+            Assert.That(objectiveIcon.pivot, Is.EqualTo(Vector2.one * 0.5f),
+                "The card icon must rotate around its center instead of orbiting below the card.");
+            var objectivePanelRect = objectivePanel.GetComponent<RectTransform>();
+            Assert.That(objectivePanelRect.rect.Contains(
+                    objectivePanelRect.InverseTransformPoint(objectiveIcon.position)), Is.True,
+                "The restored edge icon center should sit inside the objective card.");
 
             game.DebugSpawnThreat(SecurityReinforcement.Warden);
             game.DebugSpawnThreat(SecurityReinforcement.Sapper);

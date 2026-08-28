@@ -48,9 +48,8 @@ namespace DeadSignal.Presentation
         private RectTransform m_objectiveTail;
         private Vector2 m_edgeIconAnchorMin;
         private Vector2 m_edgeIconAnchorMax;
-        private Vector2 m_edgeIconPivot;
         private Vector2 m_edgeIconPosition;
-        private bool m_hasObjectivePanelPosition;
+        private bool m_wasObjectiveIndicatorCompact;
         private readonly List<ThreatCandidate> m_candidates = new();
         private readonly List<ThreatIndicator> m_threatIndicators = new();
         private float m_guidanceStrength = 0.7f;
@@ -85,9 +84,9 @@ namespace DeadSignal.Presentation
             m_panelRect = m_panel.transform as RectTransform;
             m_edgeIconAnchorMin = m_icon.rectTransform.anchorMin;
             m_edgeIconAnchorMax = m_icon.rectTransform.anchorMax;
-            m_edgeIconPivot = m_icon.rectTransform.pivot;
-            m_edgeIconPosition = m_icon.rectTransform.anchoredPosition;
-            m_hasObjectivePanelPosition = false;
+            m_edgeIconPosition = m_icon.rectTransform.anchoredPosition + Vector2.Scale(
+                m_icon.rectTransform.sizeDelta, Vector2.one * 0.5f - m_icon.rectTransform.pivot);
+            m_wasObjectiveIndicatorCompact = false;
             _configureObjectivePanel();
             _createThreatIndicators();
             if (!HasIcon)
@@ -122,6 +121,7 @@ namespace DeadSignal.Presentation
             if (!visible)
             {
                 IsObjectiveIndicatorCompact = false;
+                m_wasObjectiveIndicatorCompact = false;
                 if (m_objectiveTail != null) m_objectiveTail.gameObject.SetActive(false);
                 return;
             }
@@ -135,23 +135,37 @@ namespace DeadSignal.Presentation
                 var eventCamera = canvas != null && canvas.renderMode != RenderMode.ScreenSpaceOverlay
                     ? canvas.worldCamera
                     : null;
+                var previousIconScreenPosition = RectTransformUtility.WorldToScreenPoint(
+                    eventCamera, m_icon.rectTransform.position);
+                RectTransformUtility.ScreenPointToLocalPointInRectangle(
+                    m_canvasRect, previousIconScreenPosition, eventCamera, out var previousIconLocalPosition);
                 RectTransformUtility.ScreenPointToLocalPointInRectangle(
                     m_canvasRect, screenPosition, eventCamera, out var localPosition);
                 var anchorReference = new Vector2(
                     Mathf.Lerp(m_canvasRect.rect.xMin, m_canvasRect.rect.xMax, m_panelRect.anchorMin.x),
                     Mathf.Lerp(m_canvasRect.rect.yMin, m_canvasRect.rect.yMax, m_panelRect.anchorMin.y));
-                _moveObjectivePanel(localPosition - anchorReference);
+                var targetPosition = localPosition - anchorReference;
+                m_panelRect.anchoredPosition = targetPosition;
                 m_icon.rectTransform.anchorMin = Vector2.one * 0.5f;
                 m_icon.rectTransform.anchorMax = Vector2.one * 0.5f;
                 m_icon.rectTransform.pivot = Vector2.one * 0.5f;
-                m_icon.rectTransform.anchoredPosition = Vector2.zero;
+                if (!m_wasObjectiveIndicatorCompact)
+                {
+                    m_icon.rectTransform.anchoredPosition = previousIconLocalPosition - localPosition;
+                }
+
+                var interpolation = 1f - Mathf.Exp(-m_tuning.ObjectiveTransitionSpeed * Time.unscaledDeltaTime);
+                m_icon.rectTransform.anchoredPosition = Vector2.Lerp(
+                    m_icon.rectTransform.anchoredPosition, Vector2.zero, interpolation);
                 m_icon.rectTransform.localRotation = Quaternion.identity;
+                m_wasObjectiveIndicatorCompact = true;
                 return;
             }
 
             var direction = _edgeDirection(CurrentTarget);
             var edgePosition = _edgePosition(direction, m_tuning.ObjectiveSize);
-            var panelPosition = _moveObjectivePanel(edgePosition);
+            m_panelRect.anchoredPosition = edgePosition;
+            m_wasObjectiveIndicatorCompact = false;
             var panelImage = m_panel.GetComponent<Image>();
             if (panelImage != null)
             {
@@ -160,7 +174,7 @@ namespace DeadSignal.Presentation
                 panelImage.color = color;
             }
             m_icon.rectTransform.localRotation = Quaternion.Euler(0f, 0f, _directionAngle(direction));
-            m_objectiveTail.anchoredPosition = panelPosition - direction * 28f;
+            m_objectiveTail.anchoredPosition = edgePosition - direction * 28f;
             m_objectiveTail.localRotation = Quaternion.Euler(0f, 0f, _directionAngle(direction));
             m_label.text = $"NEXT  {_currentLabel()}";
             m_hint.text = _currentHint();
@@ -190,22 +204,8 @@ namespace DeadSignal.Presentation
 
             m_icon.rectTransform.anchorMin = m_edgeIconAnchorMin;
             m_icon.rectTransform.anchorMax = m_edgeIconAnchorMax;
-            m_icon.rectTransform.pivot = m_edgeIconPivot;
+            m_icon.rectTransform.pivot = Vector2.one * 0.5f;
             m_icon.rectTransform.anchoredPosition = m_edgeIconPosition;
-        }
-
-        private Vector2 _moveObjectivePanel(Vector2 targetPosition)
-        {
-            if (!m_hasObjectivePanelPosition)
-            {
-                m_panelRect.anchoredPosition = targetPosition;
-                m_hasObjectivePanelPosition = true;
-                return targetPosition;
-            }
-
-            var interpolation = 1f - Mathf.Exp(-m_tuning.ObjectiveTransitionSpeed * Time.unscaledDeltaTime);
-            m_panelRect.anchoredPosition = Vector2.Lerp(m_panelRect.anchoredPosition, targetPosition, interpolation);
-            return m_panelRect.anchoredPosition;
         }
 
         private void _refreshTarget()
