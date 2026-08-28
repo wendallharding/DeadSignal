@@ -28,6 +28,7 @@ namespace DeadSignal.Tests
                 var furnace = chamber.Find("Arc Furnace Region");
                 var sceneReferences = Object.FindFirstObjectByType<DeadSignalSceneReferences>();
                 var territory = furnace.GetComponent<AuthoredPoweredTerritory>();
+                var forgeObjective = furnace.GetComponent<AuthoredFurnaceForgeObjective>();
                 var socket = furnace.GetComponentInChildren<AuthoredSalvageSocket>();
                 var routing = furnace.Find("Arc Furnace Signal Lines").gameObject;
 
@@ -35,6 +36,8 @@ namespace DeadSignal.Tests
                 Assert.That(furnace.GetComponentsInChildren<AuthoredMapObstacle>().Length, Is.EqualTo(37));
                 Assert.That(furnace.GetComponentsInChildren<Collider>().Length, Is.Zero);
                 Assert.That(furnace.Find("Arc Furnace Assembly"), Is.Not.Null);
+                Assert.That(forgeObjective, Is.Not.Null);
+                Assert.That(forgeObjective.IsConfigured, Is.True);
                 Assert.That(furnace.Find("West Furnace Shield South"), Is.Not.Null);
                 Assert.That(furnace.Find("West Furnace Shield North"), Is.Not.Null);
                 Assert.That(furnace.Find("Arc Furnace Route Decal"), Is.Not.Null);

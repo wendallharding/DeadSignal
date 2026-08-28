@@ -22,7 +22,9 @@ namespace DeadSignal.Missions
         InductionLattice,
         FluxShunt,
         ConvergenceCalibration,
-        BreakerReset
+        BreakerReset,
+        FurnaceForge,
+        QuenchStabilization
     }
 
     public enum MissionCompletionRule
@@ -45,7 +47,9 @@ namespace DeadSignal.Missions
         InductionLatticeCharged,
         FluxShuntRouted,
         ConvergenceCalibrated,
-        BreakerDistributionReset
+        BreakerDistributionReset,
+        LatticeForged,
+        CoreStabilized
     }
 
     [Flags]
@@ -72,7 +76,10 @@ namespace DeadSignal.Missions
         InductionLatticeCharged = 1 << 17,
         FluxShuntRouted = 1 << 18,
         ConvergenceCalibrated = 1 << 19,
-        BreakerDistributionReset = 1 << 20
+        BreakerDistributionReset = 1 << 20,
+        LatticeForged = 1 << 21,
+        CoreStabilized = 1 << 22,
+        QuenchReturnOpened = 1 << 23
     }
 
     public enum MissionRewardKind
@@ -411,12 +418,27 @@ namespace DeadSignal.Missions
                 Array.Empty<MissionReward>(),
                 new MissionGuidanceState(6, "LATTICE CALIBRATED", "RESET DISTRIBUTION IN THE BREAKER GALLERY",
                     "THROW THE BREAKER BANK  //  UNLOCKS FURNACE PROCESS"),
-                new[] { MissionObjectiveId.ConvergenceCalibration }, new[] { MissionObjectiveId.SpinePayload }),
+                new[] { MissionObjectiveId.ConvergenceCalibration }, new[] { MissionObjectiveId.FurnaceForge }),
+            _definition(MissionObjectiveId.FurnaceForge, MissionStage.SpinePayload,
+                "Arc Furnace", "Arc Furnace Forge Control",
+                MissionCompletionRule.LatticeForged, MissionWorldMutation.LatticeForged,
+                Array.Empty<MissionReward>(),
+                new MissionGuidanceState(6, "FURNACE PROCESS ONLINE", "FORGE THE CHARGED LATTICE IN THE ARC FURNACE",
+                    "PROCESS AT THE FURNACE  //  THEN STABILIZE IN QUENCH"),
+                new[] { MissionObjectiveId.BreakerReset }, new[] { MissionObjectiveId.QuenchStabilization }),
+            _definition(MissionObjectiveId.QuenchStabilization, MissionStage.SpinePayload,
+                "Quench Loop", "Quench Stabilization Control",
+                MissionCompletionRule.CoreStabilized,
+                MissionWorldMutation.CoreStabilized | MissionWorldMutation.QuenchReturnOpened,
+                Array.Empty<MissionReward>(),
+                new MissionGuidanceState(6, "LATTICE FORGED", "STABILIZE THE CORE IN THE QUENCH LOOP",
+                    "CYCLE THE CONDENSER  //  OPENS THE DIRECT RETURN"),
+                new[] { MissionObjectiveId.FurnaceForge }, new[] { MissionObjectiveId.SpinePayload }),
             _definition(MissionObjectiveId.SpinePayload, MissionStage.SpinePayload, "Capacitor Spine", "Spine Payload Socket",
                 MissionCompletionRule.SpinePayloadSecured, MissionWorldMutation.SpinePayloadSecured,
                 Array.Empty<MissionReward>(),
                 new MissionGuidanceState(6, "FINAL PAYLOAD", "SECURE ONE SPINE PAYLOAD", "GALLERY OR FURNACE-SIDE ROUTE  //  ONE REQUIRED"),
-                new[] { MissionObjectiveId.BreakerReset }, new[] { MissionObjectiveId.Extraction }),
+                new[] { MissionObjectiveId.QuenchStabilization }, new[] { MissionObjectiveId.Extraction }),
             _definition(MissionObjectiveId.Extraction, MissionStage.Extraction, "Extraction Dock", "Dock Uplink",
                 MissionCompletionRule.ExtractionComplete, MissionWorldMutation.RunCompleted,
                 new[] { new MissionReward(MissionRewardKind.Victory) },

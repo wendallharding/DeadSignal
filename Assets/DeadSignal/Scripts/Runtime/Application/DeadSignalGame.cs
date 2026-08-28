@@ -119,6 +119,8 @@ namespace DeadSignal.Application
         public bool IsConvergenceCalibrationActive => m_model?.ConvergenceCalibrationActive ?? false;
         public bool IsConvergenceCalibrated => m_model?.ConvergenceCalibrated ?? false;
         public bool IsBreakerDistributionReset => m_model?.BreakerDistributionReset ?? false;
+        public bool IsLatticeForged => m_model?.LatticeForged ?? false;
+        public bool IsCoreStabilized => m_model?.CoreStabilized ?? false;
         public float ConvergenceCalibrationProgress => m_model?.ConvergenceCalibrationProgress ?? 0f;
         public bool IsCentralPayloadSecured => m_model?.CentralPayloadSecured ?? false;
         public bool IsCentralPayloadAssembled => m_model?.CentralPayloadAssembled ?? false;
@@ -158,6 +160,8 @@ namespace DeadSignal.Application
         public Vector3 ConvergenceCalibrationPosition =>
             m_world?.ConvergenceCalibrationObjective?.Position ?? Vector3.zero;
         public Vector3 BreakerResetPosition => m_world?.BreakerResetObjective?.Position ?? Vector3.zero;
+        public Vector3 FurnaceForgePosition => m_world?.FurnaceForgeObjective?.Position ?? Vector3.zero;
+        public Vector3 QuenchStabilizationPosition => m_world?.QuenchStabilizationObjective?.Position ?? Vector3.zero;
         public bool IsWeaponEvolved => m_overclockChoice?.IsWeaponEvolved ?? false;
         public Vector3 SafestReinforcementEntryPosition => m_world == null
             ? Vector3.zero
@@ -895,6 +899,31 @@ namespace DeadSignal.Application
             _showFeedback("DEBUG — BREAKER DISTRIBUTION RESET");
         }
 
+        public void DebugForgeLattice()
+        {
+            DebugResetBreakerDistribution();
+            if (m_model?.TryForgeLattice() != true)
+            {
+                return;
+            }
+
+            m_world.UpdateCoreProcessingPresentation(m_model);
+            _showFeedback("DEBUG — CORE LATTICE FORGED");
+        }
+
+        public void DebugStabilizeCore()
+        {
+            DebugForgeLattice();
+            if (m_model?.TryStabilizeCore() != true)
+            {
+                return;
+            }
+
+            m_world.UpdateCoreProcessingPresentation(m_model);
+            m_world.OpenQuenchReturn();
+            _showFeedback("DEBUG — CORE STABILIZED  //  QUENCH RETURN OPEN");
+        }
+
         public void DebugBeginConvergenceCalibration()
         {
             DebugRouteFluxShunt();
@@ -1036,6 +1065,8 @@ namespace DeadSignal.Application
             DebugRouteFluxShunt();
             DebugCompleteConvergenceCalibration();
             DebugResetBreakerDistribution();
+            DebugForgeLattice();
+            DebugStabilizeCore();
             DebugCollectNextCache();
         }
 
@@ -1453,6 +1484,7 @@ namespace DeadSignal.Application
             m_world.UpdateFluxShuntPresentation(m_model);
             m_world.UpdateConvergenceCalibrationPresentation(m_model);
             m_world.UpdateBreakerResetPresentation(m_model);
+            m_world.UpdateCoreProcessingPresentation(m_model);
             m_world.PlayerSignalWake.Tick(m_playerMovement.Velocity);
             m_world.TickGameplayAssists(dt, m_threats, aimDirection);
 
@@ -1768,6 +1800,39 @@ namespace DeadSignal.Application
 
         private void _handleInteraction()
         {
+            if (m_world.QuenchStabilizationObjective != null &&
+                m_model.CurrentObjective.Id == MissionObjectiveId.QuenchStabilization &&
+                DeadSignalWorld.FlatDistance(
+                    m_world.Player.position,
+                    m_world.QuenchStabilizationObjective.Position) < TOWER_INTERACTION_RADIUS)
+            {
+                if (m_model.TryStabilizeCore())
+                {
+                    m_world.UpdateCoreProcessingPresentation(m_model);
+                    m_world.OpenQuenchReturn();
+                    m_audio.Play(DeadSignalAudioCue.Shortcut);
+                    _showFeedback("CORE STABILIZED — QUENCH RETURN OPEN");
+                }
+
+                return;
+            }
+
+            if (m_world.FurnaceForgeObjective != null &&
+                m_model.CurrentObjective.Id == MissionObjectiveId.FurnaceForge &&
+                DeadSignalWorld.FlatDistance(
+                    m_world.Player.position,
+                    m_world.FurnaceForgeObjective.Position) < TOWER_INTERACTION_RADIUS)
+            {
+                if (m_model.TryForgeLattice())
+                {
+                    m_world.UpdateCoreProcessingPresentation(m_model);
+                    m_audio.Play(DeadSignalAudioCue.TowerOnline);
+                    _showFeedback("LATTICE FORGED — STABILIZE IT IN THE QUENCH LOOP");
+                }
+
+                return;
+            }
+
             if (m_world.BreakerResetObjective != null &&
                 m_model.CurrentObjective.Id == MissionObjectiveId.BreakerReset &&
                 DeadSignalWorld.FlatDistance(
@@ -2346,6 +2411,8 @@ namespace DeadSignal.Application
                 case DebugRouteAction.RouteFluxShunt: DebugRouteFluxShunt(); break;
                 case DebugRouteAction.CompleteConvergenceCalibration: DebugCompleteConvergenceCalibration(); break;
                 case DebugRouteAction.ResetBreakerDistribution: DebugResetBreakerDistribution(); break;
+                case DebugRouteAction.ForgeLattice: DebugForgeLattice(); break;
+                case DebugRouteAction.StabilizeCore: DebugStabilizeCore(); break;
                 case DebugRouteAction.BeginStableExtraction: DebugBeginExtraction(ExtractionUplinkMode.Stable); break;
                 case DebugRouteAction.CaptureScreenshot: DebugCaptureScreenshot(); break;
             }
@@ -2402,6 +2469,8 @@ namespace DeadSignal.Application
                     m_model.ConvergenceCalibrated && _debugObjectiveAdvanced(),
                 DebugRouteAction.ResetBreakerDistribution =>
                     m_model.BreakerDistributionReset && _debugObjectiveAdvanced(),
+                DebugRouteAction.ForgeLattice => m_model.LatticeForged && _debugObjectiveAdvanced(),
+                DebugRouteAction.StabilizeCore => m_model.CoreStabilized && _debugObjectiveAdvanced(),
                 DebugRouteAction.BeginStableExtraction => m_extractionUplink.IsActive,
                 _ => true
             };
@@ -3123,7 +3192,7 @@ namespace DeadSignal.Application
             m_threats.Tick(dt, powered);
             _tryTriggerEmergencyCapacitor();
             m_salvage.Tick(dt);
-            if (m_model.OptionalSalvageSecured)
+            if (m_model.CoreStabilized)
             {
                 m_world.OpenQuenchReturn();
             }

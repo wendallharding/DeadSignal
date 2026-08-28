@@ -59,6 +59,7 @@ namespace DeadSignal.Editor
             DeadSignalQuenchLoopSetup.EnsureAssets();
             DeadSignalEasternCombatScenarioSetup.EnsureAssets();
             DeadSignalSecurityTrialSetup.EnsureAssets();
+            DeadSignalMissionObjectiveSetup.CreateCompatibilityMissionObjectives();
             DeadSignalStationBackdropSetup.EnsureAssets();
             DeadSignalForegroundCutawaySetup.EnsureAssets();
             DeadSignalSignalSpineSetup.EnsureAssets();
@@ -124,7 +125,7 @@ namespace DeadSignal.Editor
 
             var missionObjectives = AssetDatabase.LoadAssetAtPath<MissionObjectiveGraphConfiguration>(
                 "Assets/DeadSignal/Resources/Tuning/CompatibilityMissionObjectives.asset");
-            if (missionObjectives == null || missionObjectives.ObjectiveCount != 17)
+            if (missionObjectives == null || missionObjectives.ObjectiveCount != 19)
             {
                 throw new BuildFailedException("The compatibility mission objective configuration is missing or incomplete.");
             }

@@ -73,6 +73,8 @@ namespace DeadSignal.World
         public AuthoredFluxShuntObjective FluxShuntObjective { get; private set; }
         public AuthoredConvergenceCalibrationObjective ConvergenceCalibrationObjective { get; private set; }
         public AuthoredBreakerResetObjective BreakerResetObjective { get; private set; }
+        public AuthoredFurnaceForgeObjective FurnaceForgeObjective { get; private set; }
+        public AuthoredQuenchStabilizationObjective QuenchStabilizationObjective { get; private set; }
         public IReadOnlyList<GameObject> SalvagePickups => m_salvagePickups;
 
         public SignalRegion GetPayloadRegion(GameObject pickup) => m_salvageRegions.TryGetValue(pickup, out var region)
@@ -178,6 +180,10 @@ namespace DeadSignal.World
                 Object.FindFirstObjectByType<AuthoredConvergenceCalibrationObjective>(FindObjectsInactive.Include);
             BreakerResetObjective =
                 Object.FindFirstObjectByType<AuthoredBreakerResetObjective>(FindObjectsInactive.Include);
+            FurnaceForgeObjective =
+                Object.FindFirstObjectByType<AuthoredFurnaceForgeObjective>(FindObjectsInactive.Include);
+            QuenchStabilizationObjective =
+                Object.FindFirstObjectByType<AuthoredQuenchStabilizationObjective>(FindObjectsInactive.Include);
             _buildActors(comfortSettings);
             m_palette.RebindHierarchy(m_root);
             _configurePlayerCamera();
@@ -390,6 +396,16 @@ namespace DeadSignal.World
             BreakerResetObjective?.SetState(
                 model.CurrentObjective.Id == MissionObjectiveId.BreakerReset,
                 model.BreakerDistributionReset);
+        }
+
+        public void UpdateCoreProcessingPresentation(RunModel model)
+        {
+            FurnaceForgeObjective?.SetState(
+                model.CurrentObjective.Id == MissionObjectiveId.FurnaceForge,
+                model.LatticeForged);
+            QuenchStabilizationObjective?.SetState(
+                model.CurrentObjective.Id == MissionObjectiveId.QuenchStabilization,
+                model.CoreStabilized);
         }
 
         public Vector3 GetObjectiveGuidanceWaypoint(RunModel model, float radius)
@@ -1687,6 +1703,14 @@ namespace DeadSignal.World
                 case MissionObjectiveId.BreakerReset:
                     return BreakerResetObjective != null
                         ? BreakerResetObjective.Position
+                        : SpineTowerInteractionPosition;
+                case MissionObjectiveId.FurnaceForge:
+                    return FurnaceForgeObjective != null
+                        ? FurnaceForgeObjective.Position
+                        : SpineTowerInteractionPosition;
+                case MissionObjectiveId.QuenchStabilization:
+                    return QuenchStabilizationObjective != null
+                        ? QuenchStabilizationObjective.Position
                         : SpineTowerInteractionPosition;
                 case MissionObjectiveId.Extraction:
                     return ExtractionPosition;

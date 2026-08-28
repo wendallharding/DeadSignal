@@ -185,6 +185,8 @@ namespace DeadSignal.Missions
         public bool ConvergenceCalibrationActive { get; private set; }
         public bool ConvergenceCalibrated { get; private set; }
         public bool BreakerDistributionReset { get; private set; }
+        public bool LatticeForged { get; private set; }
+        public bool CoreStabilized { get; private set; }
         public float ConvergenceCalibrationProgress { get; private set; }
         public float ConvergenceCalibrationDuration => m_convergenceCalibrationDuration;
         public bool ShortcutOpen { get; private set; }
@@ -413,6 +415,30 @@ namespace DeadSignal.Missions
             return true;
         }
 
+        public bool TryForgeLattice()
+        {
+            if (!_isCurrentObjective(MissionObjectiveId.FurnaceForge) || !BreakerDistributionReset ||
+                LatticeForged || Outcome != RunOutcome.Running)
+            {
+                return false;
+            }
+
+            LatticeForged = true;
+            return true;
+        }
+
+        public bool TryStabilizeCore()
+        {
+            if (!_isCurrentObjective(MissionObjectiveId.QuenchStabilization) || !LatticeForged ||
+                CoreStabilized || Outcome != RunOutcome.Running)
+            {
+                return false;
+            }
+
+            CoreStabilized = true;
+            return true;
+        }
+
         public bool TryInstallRelayPayload()
         {
             if (!_isCurrentObjective(MissionObjectiveId.RelayInstallation) || !RelayPayloadStabilized ||
@@ -606,6 +632,8 @@ namespace DeadSignal.Missions
                 MissionCompletionRule.FluxShuntRouted => FluxShuntRouted,
                 MissionCompletionRule.ConvergenceCalibrated => ConvergenceCalibrated,
                 MissionCompletionRule.BreakerDistributionReset => BreakerDistributionReset,
+                MissionCompletionRule.LatticeForged => LatticeForged,
+                MissionCompletionRule.CoreStabilized => CoreStabilized,
                 _ => false
             };
         }

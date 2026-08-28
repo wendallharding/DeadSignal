@@ -225,8 +225,28 @@ namespace DeadSignal.Tests
 
             Assert.That(run.TryResetBreakerDistribution(), Is.True);
             Assert.That(run.BreakerDistributionReset, Is.True);
-            Assert.That(run.CurrentObjective.Id, Is.EqualTo(MissionObjectiveId.SpinePayload));
+            Assert.That(run.CurrentObjective.Id, Is.EqualTo(MissionObjectiveId.FurnaceForge));
             Assert.That(run.TryResetBreakerDistribution(), Is.False);
+        }
+
+        [Test]
+        public void CoreProcessing_RequiresForgeBeforeQuenchAndCompletesOnce()
+        {
+            var run = new RunModel();
+
+            Assert.That(run.TryForgeLattice(), Is.False);
+            Assert.That(run.TryStabilizeCore(), Is.False);
+            _completeThroughBreaker(run);
+
+            Assert.That(run.TryStabilizeCore(), Is.False);
+            Assert.That(run.TryForgeLattice(), Is.True);
+            Assert.That(run.LatticeForged, Is.True);
+            Assert.That(run.CurrentObjective.Id, Is.EqualTo(MissionObjectiveId.QuenchStabilization));
+            Assert.That(run.TryForgeLattice(), Is.False);
+            Assert.That(run.TryStabilizeCore(), Is.True);
+            Assert.That(run.CoreStabilized, Is.True);
+            Assert.That(run.CurrentObjective.Id, Is.EqualTo(MissionObjectiveId.SpinePayload));
+            Assert.That(run.TryStabilizeCore(), Is.False);
         }
 
         [Test]
@@ -279,6 +299,8 @@ namespace DeadSignal.Tests
             Assert.That(run.TryBeginConvergenceCalibration(), Is.True);
             Assert.That(run.AdvanceConvergenceCalibration(run.ConvergenceCalibrationDuration, true), Is.True);
             Assert.That(run.TryResetBreakerDistribution(), Is.True);
+            Assert.That(run.TryForgeLattice(), Is.True);
+            Assert.That(run.TryStabilizeCore(), Is.True);
             Assert.That(run.CollectPayload(SignalRegion.Spine), Is.True);
 
             Assert.That(run.CanExtract, Is.True);
@@ -305,6 +327,8 @@ namespace DeadSignal.Tests
             Assert.That(run.TryBeginConvergenceCalibration(), Is.True);
             Assert.That(run.AdvanceConvergenceCalibration(run.ConvergenceCalibrationDuration, true), Is.True);
             Assert.That(run.TryResetBreakerDistribution(), Is.True);
+            Assert.That(run.TryForgeLattice(), Is.True);
+            Assert.That(run.TryStabilizeCore(), Is.True);
             Assert.That(run.CollectPayload(SignalRegion.Spine), Is.True);
 
             run.TrySpend(30f);
@@ -332,6 +356,22 @@ namespace DeadSignal.Tests
             Assert.That(run.TryRouteCentralComponents(), Is.True);
             Assert.That(run.TryAssembleCentralPayload(), Is.True);
             Assert.That(run.TryInstallCentralPayload(), Is.True);
+        }
+
+        private static void _completeThroughBreaker(RunModel run)
+        {
+            Assert.That(run.TryActivateTower(), Is.True);
+            _assembleCentralPayload(run);
+            Assert.That(run.TryActivateRelayTower(), Is.True);
+            Assert.That(run.CollectPayload(SignalRegion.Relay), Is.True);
+            Assert.That(run.TryInstallRelayPayload(), Is.True);
+            Assert.That(run.TryVentSpineBerth(), Is.True);
+            Assert.That(run.TryActivateSpineTower(), Is.True);
+            Assert.That(run.TryChargeInductionLattice(), Is.True);
+            Assert.That(run.TryRouteFluxShunt(), Is.True);
+            Assert.That(run.TryBeginConvergenceCalibration(), Is.True);
+            Assert.That(run.AdvanceConvergenceCalibration(run.ConvergenceCalibrationDuration, true), Is.True);
+            Assert.That(run.TryResetBreakerDistribution(), Is.True);
         }
 
         [Test]

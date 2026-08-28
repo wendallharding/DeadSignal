@@ -48,7 +48,7 @@ namespace DeadSignal.Diagnostics
 
             var game = FindFirstObjectByType<DeadSignalGame>();
             var missionObjectives = Resources.Load<MissionObjectiveGraphConfiguration>("Tuning/CompatibilityMissionObjectives");
-            var missionObjectivesReady = missionObjectives != null && missionObjectives.ObjectiveCount == 17;
+            var missionObjectivesReady = missionObjectives != null && missionObjectives.ObjectiveCount == 19;
             var objectiveConsumersReady = game != null &&
                                           game.CurrentMissionObjectiveId == MissionObjectiveId.CentralTower &&
                                           game.CurrentMissionGuidanceTitle == "RESTORE CENTRAL" &&
@@ -75,6 +75,10 @@ namespace DeadSignal.Diagnostics
                 FindFirstObjectByType<AuthoredConvergenceCalibrationObjective>(FindObjectsInactive.Include);
             var breakerResetObjective =
                 FindFirstObjectByType<AuthoredBreakerResetObjective>(FindObjectsInactive.Include);
+            var furnaceForgeObjective =
+                FindFirstObjectByType<AuthoredFurnaceForgeObjective>(FindObjectsInactive.Include);
+            var quenchStabilizationObjective =
+                FindFirstObjectByType<AuthoredQuenchStabilizationObjective>(FindObjectsInactive.Include);
             var centralTransferReady = relayForkObjective != null && relayForkObjective.IsConfigured &&
                                        transferVaultObjective != null && transferVaultObjective.IsConfigured &&
                                        centralInstallationObjective != null && centralInstallationObjective.IsConfigured &&
@@ -93,6 +97,9 @@ namespace DeadSignal.Diagnostics
                                               game != null && !game.IsConvergenceCalibrated;
             var breakerResetReady = breakerResetObjective != null && breakerResetObjective.IsConfigured &&
                                     game != null && !game.IsBreakerDistributionReset;
+            var coreProcessingReady = furnaceForgeObjective != null && furnaceForgeObjective.IsConfigured &&
+                                      quenchStabilizationObjective != null && quenchStabilizationObjective.IsConfigured &&
+                                      game != null && !game.IsLatticeForged && !game.IsCoreStabilized;
             var weaponTextureReady = Resources.Load<Texture2D>("Environment/RelayFoundryWeaponCalibrationDecal") != null;
             var weaponMaterialReady =
                 Resources.Load<Material>("Materials/RelayFoundry/RelayFoundryWeaponCalibrationDecal") != null;
@@ -199,6 +206,10 @@ namespace DeadSignal.Diagnostics
             Debug.Log($"[DEAD SIGNAL STANDALONE SMOKE] BREAKER RESET | " +
                       $"configured={breakerResetObjective?.IsConfigured ?? false} " +
                       $"complete={game?.IsBreakerDistributionReset ?? false}");
+            Debug.Log($"[DEAD SIGNAL STANDALONE SMOKE] CORE PROCESSING | " +
+                      $"furnace={furnaceForgeObjective?.IsConfigured ?? false} " +
+                      $"quench={quenchStabilizationObjective?.IsConfigured ?? false} " +
+                      $"forged={game?.IsLatticeForged ?? false} stabilized={game?.IsCoreStabilized ?? false}");
             var runtimeReady = game != null &&
                                 missionObjectivesReady &&
                                 objectiveConsumersReady &&
@@ -211,6 +222,7 @@ namespace DeadSignal.Diagnostics
                                 fluxShuntReady &&
                                 convergenceCalibrationReady &&
                                 breakerResetReady &&
+                                coreProcessingReady &&
                                 game.transform.Find("Maintenance Drone") != null &&
                                 game.transform.Find("Shortcut Gate Assembly/Signal Shortcut Gate") != null &&
                                 game.transform.Find("Tower Signal Lines/Signal Trunk West") != null &&

@@ -56,6 +56,7 @@ namespace DeadSignal.Editor
                        region.GetComponentsInChildren<AuthoredMapObstacle>().Length == 10 &&
                        region.transform.Find("Quench Pressure Shutter") != null &&
                        region.transform.Find("Quench Cache Return Signal") != null &&
+                       region.GetComponent<AuthoredQuenchStabilizationObjective>()?.IsConfigured == true &&
                        region.GetComponent<AuthoredPoweredTerritory>() != null &&
                        furnace.transform.Find("Arc Furnace East Bulkhead") == null &&
                        furnace.transform.Find("Quench Loop Region") != null &&
@@ -250,6 +251,18 @@ namespace DeadSignal.Editor
                 var condenserPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(MODEL_PREFAB_PATH);
                 var condenser = (GameObject)PrefabUtility.InstantiatePrefab(condenserPrefab, root.transform);
                 condenser.name = "Quench Condenser Assembly";
+
+                var availableMarker = _wall(root.transform, "Quench Stabilization Available", new Vector3(1.5f, 0.16f, 0f),
+                    new Vector3(0.2f, 0.08f, 1.5f), materials.Amber, false);
+                var completeMarker = _wall(root.transform, "Quench Stabilization Complete", new Vector3(1.5f, 0.16f, 0f),
+                    new Vector3(0.2f, 0.08f, 1.5f), materials.Cyan, false);
+                var stabilizationAnchor = new GameObject("Quench Stabilization Control");
+                stabilizationAnchor.transform.SetParent(root.transform, false);
+                stabilizationAnchor.transform.localPosition = new Vector3(2.2f, 0f, 0f);
+                root.AddComponent<AuthoredQuenchStabilizationObjective>().Configure(
+                    stabilizationAnchor.transform,
+                    availableMarker,
+                    completeMarker);
 
                 var routing = new GameObject("Quench Loop Signal Lines");
                 routing.transform.SetParent(root.transform, false);

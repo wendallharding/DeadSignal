@@ -53,6 +53,7 @@ namespace DeadSignal.Editor
                        AssetDatabase.LoadAssetAtPath<Material>(DECAL_MATERIAL_PATH) != null &&
                        region.GetComponentsInChildren<AuthoredMapObstacle>().Length >= 9 &&
                        region.GetComponentsInChildren<AuthoredSalvageSocket>().Length == 1 &&
+                       region.GetComponent<AuthoredFurnaceForgeObjective>()?.IsConfigured == true &&
                        region.GetComponent<AuthoredPoweredTerritory>() != null &&
                        region.GetComponentInChildren<AuthoredInterceptorEntrance>() != null &&
                        chamber.transform.Find("Convergence North Bulkhead") == null &&
@@ -223,6 +224,18 @@ namespace DeadSignal.Editor
                 var furnace = (GameObject)PrefabUtility.InstantiatePrefab(furnacePrefab, root.transform);
                 furnace.name = "Arc Furnace Assembly";
                 furnace.transform.localPosition = new Vector3(0f, 0f, 0.35f);
+
+                var availableMarker = _wall(root.transform, "Furnace Forge Available", new Vector3(0f, 0.16f, -1.55f),
+                    new Vector3(1.5f, 0.08f, 0.2f), materials.Amber, false);
+                var completeMarker = _wall(root.transform, "Furnace Forge Complete", new Vector3(0f, 0.16f, -1.55f),
+                    new Vector3(1.5f, 0.08f, 0.2f), materials.Cyan, false);
+                var forgeAnchor = new GameObject("Arc Furnace Forge Control");
+                forgeAnchor.transform.SetParent(root.transform, false);
+                forgeAnchor.transform.localPosition = new Vector3(0f, 0f, -2.25f);
+                root.AddComponent<AuthoredFurnaceForgeObjective>().Configure(
+                    forgeAnchor.transform,
+                    availableMarker,
+                    completeMarker);
 
                 var routing = new GameObject("Arc Furnace Signal Lines");
                 routing.transform.SetParent(root.transform, false);

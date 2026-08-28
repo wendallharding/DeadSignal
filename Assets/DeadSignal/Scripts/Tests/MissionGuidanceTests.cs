@@ -93,6 +93,8 @@ namespace DeadSignal.Tests
             Assert.That(model.TryBeginConvergenceCalibration(), Is.True);
             Assert.That(model.AdvanceConvergenceCalibration(model.ConvergenceCalibrationDuration, true), Is.True);
             Assert.That(model.TryResetBreakerDistribution(), Is.True);
+            Assert.That(model.TryForgeLattice(), Is.True);
+            Assert.That(model.TryStabilizeCore(), Is.True);
             Assert.That(model.CollectPayload(SignalRegion.Spine), Is.True);
         }
     }

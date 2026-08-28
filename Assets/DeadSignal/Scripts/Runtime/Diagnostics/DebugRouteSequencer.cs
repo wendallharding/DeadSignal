@@ -48,6 +48,8 @@ namespace DeadSignal.Diagnostics
         RouteFluxShunt,
         CompleteConvergenceCalibration,
         ResetBreakerDistribution,
+        ForgeLattice,
+        StabilizeCore,
         BeginStableExtraction,
         CaptureScreenshot
     }
@@ -437,6 +439,10 @@ namespace DeadSignal.Diagnostics
                         DebugRouteAction.CompleteConvergenceCalibration, roomName: "Convergence Chamber");
                     yield return new DebugRouteStep("Breaker distribution reset", DebugLocation.CurrentObjective, 1.7f,
                         DebugRouteAction.ResetBreakerDistribution, roomName: "Breaker Gallery");
+                    yield return new DebugRouteStep("Arc Furnace forging", DebugLocation.CurrentObjective, 1.7f,
+                        DebugRouteAction.ForgeLattice, roomName: "Arc Furnace");
+                    yield return new DebugRouteStep("Quench stabilization", DebugLocation.CurrentObjective, 1.7f,
+                        DebugRouteAction.StabilizeCore, roomName: "Quench Loop");
                     yield return new DebugRouteStep("Spine payload", DebugLocation.CurrentObjective, 2.3f,
                         DebugRouteAction.CollectCache, roomName: "Capacitor Spine");
                     if (preset == DebugRoutePreset.FullExtraction)

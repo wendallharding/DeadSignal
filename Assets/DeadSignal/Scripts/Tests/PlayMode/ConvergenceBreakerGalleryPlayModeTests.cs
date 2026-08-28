@@ -100,12 +100,12 @@ namespace DeadSignal.Tests
                 player.position = game.BreakerResetPosition;
                 yield return _interact(gamepad);
                 Assert.That(game.IsBreakerDistributionReset, Is.True);
-                Assert.That(game.CurrentMissionObjectiveId, Is.EqualTo(MissionObjectiveId.SpinePayload));
+                Assert.That(game.CurrentMissionObjectiveId, Is.EqualTo(MissionObjectiveId.FurnaceForge));
                 Assert.That(available.activeSelf, Is.False);
                 Assert.That(complete.activeSelf, Is.True);
 
                 yield return _interact(gamepad);
-                Assert.That(game.CurrentMissionObjectiveId, Is.EqualTo(MissionObjectiveId.SpinePayload),
+                Assert.That(game.CurrentMissionObjectiveId, Is.EqualTo(MissionObjectiveId.FurnaceForge),
                     "Repeated reset interaction must remain idempotent.");
             }
             finally

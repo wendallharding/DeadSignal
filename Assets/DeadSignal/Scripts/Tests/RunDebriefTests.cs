@@ -66,6 +66,8 @@ namespace DeadSignal.Tests
             model.TryBeginConvergenceCalibration();
             model.AdvanceConvergenceCalibration(model.ConvergenceCalibrationDuration, true);
             model.TryResetBreakerDistribution();
+            model.TryForgeLattice();
+            model.TryStabilizeCore();
             model.CollectPayload(SignalRegion.Spine);
         }
     }

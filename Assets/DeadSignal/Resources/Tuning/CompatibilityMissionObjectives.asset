@@ -217,6 +217,32 @@ MonoBehaviour:
     m_guidanceAction: RESET DISTRIBUTION IN THE BREAKER GALLERY
     m_guidanceAdvisory: THROW THE BREAKER BANK  //  UNLOCKS FURNACE PROCESS
     m_prerequisites: 10000000
+    m_successors: 12000000
+  - m_id: 18
+    m_legacyStage: 5
+    m_owningRoom: Arc Furnace
+    m_anchorId: Arc Furnace Forge Control
+    m_completionRule: 19
+    m_worldMutations: 2097152
+    m_rewards: []
+    m_guidancePhase: 6
+    m_guidanceTitle: FURNACE PROCESS ONLINE
+    m_guidanceAction: FORGE THE CHARGED LATTICE IN THE ARC FURNACE
+    m_guidanceAdvisory: PROCESS AT THE FURNACE  //  THEN STABILIZE IN QUENCH
+    m_prerequisites: 11000000
+    m_successors: 13000000
+  - m_id: 19
+    m_legacyStage: 5
+    m_owningRoom: Quench Loop
+    m_anchorId: Quench Stabilization Control
+    m_completionRule: 20
+    m_worldMutations: 12582912
+    m_rewards: []
+    m_guidancePhase: 6
+    m_guidanceTitle: LATTICE FORGED
+    m_guidanceAction: STABILIZE THE CORE IN THE QUENCH LOOP
+    m_guidanceAdvisory: CYCLE THE CONDENSER  //  OPENS THE DIRECT RETURN
+    m_prerequisites: 12000000
     m_successors: 05000000
   - m_id: 5
     m_legacyStage: 5
@@ -229,7 +255,7 @@ MonoBehaviour:
     m_guidanceTitle: FINAL PAYLOAD
     m_guidanceAction: SECURE ONE SPINE PAYLOAD
     m_guidanceAdvisory: GALLERY OR FURNACE-SIDE ROUTE  //  ONE REQUIRED
-    m_prerequisites: 11000000
+    m_prerequisites: 13000000
     m_successors: 06000000
   - m_id: 6
     m_legacyStage: 6

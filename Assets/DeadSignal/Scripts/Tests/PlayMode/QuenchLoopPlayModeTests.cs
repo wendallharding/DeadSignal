@@ -7,6 +7,7 @@ using UnityEngine.InputSystem.LowLevel;
 using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
 using DeadSignal.Application;
+using DeadSignal.Missions;
 using DeadSignal.World;
 
 namespace DeadSignal.Tests
@@ -30,12 +31,18 @@ namespace DeadSignal.Tests
                 var furnace = chamber.Find("Arc Furnace Region");
                 var loop = furnace.Find("Quench Loop Region");
                 var territory = loop.GetComponent<AuthoredPoweredTerritory>();
+                var stabilizationObjective = loop.GetComponent<AuthoredQuenchStabilizationObjective>();
+                var forgeObjective = furnace.GetComponent<AuthoredFurnaceForgeObjective>();
                 var routing = loop.Find("Quench Loop Signal Lines").gameObject;
 
                 Assert.That(loop.position, Is.EqualTo(new Vector3(53f, 0f, 25.5f)));
                 Assert.That(loop.GetComponentsInChildren<AuthoredMapObstacle>().Length, Is.EqualTo(10));
                 Assert.That(loop.GetComponentsInChildren<Collider>().Length, Is.Zero);
                 Assert.That(loop.Find("Quench Condenser Assembly"), Is.Not.Null);
+                Assert.That(stabilizationObjective, Is.Not.Null);
+                Assert.That(stabilizationObjective.IsConfigured, Is.True);
+                Assert.That(forgeObjective, Is.Not.Null);
+                Assert.That(forgeObjective.IsConfigured, Is.True);
                 Assert.That(loop.Find("South Quench Deflector"), Is.Not.Null);
                 Assert.That(loop.Find("North Quench Deflector"), Is.Not.Null);
                 Assert.That(loop.Find("Quench Loop Route Decal"), Is.Not.Null);
@@ -90,6 +97,7 @@ namespace DeadSignal.Tests
                 Assert.That(game.DebugIsPoweredAt(loopCenter), Is.False);
                 Assert.That(routing.activeSelf, Is.False);
                 game.DebugActivateSpineTower();
+                game.DebugSelectAuxiliary(SignalAuxiliaryOverclock.FeedbackShield);
                 Assert.That(game.DebugIsPoweredAt(loopCenter), Is.True,
                     "The loop should become a powered return flank with the Spine tower.");
                 Assert.That(routing.activeSelf, Is.True);
@@ -99,18 +107,34 @@ namespace DeadSignal.Tests
                 Assert.That(player.position.z, Is.LessThan(25.3f),
                     "The authored pressure shutter should block the direct cut-through before the optional cache.");
 
-                game.DebugMakeExtractionReady();
-                while (!game.IsOptionalSalvageSecured)
-                {
-                    game.DebugCollectNextCache();
-                    yield return null;
-                }
+                game.DebugResetBreakerDistribution();
                 yield return null;
+                Assert.That(game.CurrentMissionObjectiveId, Is.EqualTo(MissionObjectiveId.FurnaceForge));
+                Assert.That(furnace.Find("Furnace Forge Available").gameObject.activeSelf, Is.True);
+
+                player.position = game.FurnaceForgePosition;
+                yield return _interact(gamepad);
+                Assert.That(game.IsLatticeForged, Is.True);
+                Assert.That(game.CurrentMissionObjectiveId, Is.EqualTo(MissionObjectiveId.QuenchStabilization));
+                Assert.That(furnace.Find("Furnace Forge Complete").gameObject.activeSelf, Is.True);
+                Assert.That(loop.Find("Quench Stabilization Available").gameObject.activeSelf, Is.True);
+
+                player.position = game.QuenchStabilizationPosition;
+                yield return _interact(gamepad);
 
                 Assert.That(shutter.activeSelf, Is.False,
-                    "Securing the deep optional cache should retract the Quench pressure shutter.");
+                    "Stabilizing the required core should retract the Quench pressure shutter.");
                 Assert.That(cacheReturnSignal.activeSelf, Is.True,
                     "The opened cut-through should reveal its authored cyan return cue.");
+                Assert.That(game.IsCoreStabilized, Is.True);
+                Assert.That(game.CurrentMissionObjectiveId, Is.EqualTo(MissionObjectiveId.SpinePayload));
+                Assert.That(game.IsOptionalSalvageSecured, Is.False,
+                    "Required Quench processing must not collect or reward the optional greed cache.");
+                Assert.That(loop.Find("Quench Stabilization Complete").gameObject.activeSelf, Is.True);
+
+                yield return _interact(gamepad);
+                Assert.That(game.CurrentMissionObjectiveId, Is.EqualTo(MissionObjectiveId.SpinePayload),
+                    "Repeated stabilization must remain idempotent.");
                 player.position = new Vector3(51.75f, 0f, 24.2f);
                 yield return _move(gamepad, player, Vector2.up, () => player.position.z > 26.1f);
                 Assert.That(player.position.z, Is.GreaterThan(26.1f),
@@ -131,6 +155,14 @@ namespace DeadSignal.Tests
                 yield return null;
             }
 
+            InputSystem.QueueStateEvent(gamepad, new GamepadState());
+            yield return null;
+        }
+
+        private static IEnumerator _interact(Gamepad gamepad)
+        {
+            InputSystem.QueueStateEvent(gamepad, new GamepadState().WithButton(GamepadButton.West));
+            yield return null;
             InputSystem.QueueStateEvent(gamepad, new GamepadState());
             yield return null;
         }
