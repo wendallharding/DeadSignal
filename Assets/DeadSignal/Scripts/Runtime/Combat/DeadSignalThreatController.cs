@@ -319,6 +319,36 @@ namespace DeadSignal.Combat
             }
         }
 
+        public void BeginConvergenceCalibration(
+            AuthoredConvergenceCalibrationObjective objective,
+            SecurityReinforcement pressureRole)
+        {
+            if (objective == null || !objective.IsConfigured || pressureRole == SecurityReinforcement.None)
+            {
+                return;
+            }
+
+            SpawnForDebug(pressureRole);
+            var pressureActor = pressureRole switch
+            {
+                SecurityReinforcement.Warden => m_world.Warden,
+                SecurityReinforcement.Sapper => m_world.Sapper,
+                SecurityReinforcement.Interceptor => m_world.Interceptor,
+                SecurityReinforcement.Suppressor => m_world.Suppressor,
+                _ => null
+            };
+            if (pressureActor != null)
+            {
+                _placeForDebug(pressureActor, objective.PressureAnchor, m_world.Player.position);
+            }
+
+            if (pressureRole == SecurityReinforcement.Interceptor)
+            {
+                m_interceptorDashTarget = m_world.Player.position;
+                m_interceptorChargeCountdown = 1.5f;
+            }
+        }
+
         public bool IsCombatChamberPhaseCleared()
         {
             if (!m_combatChamberActive || m_swarmers.ActiveCount > 0)

@@ -71,6 +71,7 @@ namespace DeadSignal.World
         public AuthoredSpineVentingObjective SpineVentingObjective { get; private set; }
         public AuthoredInductionLatticeObjective InductionLatticeObjective { get; private set; }
         public AuthoredFluxShuntObjective FluxShuntObjective { get; private set; }
+        public AuthoredConvergenceCalibrationObjective ConvergenceCalibrationObjective { get; private set; }
         public IReadOnlyList<GameObject> SalvagePickups => m_salvagePickups;
 
         public SignalRegion GetPayloadRegion(GameObject pickup) => m_salvageRegions.TryGetValue(pickup, out var region)
@@ -172,6 +173,8 @@ namespace DeadSignal.World
                 Object.FindFirstObjectByType<AuthoredInductionLatticeObjective>(FindObjectsInactive.Include);
             FluxShuntObjective =
                 Object.FindFirstObjectByType<AuthoredFluxShuntObjective>(FindObjectsInactive.Include);
+            ConvergenceCalibrationObjective =
+                Object.FindFirstObjectByType<AuthoredConvergenceCalibrationObjective>(FindObjectsInactive.Include);
             _buildActors(comfortSettings);
             m_palette.RebindHierarchy(m_root);
             _configurePlayerCamera();
@@ -369,6 +372,14 @@ namespace DeadSignal.World
             FluxShuntObjective?.SetState(
                 model.CurrentObjective.Id == MissionObjectiveId.FluxShunt,
                 model.FluxShuntRouted);
+        }
+
+        public void UpdateConvergenceCalibrationPresentation(RunModel model)
+        {
+            ConvergenceCalibrationObjective?.SetState(
+                model.CurrentObjective.Id == MissionObjectiveId.ConvergenceCalibration,
+                model.ConvergenceCalibrationActive,
+                model.ConvergenceCalibrated);
         }
 
         public Vector3 GetObjectiveGuidanceWaypoint(RunModel model, float radius)
@@ -1658,6 +1669,10 @@ namespace DeadSignal.World
                 case MissionObjectiveId.FluxShunt:
                     return FluxShuntObjective != null
                         ? FluxShuntObjective.Position
+                        : SpineTowerInteractionPosition;
+                case MissionObjectiveId.ConvergenceCalibration:
+                    return ConvergenceCalibrationObjective != null
+                        ? ConvergenceCalibrationObjective.Position
                         : SpineTowerInteractionPosition;
                 case MissionObjectiveId.Extraction:
                     return ExtractionPosition;

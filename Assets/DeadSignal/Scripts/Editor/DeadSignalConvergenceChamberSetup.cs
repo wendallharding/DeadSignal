@@ -5,6 +5,7 @@ using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using DeadSignal.World;
+using DeadSignal.Combat;
 
 namespace DeadSignal.Editor
 {
@@ -23,6 +24,8 @@ namespace DeadSignal.Editor
             "Assets/DeadSignal/Resources/Environment/ConvergenceChamberRouteDecal.png";
         private const string MATERIAL_DIRECTORY = "Assets/DeadSignal/Resources/Materials/ConvergenceChamber";
         private const string DECAL_MATERIAL_PATH = MATERIAL_DIRECTORY + "/ConvergenceChamberRouteDecal.mat";
+        private const string TUNING_PATH =
+            "Assets/DeadSignal/Resources/Tuning/ConvergenceCalibrationTuning.asset";
         private const string ARMOR_MATERIAL_PATH =
             "Assets/DeadSignal/Resources/Materials/RelayFoundry/RelayFoundryArmor.mat";
         private const string DECK_MATERIAL_PATH =
@@ -46,7 +49,9 @@ namespace DeadSignal.Editor
                        AssetDatabase.LoadAssetAtPath<GameObject>(MODEL_PREFAB_PATH) != null &&
                        AssetDatabase.LoadAssetAtPath<Texture2D>(DECAL_PATH) != null &&
                        AssetDatabase.LoadAssetAtPath<Material>(DECAL_MATERIAL_PATH) != null &&
+                       AssetDatabase.LoadAssetAtPath<ConvergenceCalibrationTuning>(TUNING_PATH) != null &&
                        region.GetComponentsInChildren<AuthoredMapObstacle>().Length >= 9 &&
+                       region.GetComponent<AuthoredConvergenceCalibrationObjective>()?.IsConfigured == true &&
                        region.GetComponent<AuthoredPoweredTerritory>() != null &&
                        region.GetComponentInChildren<AuthoredInterceptorEntrance>() != null &&
                        gallery.transform.Find("Convergence Chamber Region") != null &&
@@ -59,6 +64,7 @@ namespace DeadSignal.Editor
         {
             _configureDecalImport();
             _ensureMaterialDirectory();
+            _ensureTuning();
             var materials = _ensureMaterials();
             _ensureModelPrefab(materials);
             _ensureRegionPrefab(materials);
@@ -70,6 +76,31 @@ namespace DeadSignal.Editor
             {
                 throw new InvalidOperationException("The scene-authored Convergence Chamber is incomplete.");
             }
+        }
+
+        public static void PrepareCalibrationSliceAssets()
+        {
+            EnsureAssets();
+            DeadSignalConvergenceBreakerGallerySetup.EnsureAssets();
+            DeadSignalFluxBypassSetup.EnsureAssets();
+            DeadSignalArcFurnaceSetup.EnsureAssets();
+            DeadSignalQuenchLoopSetup.EnsureAssets();
+            DeadSignalEasternCombatScenarioSetup.EnsureAssets();
+            DeadSignalSecurityTrialSetup.EnsureAssets();
+            DeadSignalMissionObjectiveSetup.CreateCompatibilityMissionObjectives();
+        }
+
+        private static void _ensureTuning()
+        {
+            var tuning = AssetDatabase.LoadAssetAtPath<ConvergenceCalibrationTuning>(TUNING_PATH);
+            if (tuning == null)
+            {
+                tuning = ScriptableObject.CreateInstance<ConvergenceCalibrationTuning>();
+                AssetDatabase.CreateAsset(tuning, TUNING_PATH);
+            }
+
+            tuning.Configure(12f, SecurityReinforcement.Interceptor);
+            EditorUtility.SetDirty(tuning);
         }
 
         private static void _configureDecalImport()
@@ -238,6 +269,39 @@ namespace DeadSignal.Editor
                 entrance.AddComponent<AuthoredInterceptorEntrance>().Configure(5);
                 _wall(entrance.transform, "Security Gate Header", new Vector3(0f, 0.8f, 0.28f),
                     new Vector3(2.8f, 0.25f, 0.3f), materials.Red, false);
+
+                var calibrationAnchor = new GameObject("Convergence Calibration Console");
+                calibrationAnchor.transform.SetParent(root.transform, false);
+                calibrationAnchor.transform.localPosition = new Vector3(0f, 0f, -2.6f);
+                _wall(calibrationAnchor.transform, "Calibration Console Base", new Vector3(0f, 0.25f, 0f),
+                    new Vector3(1.4f, 0.5f, 0.8f), materials.Armor, false);
+
+                var calibrationVolume = new GameObject("Convergence Calibration Volume");
+                calibrationVolume.transform.SetParent(root.transform, false);
+
+                var availableState = new GameObject("Convergence Calibration Available");
+                availableState.transform.SetParent(root.transform, false);
+                _wall(availableState.transform, "Amber Calibration Beacon", new Vector3(0f, 0.62f, -2.6f),
+                    new Vector3(0.75f, 0.08f, 0.42f), materials.Amber, false);
+
+                var activeState = new GameObject("Convergence Calibration Active");
+                activeState.transform.SetParent(root.transform, false);
+                _wall(activeState.transform, "Red Calibration Bus", new Vector3(0f, -0.08f, 0f),
+                    new Vector3(8.8f, 0.05f, 0.14f), materials.Red, false);
+
+                var completeState = new GameObject("Convergence Calibration Complete");
+                completeState.transform.SetParent(root.transform, false);
+                _wall(completeState.transform, "Cyan Calibrated Bus", new Vector3(0f, -0.075f, 0f),
+                    new Vector3(8.8f, 0.05f, 0.14f), materials.Cyan, false);
+
+                root.AddComponent<AuthoredConvergenceCalibrationObjective>().Configure(
+                    calibrationAnchor.transform,
+                    calibrationVolume.transform,
+                    entrance.transform,
+                    availableState,
+                    activeState,
+                    completeState,
+                    new Vector2(5.6f, 2.9f));
 
                 root.AddComponent<AuthoredPoweredTerritory>().Configure(
                     PoweredTerritorySource.SpineTower, new Vector2(6.65f, 3.65f), routing);

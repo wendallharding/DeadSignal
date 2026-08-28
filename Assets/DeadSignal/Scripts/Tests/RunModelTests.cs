@@ -174,8 +174,35 @@ namespace DeadSignal.Tests
 
             Assert.That(run.TryRouteFluxShunt(), Is.True);
             Assert.That(run.FluxShuntRouted, Is.True);
-            Assert.That(run.CurrentObjective.Id, Is.EqualTo(MissionObjectiveId.SpinePayload));
+            Assert.That(run.CurrentObjective.Id, Is.EqualTo(MissionObjectiveId.ConvergenceCalibration));
             Assert.That(run.TryRouteFluxShunt(), Is.False);
+        }
+
+        [Test]
+        public void ConvergenceCalibration_RequiresFluxAndOnlyAdvancesInsideHoldVolume()
+        {
+            var run = new RunModel(convergenceCalibrationDuration: 12f);
+
+            Assert.That(run.TryBeginConvergenceCalibration(), Is.False);
+            Assert.That(run.TryActivateTower(), Is.True);
+            _assembleCentralPayload(run);
+            Assert.That(run.TryActivateRelayTower(), Is.True);
+            Assert.That(run.CollectPayload(SignalRegion.Relay), Is.True);
+            Assert.That(run.TryInstallRelayPayload(), Is.True);
+            Assert.That(run.TryVentSpineBerth(), Is.True);
+            Assert.That(run.TryActivateSpineTower(), Is.True);
+            Assert.That(run.TryChargeInductionLattice(), Is.True);
+            Assert.That(run.TryRouteFluxShunt(), Is.True);
+
+            Assert.That(run.TryBeginConvergenceCalibration(), Is.True);
+            Assert.That(run.AdvanceConvergenceCalibration(6f, true), Is.False);
+            Assert.That(run.ConvergenceCalibrationProgress, Is.EqualTo(6f));
+            Assert.That(run.AdvanceConvergenceCalibration(4f, false), Is.False);
+            Assert.That(run.ConvergenceCalibrationProgress, Is.EqualTo(6f));
+            Assert.That(run.AdvanceConvergenceCalibration(6f, true), Is.True);
+            Assert.That(run.ConvergenceCalibrated, Is.True);
+            Assert.That(run.CurrentObjective.Id, Is.EqualTo(MissionObjectiveId.SpinePayload));
+            Assert.That(run.TryBeginConvergenceCalibration(), Is.False);
         }
 
         [Test]
@@ -225,6 +252,8 @@ namespace DeadSignal.Tests
             Assert.That(run.TryActivateSpineTower(), Is.True);
             Assert.That(run.TryChargeInductionLattice(), Is.True);
             Assert.That(run.TryRouteFluxShunt(), Is.True);
+            Assert.That(run.TryBeginConvergenceCalibration(), Is.True);
+            Assert.That(run.AdvanceConvergenceCalibration(run.ConvergenceCalibrationDuration, true), Is.True);
             Assert.That(run.CollectPayload(SignalRegion.Spine), Is.True);
 
             Assert.That(run.CanExtract, Is.True);
@@ -248,6 +277,8 @@ namespace DeadSignal.Tests
             Assert.That(run.TryActivateSpineTower(), Is.True);
             Assert.That(run.TryChargeInductionLattice(), Is.True);
             Assert.That(run.TryRouteFluxShunt(), Is.True);
+            Assert.That(run.TryBeginConvergenceCalibration(), Is.True);
+            Assert.That(run.AdvanceConvergenceCalibration(run.ConvergenceCalibrationDuration, true), Is.True);
             Assert.That(run.CollectPayload(SignalRegion.Spine), Is.True);
 
             run.TrySpend(30f);

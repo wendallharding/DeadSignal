@@ -575,6 +575,26 @@ namespace DeadSignal.Presentation
                 m_world.CentralInstallationObjective != null &&
                 DeadSignalWorld.FlatDistance(m_world.Player.position, m_world.CentralInstallationObjective.Position) < 1.8f)
                 return $"[{_binding("E", "GAMEPAD X")}]  INSTALL CENTRAL PAYLOAD";
+            if (m_model.CurrentObjective.Id == MissionObjectiveId.ConvergenceCalibration &&
+                m_world.ConvergenceCalibrationObjective != null)
+            {
+                if (m_model.ConvergenceCalibrationActive)
+                {
+                    var remaining = Mathf.Max(
+                        0f,
+                        m_model.ConvergenceCalibrationDuration - m_model.ConvergenceCalibrationProgress);
+                    return m_world.ConvergenceCalibrationObjective.Contains(m_world.Player.position)
+                        ? $"CALIBRATING  —  HOLD CHAMBER  {remaining:0.0}s"
+                        : $"CALIBRATION PAUSED  —  RETURN TO CHAMBER  {remaining:0.0}s";
+                }
+
+                if (DeadSignalWorld.FlatDistance(
+                        m_world.Player.position,
+                        m_world.ConvergenceCalibrationObjective.Position) < 1.8f)
+                {
+                    return $"[{_binding("E", "GAMEPAD X")}]  BEGIN CONVERGENCE CALIBRATION";
+                }
+            }
             if (!m_model.SpineTowerOnline &&
                 m_world.IsSpineTowerInteractionInRange(m_world.Player.position))
                 return m_model.RelayTowerOnline

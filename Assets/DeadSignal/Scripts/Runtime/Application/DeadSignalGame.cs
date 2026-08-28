@@ -88,6 +88,7 @@ namespace DeadSignal.Application
         private string m_lastDebugCapturePath = "None";
         private AuthoredCombatScenario m_debugCombatScenario;
         private AuthoredCombatChamber m_combatChamber;
+        private ConvergenceCalibrationTuning m_convergenceCalibrationTuning;
         private bool m_debugCombatScenarioIncludesSwarmers;
         private float m_debugCombatScenarioSeconds;
         private bool m_debugCombatScenarioActive;
@@ -115,6 +116,9 @@ namespace DeadSignal.Application
         public bool IsCoreRebuildUnlocked => m_model?.CoreRebuildUnlocked ?? false;
         public bool IsInductionLatticeCharged => m_model?.InductionLatticeCharged ?? false;
         public bool IsFluxShuntRouted => m_model?.FluxShuntRouted ?? false;
+        public bool IsConvergenceCalibrationActive => m_model?.ConvergenceCalibrationActive ?? false;
+        public bool IsConvergenceCalibrated => m_model?.ConvergenceCalibrated ?? false;
+        public float ConvergenceCalibrationProgress => m_model?.ConvergenceCalibrationProgress ?? 0f;
         public bool IsCentralPayloadSecured => m_model?.CentralPayloadSecured ?? false;
         public bool IsCentralPayloadAssembled => m_model?.CentralPayloadAssembled ?? false;
         public bool IsCargoCouplingSecured => m_model?.CargoCouplingSecured ?? false;
@@ -150,6 +154,8 @@ namespace DeadSignal.Application
         public Vector3 SpineVentingPosition => m_world?.SpineVentingObjective?.Position ?? Vector3.zero;
         public Vector3 InductionLatticePosition => m_world?.InductionLatticeObjective?.Position ?? Vector3.zero;
         public Vector3 FluxShuntPosition => m_world?.FluxShuntObjective?.Position ?? Vector3.zero;
+        public Vector3 ConvergenceCalibrationPosition =>
+            m_world?.ConvergenceCalibrationObjective?.Position ?? Vector3.zero;
         public bool IsWeaponEvolved => m_overclockChoice?.IsWeaponEvolved ?? false;
         public Vector3 SafestReinforcementEntryPosition => m_world == null
             ? Vector3.zero
@@ -859,7 +865,34 @@ namespace DeadSignal.Application
             }
 
             m_world.UpdateFluxShuntPresentation(m_model);
+            m_world.UpdateConvergenceCalibrationPresentation(m_model);
             _showFeedback("DEBUG — FLUX SHUNT ROUTED");
+        }
+
+        public void DebugCompleteConvergenceCalibration()
+        {
+            DebugRouteFluxShunt();
+            if (m_model?.TryBeginConvergenceCalibration() == true)
+            {
+                m_model.AdvanceConvergenceCalibration(m_model.ConvergenceCalibrationDuration, true);
+                m_world.UpdateConvergenceCalibrationPresentation(m_model);
+                _showFeedback("DEBUG — CONVERGENCE CALIBRATED");
+            }
+        }
+
+        public void DebugBeginConvergenceCalibration()
+        {
+            DebugRouteFluxShunt();
+            if (m_model?.TryBeginConvergenceCalibration() != true)
+            {
+                return;
+            }
+
+            m_threats.BeginConvergenceCalibration(
+                m_world.ConvergenceCalibrationObjective,
+                m_convergenceCalibrationTuning.PressureRole);
+            m_world.UpdateConvergenceCalibrationPresentation(m_model);
+            _showFeedback("DEBUG — CONVERGENCE CALIBRATION STARTED");
         }
 
         public void DebugOpenShortcut()
@@ -986,6 +1019,7 @@ namespace DeadSignal.Application
             DebugActivateSpineTower();
             DebugChargeInductionLattice();
             DebugRouteFluxShunt();
+            DebugCompleteConvergenceCalibration();
             DebugCollectNextCache();
         }
 
@@ -1232,9 +1266,20 @@ namespace DeadSignal.Application
                 return;
             }
 
+            m_convergenceCalibrationTuning =
+                Resources.Load<ConvergenceCalibrationTuning>("Tuning/ConvergenceCalibrationTuning");
+            if (m_convergenceCalibrationTuning == null)
+            {
+                Debug.LogError("Convergence calibration tuning is missing from Resources/Tuning.", this);
+                enabled = false;
+                return;
+            }
+
             try
             {
-                m_model = new RunModel(objectiveConfiguration.BuildGraph());
+                m_model = new RunModel(
+                    objectiveConfiguration.BuildGraph(),
+                    m_convergenceCalibrationTuning.HoldDuration);
             }
             catch (System.Exception exception)
             {
@@ -1390,6 +1435,7 @@ namespace DeadSignal.Application
             m_world.UpdateSpineVentingPresentation(m_model);
             m_world.UpdateInductionLatticePresentation(m_model);
             m_world.UpdateFluxShuntPresentation(m_model);
+            m_world.UpdateConvergenceCalibrationPresentation(m_model);
             m_world.PlayerSignalWake.Tick(m_playerMovement.Velocity);
             m_world.TickGameplayAssists(dt, m_threats, aimDirection);
 
@@ -1705,6 +1751,32 @@ namespace DeadSignal.Application
 
         private void _handleInteraction()
         {
+            if (m_world.ConvergenceCalibrationObjective != null &&
+                m_model.CurrentObjective.Id == MissionObjectiveId.ConvergenceCalibration &&
+                !m_model.ConvergenceCalibrationActive &&
+                DeadSignalWorld.FlatDistance(
+                    m_world.Player.position,
+                    m_world.ConvergenceCalibrationObjective.Position) < TOWER_INTERACTION_RADIUS)
+            {
+                if (!m_threats.CanBeginCombatChamber)
+                {
+                    _showFeedback("CALIBRATION BLOCKED — CLEAR ACTIVE THREATS");
+                    return;
+                }
+
+                if (m_model.TryBeginConvergenceCalibration())
+                {
+                    m_threats.BeginConvergenceCalibration(
+                        m_world.ConvergenceCalibrationObjective,
+                        m_convergenceCalibrationTuning.PressureRole);
+                    m_world.UpdateConvergenceCalibrationPresentation(m_model);
+                    m_audio.Play(DeadSignalAudioCue.SecurityImpact);
+                    _showFeedback("CONVERGENCE CALIBRATION — HOLD THE CHAMBER");
+                }
+
+                return;
+            }
+
             if (m_world.FluxShuntObjective != null &&
                 m_model.CurrentObjective.Id == MissionObjectiveId.FluxShunt &&
                 DeadSignalWorld.FlatDistance(m_world.Player.position, m_world.FluxShuntObjective.Position) <
@@ -1713,6 +1785,7 @@ namespace DeadSignal.Application
                 if (m_model.TryRouteFluxShunt())
                 {
                     m_world.UpdateFluxShuntPresentation(m_model);
+                    m_world.UpdateConvergenceCalibrationPresentation(m_model);
                     m_audio.Play(DeadSignalAudioCue.Shortcut);
                     _showFeedback("FLUX SHUNT ROUTED — CONVERGENCE FEED ONLINE");
                 }
@@ -2238,6 +2311,7 @@ namespace DeadSignal.Application
                 case DebugRouteAction.ActivateSpineTower: DebugActivateSpineTower(); break;
                 case DebugRouteAction.ChargeInductionLattice: DebugChargeInductionLattice(); break;
                 case DebugRouteAction.RouteFluxShunt: DebugRouteFluxShunt(); break;
+                case DebugRouteAction.CompleteConvergenceCalibration: DebugCompleteConvergenceCalibration(); break;
                 case DebugRouteAction.BeginStableExtraction: DebugBeginExtraction(ExtractionUplinkMode.Stable); break;
                 case DebugRouteAction.CaptureScreenshot: DebugCaptureScreenshot(); break;
             }
@@ -2290,6 +2364,8 @@ namespace DeadSignal.Application
                 DebugRouteAction.ActivateSpineTower => m_model.SpineTowerOnline && _debugObjectiveAdvanced(),
                 DebugRouteAction.ChargeInductionLattice => m_model.InductionLatticeCharged && _debugObjectiveAdvanced(),
                 DebugRouteAction.RouteFluxShunt => m_model.FluxShuntRouted && _debugObjectiveAdvanced(),
+                DebugRouteAction.CompleteConvergenceCalibration =>
+                    m_model.ConvergenceCalibrated && _debugObjectiveAdvanced(),
                 DebugRouteAction.BeginStableExtraction => m_extractionUplink.IsActive,
                 _ => true
             };
@@ -3005,6 +3081,7 @@ namespace DeadSignal.Application
 
         private void _tickRunSystems(float dt, bool powered)
         {
+            _tickConvergenceCalibration(dt);
             _tickCombatChamber();
             m_world.TickTower(dt, m_model.TowerOnline);
             m_threats.Tick(dt, powered);
@@ -3032,6 +3109,25 @@ namespace DeadSignal.Application
                 _completeExtraction();
             }
             m_metrics.RecordSignal(m_model.Signal);
+        }
+
+        private void _tickConvergenceCalibration(float dt)
+        {
+            if (m_world.ConvergenceCalibrationObjective == null || !m_model.ConvergenceCalibrationActive)
+            {
+                return;
+            }
+
+            if (!m_model.AdvanceConvergenceCalibration(
+                    dt,
+                    m_world.ConvergenceCalibrationObjective.Contains(m_world.Player.position)))
+            {
+                return;
+            }
+
+            m_world.UpdateConvergenceCalibrationPresentation(m_model);
+            m_audio.Play(DeadSignalAudioCue.TowerOnline);
+            _showFeedback("CONVERGENCE CALIBRATED — DISTRIBUTION PATH READY");
         }
 
         private void _tickCombatChamber()

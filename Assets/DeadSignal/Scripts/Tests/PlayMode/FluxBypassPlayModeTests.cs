@@ -107,13 +107,13 @@ namespace DeadSignal.Tests
                     "The authored shunt anchor must remain reachable after movement collision resolves.");
                 yield return _interact(gamepad);
                 Assert.That(game.IsFluxShuntRouted, Is.True);
-                Assert.That(game.CurrentMissionObjectiveId, Is.EqualTo(MissionObjectiveId.SpinePayload));
+                Assert.That(game.CurrentMissionObjectiveId, Is.EqualTo(MissionObjectiveId.ConvergenceCalibration));
                 Assert.That(available.activeSelf, Is.False);
                 Assert.That(routing.activeSelf, Is.True,
                     "Throwing the shunt should leave a persistent cyan return flank into Convergence.");
 
                 yield return _interact(gamepad);
-                Assert.That(game.CurrentMissionObjectiveId, Is.EqualTo(MissionObjectiveId.SpinePayload),
+                Assert.That(game.CurrentMissionObjectiveId, Is.EqualTo(MissionObjectiveId.ConvergenceCalibration),
                     "Repeated interaction must not duplicate or skip the compatibility objective.");
             }
             finally

@@ -46,6 +46,7 @@ namespace DeadSignal.Diagnostics
         ActivateSpineTower,
         ChargeInductionLattice,
         RouteFluxShunt,
+        CompleteConvergenceCalibration,
         BeginStableExtraction,
         CaptureScreenshot
     }
@@ -431,6 +432,8 @@ namespace DeadSignal.Diagnostics
                         DebugRouteAction.ChargeInductionLattice, roomName: "Induction Gallery");
                     yield return new DebugRouteStep("Flux shunt routing", DebugLocation.CurrentObjective, 1.7f,
                         DebugRouteAction.RouteFluxShunt, roomName: "Flux Bypass");
+                    yield return new DebugRouteStep("Convergence calibration", DebugLocation.CurrentObjective, 1.7f,
+                        DebugRouteAction.CompleteConvergenceCalibration, roomName: "Convergence Chamber");
                     yield return new DebugRouteStep("Spine payload", DebugLocation.CurrentObjective, 2.3f,
                         DebugRouteAction.CollectCache, roomName: "Capacitor Spine");
                     if (preset == DebugRoutePreset.FullExtraction)

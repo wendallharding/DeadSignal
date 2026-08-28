@@ -7,6 +7,8 @@ using UnityEngine.InputSystem.LowLevel;
 using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
 using DeadSignal.Application;
+using DeadSignal.Combat;
+using DeadSignal.Missions;
 using DeadSignal.World;
 
 namespace DeadSignal.Tests
@@ -92,6 +94,86 @@ namespace DeadSignal.Tests
                 Assert.That(game.DebugIsPoweredAt(chamberCenter), Is.True,
                     "The room should become a powered return foothold with the deepest tower.");
                 Assert.That(routing.activeSelf, Is.True);
+            }
+            finally
+            {
+                InputSystem.RemoveDevice(gamepad);
+            }
+        }
+
+        [UnityTest]
+        public IEnumerator Calibration_RequiresFluxPausesOutsideAndLeavesPersistentCyanState()
+        {
+            yield return SceneManager.LoadSceneAsync("SampleScene");
+            yield return null;
+
+            var gamepad = InputSystem.AddDevice<Gamepad>();
+            try
+            {
+                var game = Object.FindFirstObjectByType<DeadSignalGame>();
+                var player = game.transform.Find("Maintenance Drone");
+                var chamber = game.transform.Find(
+                    "Spine Induction Gallery Region/Convergence Chamber Region");
+                var objective = chamber.GetComponent<AuthoredConvergenceCalibrationObjective>();
+                var available = chamber.Find("Convergence Calibration Available").gameObject;
+                var active = chamber.Find("Convergence Calibration Active").gameObject;
+                var complete = chamber.Find("Convergence Calibration Complete").gameObject;
+
+                Assert.That(objective, Is.Not.Null);
+                Assert.That(objective.IsConfigured, Is.True);
+                Assert.That(game.CurrentMissionObjectiveId, Is.Not.EqualTo(MissionObjectiveId.ConvergenceCalibration));
+                Assert.That(available.activeSelf, Is.False);
+
+                game.DebugRouteFluxShunt();
+                game.DebugSelectAuxiliary(SignalAuxiliaryOverclock.FeedbackShield);
+                game.DebugPurgeThreat(SecurityReinforcement.Warden);
+                game.DebugPurgeThreat(SecurityReinforcement.Sapper);
+                game.DebugPurgeThreat(SecurityReinforcement.Interceptor);
+                game.DebugPurgeThreat(SecurityReinforcement.Suppressor);
+                game.DebugPurgeSwarmers();
+                game.DebugSetInvulnerable(true);
+                yield return null;
+                Assert.That(game.CurrentMissionObjectiveId, Is.EqualTo(MissionObjectiveId.ConvergenceCalibration));
+                Assert.That(available.activeSelf, Is.True);
+                Assert.That(active.activeSelf, Is.False);
+                Assert.That(complete.activeSelf, Is.False);
+
+                player.position = game.ConvergenceCalibrationPosition;
+                yield return null;
+                game.DebugPurgeThreat(SecurityReinforcement.Warden);
+                game.DebugPurgeThreat(SecurityReinforcement.Sapper);
+                game.DebugPurgeThreat(SecurityReinforcement.Interceptor);
+                game.DebugPurgeThreat(SecurityReinforcement.Suppressor);
+                game.DebugPurgeSwarmers();
+                game.DebugBeginConvergenceCalibration();
+                yield return null;
+
+                Assert.That(game.IsConvergenceCalibrationActive, Is.True);
+                Assert.That(game.InterceptorHealth, Is.GreaterThan(0f),
+                    "The short holdout should add one existing movement-pressure role, not a wave sequence.");
+                Assert.That(available.activeSelf, Is.False);
+                Assert.That(active.activeSelf, Is.True);
+
+                player.position = chamber.position + new Vector3(0f, 0f, -3.5f);
+                yield return new WaitForSeconds(0.5f);
+                var pausedProgress = game.ConvergenceCalibrationProgress;
+                yield return new WaitForSeconds(0.5f);
+                Assert.That(game.ConvergenceCalibrationProgress, Is.EqualTo(pausedProgress).Within(0.05f),
+                    "Leaving the authored chamber must pause rather than silently advance calibration.");
+
+                player.position = chamber.position;
+                var deadline = Time.time + 14f;
+                while (!game.IsConvergenceCalibrated && Time.time < deadline)
+                {
+                    yield return null;
+                }
+
+                Assert.That(game.IsConvergenceCalibrated, Is.True);
+                Assert.That(game.CurrentMissionObjectiveId, Is.EqualTo(MissionObjectiveId.SpinePayload));
+                Assert.That(active.activeSelf, Is.False);
+                Assert.That(complete.activeSelf, Is.True);
+                Assert.That(game.InterceptorHealth, Is.GreaterThan(0f),
+                    "Completing calibration should leave the bounded pressure alive for pursuit, not award a free purge.");
             }
             finally
             {

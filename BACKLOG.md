@@ -41,7 +41,7 @@ This is the controlling workstream for scheduled development. Complete it from t
 
 - [x] Induction Gallery charges the empty lattice
 - [x] Flux Bypass throws the shunt that makes Convergence calibration possible and changes the later return route
-- [ ] Convergence Chamber runs one bounded, shorter calibration holdout distinct from the full lockdown trial
+- [x] Convergence Chamber runs one bounded, shorter calibration holdout distinct from the full lockdown trial
 - [ ] Breaker Gallery resets distribution and unlocks the Furnace process
 - [ ] Arc Furnace forges the charged lattice; Quench Loop stabilizes it while opening its existing return shortcut
 - [ ] Room A commits the player to the final trial, Room B provides the required Geometry Wars-inspired combat climax, and Room C supplies the mission-critical station capacitor

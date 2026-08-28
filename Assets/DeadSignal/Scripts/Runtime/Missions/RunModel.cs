@@ -166,9 +166,10 @@ namespace DeadSignal.Missions
         public const int SalvageRequired = 3;
         public const float CriticalRecoveryDuration = 5f;
 
-        public RunModel(MissionObjectiveGraph objectiveGraph = null)
+        public RunModel(MissionObjectiveGraph objectiveGraph = null, float convergenceCalibrationDuration = 12f)
         {
             m_objectiveGraph = objectiveGraph ?? CompatibilityMissionObjectiveGraph.Instance;
+            m_convergenceCalibrationDuration = Math.Max(1f, convergenceCalibrationDuration);
         }
 
         public float Signal { get; private set; } = StartingSignal;
@@ -181,6 +182,10 @@ namespace DeadSignal.Missions
         public bool CoreRebuildUnlocked => SpineRelayResultInstalled;
         public bool InductionLatticeCharged { get; private set; }
         public bool FluxShuntRouted { get; private set; }
+        public bool ConvergenceCalibrationActive { get; private set; }
+        public bool ConvergenceCalibrated { get; private set; }
+        public float ConvergenceCalibrationProgress { get; private set; }
+        public float ConvergenceCalibrationDuration => m_convergenceCalibrationDuration;
         public bool ShortcutOpen { get; private set; }
         public bool OptionalSalvageSecured { get; private set; }
         public bool CentralPayloadSecured { get; private set; }
@@ -359,6 +364,39 @@ namespace DeadSignal.Missions
             }
 
             FluxShuntRouted = true;
+            return true;
+        }
+
+        public bool TryBeginConvergenceCalibration()
+        {
+            if (!_isCurrentObjective(MissionObjectiveId.ConvergenceCalibration) || !FluxShuntRouted ||
+                ConvergenceCalibrationActive || ConvergenceCalibrated || Outcome != RunOutcome.Running)
+            {
+                return false;
+            }
+
+            ConvergenceCalibrationActive = true;
+            return true;
+        }
+
+        public bool AdvanceConvergenceCalibration(float seconds, bool insideCalibrationVolume)
+        {
+            if (!ConvergenceCalibrationActive || ConvergenceCalibrated || !insideCalibrationVolume ||
+                Outcome != RunOutcome.Running || seconds <= 0f)
+            {
+                return false;
+            }
+
+            ConvergenceCalibrationProgress = Math.Min(
+                m_convergenceCalibrationDuration,
+                ConvergenceCalibrationProgress + seconds);
+            if (ConvergenceCalibrationProgress < m_convergenceCalibrationDuration)
+            {
+                return false;
+            }
+
+            ConvergenceCalibrationActive = false;
+            ConvergenceCalibrated = true;
             return true;
         }
 
@@ -553,6 +591,7 @@ namespace DeadSignal.Missions
                 MissionCompletionRule.SpineRelayResultInstalled => SpineRelayResultInstalled,
                 MissionCompletionRule.InductionLatticeCharged => InductionLatticeCharged,
                 MissionCompletionRule.FluxShuntRouted => FluxShuntRouted,
+                MissionCompletionRule.ConvergenceCalibrated => ConvergenceCalibrated,
                 _ => false
             };
         }
@@ -613,5 +652,6 @@ namespace DeadSignal.Missions
         }
 
         private readonly MissionObjectiveGraph m_objectiveGraph;
+        private readonly float m_convergenceCalibrationDuration;
     }
 }

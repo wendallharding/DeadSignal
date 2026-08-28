@@ -48,7 +48,7 @@ namespace DeadSignal.Diagnostics
 
             var game = FindFirstObjectByType<DeadSignalGame>();
             var missionObjectives = Resources.Load<MissionObjectiveGraphConfiguration>("Tuning/CompatibilityMissionObjectives");
-            var missionObjectivesReady = missionObjectives != null && missionObjectives.ObjectiveCount == 15;
+            var missionObjectivesReady = missionObjectives != null && missionObjectives.ObjectiveCount == 16;
             var objectiveConsumersReady = game != null &&
                                           game.CurrentMissionObjectiveId == MissionObjectiveId.CentralTower &&
                                           game.CurrentMissionGuidanceTitle == "RESTORE CENTRAL" &&
@@ -71,6 +71,8 @@ namespace DeadSignal.Diagnostics
                 FindFirstObjectByType<AuthoredInductionLatticeObjective>(FindObjectsInactive.Include);
             var fluxShuntObjective =
                 FindFirstObjectByType<AuthoredFluxShuntObjective>(FindObjectsInactive.Include);
+            var convergenceCalibrationObjective =
+                FindFirstObjectByType<AuthoredConvergenceCalibrationObjective>(FindObjectsInactive.Include);
             var centralTransferReady = relayForkObjective != null && relayForkObjective.IsConfigured &&
                                        transferVaultObjective != null && transferVaultObjective.IsConfigured &&
                                        centralInstallationObjective != null && centralInstallationObjective.IsConfigured &&
@@ -82,6 +84,11 @@ namespace DeadSignal.Diagnostics
                                         game != null && !game.IsInductionLatticeCharged;
             var fluxShuntReady = fluxShuntObjective != null && fluxShuntObjective.IsConfigured &&
                                  game != null && !game.IsFluxShuntRouted;
+            var convergenceCalibrationReady = convergenceCalibrationObjective != null &&
+                                              convergenceCalibrationObjective.IsConfigured &&
+                                              Resources.Load<ConvergenceCalibrationTuning>(
+                                                  "Tuning/ConvergenceCalibrationTuning") != null &&
+                                              game != null && !game.IsConvergenceCalibrated;
             var weaponTextureReady = Resources.Load<Texture2D>("Environment/RelayFoundryWeaponCalibrationDecal") != null;
             var weaponMaterialReady =
                 Resources.Load<Material>("Materials/RelayFoundry/RelayFoundryWeaponCalibrationDecal") != null;
@@ -181,6 +188,10 @@ namespace DeadSignal.Diagnostics
             Debug.Log($"[DEAD SIGNAL STANDALONE SMOKE] FLUX SHUNT | " +
                       $"configured={fluxShuntObjective?.IsConfigured ?? false} " +
                       $"routed={game?.IsFluxShuntRouted ?? false}");
+            Debug.Log($"[DEAD SIGNAL STANDALONE SMOKE] CONVERGENCE CALIBRATION | " +
+                      $"configured={convergenceCalibrationObjective?.IsConfigured ?? false} " +
+                      $"active={game?.IsConvergenceCalibrationActive ?? false} " +
+                      $"complete={game?.IsConvergenceCalibrated ?? false}");
             var runtimeReady = game != null &&
                                 missionObjectivesReady &&
                                 objectiveConsumersReady &&
@@ -191,6 +202,7 @@ namespace DeadSignal.Diagnostics
                                 spineVentingReady &&
                                 inductionLatticeReady &&
                                 fluxShuntReady &&
+                                convergenceCalibrationReady &&
                                 game.transform.Find("Maintenance Drone") != null &&
                                 game.transform.Find("Shortcut Gate Assembly/Signal Shortcut Gate") != null &&
                                 game.transform.Find("Tower Signal Lines/Signal Trunk West") != null &&
