@@ -32,7 +32,7 @@ namespace DeadSignal.Tests
             game.DebugTeleport(DebugLocation.FarEast);
             yield return _waitFrames(45);
             game.DebugTeleport(DebugLocation.CurrentObjective);
-            yield return null;
+            yield return _waitForObjectiveIndicatorState(game, true);
             Assert.That(game.IsObjectiveEdgeIndicatorVisible, Is.True,
                 "The objective icon should remain visible over an on-screen target.");
             Assert.That(game.IsObjectiveIndicatorCompact, Is.True,
@@ -57,7 +57,7 @@ namespace DeadSignal.Tests
                 "The interpolated compact icon should settle over the visible world objective.");
 
             game.DebugTeleport(DebugLocation.FarEast);
-            yield return _waitFrames(20);
+            yield return _waitForObjectiveIndicatorState(game, false);
             Assert.That(game.IsObjectiveEdgeIndicatorVisible, Is.True);
             Assert.That(game.IsObjectiveIndicatorCompact, Is.False);
             Assert.That(objectivePanel.GetComponent<Image>().enabled, Is.True);
@@ -132,6 +132,24 @@ namespace DeadSignal.Tests
             {
                 yield return null;
             }
+        }
+
+        private static IEnumerator _waitForObjectiveIndicatorState(
+            DeadSignalGame game,
+            bool expectedCompactState,
+            int maximumFrames = 120)
+        {
+            var elapsedFrames = 0;
+            while (game.IsObjectiveIndicatorCompact != expectedCompactState && elapsedFrames < maximumFrames)
+            {
+                elapsedFrames++;
+                yield return null;
+            }
+
+            Assert.That(game.IsObjectiveIndicatorCompact, Is.EqualTo(expectedCompactState),
+                $"The camera-driven objective indicator did not reach compact={expectedCompactState} " +
+                $"within {maximumFrames} frames.");
+            yield return null;
         }
     }
 }

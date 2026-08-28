@@ -115,10 +115,7 @@ namespace DeadSignal.Tests
 
                 player.position = game.RelayTowerPosition;
                 game.DebugSetSignal(0f);
-                for (var frame = 0; frame < 12; frame++)
-                {
-                    yield return null;
-                }
+                yield return _waitForObjectiveIndicatorState(game, true);
                 var contextPrompt = GameObject.Find("Context Prompt");
                 var objectiveIcon = GameObject.Find("Objective Beacon").transform.Find("Direction") as RectTransform;
                 Assert.That(contextPrompt, Is.Not.Null);
@@ -2355,6 +2352,24 @@ namespace DeadSignal.Tests
             {
                 yield return null;
             }
+        }
+
+        private static IEnumerator _waitForObjectiveIndicatorState(
+            DeadSignalGame game,
+            bool expectedCompactState,
+            int maximumFrames = 120)
+        {
+            var elapsedFrames = 0;
+            while (game.IsObjectiveIndicatorCompact != expectedCompactState && elapsedFrames < maximumFrames)
+            {
+                elapsedFrames++;
+                yield return null;
+            }
+
+            Assert.That(game.IsObjectiveIndicatorCompact, Is.EqualTo(expectedCompactState),
+                $"The camera-driven objective indicator did not reach compact={expectedCompactState} " +
+                $"within {maximumFrames} frames.");
+            yield return null;
         }
     }
 }
