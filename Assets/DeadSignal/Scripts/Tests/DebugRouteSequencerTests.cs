@@ -150,6 +150,57 @@ namespace DeadSignal.Tests
         }
 
         [Test]
+        public void RequiredExtractionRoute_RelayNetworkActUsesOneInstallationReturnAndDistinctConsequences()
+        {
+            var sequencer = new DebugRouteSequencer();
+            sequencer.Start(DebugRoutePreset.RequiredExtraction, DebugAutomationMode.DeterministicValidation,
+                DebugAutomationProfile.SafeNavigation, 72f);
+
+            while (sequencer.CurrentStep.Action != DebugRouteAction.ActivateRelayTower)
+            {
+                _completeCurrentStep(sequencer);
+            }
+
+            var relayActRooms = new string[6];
+            var relayActActions = new DebugRouteAction[6];
+            var installationReturns = 0;
+            for (var step = 0; step < relayActRooms.Length; step++)
+            {
+                relayActRooms[step] = sequencer.CurrentStep.RoomName;
+                relayActActions[step] = sequencer.CurrentStep.Action;
+                if (sequencer.CurrentStep.IsBacktrack)
+                {
+                    installationReturns++;
+                }
+
+                _completeCurrentStep(sequencer);
+            }
+
+            Assert.That(relayActRooms, Is.EqualTo(new[]
+            {
+                "Relay Foundry",
+                "Cooling Gantry",
+                "Relay Foundry",
+                "Capacitor Spine",
+                "Spine Discharge Trench",
+                "Capacitor Spine"
+            }));
+            Assert.That(relayActActions, Is.EqualTo(new[]
+            {
+                DebugRouteAction.ActivateRelayTower,
+                DebugRouteAction.CollectCache,
+                DebugRouteAction.SelectWeaponOverclock,
+                DebugRouteAction.CaptureScreenshot,
+                DebugRouteAction.VentSpineBerth,
+                DebugRouteAction.ActivateSpineTower
+            }));
+            Assert.That(installationReturns, Is.EqualTo(1),
+                "Act II should require only the Gantry-to-Foundry installation return.");
+            Assert.That(sequencer.CurrentStep.Action, Is.EqualTo(DebugRouteAction.CollectCache),
+                "The accepted Relay network act should hand off to the temporary core-rebuild compatibility objective.");
+        }
+
+        [Test]
         public void FinishReport_RecordsComparableJourneyCombatAndSignalEvidence()
         {
             var sequencer = new DebugRouteSequencer();
