@@ -2268,8 +2268,14 @@ namespace DeadSignal.Application
 
         private void _beginExtractionUplink(ExtractionUplinkMode mode, string feedback)
         {
-            if (!m_extractionUplink.Begin(mode))
+            if (!m_model.CanBeginExtractionUplink || !m_extractionUplink.Begin(mode))
             {
+                return;
+            }
+
+            if (!m_model.TryBeginExtractionUplink())
+            {
+                Debug.LogError("Extraction uplink runtime and mission authority became desynchronized.", this);
                 return;
             }
 
@@ -2346,7 +2352,7 @@ namespace DeadSignal.Application
 
         private void _completeExtraction()
         {
-            if (!m_model.TryExtract())
+            if (!m_model.TryCompleteExtractionUplink(m_extractionUplink.IsComplete))
             {
                 return;
             }

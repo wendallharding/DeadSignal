@@ -94,6 +94,13 @@ namespace DeadSignal.Tests
                 player.position = game.SapperCradlePursuitPosition;
                 yield return null;
 
+                Assert.That(game.CurrentPoweredWithdrawalPhase, Is.EqualTo(PoweredWithdrawalPhase.DepartureSurge));
+                Assert.That(game.IsExtractionReady, Is.False);
+                var departureChannel = GameObject.Find("Extraction Departure Channel");
+                Assert.That(departureChannel, Is.Not.Null);
+                player.position = departureChannel.transform.TransformPoint(new Vector3(1f, 0f, 0f));
+                yield return null;
+
                 Assert.That(game.IsExtractionReady, Is.True);
                 Assert.That(game.CurrentMissionObjectiveId, Is.EqualTo(MissionObjectiveId.Extraction));
                 Assert.That(game.DebugIsPoweredAt(scene.TowerPosition), Is.True,

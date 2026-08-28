@@ -202,6 +202,8 @@ namespace DeadSignal.Missions
         public bool TrialCleared { get; private set; }
         public bool StationCapacitorRecovered { get; private set; }
         public bool SpineCoreInstalled { get; private set; }
+        public bool ExtractionUplinkActive { get; private set; }
+        public bool ExtractionUplinkComplete { get; private set; }
         public PoweredWithdrawalPhase CurrentPoweredWithdrawalPhase { get; private set; }
         public float ConvergenceCalibrationProgress { get; private set; }
         public float ConvergenceCalibrationDuration => m_convergenceCalibrationDuration;
@@ -225,6 +227,7 @@ namespace DeadSignal.Missions
         public bool CanRaidOptionalCache => Outcome == RunOutcome.Running && TowerOnline && RelayTowerOnline &&
                                             SpineTowerOnline && HasAllRegionalPayloads;
         public bool CanExtract => CanRaidOptionalCache && PoweredWithdrawalComplete;
+        public bool CanBeginExtractionUplink => CanExtract && !ExtractionUplinkActive && !ExtractionUplinkComplete;
         public MissionObjectiveDefinition CurrentObjective => m_objectiveGraph.Evaluate(_isObjectiveComplete);
         public MissionStage CurrentMissionStage => CurrentObjective.LegacyStage;
 
@@ -673,13 +676,27 @@ namespace DeadSignal.Missions
             CriticalRecoveryRemaining = Signal <= 0f ? CriticalRecoveryDuration : 0f;
         }
 
-        public bool TryExtract()
+        public bool TryBeginExtractionUplink()
         {
-            if (!_isCurrentObjective(MissionObjectiveId.Extraction) || !CanExtract)
+            if (!_isCurrentObjective(MissionObjectiveId.Extraction) || !CanBeginExtractionUplink)
             {
                 return false;
             }
 
+            ExtractionUplinkActive = true;
+            return true;
+        }
+
+        public bool TryCompleteExtractionUplink(bool countdownComplete)
+        {
+            if (!_isCurrentObjective(MissionObjectiveId.Extraction) || !ExtractionUplinkActive ||
+                ExtractionUplinkComplete || !countdownComplete || Outcome != RunOutcome.Running)
+            {
+                return false;
+            }
+
+            ExtractionUplinkActive = false;
+            ExtractionUplinkComplete = true;
             Outcome = RunOutcome.Victory;
             return true;
         }

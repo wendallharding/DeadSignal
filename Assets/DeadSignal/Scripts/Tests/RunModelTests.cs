@@ -328,7 +328,7 @@ namespace DeadSignal.Tests
         {
             var run = new RunModel();
 
-            Assert.That(run.TryExtract(), Is.False);
+            Assert.That(run.TryBeginExtractionUplink(), Is.False);
             Assert.That(run.TryActivateTower(), Is.True);
             _assembleCentralPayload(run);
             Assert.That(run.CanExtract, Is.False);
@@ -349,7 +349,7 @@ namespace DeadSignal.Tests
             Assert.That(run.TryCompleteSecurityTrial(), Is.True);
             Assert.That(run.TryRecoverStationCapacitor(), Is.True);
             Assert.That(run.TryInstallSpineCore(), Is.True);
-            Assert.That(run.TryExtract(), Is.False,
+            Assert.That(run.TryBeginExtractionUplink(), Is.False,
                 "Installing the core must not permit bypassing the required powered withdrawal.");
             Assert.That(run.TryAdvancePoweredWithdrawal(PoweredWithdrawalPhase.RelayShortcut), Is.True);
             Assert.That(run.TryAdvancePoweredWithdrawal(PoweredWithdrawalPhase.TransferVault), Is.True);
@@ -359,7 +359,15 @@ namespace DeadSignal.Tests
             Assert.That(run.TryAdvancePoweredWithdrawal(PoweredWithdrawalPhase.DepartureSurge), Is.True);
 
             Assert.That(run.CanExtract, Is.True);
-            Assert.That(run.TryExtract(), Is.True);
+            Assert.That(run.TryCompleteExtractionUplink(true), Is.False,
+                "A completed countdown cannot grant victory before the Dock uplink starts.");
+            Assert.That(run.TryBeginExtractionUplink(), Is.True);
+            Assert.That(run.ExtractionUplinkActive, Is.True);
+            Assert.That(run.TryCompleteExtractionUplink(false), Is.False,
+                "Starting the Dock uplink must not grant instant victory.");
+            Assert.That(run.TryCompleteExtractionUplink(true), Is.True);
+            Assert.That(run.ExtractionUplinkActive, Is.False);
+            Assert.That(run.ExtractionUplinkComplete, Is.True);
             Assert.That(run.Outcome, Is.EqualTo(RunOutcome.Victory));
         }
 

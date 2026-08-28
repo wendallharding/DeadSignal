@@ -186,13 +186,13 @@ namespace DeadSignal.Tests
             _assertObjective(run, MissionObjectiveId.SpineCoreInstallation, MissionStage.SpinePayload,
                 MissionCompletionRule.SpineCoreInstalled, MissionWorldMutation.SpineCoreInstalled,
                 "SIGNAL CORE COMPLETE");
-            Assert.That(run.TryExtract(), Is.False);
+            Assert.That(run.TryBeginExtractionUplink(), Is.False);
             Assert.That(run.TryInstallSpineCore(), Is.True);
             Assert.That(run.Salvage, Is.EqualTo(3));
             _assertObjective(run, MissionObjectiveId.PoweredWithdrawal, MissionStage.Extraction,
                 MissionCompletionRule.PoweredWithdrawalComplete, MissionWorldMutation.PoweredWithdrawalComplete,
                 "WITHDRAW THROUGH POWER");
-            Assert.That(run.TryExtract(), Is.False);
+            Assert.That(run.TryBeginExtractionUplink(), Is.False);
             Assert.That(run.TryAdvancePoweredWithdrawal(PoweredWithdrawalPhase.TransferVault), Is.False);
             Assert.That(run.TryAdvancePoweredWithdrawal(PoweredWithdrawalPhase.RelayShortcut), Is.True);
             Assert.That(run.TryAdvancePoweredWithdrawal(PoweredWithdrawalPhase.TransferVault), Is.True);
@@ -203,10 +203,11 @@ namespace DeadSignal.Tests
             _assertObjective(run, MissionObjectiveId.Extraction, MissionStage.Extraction,
                 MissionCompletionRule.ExtractionComplete, MissionWorldMutation.RunCompleted,
                 "EXTRACT OR GREED");
-            Assert.That(run.TryExtract(), Is.True);
+            Assert.That(run.TryBeginExtractionUplink(), Is.True);
+            Assert.That(run.TryCompleteExtractionUplink(true), Is.True);
             Assert.That(run.Outcome, Is.EqualTo(RunOutcome.Victory));
             Assert.That(run.CurrentMissionStage, Is.EqualTo(MissionStage.Extraction));
-            Assert.That(run.TryExtract(), Is.False);
+            Assert.That(run.TryBeginExtractionUplink(), Is.False);
         }
 
 

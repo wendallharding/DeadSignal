@@ -23,6 +23,15 @@ namespace DeadSignal.Missions
         {
             var objective = model.CurrentObjective;
             var guidance = objective.Guidance;
+            if (objective.Id == MissionObjectiveId.Extraction && model.ExtractionUplinkActive)
+            {
+                var uplinkAdvisory = sapperAlive && sapperLatched
+                    ? $"SAPPER DRAIN IN {sapperPulseCooldown:0.0}s  //  PURGES SHORTEN LINK"
+                    : "PURGES SHORTEN LINK  //  KEEP AN ESCAPE LANE";
+                return new MissionGuidanceState(guidance.Phase, "LIVE EXTRACTION", "KEEP MOVING — FIRE TO SHORTEN UPLINK",
+                    uplinkAdvisory);
+            }
+
             var urgent = sapperAlive && sapperLatched
                 ? $"INTERRUPT: SAPPER DRAIN IN {sapperPulseCooldown:0.0}s"
                 : string.Empty;

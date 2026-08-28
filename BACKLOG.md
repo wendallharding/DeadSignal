@@ -53,7 +53,7 @@ This is the controlling workstream for scheduled development. Complete it from t
 - [x] Route the required withdrawal through visibly powered territory and shortcuts opened by earlier objectives rather than retracing the outbound path unchanged
 - [x] Give Warden Bay and Sapper Cradle explicit return-pursuit functions using their established enemy identities and counterplay
 - [x] Preserve the Departure Channel cargo release and one-shot surge as the final recovery/readability beat
-- [ ] Complete the live extraction uplink at the Dock with movement, combat, and chosen build still relevant
+- [x] Complete the live extraction uplink at the Dock with movement, combat, and chosen build still relevant
 - [ ] Retune whole-run Signal, rewards, enemy density, spawn timing, and encounter mix only after the complete route exists
 
 ### Phase 6 — Unattended product shell and presentation hardening

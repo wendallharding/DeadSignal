@@ -2147,6 +2147,9 @@ namespace DeadSignal.Tests
                 Assert.That(game.ReinforcementEntryCountdown, Is.InRange(1.8f, 2.5f),
                     "The already-announced Relay lockdown should retain, rather than restart, its readable warning.");
                 Assert.That(runHud.activeSelf, Is.True, "The player must retain movement and combat control during the uplink.");
+                Assert.That(game.CurrentObjectiveBeaconLabel, Is.EqualTo("MOVE / FIRE — UPLINK LIVE"),
+                    "The Dock marker must yield to the live movement-and-fire instruction once extraction starts.");
+                Assert.That(game.CurrentObjectiveBeaconHint, Is.EqualTo("PURGE SECURITY TO SHORTEN THE LINK"));
                 var initialUplinkCountdown = game.ExtractionUplinkSecondsRemaining;
                 yield return new WaitForSeconds(0.2f);
                 Assert.That(game.ExtractionUplinkSecondsRemaining, Is.LessThan(initialUplinkCountdown));

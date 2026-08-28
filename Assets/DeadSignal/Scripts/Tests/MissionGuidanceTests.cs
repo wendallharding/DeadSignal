@@ -53,6 +53,20 @@ namespace DeadSignal.Tests
         }
 
         [Test]
+        public void Evaluate_LiveExtraction_PrioritizesMovementFireAndUrgentDrain()
+        {
+            var model = _createOnlineModel();
+            _completeNetworkJourney(model);
+            Assert.That(model.TryBeginExtractionUplink(), Is.True);
+
+            var guidance = MissionGuidance.Evaluate(model, true, true, 0.44f);
+
+            Assert.That(guidance.Title, Is.EqualTo("LIVE EXTRACTION"));
+            Assert.That(guidance.Action, Is.EqualTo("KEEP MOVING — FIRE TO SHORTEN UPLINK"));
+            Assert.That(guidance.Advisory, Is.EqualTo("SAPPER DRAIN IN 0.4s  //  PURGES SHORTEN LINK"));
+        }
+
+        [Test]
         public void Evaluate_PoweredWithdrawal_DirectsTheChangedReturnBeforeDock()
         {
             var model = _createOnlineModel();

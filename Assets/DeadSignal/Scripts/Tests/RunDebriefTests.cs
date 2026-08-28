@@ -11,7 +11,8 @@ namespace DeadSignal.Tests
             var model = new RunModel();
             var metrics = new RunMetrics();
             _completeRequiredJourney(model);
-            model.TryExtract();
+            model.TryBeginExtractionUplink();
+            model.TryCompleteExtractionUplink(true);
             metrics.Advance(10f, true);
             var debrief = RunDebrief.Evaluate(model, metrics);
             Assert.That(debrief.Grade, Is.EqualTo("S"));

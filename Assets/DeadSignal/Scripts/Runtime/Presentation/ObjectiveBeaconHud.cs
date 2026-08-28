@@ -424,11 +424,21 @@ namespace DeadSignal.Presentation
 
         private string _currentLabel()
         {
+            if (m_model?.ExtractionUplinkActive == true)
+            {
+                return "MOVE / FIRE — UPLINK LIVE";
+            }
+
             return m_model?.CurrentObjective.Guidance.Action ?? string.Empty;
         }
 
         private string _currentHint()
         {
+            if (m_model?.ExtractionUplinkActive == true)
+            {
+                return "PURGE SECURITY TO SHORTEN THE LINK";
+            }
+
             return m_model?.CurrentObjective.Guidance.Advisory ?? string.Empty;
         }
 
