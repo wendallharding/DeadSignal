@@ -105,8 +105,14 @@ namespace DeadSignal.Tests
                 yield return _interact(gamepad);
 
                 Assert.That(game.IsSpineTowerOnline, Is.True);
+                Assert.That(game.IsSpineRelayResultInstalled, Is.True);
+                Assert.That(game.IsDeepReturnNetworkPowered, Is.True);
+                Assert.That(game.IsCoreRebuildUnlocked, Is.True);
                 Assert.That(game.IsWeaponEvolved, Is.True);
                 Assert.That(spine.Find("Spine Signal Lines").gameObject.activeSelf, Is.True);
+                Assert.That(game.transform.Find("Spine Induction Gallery Region/Induction Gallery Signal Lines")
+                    .gameObject.activeSelf, Is.True,
+                    "Installing the Relay result should visibly power the first deep-return corridor.");
                 Assert.That(spine.Find("Capacitor Transfer Bank").gameObject.activeSelf, Is.False,
                     "Powering the Spine should retract the transfer bank and reveal the direct return.");
                 Assert.That(game.CurrentSignal, Is.GreaterThan(RunModel.SpineTowerRefill));

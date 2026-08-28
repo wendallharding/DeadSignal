@@ -110,6 +110,9 @@ namespace DeadSignal.Application
         public bool IsRelayTowerOnline => m_model?.RelayTowerOnline ?? false;
         public Vector3 RelayTowerPosition => m_world?.RelayTowerPosition ?? Vector3.zero;
         public bool IsSpineTowerOnline => m_model?.SpineTowerOnline ?? false;
+        public bool IsSpineRelayResultInstalled => m_model?.SpineRelayResultInstalled ?? false;
+        public bool IsDeepReturnNetworkPowered => m_model?.DeepReturnNetworkPowered ?? false;
+        public bool IsCoreRebuildUnlocked => m_model?.CoreRebuildUnlocked ?? false;
         public bool IsCentralPayloadSecured => m_model?.CentralPayloadSecured ?? false;
         public bool IsCentralPayloadAssembled => m_model?.CentralPayloadAssembled ?? false;
         public bool IsCargoCouplingSecured => m_model?.CargoCouplingSecured ?? false;
@@ -815,9 +818,9 @@ namespace DeadSignal.Application
             m_model.SetSignalForDebug(Mathf.Max(m_model.Signal, RunModel.SpineTowerCost + 1f));
             if (m_model.TryActivateSpineTower())
             {
-                m_world.ActivateSpineTower();
+                m_world.CompleteSpineRelayInstallation();
                 m_overclockChoice.NotifySpineActivated();
-                _showFeedback("DEBUG — SPINE TOWER ACTIVATED");
+                _showFeedback("DEBUG — RELAY RESULT INSTALLED  //  CORE REBUILD OPEN");
             }
         }
 
@@ -1788,13 +1791,13 @@ namespace DeadSignal.Application
             {
                 if (m_model.TryActivateSpineTower())
                 {
-                    m_world.ActivateSpineTower();
+                    m_world.CompleteSpineRelayInstallation();
                     m_overclockChoice.NotifySpineActivated();
                     m_audio.Play(DeadSignalAudioCue.TowerOnline);
                     var evolution = m_overclockChoice.SelectedWeapon == SignalWeaponOverclock.PiercingPulse
                         ? "PIERCING PULSE EVOLVED — THREE TARGETS"
                         : "CONTROLLED RICOCHET EVOLVED — TWO BANKS";
-                    _showFeedback($"SPINE ONLINE — {evolution}");
+                    _showFeedback($"RELAY RESULT INSTALLED — DEEP RETURN ONLINE  //  {evolution}");
                 }
                 else if (!m_model.RelayTowerOnline)
                 {

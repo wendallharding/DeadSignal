@@ -127,10 +127,14 @@ namespace DeadSignal.Tests
             Assert.That(run.TryVentSpineBerth(), Is.True);
             Assert.That(run.TryVentSpineBerth(), Is.False);
             _assertObjective(run, MissionObjectiveId.SpineTower, MissionStage.SpineTower,
-                MissionCompletionRule.SpineTowerOnline, MissionWorldMutation.SpineTerritoryPowered,
-                "POWER THE SPINE");
+                MissionCompletionRule.SpineRelayResultInstalled,
+                MissionWorldMutation.SpineTerritoryPowered | MissionWorldMutation.SpineRelayResultInstalled |
+                MissionWorldMutation.DeepReturnNetworkPowered | MissionWorldMutation.CoreRebuildUnlocked,
+                "INSTALL THE RELAY RESULT");
             var signalBeforeSpine = run.Signal;
             Assert.That(run.TryActivateSpineTower(), Is.True);
+            Assert.That(run.DeepReturnNetworkPowered, Is.True);
+            Assert.That(run.CoreRebuildUnlocked, Is.True);
             Assert.That(run.Signal, Is.EqualTo(Math.Min(RunModel.MaximumSignal,
                 signalBeforeSpine - RunModel.SpineTowerCost + RunModel.SpineTowerRefill)));
             _assertObjective(run, MissionObjectiveId.SpinePayload, MissionStage.SpinePayload,

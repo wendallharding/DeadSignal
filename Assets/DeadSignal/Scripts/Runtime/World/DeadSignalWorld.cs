@@ -443,7 +443,7 @@ namespace DeadSignal.World
             _activateAuthoredTerritories(PoweredTerritorySource.RelayTower);
         }
 
-        public void ActivateSpineTower()
+        public void CompleteSpineRelayInstallation()
         {
             m_spineTerritory.GetComponent<Renderer>().sharedMaterial = m_palette.PoweredTerritory;
             foreach (var marker in m_spineTerritoryMarkers)

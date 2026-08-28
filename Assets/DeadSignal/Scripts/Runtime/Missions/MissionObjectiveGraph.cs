@@ -36,7 +36,8 @@ namespace DeadSignal.Missions
         CentralPayloadAssembled,
         CentralPayloadInstalled,
         RelayPayloadStabilized,
-        SpineBerthVented
+        SpineBerthVented,
+        SpineRelayResultInstalled
     }
 
     [Flags]
@@ -56,7 +57,10 @@ namespace DeadSignal.Missions
         CentralPayloadAssembled = 1 << 10,
         CentralPayloadInstalled = 1 << 11,
         RelayPayloadStabilized = 1 << 12,
-        SpineBerthVented = 1 << 13
+        SpineBerthVented = 1 << 13,
+        SpineRelayResultInstalled = 1 << 14,
+        DeepReturnNetworkPowered = 1 << 15,
+        CoreRebuildUnlocked = 1 << 16
     }
 
     public enum MissionRewardKind
@@ -357,14 +361,16 @@ namespace DeadSignal.Missions
                     "TRAVERSE EITHER BAFFLE LANE  //  RELEASE INTERLOCK"),
                 new[] { MissionObjectiveId.RelayInstallation }, new[] { MissionObjectiveId.SpineTower }),
             _definition(MissionObjectiveId.SpineTower, MissionStage.SpineTower, "Capacitor Spine", "Capacitor Spine Activation Decal",
-                MissionCompletionRule.SpineTowerOnline, MissionWorldMutation.SpineTerritoryPowered,
+                MissionCompletionRule.SpineRelayResultInstalled,
+                MissionWorldMutation.SpineTerritoryPowered | MissionWorldMutation.SpineRelayResultInstalled |
+                MissionWorldMutation.DeepReturnNetworkPowered | MissionWorldMutation.CoreRebuildUnlocked,
                 new[]
                 {
                     new MissionReward(MissionRewardKind.SignalRefill, RunModel.SpineTowerRefill),
                     new MissionReward(MissionRewardKind.WeaponEvolution)
                 },
-                new MissionGuidanceState(5, "POWER THE SPINE", "RESTORE THE CAPACITOR SPINE TOWER",
-                    $"SIGNAL -{RunModel.SpineTowerCost:0}  //  EVOLVE WEAPON"),
+                new MissionGuidanceState(5, "INSTALL THE RELAY RESULT", "SEAT IT IN THE CAPACITOR SPINE TOWER",
+                    $"SIGNAL -{RunModel.SpineTowerCost:0}  //  EVOLVE WEAPON + POWER DEEP RETURN"),
                 new[] { MissionObjectiveId.SpineVenting }, new[] { MissionObjectiveId.SpinePayload }),
             _definition(MissionObjectiveId.SpinePayload, MissionStage.SpinePayload, "Capacitor Spine", "Spine Payload Socket",
                 MissionCompletionRule.SpinePayloadSecured, MissionWorldMutation.SpinePayloadSecured,

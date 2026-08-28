@@ -153,17 +153,17 @@ MonoBehaviour:
     m_legacyStage: 4
     m_owningRoom: Capacitor Spine
     m_anchorId: Capacitor Spine Activation Decal
-    m_completionRule: 4
-    m_worldMutations: 16
+    m_completionRule: 14
+    m_worldMutations: 114704
     m_rewards:
     - m_kind: 1
       m_amount: 34
     - m_kind: 3
       m_amount: 0
     m_guidancePhase: 5
-    m_guidanceTitle: POWER THE SPINE
-    m_guidanceAction: RESTORE THE CAPACITOR SPINE TOWER
-    m_guidanceAdvisory: SIGNAL -18  //  EVOLVE WEAPON
+    m_guidanceTitle: INSTALL THE RELAY RESULT
+    m_guidanceAction: SEAT IT IN THE CAPACITOR SPINE TOWER
+    m_guidanceAdvisory: SIGNAL -18  //  EVOLVE WEAPON + POWER DEEP RETURN
     m_prerequisites: 0d000000
     m_successors: 05000000
   - m_id: 5

@@ -522,7 +522,7 @@ namespace DeadSignal.Presentation
             if (!m_model.SpineTowerOnline &&
                 m_world.IsSpineTowerInteractionInRange(m_world.Player.position))
                 return m_model.RelayTowerOnline
-                    ? $"[{_binding("E", "GAMEPAD X")}]  ACTIVATE CAPACITOR SPINE  —  COST {RunModel.SpineTowerCost:0}"
+                    ? $"[{_binding("E", "GAMEPAD X")}]  INSTALL RELAY RESULT  —  COST {RunModel.SpineTowerCost:0}"
                     : "SPINE LOCKED - ACTIVATE RELAY FOUNDRY FIRST";
             if (!m_model.RelayTowerOnline &&
                 DeadSignalWorld.FlatDistance(m_world.Player.position, m_world.RelayTowerPosition) < 1.8f)

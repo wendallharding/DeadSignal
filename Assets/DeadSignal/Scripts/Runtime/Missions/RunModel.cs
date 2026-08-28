@@ -177,7 +177,10 @@ namespace DeadSignal.Missions
         public int Salvage { get; private set; }
         public bool TowerOnline { get; private set; }
         public bool RelayTowerOnline { get; private set; }
-        public bool SpineTowerOnline { get; private set; }
+        public bool SpineRelayResultInstalled { get; private set; }
+        public bool SpineTowerOnline => SpineRelayResultInstalled;
+        public bool DeepReturnNetworkPowered => SpineRelayResultInstalled;
+        public bool CoreRebuildUnlocked => SpineRelayResultInstalled;
         public bool ShortcutOpen { get; private set; }
         public bool OptionalSalvageSecured { get; private set; }
         public bool CentralPayloadSecured { get; private set; }
@@ -312,13 +315,13 @@ namespace DeadSignal.Missions
         public bool TryActivateSpineTower()
         {
             if (!_isCurrentObjective(MissionObjectiveId.SpineTower) || !RelayTowerOnline || !RelayPayloadSecured ||
-                !SpineBerthVented || SpineTowerOnline || Outcome != RunOutcome.Running || Signal <= SpineTowerCost)
+                !SpineBerthVented || SpineRelayResultInstalled || Outcome != RunOutcome.Running || Signal <= SpineTowerCost)
             {
                 return false;
             }
 
             Signal = Math.Min(MaximumSignal, Signal - SpineTowerCost + SpineTowerRefill);
-            SpineTowerOnline = true;
+            SpineRelayResultInstalled = true;
             CriticalRecoveryRemaining = 0f;
             return true;
         }
@@ -523,6 +526,7 @@ namespace DeadSignal.Missions
                 MissionCompletionRule.CentralPayloadInstalled => CentralPayloadSecured,
                 MissionCompletionRule.RelayPayloadStabilized => RelayPayloadStabilized,
                 MissionCompletionRule.SpineBerthVented => SpineBerthVented,
+                MissionCompletionRule.SpineRelayResultInstalled => SpineRelayResultInstalled,
                 _ => false
             };
         }
