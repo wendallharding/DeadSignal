@@ -65,6 +65,7 @@ namespace DeadSignal.Tests
             model.TryRouteFluxShunt();
             model.TryBeginConvergenceCalibration();
             model.AdvanceConvergenceCalibration(model.ConvergenceCalibrationDuration, true);
+            model.TryResetBreakerDistribution();
             model.CollectPayload(SignalRegion.Spine);
         }
     }

@@ -26,6 +26,8 @@ namespace DeadSignal.Editor
             "Assets/DeadSignal/Resources/Materials/RelayFoundry/RelayFoundryDeck.mat";
         private const string CYAN_MATERIAL_PATH =
             "Assets/DeadSignal/Resources/Materials/WorldPalette/SignalCyan.mat";
+        private const string AMBER_MATERIAL_PATH =
+            "Assets/DeadSignal/Resources/Materials/WorldPalette/SalvageAmber.mat";
         private const string CERAMIC_MATERIAL_PATH =
             "Assets/DeadSignal/Resources/Materials/SapperCradleCeramic.mat";
         private const string RED_MATERIAL_PATH =
@@ -44,6 +46,7 @@ namespace DeadSignal.Editor
                        region.GetComponentsInChildren<AuthoredMapObstacle>().Length == 8 &&
                        region.GetComponentsInChildren<AuthoredInterceptorEntrance>().Length == 1 &&
                        region.GetComponent<AuthoredPoweredTerritory>() != null &&
+                       region.GetComponent<AuthoredBreakerResetObjective>()?.IsConfigured == true &&
                        chamber.transform.Find("Convergence East Bulkhead") == null &&
                        chamber.transform.Find("Convergence Breaker Gallery Region") != null &&
                        gallery.transform.Find(
@@ -119,6 +122,7 @@ namespace DeadSignal.Editor
                 Armor = AssetDatabase.LoadAssetAtPath<Material>(ARMOR_MATERIAL_PATH),
                 Deck = AssetDatabase.LoadAssetAtPath<Material>(DECK_MATERIAL_PATH),
                 Cyan = AssetDatabase.LoadAssetAtPath<Material>(CYAN_MATERIAL_PATH),
+                Amber = AssetDatabase.LoadAssetAtPath<Material>(AMBER_MATERIAL_PATH),
                 Ceramic = AssetDatabase.LoadAssetAtPath<Material>(CERAMIC_MATERIAL_PATH),
                 Red = AssetDatabase.LoadAssetAtPath<Material>(RED_MATERIAL_PATH),
                 Decal = decal
@@ -148,6 +152,18 @@ namespace DeadSignal.Editor
                 breaker.name = "Breaker Bank Assembly";
                 breaker.transform.localPosition = new Vector3(0.4f, 0f, 0f);
                 breaker.transform.localRotation = Quaternion.Euler(0f, 90f, 0f);
+
+                var availableMarker = _wall(root.transform, "Breaker Reset Available", new Vector3(-0.55f, 0.16f, 0f),
+                    new Vector3(0.22f, 0.08f, 1.4f), materials.Amber, false);
+                var completeMarker = _wall(root.transform, "Breaker Reset Complete", new Vector3(-0.55f, 0.16f, 0f),
+                    new Vector3(0.22f, 0.08f, 1.4f), materials.Cyan, false);
+                var resetAnchor = new GameObject("Breaker Distribution Reset");
+                resetAnchor.transform.SetParent(root.transform, false);
+                resetAnchor.transform.localPosition = new Vector3(-1.8f, 0f, 0f);
+                root.AddComponent<AuthoredBreakerResetObjective>().Configure(
+                    resetAnchor.transform,
+                    availableMarker,
+                    completeMarker);
 
                 _wall(root.transform, "South Ceramic Breaker Shield", new Vector3(1.8f, 0.5f, -2.35f),
                     new Vector3(2.2f, 1f, 0.42f), materials.Ceramic, true).transform.localRotation =
@@ -278,6 +294,7 @@ namespace DeadSignal.Editor
             public Material Armor;
             public Material Deck;
             public Material Cyan;
+            public Material Amber;
             public Material Ceramic;
             public Material Red;
             public Material Decal;

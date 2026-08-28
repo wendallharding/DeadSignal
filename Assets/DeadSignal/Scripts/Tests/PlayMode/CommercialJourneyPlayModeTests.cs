@@ -153,8 +153,9 @@ namespace DeadSignal.Tests.PlayMode
             Assert.That(report, Does.Contain("PASS Cooling Gantry stabilization"));
             Assert.That(report, Does.Contain("PASS Foundry payload installation"));
             Assert.That(report, Does.Contain("PASS Flux shunt routing"));
-            Assert.That(report, Does.Contain("Objective-room coverage 13/19"));
-            Assert.That(report, Does.Contain("Rooms without a compatibility-route objective 6"));
+            Assert.That(report, Does.Contain("PASS Breaker distribution reset"));
+            Assert.That(report, Does.Contain("Objective-room coverage 14/19"));
+            Assert.That(report, Does.Contain("Rooms without a compatibility-route objective 5"));
             game.DebugSetTimeScale(1f);
         }
 
@@ -178,6 +179,7 @@ namespace DeadSignal.Tests.PlayMode
             game.DebugChargeInductionLattice();
             game.DebugRouteFluxShunt();
             game.DebugCompleteConvergenceCalibration();
+            game.DebugResetBreakerDistribution();
             game.DebugCollectNextCache();
             yield return null;
 

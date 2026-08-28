@@ -204,6 +204,19 @@ MonoBehaviour:
     m_guidanceAction: CALIBRATE THE LATTICE IN CONVERGENCE
     m_guidanceAdvisory: HOLD THE CHAMBER  //  MAINTAIN CALIBRATION UNDER PRESSURE
     m_prerequisites: 0f000000
+    m_successors: 11000000
+  - m_id: 17
+    m_legacyStage: 5
+    m_owningRoom: Breaker Gallery
+    m_anchorId: Breaker Distribution Reset
+    m_completionRule: 18
+    m_worldMutations: 1048576
+    m_rewards: []
+    m_guidancePhase: 6
+    m_guidanceTitle: LATTICE CALIBRATED
+    m_guidanceAction: RESET DISTRIBUTION IN THE BREAKER GALLERY
+    m_guidanceAdvisory: THROW THE BREAKER BANK  //  UNLOCKS FURNACE PROCESS
+    m_prerequisites: 10000000
     m_successors: 05000000
   - m_id: 5
     m_legacyStage: 5
@@ -216,7 +229,7 @@ MonoBehaviour:
     m_guidanceTitle: FINAL PAYLOAD
     m_guidanceAction: SECURE ONE SPINE PAYLOAD
     m_guidanceAdvisory: GALLERY OR FURNACE-SIDE ROUTE  //  ONE REQUIRED
-    m_prerequisites: 10000000
+    m_prerequisites: 11000000
     m_successors: 06000000
   - m_id: 6
     m_legacyStage: 6

@@ -169,7 +169,7 @@ namespace DeadSignal.Tests
                 }
 
                 Assert.That(game.IsConvergenceCalibrated, Is.True);
-                Assert.That(game.CurrentMissionObjectiveId, Is.EqualTo(MissionObjectiveId.SpinePayload));
+                Assert.That(game.CurrentMissionObjectiveId, Is.EqualTo(MissionObjectiveId.BreakerReset));
                 Assert.That(active.activeSelf, Is.False);
                 Assert.That(complete.activeSelf, Is.True);
                 Assert.That(game.InterceptorHealth, Is.GreaterThan(0f),

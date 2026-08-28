@@ -21,7 +21,8 @@ namespace DeadSignal.Missions
         SpineVenting,
         InductionLattice,
         FluxShunt,
-        ConvergenceCalibration
+        ConvergenceCalibration,
+        BreakerReset
     }
 
     public enum MissionCompletionRule
@@ -43,7 +44,8 @@ namespace DeadSignal.Missions
         SpineRelayResultInstalled,
         InductionLatticeCharged,
         FluxShuntRouted,
-        ConvergenceCalibrated
+        ConvergenceCalibrated,
+        BreakerDistributionReset
     }
 
     [Flags]
@@ -69,7 +71,8 @@ namespace DeadSignal.Missions
         CoreRebuildUnlocked = 1 << 16,
         InductionLatticeCharged = 1 << 17,
         FluxShuntRouted = 1 << 18,
-        ConvergenceCalibrated = 1 << 19
+        ConvergenceCalibrated = 1 << 19,
+        BreakerDistributionReset = 1 << 20
     }
 
     public enum MissionRewardKind
@@ -401,12 +404,19 @@ namespace DeadSignal.Missions
                 Array.Empty<MissionReward>(),
                 new MissionGuidanceState(6, "CONVERGENCE FEED ONLINE", "CALIBRATE THE LATTICE IN CONVERGENCE",
                     "HOLD THE CHAMBER  //  MAINTAIN CALIBRATION UNDER PRESSURE"),
-                new[] { MissionObjectiveId.FluxShunt }, new[] { MissionObjectiveId.SpinePayload }),
+                new[] { MissionObjectiveId.FluxShunt }, new[] { MissionObjectiveId.BreakerReset }),
+            _definition(MissionObjectiveId.BreakerReset, MissionStage.SpinePayload,
+                "Breaker Gallery", "Breaker Distribution Reset",
+                MissionCompletionRule.BreakerDistributionReset, MissionWorldMutation.BreakerDistributionReset,
+                Array.Empty<MissionReward>(),
+                new MissionGuidanceState(6, "LATTICE CALIBRATED", "RESET DISTRIBUTION IN THE BREAKER GALLERY",
+                    "THROW THE BREAKER BANK  //  UNLOCKS FURNACE PROCESS"),
+                new[] { MissionObjectiveId.ConvergenceCalibration }, new[] { MissionObjectiveId.SpinePayload }),
             _definition(MissionObjectiveId.SpinePayload, MissionStage.SpinePayload, "Capacitor Spine", "Spine Payload Socket",
                 MissionCompletionRule.SpinePayloadSecured, MissionWorldMutation.SpinePayloadSecured,
                 Array.Empty<MissionReward>(),
                 new MissionGuidanceState(6, "FINAL PAYLOAD", "SECURE ONE SPINE PAYLOAD", "GALLERY OR FURNACE-SIDE ROUTE  //  ONE REQUIRED"),
-                new[] { MissionObjectiveId.ConvergenceCalibration }, new[] { MissionObjectiveId.Extraction }),
+                new[] { MissionObjectiveId.BreakerReset }, new[] { MissionObjectiveId.Extraction }),
             _definition(MissionObjectiveId.Extraction, MissionStage.Extraction, "Extraction Dock", "Dock Uplink",
                 MissionCompletionRule.ExtractionComplete, MissionWorldMutation.RunCompleted,
                 new[] { new MissionReward(MissionRewardKind.Victory) },

@@ -6,6 +6,7 @@ using UnityEngine.InputSystem.LowLevel;
 using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
 using DeadSignal.Application;
+using DeadSignal.Missions;
 using DeadSignal.World;
 
 namespace DeadSignal.Tests
@@ -26,13 +27,18 @@ namespace DeadSignal.Tests
                 var chamber = game.transform.Find("Spine Induction Gallery Region/Convergence Chamber Region");
                 var gallery = chamber.Find("Convergence Breaker Gallery Region");
                 var territory = gallery.GetComponent<AuthoredPoweredTerritory>();
+                var objective = gallery.GetComponent<AuthoredBreakerResetObjective>();
                 var routing = gallery.Find("Breaker Gallery Signal Lines").gameObject;
+                var available = gallery.Find("Breaker Reset Available").gameObject;
+                var complete = gallery.Find("Breaker Reset Complete").gameObject;
                 var entrance = gallery.GetComponentInChildren<AuthoredInterceptorEntrance>();
 
                 Assert.That(gallery.position, Is.EqualTo(new Vector3(53f, 0f, 17f)));
                 Assert.That(gallery.GetComponentsInChildren<AuthoredMapObstacle>().Length, Is.EqualTo(8));
                 Assert.That(gallery.GetComponentsInChildren<Collider>().Length, Is.Zero);
                 Assert.That(gallery.Find("Breaker Bank Assembly"), Is.Not.Null);
+                Assert.That(objective, Is.Not.Null);
+                Assert.That(objective.IsConfigured, Is.True);
                 Assert.That(gallery.Find("South Ceramic Breaker Shield"), Is.Not.Null);
                 Assert.That(gallery.Find("North Ceramic Breaker Shield"), Is.Not.Null);
                 Assert.That(territory.Source, Is.EqualTo(PoweredTerritorySource.SpineTower));
@@ -74,9 +80,33 @@ namespace DeadSignal.Tests
                 Assert.That(game.DebugIsPoweredAt(galleryCenter), Is.False);
                 Assert.That(routing.activeSelf, Is.False);
                 game.DebugActivateSpineTower();
+                game.DebugSelectOverclock(SignalOverclock.ChainArc);
+                game.DebugSelectAuxiliary(SignalAuxiliaryOverclock.FeedbackShield);
                 Assert.That(game.DebugIsPoweredAt(galleryCenter), Is.True);
                 Assert.That(routing.activeSelf, Is.True,
                     "The dead-zone gallery should become a powered withdrawal foothold with the Spine tower.");
+
+                Assert.That(game.IsBreakerDistributionReset, Is.False);
+                Assert.That(available.activeSelf, Is.False);
+                Assert.That(complete.activeSelf, Is.False);
+                game.DebugChargeInductionLattice();
+                game.DebugRouteFluxShunt();
+                game.DebugCompleteConvergenceCalibration();
+                yield return null;
+                Assert.That(game.CurrentMissionObjectiveId, Is.EqualTo(MissionObjectiveId.BreakerReset));
+                Assert.That(available.activeSelf, Is.True);
+                Assert.That(complete.activeSelf, Is.False);
+
+                player.position = game.BreakerResetPosition;
+                yield return _interact(gamepad);
+                Assert.That(game.IsBreakerDistributionReset, Is.True);
+                Assert.That(game.CurrentMissionObjectiveId, Is.EqualTo(MissionObjectiveId.SpinePayload));
+                Assert.That(available.activeSelf, Is.False);
+                Assert.That(complete.activeSelf, Is.True);
+
+                yield return _interact(gamepad);
+                Assert.That(game.CurrentMissionObjectiveId, Is.EqualTo(MissionObjectiveId.SpinePayload),
+                    "Repeated reset interaction must remain idempotent.");
             }
             finally
             {
@@ -93,6 +123,14 @@ namespace DeadSignal.Tests
                 yield return null;
             }
 
+            InputSystem.QueueStateEvent(gamepad, new GamepadState());
+            yield return null;
+        }
+
+        private static IEnumerator _interact(Gamepad gamepad)
+        {
+            InputSystem.QueueStateEvent(gamepad, new GamepadState().WithButton(GamepadButton.West));
+            yield return null;
             InputSystem.QueueStateEvent(gamepad, new GamepadState());
             yield return null;
         }

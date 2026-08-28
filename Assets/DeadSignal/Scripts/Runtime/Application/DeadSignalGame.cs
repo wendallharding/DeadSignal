@@ -118,6 +118,7 @@ namespace DeadSignal.Application
         public bool IsFluxShuntRouted => m_model?.FluxShuntRouted ?? false;
         public bool IsConvergenceCalibrationActive => m_model?.ConvergenceCalibrationActive ?? false;
         public bool IsConvergenceCalibrated => m_model?.ConvergenceCalibrated ?? false;
+        public bool IsBreakerDistributionReset => m_model?.BreakerDistributionReset ?? false;
         public float ConvergenceCalibrationProgress => m_model?.ConvergenceCalibrationProgress ?? 0f;
         public bool IsCentralPayloadSecured => m_model?.CentralPayloadSecured ?? false;
         public bool IsCentralPayloadAssembled => m_model?.CentralPayloadAssembled ?? false;
@@ -156,6 +157,7 @@ namespace DeadSignal.Application
         public Vector3 FluxShuntPosition => m_world?.FluxShuntObjective?.Position ?? Vector3.zero;
         public Vector3 ConvergenceCalibrationPosition =>
             m_world?.ConvergenceCalibrationObjective?.Position ?? Vector3.zero;
+        public Vector3 BreakerResetPosition => m_world?.BreakerResetObjective?.Position ?? Vector3.zero;
         public bool IsWeaponEvolved => m_overclockChoice?.IsWeaponEvolved ?? false;
         public Vector3 SafestReinforcementEntryPosition => m_world == null
             ? Vector3.zero
@@ -866,6 +868,7 @@ namespace DeadSignal.Application
 
             m_world.UpdateFluxShuntPresentation(m_model);
             m_world.UpdateConvergenceCalibrationPresentation(m_model);
+            m_world.UpdateBreakerResetPresentation(m_model);
             _showFeedback("DEBUG — FLUX SHUNT ROUTED");
         }
 
@@ -878,6 +881,18 @@ namespace DeadSignal.Application
                 m_world.UpdateConvergenceCalibrationPresentation(m_model);
                 _showFeedback("DEBUG — CONVERGENCE CALIBRATED");
             }
+        }
+
+        public void DebugResetBreakerDistribution()
+        {
+            DebugCompleteConvergenceCalibration();
+            if (m_model?.TryResetBreakerDistribution() != true)
+            {
+                return;
+            }
+
+            m_world.UpdateBreakerResetPresentation(m_model);
+            _showFeedback("DEBUG — BREAKER DISTRIBUTION RESET");
         }
 
         public void DebugBeginConvergenceCalibration()
@@ -1020,6 +1035,7 @@ namespace DeadSignal.Application
             DebugChargeInductionLattice();
             DebugRouteFluxShunt();
             DebugCompleteConvergenceCalibration();
+            DebugResetBreakerDistribution();
             DebugCollectNextCache();
         }
 
@@ -1436,6 +1452,7 @@ namespace DeadSignal.Application
             m_world.UpdateInductionLatticePresentation(m_model);
             m_world.UpdateFluxShuntPresentation(m_model);
             m_world.UpdateConvergenceCalibrationPresentation(m_model);
+            m_world.UpdateBreakerResetPresentation(m_model);
             m_world.PlayerSignalWake.Tick(m_playerMovement.Velocity);
             m_world.TickGameplayAssists(dt, m_threats, aimDirection);
 
@@ -1751,6 +1768,22 @@ namespace DeadSignal.Application
 
         private void _handleInteraction()
         {
+            if (m_world.BreakerResetObjective != null &&
+                m_model.CurrentObjective.Id == MissionObjectiveId.BreakerReset &&
+                DeadSignalWorld.FlatDistance(
+                    m_world.Player.position,
+                    m_world.BreakerResetObjective.Position) < TOWER_INTERACTION_RADIUS)
+            {
+                if (m_model.TryResetBreakerDistribution())
+                {
+                    m_world.UpdateBreakerResetPresentation(m_model);
+                    m_audio.Play(DeadSignalAudioCue.Shortcut);
+                    _showFeedback("BREAKER RESET — FURNACE PROCESS ONLINE");
+                }
+
+                return;
+            }
+
             if (m_world.ConvergenceCalibrationObjective != null &&
                 m_model.CurrentObjective.Id == MissionObjectiveId.ConvergenceCalibration &&
                 !m_model.ConvergenceCalibrationActive &&
@@ -2312,6 +2345,7 @@ namespace DeadSignal.Application
                 case DebugRouteAction.ChargeInductionLattice: DebugChargeInductionLattice(); break;
                 case DebugRouteAction.RouteFluxShunt: DebugRouteFluxShunt(); break;
                 case DebugRouteAction.CompleteConvergenceCalibration: DebugCompleteConvergenceCalibration(); break;
+                case DebugRouteAction.ResetBreakerDistribution: DebugResetBreakerDistribution(); break;
                 case DebugRouteAction.BeginStableExtraction: DebugBeginExtraction(ExtractionUplinkMode.Stable); break;
                 case DebugRouteAction.CaptureScreenshot: DebugCaptureScreenshot(); break;
             }
@@ -2366,6 +2400,8 @@ namespace DeadSignal.Application
                 DebugRouteAction.RouteFluxShunt => m_model.FluxShuntRouted && _debugObjectiveAdvanced(),
                 DebugRouteAction.CompleteConvergenceCalibration =>
                     m_model.ConvergenceCalibrated && _debugObjectiveAdvanced(),
+                DebugRouteAction.ResetBreakerDistribution =>
+                    m_model.BreakerDistributionReset && _debugObjectiveAdvanced(),
                 DebugRouteAction.BeginStableExtraction => m_extractionUplink.IsActive,
                 _ => true
             };

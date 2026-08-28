@@ -184,6 +184,7 @@ namespace DeadSignal.Missions
         public bool FluxShuntRouted { get; private set; }
         public bool ConvergenceCalibrationActive { get; private set; }
         public bool ConvergenceCalibrated { get; private set; }
+        public bool BreakerDistributionReset { get; private set; }
         public float ConvergenceCalibrationProgress { get; private set; }
         public float ConvergenceCalibrationDuration => m_convergenceCalibrationDuration;
         public bool ShortcutOpen { get; private set; }
@@ -400,6 +401,18 @@ namespace DeadSignal.Missions
             return true;
         }
 
+        public bool TryResetBreakerDistribution()
+        {
+            if (!_isCurrentObjective(MissionObjectiveId.BreakerReset) || !ConvergenceCalibrated ||
+                BreakerDistributionReset || Outcome != RunOutcome.Running)
+            {
+                return false;
+            }
+
+            BreakerDistributionReset = true;
+            return true;
+        }
+
         public bool TryInstallRelayPayload()
         {
             if (!_isCurrentObjective(MissionObjectiveId.RelayInstallation) || !RelayPayloadStabilized ||
@@ -592,6 +605,7 @@ namespace DeadSignal.Missions
                 MissionCompletionRule.InductionLatticeCharged => InductionLatticeCharged,
                 MissionCompletionRule.FluxShuntRouted => FluxShuntRouted,
                 MissionCompletionRule.ConvergenceCalibrated => ConvergenceCalibrated,
+                MissionCompletionRule.BreakerDistributionReset => BreakerDistributionReset,
                 _ => false
             };
         }

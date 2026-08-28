@@ -72,6 +72,7 @@ namespace DeadSignal.World
         public AuthoredInductionLatticeObjective InductionLatticeObjective { get; private set; }
         public AuthoredFluxShuntObjective FluxShuntObjective { get; private set; }
         public AuthoredConvergenceCalibrationObjective ConvergenceCalibrationObjective { get; private set; }
+        public AuthoredBreakerResetObjective BreakerResetObjective { get; private set; }
         public IReadOnlyList<GameObject> SalvagePickups => m_salvagePickups;
 
         public SignalRegion GetPayloadRegion(GameObject pickup) => m_salvageRegions.TryGetValue(pickup, out var region)
@@ -175,6 +176,8 @@ namespace DeadSignal.World
                 Object.FindFirstObjectByType<AuthoredFluxShuntObjective>(FindObjectsInactive.Include);
             ConvergenceCalibrationObjective =
                 Object.FindFirstObjectByType<AuthoredConvergenceCalibrationObjective>(FindObjectsInactive.Include);
+            BreakerResetObjective =
+                Object.FindFirstObjectByType<AuthoredBreakerResetObjective>(FindObjectsInactive.Include);
             _buildActors(comfortSettings);
             m_palette.RebindHierarchy(m_root);
             _configurePlayerCamera();
@@ -380,6 +383,13 @@ namespace DeadSignal.World
                 model.CurrentObjective.Id == MissionObjectiveId.ConvergenceCalibration,
                 model.ConvergenceCalibrationActive,
                 model.ConvergenceCalibrated);
+        }
+
+        public void UpdateBreakerResetPresentation(RunModel model)
+        {
+            BreakerResetObjective?.SetState(
+                model.CurrentObjective.Id == MissionObjectiveId.BreakerReset,
+                model.BreakerDistributionReset);
         }
 
         public Vector3 GetObjectiveGuidanceWaypoint(RunModel model, float radius)
@@ -1673,6 +1683,10 @@ namespace DeadSignal.World
                 case MissionObjectiveId.ConvergenceCalibration:
                     return ConvergenceCalibrationObjective != null
                         ? ConvergenceCalibrationObjective.Position
+                        : SpineTowerInteractionPosition;
+                case MissionObjectiveId.BreakerReset:
+                    return BreakerResetObjective != null
+                        ? BreakerResetObjective.Position
                         : SpineTowerInteractionPosition;
                 case MissionObjectiveId.Extraction:
                     return ExtractionPosition;
