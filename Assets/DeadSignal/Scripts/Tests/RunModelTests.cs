@@ -280,6 +280,11 @@ namespace DeadSignal.Tests
             Assert.That(run.TryAdvancePoweredWithdrawal(PoweredWithdrawalPhase.RelayShortcut), Is.True);
             Assert.That(run.TryAdvancePoweredWithdrawal(PoweredWithdrawalPhase.TransferVault), Is.True);
             Assert.That(run.TryAdvancePoweredWithdrawal(PoweredWithdrawalPhase.CentralFoothold), Is.True);
+            Assert.That(run.CurrentPoweredWithdrawalPhase, Is.EqualTo(PoweredWithdrawalPhase.WardenBay));
+            Assert.That(run.TryAdvancePoweredWithdrawal(PoweredWithdrawalPhase.SapperCradle), Is.False,
+                "The Sapper Cradle must not bypass the Warden Bay pursuit beat.");
+            Assert.That(run.TryAdvancePoweredWithdrawal(PoweredWithdrawalPhase.WardenBay), Is.True);
+            Assert.That(run.TryAdvancePoweredWithdrawal(PoweredWithdrawalPhase.SapperCradle), Is.True);
             Assert.That(run.CurrentObjective.Id, Is.EqualTo(MissionObjectiveId.Extraction));
             Assert.That(run.TryInstallSpineCore(), Is.False);
         }
@@ -345,6 +350,8 @@ namespace DeadSignal.Tests
             Assert.That(run.TryAdvancePoweredWithdrawal(PoweredWithdrawalPhase.RelayShortcut), Is.True);
             Assert.That(run.TryAdvancePoweredWithdrawal(PoweredWithdrawalPhase.TransferVault), Is.True);
             Assert.That(run.TryAdvancePoweredWithdrawal(PoweredWithdrawalPhase.CentralFoothold), Is.True);
+            Assert.That(run.TryAdvancePoweredWithdrawal(PoweredWithdrawalPhase.WardenBay), Is.True);
+            Assert.That(run.TryAdvancePoweredWithdrawal(PoweredWithdrawalPhase.SapperCradle), Is.True);
 
             Assert.That(run.CanExtract, Is.True);
             Assert.That(run.TryExtract(), Is.True);

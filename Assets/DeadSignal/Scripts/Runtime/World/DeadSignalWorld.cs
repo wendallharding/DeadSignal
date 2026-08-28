@@ -77,6 +77,8 @@ namespace DeadSignal.World
         public AuthoredFurnaceForgeObjective FurnaceForgeObjective { get; private set; }
         public AuthoredQuenchStabilizationObjective QuenchStabilizationObjective { get; private set; }
         public AuthoredCombatChamber CombatChamber { get; private set; }
+        public AuthoredWithdrawalPursuitLandmark WardenBayLandmark { get; private set; }
+        public AuthoredWithdrawalPursuitLandmark SapperCradleLandmark { get; private set; }
         public IReadOnlyList<GameObject> SalvagePickups => m_salvagePickups;
 
         public SignalRegion GetPayloadRegion(GameObject pickup) => m_salvageRegions.TryGetValue(pickup, out var region)
@@ -189,6 +191,45 @@ namespace DeadSignal.World
             QuenchStabilizationObjective =
                 Object.FindFirstObjectByType<AuthoredQuenchStabilizationObjective>(FindObjectsInactive.Include);
             CombatChamber = Object.FindFirstObjectByType<AuthoredCombatChamber>(FindObjectsInactive.Include);
+            var withdrawalLandmarks = Object.FindObjectsByType<AuthoredWithdrawalPursuitLandmark>(
+                FindObjectsInactive.Include,
+                FindObjectsSortMode.None);
+            if (withdrawalLandmarks.Length != 2)
+            {
+                throw new MissingReferenceException(
+                    $"The powered withdrawal requires exactly two authored pursuit landmarks; found {withdrawalLandmarks.Length}.");
+            }
+
+            foreach (var landmark in withdrawalLandmarks)
+            {
+                if (landmark.Phase == PoweredWithdrawalPhase.WardenBay)
+                {
+                    if (WardenBayLandmark != null)
+                    {
+                        throw new MissingReferenceException("The powered withdrawal has duplicate Warden Bay landmarks.");
+                    }
+                    WardenBayLandmark = landmark;
+                }
+                else if (landmark.Phase == PoweredWithdrawalPhase.SapperCradle)
+                {
+                    if (SapperCradleLandmark != null)
+                    {
+                        throw new MissingReferenceException("The powered withdrawal has duplicate Sapper Cradle landmarks.");
+                    }
+                    SapperCradleLandmark = landmark;
+                }
+                else
+                {
+                    throw new MissingReferenceException(
+                        $"Withdrawal landmark '{landmark.name}' has unsupported phase {landmark.Phase}.");
+                }
+            }
+
+            if (WardenBayLandmark == null || SapperCradleLandmark == null)
+            {
+                throw new MissingReferenceException(
+                    "The powered withdrawal requires authored Warden Bay and Sapper Cradle pursuit landmarks.");
+            }
             _buildActors(comfortSettings);
             m_palette.RebindHierarchy(m_root);
             _configurePlayerCamera();
@@ -1738,6 +1779,8 @@ namespace DeadSignal.World
                             ? TransferVaultObjective.Position
                             : RelayTowerPosition,
                         PoweredWithdrawalPhase.CentralFoothold => TowerPosition,
+                        PoweredWithdrawalPhase.WardenBay => WardenBayLandmark.Position,
+                        PoweredWithdrawalPhase.SapperCradle => SapperCradleLandmark.Position,
                         _ => ExtractionPosition
                     };
                 case MissionObjectiveId.Extraction:

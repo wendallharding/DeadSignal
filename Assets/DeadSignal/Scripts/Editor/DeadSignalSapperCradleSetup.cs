@@ -4,6 +4,7 @@ using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using DeadSignal.Missions;
 using DeadSignal.World;
 
 namespace DeadSignal.Editor
@@ -34,6 +35,8 @@ namespace DeadSignal.Editor
                        AssetDatabase.LoadAssetAtPath<Material>(ENERGY_MATERIAL_PATH) != null &&
                        _hasValidPylon(pylon) &&
                        cradle != null &&
+                       cradle.TryGetComponent<AuthoredWithdrawalPursuitLandmark>(out var landmark) &&
+                       landmark.IsConfigured && landmark.Phase == PoweredWithdrawalPhase.SapperCradle &&
                        cradle.GetComponentsInChildren<AuthoredMapObstacle>().Length == 2;
             }
         }
@@ -190,6 +193,12 @@ namespace DeadSignal.Editor
             var cradle = PrefabUtility.LoadPrefabContents(CRADLE_PREFAB_PATH);
             try
             {
+                var landmark = cradle.GetComponent<AuthoredWithdrawalPursuitLandmark>();
+                if (landmark == null)
+                {
+                    landmark = cradle.AddComponent<AuthoredWithdrawalPursuitLandmark>();
+                }
+                landmark.Configure(PoweredWithdrawalPhase.SapperCradle);
                 _ensurePylon(cradle.transform, pylonPrefab, "North Siphon Pylon",
                     new Vector3(0f, 0f, 1.3f), 0f);
                 _ensurePylon(cradle.transform, pylonPrefab, "West Siphon Pylon",

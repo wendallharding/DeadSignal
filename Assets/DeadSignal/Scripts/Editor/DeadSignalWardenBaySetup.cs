@@ -4,6 +4,7 @@ using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using DeadSignal.Missions;
 using DeadSignal.World;
 
 namespace DeadSignal.Editor
@@ -43,6 +44,8 @@ namespace DeadSignal.Editor
                        routeMarker != null &&
                        bay != null &&
                        bay.GetComponentsInChildren<AuthoredMapObstacle>().Length == 3 &&
+                       bay.TryGetComponent<AuthoredWithdrawalPursuitLandmark>(out var landmark) &&
+                       landmark.IsConfigured && landmark.Phase == PoweredWithdrawalPhase.WardenBay &&
                        bay.transform.Find("North Bypass Entry Marker") != null &&
                        bay.transform.Find("North Bypass Exit Marker") != null;
             }
@@ -244,6 +247,12 @@ namespace DeadSignal.Editor
             var bay = PrefabUtility.LoadPrefabContents(BAY_PREFAB_PATH);
             try
             {
+                var landmark = bay.GetComponent<AuthoredWithdrawalPursuitLandmark>();
+                if (landmark == null)
+                {
+                    landmark = bay.AddComponent<AuthoredWithdrawalPursuitLandmark>();
+                }
+                landmark.Configure(PoweredWithdrawalPhase.WardenBay);
                 _ensurePrefabChild(bay.transform, shieldPrefab, "North Security Shield",
                     new Vector3(-0.2f, 0f, 1.15f), 0f, new Vector3(0.45f, 1f, 1f));
                 _ensurePrefabChild(bay.transform, shieldPrefab, "South Security Shield",

@@ -82,7 +82,7 @@ namespace DeadSignal.Tests
             sequencer.Start(DebugRoutePreset.FullExtraction, DebugAutomationMode.DeterministicValidation,
                 DebugAutomationProfile.SafeNavigation, 72f);
 
-            Assert.That(sequencer.StepCount, Is.EqualTo(28));
+            Assert.That(sequencer.StepCount, Is.EqualTo(30));
             Assert.That(sequencer.CurrentStep.Action, Is.EqualTo(DebugRouteAction.ActivateCentralTower));
             _completeCurrentStep(sequencer);
             Assert.That(sequencer.CurrentStep.Action, Is.EqualTo(DebugRouteAction.CollectCache));
@@ -150,6 +150,12 @@ namespace DeadSignal.Tests
             _completeCurrentStep(sequencer);
             Assert.That(sequencer.CurrentStep.Location, Is.EqualTo(DebugLocation.CurrentObjective));
             Assert.That(sequencer.CurrentStep.Name, Does.Contain("Central powered foothold"));
+            _completeCurrentStep(sequencer);
+            Assert.That(sequencer.CurrentStep.Location, Is.EqualTo(DebugLocation.CurrentObjective));
+            Assert.That(sequencer.CurrentStep.Name, Does.Contain("Warden Bay pursuit"));
+            _completeCurrentStep(sequencer);
+            Assert.That(sequencer.CurrentStep.Location, Is.EqualTo(DebugLocation.CurrentObjective));
+            Assert.That(sequencer.CurrentStep.Name, Does.Contain("Sapper Cradle priority"));
         }
 
         [Test]
@@ -159,7 +165,7 @@ namespace DeadSignal.Tests
             sequencer.Start(DebugRoutePreset.RequiredExtraction, DebugAutomationMode.DeterministicValidation,
                 DebugAutomationProfile.SafeNavigation, 72f);
 
-            Assert.That(sequencer.StepCount, Is.EqualTo(26));
+            Assert.That(sequencer.StepCount, Is.EqualTo(28));
             for (var step = 0; step < 22; step++)
             {
                 Assert.That(sequencer.CurrentStep.Location, Is.Not.EqualTo(DebugLocation.CacheFour));
@@ -170,6 +176,12 @@ namespace DeadSignal.Tests
             _completeCurrentStep(sequencer);
             Assert.That(sequencer.CurrentStep.Location, Is.EqualTo(DebugLocation.CurrentObjective));
             _completeCurrentStep(sequencer);
+            Assert.That(sequencer.CurrentStep.Location, Is.EqualTo(DebugLocation.CurrentObjective));
+            _completeCurrentStep(sequencer);
+            Assert.That(sequencer.CurrentStep.Name, Does.Contain("Warden Bay pursuit"));
+            Assert.That(sequencer.CurrentStep.Location, Is.EqualTo(DebugLocation.CurrentObjective));
+            _completeCurrentStep(sequencer);
+            Assert.That(sequencer.CurrentStep.Name, Does.Contain("Sapper Cradle priority"));
             Assert.That(sequencer.CurrentStep.Location, Is.EqualTo(DebugLocation.CurrentObjective));
             _completeCurrentStep(sequencer);
             Assert.That(sequencer.CurrentStep.Location, Is.EqualTo(DebugLocation.Extraction));
@@ -280,7 +292,7 @@ namespace DeadSignal.Tests
             var report = sequencer.FinishReport(72f, metrics, false, false, Vector3.zero, RunOutcome.Victory);
 
             Assert.That(report, Does.Contain("Guidance response proxy avg 0.30s"));
-            Assert.That(report, Does.Contain("Wrong-turn proxies 0  Backtrack legs 7"));
+            Assert.That(report, Does.Contain("Wrong-turn proxies 0  Backtrack legs 9"));
             Assert.That(report, Does.Contain("Extraction Dock"));
             Assert.That(report, Does.Contain("Central Chamber"));
             Assert.That(report, Does.Contain("Relay Foundry"));

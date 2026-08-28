@@ -77,6 +77,23 @@ namespace DeadSignal.Tests
                 player.position = scene.TowerPosition;
                 yield return null;
 
+                Assert.That(game.CurrentPoweredWithdrawalPhase, Is.EqualTo(PoweredWithdrawalPhase.WardenBay));
+                Assert.That(game.IsExtractionReady, Is.False);
+                Assert.That(scene.Warden.gameObject.activeSelf, Is.True);
+                Assert.That(Vector3.Distance(scene.Warden.position, game.WardenBayPursuitPosition), Is.LessThan(0.2f),
+                    "Central completion should redeploy the established Warden inside its authored bay.");
+
+                player.position = game.WardenBayPursuitPosition;
+                yield return null;
+
+                Assert.That(game.CurrentPoweredWithdrawalPhase, Is.EqualTo(PoweredWithdrawalPhase.SapperCradle));
+                Assert.That(scene.Sapper.gameObject.activeSelf, Is.True);
+                Assert.That(Vector3.Distance(scene.Sapper.position, game.SapperCradlePursuitPosition), Is.LessThan(0.2f),
+                    "Crossing Warden Bay should redeploy the established Sapper from its authored cradle.");
+
+                player.position = game.SapperCradlePursuitPosition;
+                yield return null;
+
                 Assert.That(game.IsExtractionReady, Is.True);
                 Assert.That(game.CurrentMissionObjectiveId, Is.EqualTo(MissionObjectiveId.Extraction));
                 Assert.That(game.DebugIsPoweredAt(scene.TowerPosition), Is.True,

@@ -97,6 +97,8 @@ namespace DeadSignal.Tests
             Assert.That(model.TryAdvancePoweredWithdrawal(PoweredWithdrawalPhase.RelayShortcut), Is.True);
             Assert.That(model.TryAdvancePoweredWithdrawal(PoweredWithdrawalPhase.TransferVault), Is.True);
             Assert.That(model.TryAdvancePoweredWithdrawal(PoweredWithdrawalPhase.CentralFoothold), Is.True);
+            Assert.That(model.TryAdvancePoweredWithdrawal(PoweredWithdrawalPhase.WardenBay), Is.True);
+            Assert.That(model.TryAdvancePoweredWithdrawal(PoweredWithdrawalPhase.SapperCradle), Is.True);
         }
 
         private static void _completeCoreInstallation(RunModel model)

@@ -468,6 +468,10 @@ namespace DeadSignal.Diagnostics
                         DebugRouteAction.None, roomName: "East Transfer Vault", isBacktrack: true);
                     yield return new DebugRouteStep("Central powered foothold", DebugLocation.CurrentObjective, 1.7f,
                         DebugRouteAction.None, roomName: "Central Chamber", isBacktrack: true);
+                    yield return new DebugRouteStep("Warden Bay pursuit", DebugLocation.CurrentObjective, 1.7f,
+                        DebugRouteAction.None, roomName: "Warden Bay", isBacktrack: true);
+                    yield return new DebugRouteStep("Sapper Cradle priority", DebugLocation.CurrentObjective, 1.7f,
+                        DebugRouteAction.None, roomName: "Sapper Cradle", isBacktrack: true);
                     yield return new DebugRouteStep("Extraction", DebugLocation.Extraction, 1.5f, DebugRouteAction.BeginStableExtraction,
                         DebugRouteAssertion.SignalAboveTwenty, "Extraction Dock", true);
                     break;

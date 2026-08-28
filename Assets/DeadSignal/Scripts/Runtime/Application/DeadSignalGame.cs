@@ -169,6 +169,8 @@ namespace DeadSignal.Application
         public Vector3 BreakerResetPosition => m_world?.BreakerResetObjective?.Position ?? Vector3.zero;
         public Vector3 FurnaceForgePosition => m_world?.FurnaceForgeObjective?.Position ?? Vector3.zero;
         public Vector3 QuenchStabilizationPosition => m_world?.QuenchStabilizationObjective?.Position ?? Vector3.zero;
+        public Vector3 WardenBayPursuitPosition => m_world?.WardenBayLandmark?.Position ?? Vector3.zero;
+        public Vector3 SapperCradlePursuitPosition => m_world?.SapperCradleLandmark?.Position ?? Vector3.zero;
         public bool IsWeaponEvolved => m_overclockChoice?.IsWeaponEvolved ?? false;
         public Vector3 SafestReinforcementEntryPosition => m_world == null
             ? Vector3.zero
@@ -994,6 +996,8 @@ namespace DeadSignal.Application
             m_model.TryAdvancePoweredWithdrawal(PoweredWithdrawalPhase.RelayShortcut);
             m_model.TryAdvancePoweredWithdrawal(PoweredWithdrawalPhase.TransferVault);
             m_model.TryAdvancePoweredWithdrawal(PoweredWithdrawalPhase.CentralFoothold);
+            m_model.TryAdvancePoweredWithdrawal(PoweredWithdrawalPhase.WardenBay);
+            m_model.TryAdvancePoweredWithdrawal(PoweredWithdrawalPhase.SapperCradle);
         }
 
         public void DebugBeginConvergenceCalibration()
@@ -3344,9 +3348,12 @@ namespace DeadSignal.Application
             {
                 PoweredWithdrawalPhase.RelayShortcut => "RELAY SHORTCUT CROSSED — FOLLOW THE CYAN TRANSFER FEED",
                 PoweredWithdrawalPhase.TransferVault => "TRANSFER ROUTE CROSSED — RETURN THROUGH POWERED CENTRAL",
-                PoweredWithdrawalPhase.CentralFoothold => "POWERED WITHDRAWAL COMPLETE — DEPARTURE CHANNEL OPEN",
+                PoweredWithdrawalPhase.CentralFoothold => "CENTRAL FOOTHOLD REACHED — WARDEN BAY PURSUIT ACTIVE",
+                PoweredWithdrawalPhase.WardenBay => "WARDEN BAY CROSSED — SAPPER CRADLE PRIORITY WARNING",
+                PoweredWithdrawalPhase.SapperCradle => "PURSUIT RESOLVED — DEPARTURE CHANNEL OPEN",
                 _ => string.Empty
             };
+            m_threats.BeginPoweredWithdrawalPursuit(m_model.CurrentPoweredWithdrawalPhase);
             _showFeedback(feedback);
         }
 

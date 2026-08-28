@@ -198,6 +198,26 @@ namespace DeadSignal.Combat
             }
         }
 
+        public void BeginPoweredWithdrawalPursuit(PoweredWithdrawalPhase phase)
+        {
+            switch (phase)
+            {
+                case PoweredWithdrawalPhase.WardenBay:
+                    m_wardenHealth = m_tuning.WardenHealth;
+                    m_wardenAttackCooldown = m_tuning.WardenAttackCooldown;
+                    m_world.DeployWardenReinforcement();
+                    m_showFeedback("WARDEN BAY ACTIVE — USE THE SHIELDS TO BREAK PURSUIT");
+                    break;
+                case PoweredWithdrawalPhase.SapperCradle:
+                    m_sapperHealth = m_tuning.SapperHealth;
+                    m_sapperLatched = false;
+                    m_sapperPulseCooldown = m_tuning.SapperFirstPulseDelay;
+                    m_world.DeploySapperReinforcement(m_tuning.SapperPulseInterval);
+                    m_showFeedback("SAPPER CRADLE ACTIVE — PRIORITIZE THE SIPHON WARNING");
+                    break;
+            }
+        }
+
         public void SpawnForDebug(SecurityReinforcement reinforcement)
         {
             switch (reinforcement)

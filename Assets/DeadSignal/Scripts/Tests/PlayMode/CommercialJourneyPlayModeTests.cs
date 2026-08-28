@@ -51,7 +51,7 @@ namespace DeadSignal.Tests.PlayMode
             game.DebugStartRouteSequence(DebugRoutePreset.FullExtraction, DebugAutomationMode.DeterministicValidation,
                 DebugAutomationProfile.SafeNavigation);
 
-            var timeout = Time.realtimeSinceStartup + 65f;
+            var timeout = Time.realtimeSinceStartup + 75f;
             while ((game.DebugRouteSequenceState == DebugRouteRunState.Navigating ||
                     game.DebugRouteSequenceState == DebugRouteRunState.Verifying) && Time.realtimeSinceStartup < timeout)
             {
@@ -111,7 +111,7 @@ namespace DeadSignal.Tests.PlayMode
             game.DebugStartRouteSequence(DebugRoutePreset.RequiredExtraction,
                 DebugAutomationMode.DeterministicValidation, DebugAutomationProfile.SafeNavigation);
 
-            var routeTimeout = Time.realtimeSinceStartup + 65f;
+            var routeTimeout = Time.realtimeSinceStartup + 75f;
             while (game.DebugRouteSequenceState is DebugRouteRunState.Navigating or DebugRouteRunState.Verifying &&
                    Time.realtimeSinceStartup < routeTimeout)
             {
@@ -146,7 +146,7 @@ namespace DeadSignal.Tests.PlayMode
             Assert.That(report, Does.Contain("Journey REQUIRED WITHDRAWAL"));
             Assert.That(report, Does.Contain("Combat "));
             Assert.That(report, Does.Contain("Guidance response proxy"));
-            Assert.That(report, Does.Contain("Wrong-turn proxies 0  Backtrack legs 7"));
+            Assert.That(report, Does.Contain("Wrong-turn proxies 0  Backtrack legs 9"));
             Assert.That(report, Does.Contain("PASS Cargo coupling"));
             Assert.That(report, Does.Contain("PASS Coolant seal"));
             Assert.That(report, Does.Contain("PASS Relay Fork routing"));

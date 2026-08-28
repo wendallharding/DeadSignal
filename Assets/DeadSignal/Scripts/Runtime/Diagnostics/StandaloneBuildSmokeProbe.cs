@@ -133,6 +133,15 @@ namespace DeadSignal.Diagnostics
                 "Arc Furnace Region/Eastern Combat Scenario") != null;
             var swarmerPrefabReady = Resources.Load<GameObject>("Actors/SwarmerAssembly") != null;
             var swarmerTuningReady = Resources.Load<SwarmerPressureTuning>("Tuning/SwarmerPressureTuning") != null;
+            var wardenBayPrefab = Resources.Load<GameObject>("Environment/WardenStagingBay");
+            var sapperCradlePrefab = Resources.Load<GameObject>("Environment/SignalSapperCradle");
+            var withdrawalPursuitReady =
+                wardenBayPrefab != null &&
+                wardenBayPrefab.TryGetComponent<AuthoredWithdrawalPursuitLandmark>(out var wardenBayLandmark) &&
+                wardenBayLandmark.IsConfigured && wardenBayLandmark.Phase == PoweredWithdrawalPhase.WardenBay &&
+                sapperCradlePrefab != null &&
+                sapperCradlePrefab.TryGetComponent<AuthoredWithdrawalPursuitLandmark>(out var sapperCradleLandmark) &&
+                sapperCradleLandmark.IsConfigured && sapperCradleLandmark.Phase == PoweredWithdrawalPhase.SapperCradle;
             var securityTrialPrefabReady =
                 Resources.Load<GameObject>("Environment/SecurityTrialWingRegion") != null;
             var securityTrialSceneReady = game != null && game.HasAuthoredCombatChamber;
@@ -408,6 +417,7 @@ namespace DeadSignal.Diagnostics
                                 combatLabAnchorsReady &&
                                 swarmerPrefabReady &&
                                 swarmerTuningReady &&
+                                withdrawalPursuitReady &&
                                 game.HasSwarmerAssets &&
                                 stationBackdropTextureReady &&
                                 stationBackdropMaterialReady &&

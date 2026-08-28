@@ -7,6 +7,8 @@ namespace DeadSignal.Missions
         RelayShortcut,
         TransferVault,
         CentralFoothold,
+        WardenBay,
+        SapperCradle,
         Complete
     }
 
