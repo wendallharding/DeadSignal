@@ -9,7 +9,12 @@ namespace DeadSignal.Presentation
         Tower,
         Installation,
         Passage,
-        Machinery
+        Machinery,
+        LockdownEntry,
+        PhaseTransition,
+        RoomClear,
+        Recovery,
+        RewardRelease
     }
 
     internal interface IStationStateFeedback
@@ -82,6 +87,7 @@ namespace DeadSignal.Presentation
             m_nextSlot = (m_nextSlot + 1) % m_slots.Length;
             slot.Elapsed = 0f;
             slot.Diameter = _diameterFor(kind);
+            slot.Kind = kind;
             slot.Root.transform.position = position + Vector3.up * WORLD_HEIGHT;
             slot.Root.SetActive(true);
             LastKind = kind;
@@ -154,7 +160,8 @@ namespace DeadSignal.Presentation
                 : m_tuning.MaximumAlpha;
             var fadeIn = Mathf.Clamp01(progress / 0.18f);
             var fadeOut = 1f - Mathf.Clamp01((progress - 0.42f) / 0.58f);
-            var color = Color.Lerp(m_tuning.AvailableColor, m_tuning.CompleteColor, eased);
+            _colorsFor(slot.Kind, out var startingColor, out var endingColor);
+            var color = Color.Lerp(startingColor, endingColor, eased);
             color.a = fadeIn * fadeOut * maximumAlpha;
             slot.Renderer.color = color;
             CurrentAlpha = color.a;
@@ -194,8 +201,44 @@ namespace DeadSignal.Presentation
                 StationStateFeedbackKind.Tower => 3.4f,
                 StationStateFeedbackKind.Installation => 2.2f,
                 StationStateFeedbackKind.Passage => 2.7f,
+                StationStateFeedbackKind.LockdownEntry => 4.1f,
+                StationStateFeedbackKind.PhaseTransition => 3.2f,
+                StationStateFeedbackKind.RoomClear => 4.5f,
+                StationStateFeedbackKind.Recovery => 2.4f,
+                StationStateFeedbackKind.RewardRelease => 2.8f,
                 _ => 1.8f
             };
+        }
+
+        private void _colorsFor(StationStateFeedbackKind kind, out Color startingColor, out Color endingColor)
+        {
+            switch (kind)
+            {
+                case StationStateFeedbackKind.LockdownEntry:
+                    startingColor = m_tuning.LockdownColor;
+                    endingColor = m_tuning.PhaseColor;
+                    return;
+                case StationStateFeedbackKind.PhaseTransition:
+                    startingColor = m_tuning.PhaseColor;
+                    endingColor = m_tuning.LockdownColor;
+                    return;
+                case StationStateFeedbackKind.RoomClear:
+                    startingColor = m_tuning.LockdownColor;
+                    endingColor = m_tuning.CompleteColor;
+                    return;
+                case StationStateFeedbackKind.Recovery:
+                    startingColor = m_tuning.RecoveryColor;
+                    endingColor = m_tuning.CompleteColor;
+                    return;
+                case StationStateFeedbackKind.RewardRelease:
+                    startingColor = m_tuning.AvailableColor;
+                    endingColor = m_tuning.RecoveryColor;
+                    return;
+                default:
+                    startingColor = m_tuning.AvailableColor;
+                    endingColor = m_tuning.CompleteColor;
+                    return;
+            }
         }
 
         private sealed class FeedbackSlot
@@ -210,6 +253,7 @@ namespace DeadSignal.Presentation
             public SpriteRenderer Renderer { get; }
             public float Elapsed { get; set; }
             public float Diameter { get; set; }
+            public StationStateFeedbackKind Kind { get; set; }
         }
 
         private const string GLYPH_TEXTURE_PATH = "VFX/MachineryStateTransitionGlyph";

@@ -995,6 +995,8 @@ namespace DeadSignal.Application
             m_threats.EndCombatChamber();
             m_combatChamber.Complete();
             m_world.RefreshNavigation();
+            m_stationStateFeedback.Play(m_combatChamber.ArenaPosition, StationStateFeedbackKind.RoomClear);
+            m_stationStateFeedback.Play(m_combatChamber.RewardPosition, StationStateFeedbackKind.RewardRelease);
             _showFeedback("DEBUG — SECURITY TRIAL CLEARED");
         }
 
@@ -1008,6 +1010,7 @@ namespace DeadSignal.Application
             }
 
             m_model.RestoreSignal(m_combatChamber.RewardSignal);
+            m_stationStateFeedback.Play(m_combatChamber.RewardPosition, StationStateFeedbackKind.Recovery);
             _showFeedback("DEBUG — STATION CAPACITOR RECOVERED");
         }
 
@@ -1548,7 +1551,8 @@ namespace DeadSignal.Application
                 _showFeedback,
                 _rewardExtractionPurge);
             m_salvage = new DeadSignalSalvageController(
-                m_model, m_metrics, m_world, m_audio, m_combatFeedback, m_salvageTuning, m_overclockChoice, _showFeedback);
+                m_model, m_metrics, m_world, m_audio, m_combatFeedback, m_stationStateFeedback, m_salvageTuning,
+                m_overclockChoice, _showFeedback);
             m_hud.Configure(m_model, m_metrics, m_world, m_threats, m_salvage, m_extractionUplink, m_overclockChoice);
             m_missionClarityHud = gameObject.AddComponent<MissionClarityHud>();
             m_missionClarityHud.Configure(m_model, m_metrics, m_world, m_overclockChoice);
@@ -2067,6 +2071,9 @@ namespace DeadSignal.Application
                 {
                     var restored = m_model.RestoreSignal(m_combatChamber.RewardSignal);
                     m_combatFeedback.PlaySignalRecovery(m_world.Player.position + Vector3.up * 0.45f);
+                    m_stationStateFeedback.Play(
+                        m_combatChamber.RewardPosition,
+                        StationStateFeedbackKind.Recovery);
                     m_audio.Play(DeadSignalAudioCue.TowerOnline);
                     _showFeedback($"STATION CAPACITOR RECOVERED — CORE COMPLETE  +{restored:0} SIGNAL");
                     return;
@@ -3524,6 +3531,9 @@ namespace DeadSignal.Application
             {
                 m_world.RefreshNavigation();
                 m_threats.BeginCombatChamberPhase(m_combatChamber.CombatScenario, m_combatChamber.Phase);
+                m_stationStateFeedback.Play(
+                    m_combatChamber.ArenaPosition,
+                    StationStateFeedbackKind.LockdownEntry);
                 m_audio.Play(DeadSignalAudioCue.SecurityImpact);
                 _showFeedback("SECURITY LOCKDOWN — PHASE 1  //  PURGE THE SWARM");
                 return;
@@ -3538,6 +3548,9 @@ namespace DeadSignal.Application
             if (m_combatChamber.AdvancePhase())
             {
                 m_threats.BeginCombatChamberPhase(m_combatChamber.CombatScenario, m_combatChamber.Phase);
+                m_stationStateFeedback.Play(
+                    m_combatChamber.ArenaPosition,
+                    StationStateFeedbackKind.PhaseTransition);
                 var objective = m_combatChamber.Phase == 2
                     ? "PHASE 2 — SWARM + WARDEN  //  CREATE SPACE"
                     : "PHASE 3 — SWARM + SAPPER  //  PROTECT THE SIGNAL";
@@ -3552,6 +3565,8 @@ namespace DeadSignal.Application
             }
             m_combatChamber.Complete();
             m_world.RefreshNavigation();
+            m_stationStateFeedback.Play(m_combatChamber.ArenaPosition, StationStateFeedbackKind.RoomClear);
+            m_stationStateFeedback.Play(m_combatChamber.RewardPosition, StationStateFeedbackKind.RewardRelease);
             m_audio.Play(DeadSignalAudioCue.TowerOnline);
             _showFeedback("SECURITY TRIAL CLEARED — VAULT OPEN  //  RETURN ROUTE POWERED");
         }

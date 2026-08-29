@@ -75,7 +75,7 @@ Work through this section after the required mission route is connected. Human-o
 - [x] Add or refine pooled projectile-impact and enemy-purge effects with distinct enemy, wall, and shield reads; keep projectile collision and damage rules unchanged
 - [x] Add restrained directional damage and critical-Signal screen feedback that never obscures projectiles, interaction prompts, enemy telegraphs, or escape lanes
 - [x] Add authored activation/completion effects for towers, payload installation, doors, shortcuts, and machinery state changes using the established amber → cyan language
-- [ ] Add bounded lockdown-entry, phase-transition, room-clear, capacitor/salvage recovery, and reward-release effects without changing encounter timing, population, rewards, or door authority
+- [x] Add bounded lockdown-entry, phase-transition, room-clear, capacitor/salvage recovery, and reward-release effects without changing encounter timing, population, rewards, or door authority
 - [ ] Make weapon transformation and evolution visibly distinct for each established build without changing targeting, cadence, damage, Signal, or enemy counters
 - [ ] Add extraction startup, progress, completion, defeat, and victory effects with Reduced-Flashes alternatives and no persistent full-screen clutter
 

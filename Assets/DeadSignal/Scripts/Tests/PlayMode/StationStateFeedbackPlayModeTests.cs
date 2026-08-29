@@ -12,6 +12,26 @@ namespace DeadSignal.Tests
     public sealed class StationStateFeedbackPlayModeTests
     {
         [UnityTest]
+        public IEnumerator SalvageCollection_UsesRecoveryFeedbackWithoutChangingRewardRules()
+        {
+            yield return SceneManager.LoadSceneAsync("SampleScene");
+            yield return null;
+
+            var game = Object.FindFirstObjectByType<DeadSignalGame>();
+            var feedback = Object.FindFirstObjectByType<StationStateFeedbackController>();
+            game.DebugActivateTower();
+            var signalBefore = game.CurrentSignal;
+
+            game.DebugCollectNextCache();
+
+            Assert.That(game.CurrentSalvage, Is.GreaterThan(0));
+            Assert.That(game.CurrentSignal, Is.EqualTo(signalBefore),
+                "Presentation must not award Signal above the existing capped salvage rule.");
+            Assert.That(feedback.LastKind, Is.EqualTo(StationStateFeedbackKind.Recovery));
+            Assert.That(feedback.ActiveCount, Is.LessThanOrEqualTo(feedback.PoolSize));
+        }
+
+        [UnityTest]
         public IEnumerator TowerInstallationAndShortcut_UseOneBoundedReusableFeedbackOwner()
         {
             yield return SceneManager.LoadSceneAsync("SampleScene");
@@ -53,6 +73,15 @@ namespace DeadSignal.Tests
                 Assert.That(feedback.ActiveCount, Is.LessThanOrEqualTo(feedback.PoolSize));
                 Assert.That(feedback.PlayCount, Is.EqualTo(3));
 
+                feedback.SetPaused(true);
+                feedback.SetPaused(false);
+                feedback.Play(game.TowerPosition, StationStateFeedbackKind.LockdownEntry);
+                Assert.That(feedback.CurrentColor.r, Is.GreaterThan(feedback.CurrentColor.g + 0.5f));
+                feedback.Play(game.TowerPosition, StationStateFeedbackKind.RewardRelease);
+                Assert.That(feedback.CurrentColor.r, Is.GreaterThan(feedback.CurrentColor.b));
+                feedback.Play(game.TowerPosition, StationStateFeedbackKind.Recovery);
+                Assert.That(feedback.CurrentColor.g, Is.GreaterThan(feedback.CurrentColor.r));
+
                 var pooledChildCount = feedback.transform.childCount;
                 for (var index = 0; index < 8; index++)
                 {
@@ -61,7 +90,7 @@ namespace DeadSignal.Tests
                 Assert.That(feedback.transform.childCount, Is.EqualTo(pooledChildCount),
                     "Saturated station-state feedback should reuse its warmed objects.");
                 Assert.That(feedback.ActiveCount, Is.EqualTo(feedback.PoolSize));
-                Assert.That(feedback.PlayCount, Is.EqualTo(11));
+                Assert.That(feedback.PlayCount, Is.EqualTo(14));
 
                 feedback.SetPaused(true);
                 Assert.That(feedback.ActiveCount, Is.Zero);

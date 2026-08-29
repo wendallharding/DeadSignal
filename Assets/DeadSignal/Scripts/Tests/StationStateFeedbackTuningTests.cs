@@ -19,6 +19,9 @@ namespace DeadSignal.Tests
                 Assert.That(tuning.EndingDiameterMultiplier, Is.GreaterThan(tuning.StartingDiameterMultiplier));
                 Assert.That(tuning.AvailableColor.r, Is.GreaterThan(tuning.AvailableColor.b));
                 Assert.That(tuning.CompleteColor.b, Is.GreaterThan(tuning.CompleteColor.r));
+                Assert.That(tuning.LockdownColor.r, Is.GreaterThan(tuning.LockdownColor.g + 0.5f));
+                Assert.That(tuning.PhaseColor.r, Is.GreaterThan(tuning.PhaseColor.b));
+                Assert.That(tuning.RecoveryColor.g, Is.GreaterThan(tuning.RecoveryColor.r));
             }
             finally
             {

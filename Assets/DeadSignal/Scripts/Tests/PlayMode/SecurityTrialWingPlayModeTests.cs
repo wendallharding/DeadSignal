@@ -1,6 +1,7 @@
 using System.Collections;
 using DeadSignal.Application;
 using DeadSignal.Combat;
+using DeadSignal.Presentation;
 using DeadSignal.World;
 using NUnit.Framework;
 using UnityEngine;
@@ -51,6 +52,7 @@ namespace DeadSignal.Tests
             var game = Object.FindFirstObjectByType<DeadSignalGame>();
             var player = game.transform.Find("Maintenance Drone");
             var chamber = Object.FindFirstObjectByType<AuthoredCombatChamber>();
+            var feedback = Object.FindFirstObjectByType<StationStateFeedbackController>();
             var entryDoor = chamber.transform.Find("Lockdown Entry Door").gameObject;
             var threshold = chamber.transform.Find("Lockdown Threshold");
 
@@ -66,6 +68,8 @@ namespace DeadSignal.Tests
             Assert.That(entryDoor.activeSelf, Is.True);
             Assert.That(game.ActiveSwarmerCount, Is.EqualTo(3));
             Assert.That(game.PeakSwarmerCount, Is.EqualTo(3));
+            Assert.That(feedback.LastKind, Is.EqualTo(StationStateFeedbackKind.LockdownEntry));
+            Assert.That(feedback.LastPosition, Is.EqualTo(chamber.ArenaPosition));
         }
 
         [UnityTest]
@@ -103,6 +107,7 @@ namespace DeadSignal.Tests
             var game = Object.FindFirstObjectByType<DeadSignalGame>();
             var player = game.transform.Find("Maintenance Drone");
             var chamber = Object.FindFirstObjectByType<AuthoredCombatChamber>();
+            var feedback = Object.FindFirstObjectByType<StationStateFeedbackController>();
             var entryDoor = chamber.transform.Find("Lockdown Entry Door").gameObject;
             var rewardDoor = chamber.transform.Find("Reward Vault Door").gameObject;
             var reward = chamber.transform.Find("Reward Vault/Trial Capacitor Reward").gameObject;
@@ -118,6 +123,7 @@ namespace DeadSignal.Tests
             yield return null;
 
             Assert.That(game.CombatChamberPhase, Is.EqualTo(2));
+            Assert.That(feedback.LastKind, Is.EqualTo(StationStateFeedbackKind.PhaseTransition));
             Assert.That(game.ActiveSwarmerCount, Is.EqualTo(4));
             Assert.That(game.WardenHealth, Is.GreaterThan(0f));
 
@@ -132,9 +138,11 @@ namespace DeadSignal.Tests
             }
 
             Assert.That(game.CombatChamberPhase, Is.EqualTo(3));
+            Assert.That(feedback.LastKind, Is.EqualTo(StationStateFeedbackKind.PhaseTransition));
             Assert.That(game.ActiveSwarmerCount, Is.EqualTo(4));
             Assert.That(game.SapperHealth, Is.GreaterThan(0f));
 
+            var playCountBeforeClear = feedback.PlayCount;
             game.DebugPurgeSwarmers();
             game.DebugPurgeThreat(SecurityReinforcement.Sapper);
             Assert.That(game.ActiveSwarmerCount, Is.Zero);
@@ -159,9 +167,15 @@ namespace DeadSignal.Tests
             Assert.That(rewardDoor.activeSelf, Is.False);
             Assert.That(reward.activeSelf, Is.True);
             Assert.That(clearedSignal.activeSelf, Is.True);
+            Assert.That(feedback.LastKind, Is.EqualTo(StationStateFeedbackKind.RewardRelease));
+            Assert.That(feedback.LastPosition, Is.EqualTo(chamber.RewardPosition));
+            Assert.That(feedback.PlayCount, Is.EqualTo(playCountBeforeClear + 2),
+                "Clear should emit one arena resolution and one distinct vault reward release.");
             game.DebugRecoverStationCapacitor();
             Assert.That(game.IsStationCapacitorRecovered, Is.True);
             Assert.That(chamber.RewardAvailable, Is.False);
+            Assert.That(feedback.LastKind, Is.EqualTo(StationStateFeedbackKind.Recovery));
+            Assert.That(feedback.PlayCount, Is.EqualTo(playCountBeforeClear + 3));
             TestContext.WriteLine(
                 $"Security trial peak={game.PeakThreatConcurrency} spawned={game.SwarmersSpawned} " +
                 $"purged={game.SwarmersPurged} contacts={game.SwarmerContacts}");

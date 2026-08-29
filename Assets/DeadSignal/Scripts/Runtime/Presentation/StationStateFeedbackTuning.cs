@@ -13,6 +13,9 @@ namespace DeadSignal.Presentation
         [SerializeField, Min(0.1f)] private float m_endingDiameterMultiplier = 1.15f;
         [SerializeField] private Color m_availableColor = new(1f, 0.58f, 0.08f, 1f);
         [SerializeField] private Color m_completeColor = new(0.1f, 0.88f, 1f, 1f);
+        [SerializeField] private Color m_lockdownColor = new(1f, 0.12f, 0.08f, 1f);
+        [SerializeField] private Color m_phaseColor = new(1f, 0.48f, 0.08f, 1f);
+        [SerializeField] private Color m_recoveryColor = new(0.35f, 1f, 0.92f, 1f);
 
         public int PoolSize => m_poolSize;
         public float Duration => m_duration;
@@ -22,6 +25,9 @@ namespace DeadSignal.Presentation
         public float EndingDiameterMultiplier => m_endingDiameterMultiplier;
         public Color AvailableColor => m_availableColor;
         public Color CompleteColor => m_completeColor;
+        public Color LockdownColor => m_lockdownColor;
+        public Color PhaseColor => m_phaseColor;
+        public Color RecoveryColor => m_recoveryColor;
 
         private void OnValidate()
         {

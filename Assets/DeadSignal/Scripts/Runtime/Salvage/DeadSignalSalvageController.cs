@@ -19,6 +19,7 @@ namespace DeadSignal.Salvage
         private readonly SalvagePresentationTuning m_tuning;
         private readonly RunMetrics m_metrics;
         private readonly ICombatFeedback m_feedback;
+        private readonly IStationStateFeedback m_stationStateFeedback;
         private readonly SignalOverclockChoice m_overclockChoice;
         private readonly SalvageChain m_chain = new();
         private float m_recoveryFieldSecondsRemaining;
@@ -42,6 +43,7 @@ namespace DeadSignal.Salvage
             DeadSignalWorld world,
             IDeadSignalAudio audio,
             ICombatFeedback feedback,
+            IStationStateFeedback stationStateFeedback,
             SalvagePresentationTuning tuning,
             SignalOverclockChoice overclockChoice,
             Action<string> showFeedback)
@@ -51,6 +53,7 @@ namespace DeadSignal.Salvage
             m_world = world;
             m_audio = audio;
             m_feedback = feedback;
+            m_stationStateFeedback = stationStateFeedback;
             m_tuning = tuning;
             m_overclockChoice = overclockChoice;
             m_showFeedback = showFeedback;
@@ -140,6 +143,7 @@ namespace DeadSignal.Salvage
                     m_metrics.RecordSalvageSignalRecovered(optionalRecovered);
                     m_audio.Play(DeadSignalAudioCue.Salvage);
                     m_feedback.PlaySalvageChain(pickup.transform.position, RunModel.SalvageRequired + 1);
+                    m_stationStateFeedback.Play(pickup.transform.position, StationStateFeedbackKind.Recovery);
                     m_showFeedback($"OPTIONAL CACHE SECURED  +{optionalRecovered:0} SIGNAL — EXTRACT NOW");
                     continue;
                 }
@@ -254,6 +258,7 @@ namespace DeadSignal.Salvage
             m_metrics.RecordSalvageChain(m_chain.Count, recovered);
             m_audio.Play(DeadSignalAudioCue.Salvage);
             m_feedback.PlaySalvageChain(completionPosition, m_chain.Count);
+            m_stationStateFeedback.Play(completionPosition, StationStateFeedbackKind.Recovery);
             var rewardText = recovered > 0f
                 ? $"  +{recovered:0} SIGNAL  //  SAFE FIELD {m_tuning.RecoveryFieldDuration:0}s"
                 : string.Empty;
