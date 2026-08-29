@@ -66,6 +66,7 @@ namespace DeadSignal.Editor
             DeadSignalBoundaryThresholdSetup.EnsureAssets();
             DeadSignalHudSetup.EnsureAssets();
             DeadSignalProductShellSetup.EnsureAssets();
+            DeadSignalScreenFeedbackSetup.EnsureAssets();
             DeadSignalThreatSetup.EnsureAssets();
             DeadSignalInterceptorSetup.EnsureAssets();
             DeadSignalSwarmerSetup.EnsureAssets();
@@ -134,6 +135,11 @@ namespace DeadSignal.Editor
             if (!DeadSignalHudSetup.HasAssets)
             {
                 throw new BuildFailedException("The authored Signal HUD assets are missing.");
+            }
+
+            if (!DeadSignalScreenFeedbackSetup.HasAssets)
+            {
+                throw new BuildFailedException("The authored screen feedback assets are missing.");
             }
 
             if (!DeadSignalThreatSetup.HasAssets)

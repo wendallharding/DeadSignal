@@ -1,0 +1,28 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f031c0f906372544288e0e6533f0fbbf, type: 3}
+  m_Name: ScreenFeedbackTuning
+  m_EditorClassIdentifier: DeadSignal.Runtime::DeadSignal.Presentation.ScreenFeedbackTuning
+  m_warningThreshold: 0.3
+  m_criticalThreshold: 0.25
+  m_signalPulseSpeed: 2.4
+  m_warningMinimumAlpha: 0.07
+  m_warningMaximumAlpha: 0.14
+  m_criticalMaximumAlpha: 0.2
+  m_reducedFlashesSignalAlpha: 0.1
+  m_directionalDuration: 0.52
+  m_directionalMaximumAlpha: 0.48
+  m_reducedFlashesDirectionalAlpha: 0.24
+  m_horizontalAnchorRadius: 0.43
+  m_verticalAnchorRadius: 0.4
+  m_securityDamageColor: {r: 1, g: 0.12, b: 0.08, a: 1}
+  m_sapperDamageColor: {r: 1, g: 0.08, b: 0.65, a: 1}

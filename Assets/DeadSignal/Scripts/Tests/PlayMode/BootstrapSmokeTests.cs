@@ -1642,6 +1642,8 @@ namespace DeadSignal.Tests
             Assert.That(game.HasSignalDustTexture, Is.True, "The original Signal-dust texture should load from Resources.");
             Assert.That(game.HasLowSignalWarningTexture, Is.True,
                 "The low-Signal presenter should load its original warning vignette from Resources.");
+            Assert.That(game.HasDirectionalDamageIndicator, Is.True,
+                "The authored HUD should retain its fixed screen-edge damage indicator.");
             Assert.That(Object.FindFirstObjectByType<TowerActivationSweepController>(), Is.Not.Null,
                 "Reflex composition should provide a dedicated tower-activation presenter.");
             Assert.That(game.HasTowerActivationSweepTexture, Is.True,

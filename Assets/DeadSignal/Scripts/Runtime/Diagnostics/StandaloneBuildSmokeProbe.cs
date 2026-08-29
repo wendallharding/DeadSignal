@@ -480,6 +480,8 @@ namespace DeadSignal.Diagnostics
                                 Resources.Load<Texture2D>("VFX/SapperTetherFlow") != null &&
                                 Resources.Load<SignalSapperTelegraphTuning>("Tuning/SignalSapperTelegraphTuning") != null &&
                                 game.HasLowSignalWarningTexture &&
+                                game.HasDirectionalDamageIndicator &&
+                                Resources.Load<ScreenFeedbackTuning>("Tuning/ScreenFeedbackTuning") != null &&
                                 game.HasTowerActivationSweepTexture &&
                                 game.HasBindingMatrixIcon &&
                                 Resources.Load<Texture2D>("UI/BindingMatrixIcon") != null &&

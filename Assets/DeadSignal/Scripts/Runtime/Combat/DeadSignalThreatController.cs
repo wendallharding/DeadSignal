@@ -28,6 +28,7 @@ namespace DeadSignal.Combat
         private readonly RunMetrics m_metrics;
         private readonly DeadSignalWorld m_world;
         private readonly ICombatFeedback m_combatFeedback;
+        private readonly IDirectionalDamageFeedback m_directionalDamageFeedback;
         private readonly IDeadSignalAudio m_audio;
         private readonly SignalBoltPresentationTuning m_projectileTuning;
         private readonly ThreatBalanceTuning m_tuning;
@@ -80,6 +81,7 @@ namespace DeadSignal.Combat
             RunMetrics metrics,
             DeadSignalWorld world,
             ICombatFeedback combatFeedback,
+            IDirectionalDamageFeedback directionalDamageFeedback,
             IDeadSignalAudio audio,
             SignalBoltPresentationTuning projectileTuning,
             ThreatBalanceTuning tuning,
@@ -93,6 +95,7 @@ namespace DeadSignal.Combat
             m_metrics = metrics;
             m_world = world;
             m_combatFeedback = combatFeedback;
+            m_directionalDamageFeedback = directionalDamageFeedback;
             m_audio = audio;
             m_projectileTuning = projectileTuning;
             m_tuning = tuning;
@@ -638,6 +641,8 @@ namespace DeadSignal.Combat
                     if (!_tryAbsorbThreatDamage("SUPPRESSION PULSE"))
                     {
                         m_model.TakeSuppressionPulse(m_tuning.SuppressorSignalDrain);
+                        m_directionalDamageFeedback.Play(
+                            m_world.Suppressor.position, m_world.Player.position, PlayerDamageFeedbackKind.Security);
                         m_showFeedback($"SUPPRESSION FIELD  −{m_tuning.SuppressorSignalDrain:0} SIGNAL — BREAK OUT");
                     }
                 }
@@ -919,6 +924,8 @@ namespace DeadSignal.Combat
 
             m_model.TakeSecurityHit();
             m_metrics.RecordSecurityHit();
+            m_directionalDamageFeedback.Play(
+                m_world.Interceptor.position, m_world.Player.position, PlayerDamageFeedbackKind.Security);
             m_combatFeedback.PlaySecurityImpact(m_world.Player.position + Vector3.up * 0.58f);
             m_audio.Play(DeadSignalAudioCue.SecurityImpact);
             m_showFeedback($"INTERCEPTOR IMPACT  −{RunModel.SecurityHitCost:0} SIGNAL");
@@ -1001,6 +1008,8 @@ namespace DeadSignal.Combat
 
             m_model.TakeSecurityHit();
             m_metrics.RecordSecurityHit();
+            m_directionalDamageFeedback.Play(
+                m_world.Warden.position, m_world.Player.position, PlayerDamageFeedbackKind.Security);
             m_combatFeedback.PlaySecurityImpact(m_world.Player.position + Vector3.up * 0.58f);
             m_audio.Play(DeadSignalAudioCue.SecurityImpact);
             m_showFeedback("SECURITY IMPACT  −18 SIGNAL");
@@ -1072,6 +1081,8 @@ namespace DeadSignal.Combat
             {
                 m_model.TakeSapperPulse();
                 m_metrics.RecordSapperPulse();
+                m_directionalDamageFeedback.Play(
+                    m_world.Sapper.position, m_world.Player.position, PlayerDamageFeedbackKind.Sapper);
                 m_showFeedback($"SAPPER DRAIN  -{RunModel.SapperPulseCost:0} SIGNAL");
             }
         }
@@ -1654,6 +1665,7 @@ namespace DeadSignal.Combat
 
             m_model.TakeSuppressionPulse(m_swarmerTuning.ContactSignalDrain);
             m_metrics.RecordSwarmerContact();
+            m_directionalDamageFeedback.Play(position, m_world.Player.position, PlayerDamageFeedbackKind.Security);
             m_showFeedback($"SWARMER IMPACT  −{m_swarmerTuning.ContactSignalDrain:0} SIGNAL");
         }
 

@@ -71,3 +71,9 @@ Focused Unity evidence proved the 12 → 16 impact/spark pools, 6 → 8 chain po
 - Player muzzle, dash, and chain-arc allocations are documented risks, but they are not part of the next slice unless the shared impact pool can absorb them without broadening ownership.
 - Persistent machinery/door state readability belongs to the later room/act audit, not this effect foundation.
 - Human comparison is still required for flash comfort, silhouette hierarchy, and whether purges feel satisfying. Automation can prove limits, cleanup, allocations, and rendered visibility only.
+
+## Implementation result — Run 172
+
+Resolved player damage now drives one fixed-owner HUD chevron at the relevant screen edge. Warden, Interceptor, Swarmer, and Suppressor damage use the established red danger language; Sapper drain uses magenta. Shielded or debug-invulnerable contacts do not trigger the damage cue. The two simple authored UI rails allocate nothing per event, remain outside the center and prompt regions, fade within 0.52 seconds, cap at 0.48 alpha, and use a steady 0.24 Reduced-Flashes cap. Pause, menu ownership, terminal outcomes, disable, and restart clear or replace the presentation without camera motion, so Steady Camera remains authoritative.
+
+The existing low-Signal vignette now shares `ScreenFeedbackTuning` and gains an explicit critical tier at 25 percent reserve. Its normal maximum rises only from 0.14 warning alpha to 0.2 at failure proximity; Reduced Flashes remains a steady 0.1 ceiling. Focused Unity evidence proved tuning bounds, direction resolution, authored prefab bindings, pause cleanup, the critical reserve state, compatibility with pooled impacts, and complete runtime bootstrap. Human comparison at 1280×720, 1600×900, and ultrawide remains required to prove that the edge chevron and critical vignette stay readable without hiding threats, prompts, or one escape lane.

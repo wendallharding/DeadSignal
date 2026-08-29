@@ -55,6 +55,7 @@ namespace DeadSignal.Application
         private SignalOverclockTuning m_overclockTuning;
         private ExtractionUplink m_extractionUplink;
         private ILowSignalWarning m_lowSignalWarning;
+        private IDirectionalDamageFeedback m_directionalDamageFeedback;
         private ITowerActivationSweep m_towerActivationSweep;
         private MissionClarityHud m_missionClarityHud;
         private Container m_container;
@@ -269,6 +270,10 @@ namespace DeadSignal.Application
         public bool HasPlayerCameraTuning => m_world?.HasPlayerCameraTuning ?? false;
         public bool IsPlayerCameraFollowing => m_world?.PlayerCamera?.IsConfigured ?? false;
         public float LowSignalWarningIntensity => m_lowSignalWarning?.CurrentIntensity ?? 0f;
+        public float DirectionalDamageFeedbackAlpha =>
+            (m_directionalDamageFeedback as DirectionalDamageFeedbackController)?.CurrentAlpha ?? 0f;
+        public bool HasDirectionalDamageIndicator =>
+            (m_directionalDamageFeedback as DirectionalDamageFeedbackController)?.HasAuthoredIndicator ?? false;
         public bool IsSignalDustPowered => m_signalDust?.IsPowered ?? false;
         public int SignalDustMaximumParticles => m_signalDust?.MaximumParticles ?? 0;
         public float SignalDustEmissionRate => m_signalDust?.EmissionRate ?? 0f;
@@ -1395,6 +1400,7 @@ namespace DeadSignal.Application
             IObjectiveBeacon objectiveBeacon,
             ISignalDust signalDust,
             ILowSignalWarning lowSignalWarning,
+            IDirectionalDamageFeedback directionalDamageFeedback,
             ITowerActivationSweep towerActivationSweep,
             Container container)
         {
@@ -1406,6 +1412,7 @@ namespace DeadSignal.Application
             m_objectiveBeacon = objectiveBeacon;
             m_signalDust = signalDust;
             m_lowSignalWarning = lowSignalWarning;
+            m_directionalDamageFeedback = directionalDamageFeedback;
             m_towerActivationSweep = towerActivationSweep;
             m_container = container;
         }
@@ -1475,6 +1482,7 @@ namespace DeadSignal.Application
             m_combatChamber?.ResetState();
             m_world.ConfigurePlayerSignalWake(m_playerMovementTuning);
             m_combatFeedback.Configure(m_world.Camera);
+            m_directionalDamageFeedback.Configure(m_model, m_world.Camera);
             var signalBoltTuning = Resources.Load<SignalBoltPresentationTuning>("Tuning/SignalBoltPresentationTuning");
             var threatTuning = Resources.Load<ThreatBalanceTuning>("Tuning/ThreatBalanceTuning");
             var swarmerTuning = Resources.Load<SwarmerPressureTuning>("Tuning/SwarmerPressureTuning");
@@ -1498,6 +1506,7 @@ namespace DeadSignal.Application
                 m_metrics,
                 m_world,
                 m_combatFeedback,
+                m_directionalDamageFeedback,
                 m_audio,
                 signalBoltTuning,
                 threatTuning,
@@ -1613,6 +1622,7 @@ namespace DeadSignal.Application
             _tryTriggerEmergencyCapacitor();
             m_signalDust.Tick(powered, m_model.TowerOnline, m_model.Signal / RunModel.MaximumSignal);
             m_lowSignalWarning.Tick(dt);
+            m_directionalDamageFeedback.Tick(dt);
             m_metrics.Advance(dt, powered, _activeDebugThreatCount() > 0);
             _tickOnboarding();
             if (powered != m_lastPoweredState)
@@ -3477,6 +3487,7 @@ namespace DeadSignal.Application
         private void _setPaused(bool paused)
         {
             m_combatFeedback.SetPaused(paused);
+            m_directionalDamageFeedback.Tick(0f);
             m_audio.SetPaused(paused);
             m_signalDust.SetPaused(paused);
             m_world.PlayerSignalWake.SetPaused(paused);
