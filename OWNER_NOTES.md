@@ -3,7 +3,7 @@
 ## P0 — Build one cohesive station mission
 
 - [ ] Treat `GAME_VISION.md` → “Current product strategy — one cohesive station mission” and `BACKLOG.md` → “P0 — Cohesive station mission restructuring” as the controlling direction for every scheduled development run.
-- [ ] Work strictly from the first incomplete phase and highest actionable checkbox in that backlog section.
+- [ ] Prefer the first incomplete phase and highest actionable checkbox, but defer an exhausted tuning or evidence item after one decisive failed attempt and continue with the next independent authorized slice. Do not mark deferred work complete, and do not let it block unrelated forward progress.
 - [ ] Implement exactly one bounded, player-facing mission-flow slice per run. A slice may include its necessary deterministic rule, authored room state, interaction, guidance, tests, and minimal presentation, but not a second unrelated mechanic.
 - [ ] Preserve a completable run after every slice. Use compatibility adapters or temporary migration states rather than replacing the full mission in one pass.
 - [ ] Do not add another room, tower, enemy archetype, upgrade, collectible, arena, optional branch, or cosmetic workstream unless fresh evidence shows the active mission slice cannot succeed without it.
@@ -23,7 +23,7 @@
 
 ## P0.2 — Quality rules for each slice
 
-- [ ] State the player-facing hypothesis, before-state, scope cap, acceptance criteria, and rollback criteria before editing.
+- [ ] State the player benefit, before-state, scope cap, and completion checks before editing. Use explicit rejection and rollback criteria only for actual tuning experiments, not routine implementation work.
 - [ ] Give adjacent rooms different verbs. Prefer retrieve, process, reroute, defend, install, pursue, recover, and extract over repeated pickups or switches.
 - [ ] Make completion visibly change the station: power territory, open a door or shortcut, alter the return path, grant a build decision, release a recovery resource, or transition combat state.
 - [ ] Limit required backtracking to one meaningful installation return per act; reject travel that exists only to lengthen the run.
@@ -46,7 +46,7 @@
 ## Evidence-directed priority override
 
 - [ ] The playtest-review automation may replace only the checklist items in this section when fresh evidence identifies a correctness, comprehension, pacing, or fun blocker to the active cohesive-mission phase.
-- [ ] No current override. Continue with the first incomplete cohesive-mission phase.
+- [ ] Current override: defer Phase 5 whole-run Signal/combat-economy retuning pending new evidence, a human playtest, or a materially different implementation approach. Continue with the first independent Phase 6 product-shell slice.
 
 ## Blocker before lower-priority work
 

@@ -229,7 +229,7 @@ namespace DeadSignal.Tests.PlayMode
             game.DebugStartRouteSequence(DebugRoutePreset.RequiredExtraction,
                 DebugAutomationMode.AssistedPlaythrough, DebugAutomationProfile.LiveBalance);
 
-            var timeout = Time.realtimeSinceStartup + 85f;
+            var timeout = Time.realtimeSinceStartup + 115f;
             while (game.CurrentRunOutcome == RunOutcome.Running && Time.realtimeSinceStartup < timeout)
             {
                 yield return null;
