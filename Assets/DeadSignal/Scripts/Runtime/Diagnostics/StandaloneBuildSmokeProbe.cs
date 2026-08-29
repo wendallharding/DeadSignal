@@ -89,7 +89,12 @@ namespace DeadSignal.Diagnostics
                                        transferVaultObjective != null && transferVaultObjective.IsConfigured &&
                                        centralInstallationObjective != null && centralInstallationObjective.IsConfigured &&
                                        transferVaultObjective.IsRouteConfigured && !transferVaultObjective.IsRelayRouteOpen;
-            var relayPayloadReady = relayPayloadObjective != null && relayPayloadObjective.IsConfigured;
+            var relayPayloadReady = relayPayloadObjective != null && relayPayloadObjective.IsConfigured &&
+                                    relayPayloadObjective.HasReadabilityAssets &&
+                                    relayPayloadObjective.PresentationState ==
+                                    RelayCalibrationPresentationState.PrerequisiteLocked &&
+                                    relayPayloadObjective.GetComponent<AuthoredRouteDoorReadability>()?.PresentationState ==
+                                    RouteDoorPresentationState.Locked;
             var spineVentingReady = spineVentingObjective != null && spineVentingObjective.IsConfigured &&
                                     game != null && !game.IsSpineBerthVented;
             var spineCoreInstallationReady = spineCoreInstallationObjective != null &&
@@ -320,6 +325,9 @@ namespace DeadSignal.Diagnostics
                                 game.transform.Find(
                                     "Relay Foundry Region/Relay Cooling Gantry Region/Cooling Gantry Reinforcement Gate") != null &&
                                 game.transform.Find("Relay Foundry Region/Relay Payload Calibration Anchor") != null &&
+                                game.transform.Find("Relay Foundry Region/Relay Calibration Status Panel") != null &&
+                                game.transform.Find("Relay Foundry Region/Relay Calibration Selector") != null &&
+                                game.transform.Find("Relay Foundry Region/Relay Return Threshold") != null &&
                                 game.transform.Find(
                                     "Relay Foundry Region/Relay Cooling Gantry Region/" +
                                     "Cooling Gantry Relay Payload Socket") != null &&

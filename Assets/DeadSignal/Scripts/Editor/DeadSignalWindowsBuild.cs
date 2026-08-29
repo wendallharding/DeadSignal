@@ -51,6 +51,8 @@ namespace DeadSignal.Editor
             DeadSignalActOneRouteReadabilitySetup.EnsureAssets();
             DeadSignalRelayFoundrySetup.EnsureAssets();
             DeadSignalRelayCoolingGantrySetup.EnsureAssets();
+            DeadSignalActTwoReadabilitySetup.EnsureAssets();
+            DeadSignalActTwoCalibrationReadabilitySetup.EnsureAssets();
             DeadSignalCapacitorSpineSetup.EnsureAssets();
             DeadSignalSpineDischargeTrenchSetup.EnsureAssets();
             DeadSignalSpineInductionGallerySetup.EnsureAssets();
@@ -200,6 +202,11 @@ namespace DeadSignal.Editor
             if (!DeadSignalActOneRouteReadabilitySetup.HasAssets)
             {
                 throw new BuildFailedException("The authored Act I route-readability assets are missing.");
+            }
+
+            if (!DeadSignalActTwoReadabilitySetup.HasAssets || !DeadSignalActTwoCalibrationReadabilitySetup.HasAssets)
+            {
+                throw new BuildFailedException("The authored Act II readability assets are missing.");
             }
 
             if (!DeadSignalProjectSetup.HasSignalRoutingAssets)

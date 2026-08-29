@@ -415,6 +415,7 @@ namespace DeadSignal.World
                 model.RelayPayloadStabilized,
                 model.CurrentObjective.Id == MissionObjectiveId.RelayInstallation,
                 model.RelayPayloadSecured);
+            RelayPayloadObjective?.SetReturnOpen(model.RelayTowerOnline);
             RelayNetworkReadability?.SetState(
                 model.CurrentObjective.Id == MissionObjectiveId.RelayTower,
                 model.RelayTowerOnline,

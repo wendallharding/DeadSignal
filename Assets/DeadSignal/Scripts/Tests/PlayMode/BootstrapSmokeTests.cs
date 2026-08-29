@@ -75,6 +75,9 @@ namespace DeadSignal.Tests
                     "The region junction should carry its authored protected-versus-exposed route marking.");
                 Assert.That(foundry.Find("Relay Weapon Calibration Decal"), Is.Not.Null,
                     "The Relay tower should carry a scene-authored, text-free weapon choice marking.");
+                Assert.That(foundry.Find("Relay Calibration Status Panel"), Is.Not.Null);
+                Assert.That(foundry.Find("Relay Calibration Selector"), Is.Not.Null);
+                Assert.That(foundry.Find("Relay Return Threshold"), Is.Not.Null);
                 Assert.That(foundry.Find("Foundry North Lockdown Decal"), Is.Not.Null);
                 Assert.That(foundry.Find("Foundry South Lockdown Decal"), Is.Not.Null);
                 Assert.That(Resources.Load<Texture2D>("Environment/RelayFoundryWeaponCalibrationDecal"), Is.Not.Null);
@@ -148,6 +151,8 @@ namespace DeadSignal.Tests
                     $"Relay activation failed at player {player.position}, tower {game.RelayTowerPosition}, Signal {game.CurrentSignal:0.##}.");
                 Assert.That(foundry.Find("Relay Signal Lines").gameObject.activeSelf, Is.True);
                 Assert.That(foundry.Find("Relay Return Bulkhead").gameObject.activeSelf, Is.False);
+                Assert.That(foundry.Find("Relay Return Threshold").gameObject.activeSelf, Is.True,
+                    "The opened return shortcut should retain a readable threshold.");
                 Assert.That(game.IsSignalDustPowered, Is.True,
                     "The second tower should make its authored region a real Signal-safe foothold.");
                 Assert.That(game.IsWeaponOverclockChoicePending, Is.False,
