@@ -67,7 +67,7 @@ Work through this section after the required mission route is connected. Human-o
 - [x] Add reliable Return to Menu actions from pause, defeat, and victory; prove repeated menu → run → restart/menu loops do not duplicate runtime services, input actions, audio, or scene state
 - [x] Turn the existing defeat overlay into a proper game-over presentation with a clear failure cause, concise run summary, Restart, and Main Menu
 - [x] Turn the existing victory overlay into a distinct completion presentation with mission time, room/combat/Signal highlights, Restart, and Main Menu
-- [ ] Add short menu-to-run, defeat, and victory transitions that preserve input focus, pause semantics, Reduced Flashes, and Steady Camera
+- [x] Add short menu-to-run, defeat, and victory transitions that preserve input focus, pause semantics, Reduced Flashes, and Steady Camera
 
 #### Presentation-effect foundation
 

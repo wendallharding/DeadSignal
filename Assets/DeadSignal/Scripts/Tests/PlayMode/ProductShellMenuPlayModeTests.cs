@@ -54,7 +54,11 @@ namespace DeadSignal.Tests
 
             _button(shell, "Back").onClick.Invoke();
             _button(shell, "Start Run").onClick.Invoke();
-            yield return null;
+            Assert.That(shell.IsTransitioning, Is.True);
+            Assert.That(shell.IsMenuVisible, Is.True);
+            Assert.That(game.IsPaused, Is.True);
+            Assert.That(EventSystem.current.currentSelectedGameObject.name, Is.EqualTo("Start Run"));
+            yield return _waitForMenuTransition(shell);
             Assert.That(shell.IsMenuVisible, Is.False);
             Assert.That(game.IsMainMenuOpen, Is.False);
             Assert.That(game.enabled, Is.True);
@@ -104,8 +108,7 @@ namespace DeadSignal.Tests
             var shell = Object.FindFirstObjectByType<DeadSignalShellController>(FindObjectsInactive.Include);
             shell.DebugShowMenu();
             yield return null;
-            _button(shell, "Start Run").onClick.Invoke();
-            yield return null;
+            yield return _startRun(shell);
 
             var gamepad = InputSystem.AddDevice<Gamepad>();
             try
@@ -118,29 +121,32 @@ namespace DeadSignal.Tests
                 yield return null;
                 var pausedReturnGame = _assertFreshMenuRuntime(runningId);
 
-                _button(Object.FindFirstObjectByType<DeadSignalShellController>(FindObjectsInactive.Include), "Start Run").onClick.Invoke();
+                yield return _startRun(Object.FindFirstObjectByType<DeadSignalShellController>(FindObjectsInactive.Include));
                 pausedReturnGame.DebugApplyScenario(DebugScenario.Failure);
                 yield return null;
                 Assert.That(EventSystem.current.currentSelectedGameObject.name, Is.EqualTo("Restart Run"));
+                yield return _waitForOutcomeTransition();
                 _assertDefeatPresentation();
                 var defeatId = pausedReturnGame.GetInstanceID();
                 _activeHudButton("Main Menu").onClick.Invoke();
                 yield return null;
                 var defeatReturnGame = _assertFreshMenuRuntime(defeatId);
 
-                _button(Object.FindFirstObjectByType<DeadSignalShellController>(FindObjectsInactive.Include), "Start Run").onClick.Invoke();
+                yield return _startRun(Object.FindFirstObjectByType<DeadSignalShellController>(FindObjectsInactive.Include));
                 defeatReturnGame.DebugApplyScenario(DebugScenario.Victory);
                 yield return null;
                 Assert.That(EventSystem.current.currentSelectedGameObject.name, Is.EqualTo("Restart Run"));
+                yield return _waitForOutcomeTransition();
                 _assertVictoryPresentation();
                 var victoryId = defeatReturnGame.GetInstanceID();
                 _activeHudButton("Main Menu").onClick.Invoke();
                 yield return null;
                 var victoryReturnGame = _assertFreshMenuRuntime(victoryId);
 
-                _button(Object.FindFirstObjectByType<DeadSignalShellController>(FindObjectsInactive.Include), "Start Run").onClick.Invoke();
+                yield return _startRun(Object.FindFirstObjectByType<DeadSignalShellController>(FindObjectsInactive.Include));
                 victoryReturnGame.DebugApplyScenario(DebugScenario.Failure);
                 yield return null;
+                yield return _waitForOutcomeTransition();
                 var restartId = victoryReturnGame.GetInstanceID();
                 _activeHudButton("Restart Run").onClick.Invoke();
                 yield return null;
@@ -151,6 +157,79 @@ namespace DeadSignal.Tests
                 InputSystem.RemoveDevice(gamepad);
                 Time.timeScale = 1f;
             }
+        }
+
+        [UnityTest]
+        public IEnumerator ShellTransitions_PreserveFocusPauseAndReducedFlashesAlternative()
+        {
+            yield return SceneManager.LoadSceneAsync("SampleScene");
+            yield return null;
+
+            var shell = Object.FindFirstObjectByType<DeadSignalShellController>(FindObjectsInactive.Include);
+            var game = Object.FindFirstObjectByType<DeadSignalGame>();
+            shell.DebugShowMenu();
+            yield return null;
+            _button(shell, "Settings").onClick.Invoke();
+            var reducedFlashes = _button(shell, "Reduced Flashes");
+            var toggledReducedFlashes = false;
+            if (!reducedFlashes.GetComponentInChildren<Text>().text.EndsWith("ON"))
+            {
+                reducedFlashes.onClick.Invoke();
+                toggledReducedFlashes = true;
+                yield return null;
+            }
+
+            _button(shell, "Back").onClick.Invoke();
+            _button(shell, "Start Run").onClick.Invoke();
+            yield return null;
+            Assert.That(shell.IsTransitioning, Is.True);
+            Assert.That(shell.TransitionOpacity, Is.InRange(0f, 1f));
+            Assert.That(game.IsPaused, Is.True);
+            Assert.That(Time.timeScale, Is.Zero);
+            Assert.That(EventSystem.current.currentSelectedGameObject.name, Is.EqualTo("Start Run"));
+            yield return _waitForMenuTransition(shell);
+
+            game.DebugApplyScenario(DebugScenario.Victory);
+            yield return null;
+            var hud = Object.FindFirstObjectByType<DeadSignalHud>(FindObjectsInactive.Include);
+            Assert.That(hud.IsOutcomeTransitioning, Is.True);
+            Assert.That(hud.OutcomeTransitionOpacity, Is.InRange(0f, 1f));
+            Assert.That(EventSystem.current.currentSelectedGameObject.name, Is.EqualTo("Restart Run"));
+            yield return _waitForOutcomeTransition();
+            Assert.That(hud.OutcomeTransitionOpacity, Is.EqualTo(1f));
+            if (toggledReducedFlashes)
+            {
+                reducedFlashes.onClick.Invoke();
+            }
+        }
+
+        private static IEnumerator _startRun(DeadSignalShellController shell)
+        {
+            _button(shell, "Start Run").onClick.Invoke();
+            yield return _waitForMenuTransition(shell);
+        }
+
+        private static IEnumerator _waitForMenuTransition(DeadSignalShellController shell)
+        {
+            var deadline = Time.realtimeSinceStartup + 1f;
+            while (shell.IsTransitioning && Time.realtimeSinceStartup < deadline)
+            {
+                yield return null;
+            }
+
+            Assert.That(shell.IsTransitioning, Is.False, "Menu-to-run transition did not finish within one real-time second.");
+        }
+
+        private static IEnumerator _waitForOutcomeTransition()
+        {
+            var hud = Object.FindFirstObjectByType<DeadSignalHud>(FindObjectsInactive.Include);
+            var deadline = Time.realtimeSinceStartup + 1f;
+            while (hud.IsOutcomeTransitioning && Time.realtimeSinceStartup < deadline)
+            {
+                yield return null;
+            }
+
+            Assert.That(hud.IsOutcomeTransitioning, Is.False, "Outcome transition did not finish within one real-time second.");
         }
 
         private static IEnumerator _pressAndRelease(Gamepad gamepad, GamepadState state)

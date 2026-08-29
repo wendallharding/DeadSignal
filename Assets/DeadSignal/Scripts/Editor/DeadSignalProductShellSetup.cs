@@ -10,10 +10,14 @@ namespace DeadSignal.Editor
         private const string PREFAB_PATH = "Assets/DeadSignal/Resources/UI/DeadSignalMainMenu.prefab";
         private const string HUD_PREFAB_PATH = "Assets/DeadSignal/Resources/UI/DeadSignalHud.prefab";
         private const string BACKDROP_PATH = "Assets/DeadSignal/Resources/UI/MainMenuStationBackdrop.png";
+        private const string TRANSITION_TUNING_PATH =
+            "Assets/DeadSignal/Resources/Tuning/ProductShellTransitionTuning.asset";
 
         [MenuItem("DEAD SIGNAL/Ensure Product Shell")]
         public static void EnsureAssets()
         {
+            var transitionTuning = _ensureTransitionTuning();
+
             var importer = AssetImporter.GetAtPath(BACKDROP_PATH) as TextureImporter;
             if (importer == null)
             {
@@ -41,6 +45,7 @@ namespace DeadSignal.Editor
                 overlay.offsetMin = Vector2.zero;
                 overlay.offsetMax = Vector2.zero;
                 var backdropImage = overlay.gameObject.AddComponent<RawImage>();
+                var menuCanvasGroup = overlay.gameObject.AddComponent<CanvasGroup>();
                 backdropImage.texture = backdrop;
                 backdropImage.color = new Color(0.72f, 0.76f, 0.8f, 1f);
                 var shade = _createRect("Readability Shade", overlay, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
@@ -103,6 +108,8 @@ namespace DeadSignal.Editor
                 _set(serialized, "m_mainPanel", mainPanel.gameObject);
                 _set(serialized, "m_settingsPanel", settingsPanel.gameObject);
                 _set(serialized, "m_controlsPanel", controlsPanel.gameObject);
+                _set(serialized, "m_menuCanvasGroup", menuCanvasGroup);
+                _set(serialized, "m_transitionTuning", transitionTuning);
                 _set(serialized, "m_startButton", start);
                 _set(serialized, "m_settingsButton", settings);
                 _set(serialized, "m_controlsButton", controls);
@@ -125,10 +132,60 @@ namespace DeadSignal.Editor
 
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
-            _ensureHudNavigation();
+            _ensureHudNavigation(transitionTuning);
         }
 
-        private static void _ensureHudNavigation()
+        public static void EnsureTransitionAssets()
+        {
+            var transitionTuning = _ensureTransitionTuning();
+            _ensureMainMenuTransition(transitionTuning);
+            _ensureHudNavigation(transitionTuning);
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
+        }
+
+        private static ProductShellTransitionTuning _ensureTransitionTuning()
+        {
+            var transitionTuning = AssetDatabase.LoadAssetAtPath<ProductShellTransitionTuning>(TRANSITION_TUNING_PATH);
+            if (transitionTuning != null)
+            {
+                return transitionTuning;
+            }
+
+            transitionTuning = ScriptableObject.CreateInstance<ProductShellTransitionTuning>();
+            AssetDatabase.CreateAsset(transitionTuning, TRANSITION_TUNING_PATH);
+            return transitionTuning;
+        }
+
+        private static void _ensureMainMenuTransition(ProductShellTransitionTuning transitionTuning)
+        {
+            var root = PrefabUtility.LoadPrefabContents(PREFAB_PATH);
+            try
+            {
+                var controller = root.GetComponent<DeadSignalShellController>();
+                var canvasGroup = root.GetComponent<CanvasGroup>();
+                if (controller == null)
+                {
+                    throw new System.InvalidOperationException("The authored main-menu controller is missing.");
+                }
+                if (canvasGroup == null)
+                {
+                    canvasGroup = root.AddComponent<CanvasGroup>();
+                }
+
+                var serialized = new SerializedObject(controller);
+                _set(serialized, "m_menuCanvasGroup", canvasGroup);
+                _set(serialized, "m_transitionTuning", transitionTuning);
+                serialized.ApplyModifiedPropertiesWithoutUndo();
+                PrefabUtility.SaveAsPrefabAsset(root, PREFAB_PATH);
+            }
+            finally
+            {
+                PrefabUtility.UnloadPrefabContents(root);
+            }
+        }
+
+        private static void _ensureHudNavigation(ProductShellTransitionTuning transitionTuning)
         {
             var root = PrefabUtility.LoadPrefabContents(HUD_PREFAB_PATH);
             try
@@ -145,6 +202,11 @@ namespace DeadSignal.Editor
                 var pauseMenu = _ensureHudButton("Main Menu", pause, "MAIN MENU", new Vector2(150f, -316f));
                 var outcomeRestart = _ensureHudButton("Restart Run", outcome, "RESTART RUN", new Vector2(-150f, -94f));
                 var outcomeMenu = _ensureHudButton("Main Menu", outcome, "MAIN MENU", new Vector2(150f, -94f));
+                var outcomeCanvasGroup = outcome.GetComponent<CanvasGroup>();
+                if (outcomeCanvasGroup == null)
+                {
+                    outcomeCanvasGroup = outcome.gameObject.AddComponent<CanvasGroup>();
+                }
                 (pause.Find("Resume") as RectTransform).anchoredPosition = new Vector2(0f, -376f);
                 (outcome.Find("Restart") as RectTransform).anchoredPosition = new Vector2(0f, -154f);
 
@@ -153,6 +215,8 @@ namespace DeadSignal.Editor
                 _set(serialized, "m_pauseMainMenuButton", pauseMenu);
                 _set(serialized, "m_outcomeRestartButton", outcomeRestart);
                 _set(serialized, "m_outcomeMainMenuButton", outcomeMenu);
+                _set(serialized, "m_outcomeCanvasGroup", outcomeCanvasGroup);
+                _set(serialized, "m_transitionTuning", transitionTuning);
                 serialized.ApplyModifiedPropertiesWithoutUndo();
                 PrefabUtility.SaveAsPrefabAsset(root, HUD_PREFAB_PATH);
             }

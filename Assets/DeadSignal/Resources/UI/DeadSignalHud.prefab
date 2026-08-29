@@ -3700,6 +3700,7 @@ GameObject:
   - component: {fileID: 1039365066051930861}
   - component: {fileID: 1103721760559103544}
   - component: {fileID: 499967846902739594}
+  - component: {fileID: 3375784080117495698}
   m_Layer: 0
   m_Name: Outcome Overlay
   m_TagString: Untagged
@@ -3771,6 +3772,18 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!225 &3375784080117495698
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4318023258449251923}
+  m_Enabled: 1
+  m_Alpha: 1
+  m_Interactable: 1
+  m_BlocksRaycasts: 1
+  m_IgnoreParentGroups: 0
 --- !u!1 &4358071282254401891
 GameObject:
   m_ObjectHideFlags: 0
@@ -6038,6 +6051,8 @@ MonoBehaviour:
   m_outcomeDetail: {fileID: 2262544487240163955}
   m_runReportText: {fileID: 8495640211254670308}
   m_restartText: {fileID: 1863129494961795981}
+  m_outcomeCanvasGroup: {fileID: 3375784080117495698}
+  m_transitionTuning: {fileID: 11400000, guid: 837b3b05649126243a6d1d553e22afe7, type: 2}
   m_pauseOverlay: {fileID: 3396044850208622711}
   m_resumeText: {fileID: 9219530273427365842}
   m_optionStateTexts:

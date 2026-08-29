@@ -58,5 +58,9 @@ input-focus, and scene-lifetime paths. It does not authorize a second scene, sav
   one prioritized next-run lesson, Restart, and Main Menu. Victory now owns a distinct `MISSION COMPLETE` presentation with mission time, grade,
   Central-to-Dock restoration milestones, combat pressure, final/low/recovered Signal, personal best, route choice, Restart, and Main Menu. Both
   deterministic reports are constrained to the existing authored report region so they cannot cover the action row.
+- Start Run now releases menu pause ownership through a short unscaled opacity transition; defeat and victory reveal the existing outcome hierarchy
+  through the same focused tuning. Selection remains on Start or Restart throughout, activation is blocked only during the fade, and the Reduced
+  Flashes alternative lengthens the luminance change from `0.18s` to `0.28s`. These transitions never drive the camera, so Steady Camera remains
+  authoritative.
 - Resolution, ultrawide, repeated menu-cycle, and human keyboard/controller presentation remain unproven until the corresponding Phase 6
   validation slices. Automated controller selection, complete-route compatibility, Windows build, and packaged command-line smoke now pass.

@@ -2337,6 +2337,7 @@ GameObject:
   - component: {fileID: 6730718021113493693}
   - component: {fileID: 8392194500748857653}
   - component: {fileID: 6407473207396155039}
+  - component: {fileID: 2678760493615812296}
   m_Layer: 0
   m_Name: DeadSignalMainMenu
   m_TagString: Untagged
@@ -2383,6 +2384,8 @@ MonoBehaviour:
   m_mainPanel: {fileID: 233234026200802514}
   m_settingsPanel: {fileID: 4422258119156355554}
   m_controlsPanel: {fileID: 7962577398762922361}
+  m_menuCanvasGroup: {fileID: 2678760493615812296}
+  m_transitionTuning: {fileID: 11400000, guid: 837b3b05649126243a6d1d553e22afe7, type: 2}
   m_startButton: {fileID: 2868752046099256577}
   m_settingsButton: {fileID: 3665577512538415433}
   m_controlsButton: {fileID: 1157827586189187562}
@@ -2451,6 +2454,18 @@ MonoBehaviour:
     y: 0
     width: 1
     height: 1
+--- !u!225 &2678760493615812296
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4104992107668387830}
+  m_Enabled: 1
+  m_Alpha: 1
+  m_Interactable: 1
+  m_BlocksRaycasts: 1
+  m_IgnoreParentGroups: 0
 --- !u!1 &4279436351569594215
 GameObject:
   m_ObjectHideFlags: 0

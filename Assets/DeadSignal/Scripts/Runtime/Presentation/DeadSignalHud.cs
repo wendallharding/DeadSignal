@@ -61,6 +61,8 @@ namespace DeadSignal.Presentation
         [SerializeField] private Text m_outcomeDetail;
         [SerializeField] private Text m_runReportText;
         [SerializeField] private Text m_restartText;
+        [SerializeField] private CanvasGroup m_outcomeCanvasGroup;
+        [SerializeField] private ProductShellTransitionTuning m_transitionTuning;
 
         [Header("Pause")]
         [SerializeField] private GameObject m_pauseOverlay;
@@ -110,6 +112,7 @@ namespace DeadSignal.Presentation
         private Texture2D m_runDebriefTexture;
         private float m_feedbackTimer;
         private float m_signalPulseTime;
+        private float m_outcomeTransitionElapsed;
         private int m_feedbackPriority;
         private bool m_resultRecorded;
         private bool m_debugMenuVisible;
@@ -138,6 +141,8 @@ namespace DeadSignal.Presentation
         public string CurrentMissionObjective => m_objectiveText == null ? string.Empty : m_objectiveText.text;
         public bool IsDebugMenuVisible => m_debugMenuVisible;
         public bool IsPauseOverlayVisible => m_pauseOverlay != null && m_pauseOverlay.activeSelf;
+        public bool IsOutcomeTransitioning { get; private set; }
+        public float OutcomeTransitionOpacity => m_outcomeCanvasGroup == null ? 0f : m_outcomeCanvasGroup.alpha;
 
         [Inject]
         private void _construct(ICombatFeedback combatFeedback, IComfortSettings comfortSettings, IDeadSignalInput input)
@@ -267,6 +272,7 @@ namespace DeadSignal.Presentation
             m_runHud.SetActive(running && !paused && !m_debugMenuVisible && !m_mainMenuVisible);
             m_pauseOverlay.SetActive(paused && !m_debugMenuVisible && !m_mainMenuVisible);
             m_outcomeOverlay.SetActive(!running && !paused && !m_debugMenuVisible && !m_mainMenuVisible);
+            _refreshOutcomeTransition(!running && !paused && !m_debugMenuVisible && !m_mainMenuVisible);
             _refreshShellNavigation(paused, running);
             _refreshRunHud();
             _refreshOutcome();
@@ -415,6 +421,46 @@ namespace DeadSignal.Presentation
             m_outcomeDetail.text = failure.Cause;
             m_runReportText.text = $"{failure.Progress}\n{failure.Summary}\n{failure.Coaching}";
             m_restartText.text = $"RESTART RUN  {_binding("R / ENTER", "GAMEPAD A")}   |   MAIN MENU AVAILABLE";
+        }
+
+        private void _refreshOutcomeTransition(bool outcomeVisible)
+        {
+            if (!outcomeVisible)
+            {
+                IsOutcomeTransitioning = false;
+                m_outcomeTransitionElapsed = 0f;
+                m_outcomeCanvasGroup.alpha = 0f;
+                m_outcomeCanvasGroup.interactable = false;
+                m_outcomeCanvasGroup.blocksRaycasts = false;
+                return;
+            }
+
+            if (!m_outcomeNavigationVisible && !IsOutcomeTransitioning)
+            {
+                IsOutcomeTransitioning = true;
+                m_outcomeTransitionElapsed = 0f;
+                m_outcomeCanvasGroup.alpha = 0f;
+                m_outcomeCanvasGroup.interactable = false;
+                m_outcomeCanvasGroup.blocksRaycasts = false;
+            }
+
+            if (!IsOutcomeTransitioning)
+            {
+                return;
+            }
+
+            var duration = m_transitionTuning.Duration(m_comfortSettings.ReducedFlashesEnabled);
+            m_outcomeTransitionElapsed += Time.unscaledDeltaTime;
+            m_outcomeCanvasGroup.alpha = Mathf.SmoothStep(0f, 1f, Mathf.Clamp01(m_outcomeTransitionElapsed / duration));
+            if (m_outcomeTransitionElapsed < duration)
+            {
+                return;
+            }
+
+            m_outcomeCanvasGroup.alpha = 1f;
+            m_outcomeCanvasGroup.interactable = true;
+            m_outcomeCanvasGroup.blocksRaycasts = true;
+            IsOutcomeTransitioning = false;
         }
 
         private void _refreshShellNavigation(bool paused, bool running)

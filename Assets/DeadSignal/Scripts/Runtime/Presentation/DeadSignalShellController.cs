@@ -1,3 +1,4 @@
+using System.Collections;
 using DeadSignal.Application;
 using DeadSignal.Player;
 using UnityEngine;
@@ -23,6 +24,8 @@ namespace DeadSignal.Presentation
         [SerializeField] private GameObject m_mainPanel;
         [SerializeField] private GameObject m_settingsPanel;
         [SerializeField] private GameObject m_controlsPanel;
+        [SerializeField] private CanvasGroup m_menuCanvasGroup;
+        [SerializeField] private ProductShellTransitionTuning m_transitionTuning;
 
         [Header("Main Menu")]
         [SerializeField] private Button m_startButton;
@@ -49,9 +52,12 @@ namespace DeadSignal.Presentation
         private bool m_keyboardNavigationHeld;
         private bool m_keyboardSubmitHeld;
         private bool m_keyboardBackHeld;
+        private Coroutine m_startTransition;
         private static bool s_showMenuAfterReload;
 
         public bool IsMenuVisible => m_menuOverlay != null && m_menuOverlay.activeSelf;
+        public bool IsTransitioning => m_startTransition != null;
+        public float TransitionOpacity => m_menuCanvasGroup == null ? 0f : m_menuCanvasGroup.alpha;
         public ProductShellPage CurrentPage { get; private set; } = ProductShellPage.Main;
 
         internal void Configure(DeadSignalGame game, IDeadSignalHud hud, IComfortSettings comfortSettings, IDeadSignalInput input)
@@ -187,9 +193,30 @@ namespace DeadSignal.Presentation
 
         private void _startRun()
         {
+            if (m_startTransition == null)
+            {
+                m_startTransition = StartCoroutine(_transitionToRun());
+            }
+        }
+
+        private IEnumerator _transitionToRun()
+        {
+            m_menuCanvasGroup.interactable = false;
+            m_menuCanvasGroup.blocksRaycasts = false;
+            var elapsed = 0f;
+            var duration = m_transitionTuning.Duration(m_comfortSettings.ReducedFlashesEnabled);
+            while (elapsed < duration)
+            {
+                elapsed += Time.unscaledDeltaTime;
+                m_menuCanvasGroup.alpha = 1f - Mathf.SmoothStep(0f, 1f, Mathf.Clamp01(elapsed / duration));
+                yield return null;
+            }
+
+            m_menuCanvasGroup.alpha = 0f;
             m_menuOverlay.SetActive(false);
-            m_hud.SetMainMenuVisible(false);
             m_game.SetMainMenuOpen(false);
+            m_hud.SetMainMenuVisible(false);
+            m_startTransition = null;
         }
 
         private void _returnToMenu()
@@ -211,6 +238,14 @@ namespace DeadSignal.Presentation
 
         private void _openMenu()
         {
+            if (m_startTransition != null)
+            {
+                StopCoroutine(m_startTransition);
+                m_startTransition = null;
+            }
+            m_menuCanvasGroup.alpha = 1f;
+            m_menuCanvasGroup.interactable = true;
+            m_menuCanvasGroup.blocksRaycasts = true;
             _showPage(ProductShellPage.Main);
             m_hud.SetMainMenuVisible(true);
             m_game.SetMainMenuOpen(true);
