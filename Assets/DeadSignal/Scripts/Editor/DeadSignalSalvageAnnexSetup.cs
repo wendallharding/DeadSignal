@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
 using UnityEditor.SceneManagement;
@@ -11,10 +12,14 @@ namespace DeadSignal.Editor
     public static class DeadSignalSalvageAnnexSetup
     {
         private const string TEXTURE_PATH = "Assets/DeadSignal/Resources/Environment/SalvageAnnexAlbedo.png";
+        private const string STATUS_TEXTURE_PATH = "Assets/DeadSignal/Resources/Environment/CargoCouplingStatusPanel.png";
         private const string MODEL_PATH = "Assets/DeadSignal/Resources/Environment/SalvageAnnexBarrierModel.fbx";
+        private const string COUPLING_BASE_MESH_PATH = "Assets/DeadSignal/Resources/Environment/CargoCouplingBaseReadability.asset";
+        private const string COUPLING_ROTOR_MESH_PATH = "Assets/DeadSignal/Resources/Environment/CargoCouplingRotorReadability.asset";
         private const string ARMOR_MATERIAL_PATH = "Assets/DeadSignal/Resources/Materials/SalvageAnnexArmor.mat";
         private const string HAZARD_MATERIAL_PATH = "Assets/DeadSignal/Resources/Materials/SalvageAnnexHazard.mat";
         private const string CONDUIT_MATERIAL_PATH = "Assets/DeadSignal/Resources/Materials/SalvageAnnexConduit.mat";
+        private const string STATUS_MATERIAL_PATH = "Assets/DeadSignal/Resources/Materials/CargoCouplingStatus.mat";
         private const string BARRIER_PREFAB_PATH = "Assets/DeadSignal/Resources/Environment/SalvageAnnexBarrier.prefab";
         private const string ANNEX_PREFAB_PATH = "Assets/DeadSignal/Resources/Environment/SalvageAnnex.prefab";
         private const string SCENE_PATH = "Assets/DeadSignal/Scenes/SampleScene.unity";
@@ -28,23 +33,30 @@ namespace DeadSignal.Editor
                 var barrier = AssetDatabase.LoadAssetAtPath<GameObject>(BARRIER_PREFAB_PATH);
                 var annex = AssetDatabase.LoadAssetAtPath<GameObject>(ANNEX_PREFAB_PATH);
                 return AssetDatabase.LoadAssetAtPath<Texture2D>(TEXTURE_PATH) != null &&
+                       AssetDatabase.LoadAssetAtPath<Texture2D>(STATUS_TEXTURE_PATH) != null &&
                        AssetDatabase.LoadAssetAtPath<GameObject>(MODEL_PATH) != null &&
+                       AssetDatabase.LoadAssetAtPath<Mesh>(COUPLING_BASE_MESH_PATH) != null &&
+                       AssetDatabase.LoadAssetAtPath<Mesh>(COUPLING_ROTOR_MESH_PATH) != null &&
                        AssetDatabase.LoadAssetAtPath<Material>(ARMOR_MATERIAL_PATH) != null &&
                        AssetDatabase.LoadAssetAtPath<Material>(HAZARD_MATERIAL_PATH) != null &&
                        AssetDatabase.LoadAssetAtPath<Material>(CONDUIT_MATERIAL_PATH) != null &&
+                       AssetDatabase.LoadAssetAtPath<Material>(STATUS_MATERIAL_PATH) != null &&
                        _hasValidBarrier(barrier) &&
                        annex != null &&
                        annex.GetComponentsInChildren<AuthoredMapObstacle>().Length == 3 &&
                        annex.TryGetComponent<AuthoredCargoAnnexObjective>(out var objective) &&
-                       objective.IsConfigured;
+                       objective.IsConfigured &&
+                       objective.HasReadabilityAssets;
             }
         }
 
         public static void EnsureAssets()
         {
             _configureTextureImport();
+            _configureStatusTextureImport();
             _configureModelImport();
             _ensureMaterials();
+            _ensureReadabilityMeshes();
             _ensureBarrierPrefab();
             _ensureAnnexPrefab();
             _ensureScenePlacement();
@@ -91,6 +103,22 @@ namespace DeadSignal.Editor
             importer.SaveAndReimport();
         }
 
+        private static void _configureStatusTextureImport()
+        {
+            var importer = AssetImporter.GetAtPath(STATUS_TEXTURE_PATH) as TextureImporter;
+            if (importer == null)
+            {
+                throw new InvalidOperationException($"Could not find the Cargo coupling status texture at {STATUS_TEXTURE_PATH}.");
+            }
+
+            importer.alphaIsTransparency = false;
+            importer.mipmapEnabled = true;
+            importer.maxTextureSize = 1024;
+            importer.wrapMode = TextureWrapMode.Clamp;
+            importer.textureCompression = TextureImporterCompression.CompressedHQ;
+            importer.SaveAndReimport();
+        }
+
         private static void _ensureMaterials()
         {
             var texture = AssetDatabase.LoadAssetAtPath<Texture2D>(TEXTURE_PATH);
@@ -115,6 +143,54 @@ namespace DeadSignal.Editor
             conduit.SetFloat("_Smoothness", 0.68f);
             conduit.EnableKeyword("_EMISSION");
             EditorUtility.SetDirty(conduit);
+
+            var status = _loadOrCreateMaterial(STATUS_MATERIAL_PATH, "CargoCouplingStatus");
+            var statusTexture = AssetDatabase.LoadAssetAtPath<Texture2D>(STATUS_TEXTURE_PATH);
+            status.SetColor("_BaseColor", Color.white);
+            status.SetTexture("_BaseMap", statusTexture);
+            status.SetColor("_EmissionColor", Color.black);
+            status.SetTexture("_EmissionMap", statusTexture);
+            status.SetFloat("_Metallic", 0.42f);
+            status.SetFloat("_Smoothness", 0.46f);
+            status.EnableKeyword("_EMISSION");
+            EditorUtility.SetDirty(status);
+        }
+
+        private static void _ensureReadabilityMeshes()
+        {
+            var baseBuilder = new MeshBuilder("CargoCouplingBaseReadability");
+            baseBuilder.AddPrism(Vector3.up * 0.11f, 12, 0.82f, 0.7f, 0.22f);
+            for (var index = 0; index < 4; index++)
+            {
+                var angle = index * 90f;
+                var direction = Quaternion.Euler(0f, angle, 0f) * Vector3.forward;
+                baseBuilder.AddBox(direction * 0.72f + Vector3.up * 0.08f, new Vector3(0.34f, 0.16f, 0.42f), angle);
+            }
+            _saveOrReplaceMesh(COUPLING_BASE_MESH_PATH, baseBuilder.Build());
+
+            var rotorBuilder = new MeshBuilder("CargoCouplingRotorReadability");
+            rotorBuilder.AddPrism(Vector3.up * 0.24f, 12, 0.44f, 0.36f, 0.16f);
+            for (var index = 0; index < 4; index++)
+            {
+                var angle = index * 90f;
+                var direction = Quaternion.Euler(0f, angle, 0f) * Vector3.forward;
+                rotorBuilder.AddBox(direction * 0.43f + Vector3.up * 0.24f, new Vector3(0.24f, 0.18f, 0.38f), angle);
+            }
+            _saveOrReplaceMesh(COUPLING_ROTOR_MESH_PATH, rotorBuilder.Build());
+        }
+
+        private static void _saveOrReplaceMesh(string path, Mesh generated)
+        {
+            var existing = AssetDatabase.LoadAssetAtPath<Mesh>(path);
+            if (existing == null)
+            {
+                AssetDatabase.CreateAsset(generated, path);
+                return;
+            }
+
+            EditorUtility.CopySerialized(generated, existing);
+            UnityEngine.Object.DestroyImmediate(generated);
+            EditorUtility.SetDirty(existing);
         }
 
         private static Material _loadOrCreateMaterial(string path, string materialName)
@@ -210,6 +286,10 @@ namespace DeadSignal.Editor
                 var securedMarker = _ensureMarker(annex.transform, "Power Coupling Secured Marker", PrimitiveType.Cylinder,
                     couplingSocket.localPosition + new Vector3(0f, 0.025f, 0f), new Vector3(0.9f, 0.025f, 0.9f),
                     CONDUIT_MATERIAL_PATH);
+                var couplingBase = _ensureReadabilityPart(annex.transform, "Cargo Coupling Base",
+                    couplingSocket.localPosition, COUPLING_BASE_MESH_PATH, ARMOR_MATERIAL_PATH);
+                var couplingRotor = _ensureReadabilityPart(annex.transform, "Cargo Coupling Rotor",
+                    couplingSocket.localPosition, COUPLING_ROTOR_MESH_PATH, STATUS_MATERIAL_PATH);
                 var objective = annex.GetComponent<AuthoredCargoAnnexObjective>();
                 if (objective == null)
                 {
@@ -217,12 +297,40 @@ namespace DeadSignal.Editor
                 }
                 objective.Configure(commitmentAnchor, couplingSocket, withdrawalAnchor,
                     commitmentMarker.gameObject, withdrawalMarker.gameObject, securedMarker.gameObject);
+                objective.ConfigureReadability(couplingRotor.GetComponent<Renderer>(), couplingRotor);
                 PrefabUtility.SaveAsPrefabAsset(annex, ANNEX_PREFAB_PATH);
             }
             finally
             {
                 PrefabUtility.UnloadPrefabContents(annex);
             }
+        }
+
+        private static Transform _ensureReadabilityPart(
+            Transform parent,
+            string objectName,
+            Vector3 localPosition,
+            string meshPath,
+            string materialPath)
+        {
+            var part = parent.Find(objectName);
+            if (part == null)
+            {
+                part = new GameObject(objectName, typeof(MeshFilter), typeof(MeshRenderer)).transform;
+                part.SetParent(parent, false);
+            }
+
+            part.localPosition = localPosition;
+            part.localRotation = Quaternion.identity;
+            part.localScale = Vector3.one;
+            part.GetComponent<MeshFilter>().sharedMesh = AssetDatabase.LoadAssetAtPath<Mesh>(meshPath);
+            part.GetComponent<MeshRenderer>().sharedMaterial = AssetDatabase.LoadAssetAtPath<Material>(materialPath);
+            foreach (var collider in part.GetComponents<Collider>())
+            {
+                UnityEngine.Object.DestroyImmediate(collider);
+            }
+
+            return part;
         }
 
         private static void _ensureBarrier(
@@ -344,6 +452,98 @@ namespace DeadSignal.Editor
                    barrier.transform.Find("Salvage Annex Armor") != null &&
                    barrier.transform.Find("Salvage Annex Hazard Rail") != null &&
                    barrier.transform.Find("Salvage Annex Conduit") != null;
+        }
+
+        private sealed class MeshBuilder
+        {
+            public MeshBuilder(string name)
+            {
+                m_name = name;
+            }
+
+            public void AddBox(Vector3 center, Vector3 size, float yaw)
+            {
+                var half = size * 0.5f;
+                var rotation = Quaternion.Euler(0f, yaw, 0f);
+                var corners = new[]
+                {
+                    new Vector3(-half.x, -half.y, -half.z), new Vector3(half.x, -half.y, -half.z),
+                    new Vector3(half.x, half.y, -half.z), new Vector3(-half.x, half.y, -half.z),
+                    new Vector3(-half.x, -half.y, half.z), new Vector3(half.x, -half.y, half.z),
+                    new Vector3(half.x, half.y, half.z), new Vector3(-half.x, half.y, half.z)
+                };
+                for (var index = 0; index < corners.Length; index++)
+                {
+                    corners[index] = center + rotation * corners[index];
+                }
+
+                var start = m_vertices.Count;
+                m_vertices.AddRange(corners);
+                m_uvs.AddRange(new[]
+                {
+                    Vector2.zero, Vector2.right, Vector2.one, Vector2.up,
+                    Vector2.zero, Vector2.right, Vector2.one, Vector2.up
+                });
+                m_triangles.AddRange(new[]
+                {
+                    start, start + 2, start + 1, start, start + 3, start + 2,
+                    start + 4, start + 5, start + 6, start + 4, start + 6, start + 7,
+                    start, start + 4, start + 7, start, start + 7, start + 3,
+                    start + 1, start + 2, start + 6, start + 1, start + 6, start + 5,
+                    start + 3, start + 7, start + 6, start + 3, start + 6, start + 2,
+                    start, start + 1, start + 5, start, start + 5, start + 4
+                });
+            }
+
+            public void AddPrism(Vector3 center, int sides, float bottomRadius, float topRadius, float height)
+            {
+                var start = m_vertices.Count;
+                var halfHeight = height * 0.5f;
+                for (var index = 0; index < sides; index++)
+                {
+                    var angle = index * Mathf.PI * 2f / sides;
+                    var direction = new Vector3(Mathf.Sin(angle), 0f, Mathf.Cos(angle));
+                    m_vertices.Add(center + direction * bottomRadius + Vector3.down * halfHeight);
+                    m_vertices.Add(center + direction * topRadius + Vector3.up * halfHeight);
+                    m_uvs.Add(new Vector2(index / (float)sides, 0f));
+                    m_uvs.Add(new Vector2(index / (float)sides, 1f));
+                }
+
+                var bottomCenter = m_vertices.Count;
+                m_vertices.Add(center + Vector3.down * halfHeight);
+                m_uvs.Add(new Vector2(0.5f, 0.5f));
+                var topCenter = m_vertices.Count;
+                m_vertices.Add(center + Vector3.up * halfHeight);
+                m_uvs.Add(new Vector2(0.5f, 0.5f));
+                for (var index = 0; index < sides; index++)
+                {
+                    var next = (index + 1) % sides;
+                    m_triangles.AddRange(new[]
+                    {
+                        start + index * 2, start + next * 2 + 1, start + next * 2,
+                        start + index * 2, start + index * 2 + 1, start + next * 2 + 1,
+                        bottomCenter, start + next * 2, start + index * 2,
+                        topCenter, start + index * 2 + 1, start + next * 2 + 1
+                    });
+                }
+            }
+
+            public Mesh Build()
+            {
+                var mesh = new Mesh { name = m_name };
+                mesh.SetVertices(m_vertices);
+                mesh.SetUVs(0, m_uvs);
+                mesh.SetTriangles(m_triangles, 0);
+                mesh.RecalculateNormals();
+                mesh.RecalculateTangents();
+                mesh.RecalculateBounds();
+                return mesh;
+            }
+
+            private readonly string m_name;
+            private readonly List<Vector3> m_vertices = new();
+            private readonly List<Vector2> m_uvs = new();
+            private readonly List<int> m_triangles = new();
         }
     }
 }
