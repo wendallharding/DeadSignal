@@ -3,6 +3,7 @@ using DeadSignal.Player;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 namespace DeadSignal.Presentation
@@ -48,6 +49,7 @@ namespace DeadSignal.Presentation
         private bool m_keyboardNavigationHeld;
         private bool m_keyboardSubmitHeld;
         private bool m_keyboardBackHeld;
+        private static bool s_showMenuAfterReload;
 
         public bool IsMenuVisible => m_menuOverlay != null && m_menuOverlay.activeSelf;
         public ProductShellPage CurrentPage { get; private set; } = ProductShellPage.Main;
@@ -59,8 +61,9 @@ namespace DeadSignal.Presentation
             m_comfortSettings = comfortSettings;
             m_input = input;
             _wireButtons();
+            m_hud.ConfigureShellActions(m_game.ResumeRun, m_game.RestartRun, _returnToMenu);
             m_configured = true;
-            if (_shouldShowMenu())
+            if (_consumeForcedMenu() || _shouldShowMenu())
             {
                 _openMenu();
             }
@@ -87,6 +90,10 @@ namespace DeadSignal.Presentation
                 return;
             }
 
+            if (!m_game.IsMainMenuOpen || !m_game.IsPaused || m_game.enabled)
+            {
+                m_game.SetMainMenuOpen(true);
+            }
             _refreshLabels();
             _handleKeyboardNavigation();
             if (CurrentPage != ProductShellPage.Main && Gamepad.current?.buttonEast.wasPressedThisFrame == true)
@@ -183,6 +190,23 @@ namespace DeadSignal.Presentation
             m_menuOverlay.SetActive(false);
             m_hud.SetMainMenuVisible(false);
             m_game.SetMainMenuOpen(false);
+        }
+
+        private void _returnToMenu()
+        {
+            s_showMenuAfterReload = true;
+            SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+        }
+
+        private static bool _consumeForcedMenu()
+        {
+            if (!s_showMenuAfterReload)
+            {
+                return false;
+            }
+
+            s_showMenuAfterReload = false;
+            return true;
         }
 
         private void _openMenu()

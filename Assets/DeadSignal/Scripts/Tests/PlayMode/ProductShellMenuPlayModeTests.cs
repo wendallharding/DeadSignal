@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Linq;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -8,6 +9,9 @@ using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
 using UnityEngine.UI;
 using DeadSignal.Application;
+using DeadSignal.Combat;
+using DeadSignal.Diagnostics;
+using DeadSignal.Missions;
 using DeadSignal.Presentation;
 
 namespace DeadSignal.Tests
@@ -91,6 +95,62 @@ namespace DeadSignal.Tests
             }
         }
 
+        [UnityTest]
+        public IEnumerator ReturnToMenu_FromPauseDefeatAndVictory_ReplacesRuntimeWithoutDuplicates()
+        {
+            yield return SceneManager.LoadSceneAsync("SampleScene");
+            yield return null;
+
+            var shell = Object.FindFirstObjectByType<DeadSignalShellController>(FindObjectsInactive.Include);
+            shell.DebugShowMenu();
+            yield return null;
+            _button(shell, "Start Run").onClick.Invoke();
+            yield return null;
+
+            var gamepad = InputSystem.AddDevice<Gamepad>();
+            try
+            {
+                var runningGame = Object.FindFirstObjectByType<DeadSignalGame>();
+                var runningId = runningGame.GetInstanceID();
+                yield return _pressAndRelease(gamepad, new GamepadState().WithButton(GamepadButton.Start));
+                Assert.That(EventSystem.current.currentSelectedGameObject.name, Is.EqualTo("Resume Run"));
+                _activeHudButton("Main Menu").onClick.Invoke();
+                yield return null;
+                var pausedReturnGame = _assertFreshMenuRuntime(runningId);
+
+                _button(Object.FindFirstObjectByType<DeadSignalShellController>(FindObjectsInactive.Include), "Start Run").onClick.Invoke();
+                pausedReturnGame.DebugApplyScenario(DebugScenario.Failure);
+                yield return null;
+                Assert.That(EventSystem.current.currentSelectedGameObject.name, Is.EqualTo("Restart Run"));
+                var defeatId = pausedReturnGame.GetInstanceID();
+                _activeHudButton("Main Menu").onClick.Invoke();
+                yield return null;
+                var defeatReturnGame = _assertFreshMenuRuntime(defeatId);
+
+                _button(Object.FindFirstObjectByType<DeadSignalShellController>(FindObjectsInactive.Include), "Start Run").onClick.Invoke();
+                defeatReturnGame.DebugApplyScenario(DebugScenario.Victory);
+                yield return null;
+                Assert.That(EventSystem.current.currentSelectedGameObject.name, Is.EqualTo("Restart Run"));
+                var victoryId = defeatReturnGame.GetInstanceID();
+                _activeHudButton("Main Menu").onClick.Invoke();
+                yield return null;
+                var victoryReturnGame = _assertFreshMenuRuntime(victoryId);
+
+                _button(Object.FindFirstObjectByType<DeadSignalShellController>(FindObjectsInactive.Include), "Start Run").onClick.Invoke();
+                victoryReturnGame.DebugApplyScenario(DebugScenario.Failure);
+                yield return null;
+                var restartId = victoryReturnGame.GetInstanceID();
+                _activeHudButton("Restart Run").onClick.Invoke();
+                yield return null;
+                _assertFreshRunningRuntime(restartId);
+            }
+            finally
+            {
+                InputSystem.RemoveDevice(gamepad);
+                Time.timeScale = 1f;
+            }
+        }
+
         private static IEnumerator _pressAndRelease(Gamepad gamepad, GamepadState state)
         {
             InputSystem.QueueStateEvent(gamepad, state);
@@ -111,6 +171,65 @@ namespace DeadSignal.Tests
 
             Assert.Fail($"Active authored menu button '{name}' was not found.");
             return null;
+        }
+
+        private static Button _activeHudButton(string name)
+        {
+            var hud = Object.FindFirstObjectByType<DeadSignalHud>(FindObjectsInactive.Include);
+            foreach (var button in hud.GetComponentsInChildren<Button>(true))
+            {
+                if (button.name == name && button.gameObject.activeInHierarchy)
+                {
+                    return button;
+                }
+            }
+
+            Assert.Fail($"Active authored HUD button '{name}' was not found.");
+            return null;
+        }
+
+        private static DeadSignalGame _assertFreshMenuRuntime(int previousInstanceId)
+        {
+            var game = Object.FindFirstObjectByType<DeadSignalGame>();
+            var shell = Object.FindFirstObjectByType<DeadSignalShellController>(FindObjectsInactive.Include);
+            Assert.That(game.GetInstanceID(), Is.Not.EqualTo(previousInstanceId));
+            _assertMenuOwnsPresentation(shell, game);
+            _assertSingletonServices();
+            Assert.That(EventSystem.current.currentSelectedGameObject.name, Is.EqualTo("Start Run"));
+            return game;
+        }
+
+        private static void _assertFreshRunningRuntime(int previousInstanceId)
+        {
+            var game = Object.FindFirstObjectByType<DeadSignalGame>();
+            Assert.That(game.GetInstanceID(), Is.Not.EqualTo(previousInstanceId));
+            Assert.That(game.CurrentRunOutcome, Is.EqualTo(RunOutcome.Running));
+            Assert.That(game.IsPaused, Is.False);
+            Assert.That(Time.timeScale, Is.EqualTo(1f));
+            _assertSingletonServices();
+            _assertOverlay("Run HUD", true);
+            _assertOverlay("Pause Overlay", false);
+            _assertOverlay("Outcome Overlay", false);
+        }
+
+        private static void _assertSingletonServices()
+        {
+            Assert.That(Object.FindObjectsByType<DeadSignalGame>(FindObjectsInactive.Include, FindObjectsSortMode.None), Has.Length.EqualTo(1));
+            Assert.That(Object.FindObjectsByType<DeadSignalHud>(FindObjectsInactive.Include, FindObjectsSortMode.None), Has.Length.EqualTo(1));
+            Assert.That(Object.FindObjectsByType<DeadSignalAudio>(FindObjectsInactive.Include, FindObjectsSortMode.None), Has.Length.EqualTo(1));
+            Assert.That(Object.FindObjectsByType<CombatFeedbackController>(FindObjectsInactive.Include, FindObjectsSortMode.None),
+                Has.Length.EqualTo(1));
+            Assert.That(Object.FindObjectsByType<EventSystem>(FindObjectsInactive.Include, FindObjectsSortMode.None), Has.Length.EqualTo(1));
+            var enabledActions = InputSystem.ListEnabledActions();
+            foreach (var actionName in new[]
+                     {
+                         "DEAD SIGNAL Fire", "DEAD SIGNAL Interact", "DEAD SIGNAL Move Up", "DEAD SIGNAL Move Down",
+                         "DEAD SIGNAL Move Left", "DEAD SIGNAL Move Right"
+                     })
+            {
+                Assert.That(enabledActions.Count(action => action.name == actionName), Is.EqualTo(1),
+                    $"Expected one enabled DEAD SIGNAL '{actionName}' action.");
+            }
         }
 
         private static void _assertMenuOwnsPresentation(DeadSignalShellController shell, DeadSignalGame game)

@@ -50,8 +50,10 @@ input-focus, and scene-lifetime paths. It does not authorize a second scene, sav
   arrow/Enter/Escape plus gamepad navigation. Normal launches stop the untouched scene-owned runtime before its first simulation frame; automated
   `-deadSignal` routes bypass the menu without creating a second runtime.
 - Settings and Controls reuse the existing comfort preferences and keyboard-rebinding authority. There is still no Continue/save progression.
-- There is no Return to Menu action yet.
-- Pause and outcome navigation are mostly polled actions; only rebinding controls are authored `Button` components.
-- Defeat and victory share presentation structure and restart copy, with no separate Main Menu action.
+- Pause now exposes authored Resume Run and Main Menu actions; defeat and victory expose authored Restart Run and Main Menu actions. Returning to menu
+  reconstructs the scene-owned runtime before showing the menu, so Start Run always begins a fresh mission rather than resuming abandoned state.
+- The shell reasserts menu pause ownership after scene teardown, restores deterministic Start/Resume/Restart focus, and retains exactly one EventSystem,
+  game, HUD, audio, combat-feedback, and six-action DEAD SIGNAL input set through repeated pause/defeat/victory loops.
+- Defeat and victory still share presentation structure and summary copy; distinct outcome presentations remain the next two bounded slices.
 - Resolution, ultrawide, repeated menu-cycle, and human keyboard/controller presentation remain unproven until the corresponding Phase 6
   validation slices. Automated controller selection, complete-route compatibility, Windows build, and packaged command-line smoke now pass.

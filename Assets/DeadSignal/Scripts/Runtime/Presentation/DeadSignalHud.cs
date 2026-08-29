@@ -1,5 +1,6 @@
 using Reflex.Attributes;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using DeadSignal.Combat;
 using DeadSignal.Missions;
@@ -33,6 +34,7 @@ namespace DeadSignal.Presentation
         void SetDebugObjective(string objective);
         void SetDebugMenuVisible(bool visible);
         void SetMainMenuVisible(bool visible);
+        void ConfigureShellActions(System.Action resumeRun, System.Action restartRun, System.Action returnToMenu);
         void Tick(float dt);
     }
 
@@ -67,6 +69,12 @@ namespace DeadSignal.Presentation
         [SerializeField] private Text m_routingStatusText;
         [SerializeField] private Button[] m_rebindButtons;
         [SerializeField] private Text[] m_rebindButtonTexts;
+
+        [Header("Shell Navigation")]
+        [SerializeField] private Button m_pauseResumeButton;
+        [SerializeField] private Button m_pauseMainMenuButton;
+        [SerializeField] private Button m_outcomeRestartButton;
+        [SerializeField] private Button m_outcomeMainMenuButton;
 
         [Header("Authored Images")]
         [SerializeField] private RawImage m_pauseInsignia;
@@ -106,6 +114,8 @@ namespace DeadSignal.Presentation
         private bool m_resultRecorded;
         private bool m_debugMenuVisible;
         private bool m_mainMenuVisible;
+        private bool m_pauseNavigationVisible;
+        private bool m_outcomeNavigationVisible;
         private string m_personalBestText = string.Empty;
         private string m_feedback = string.Empty;
         private string m_debugObjective = string.Empty;
@@ -207,6 +217,14 @@ namespace DeadSignal.Presentation
             _refresh();
         }
 
+        void IDeadSignalHud.ConfigureShellActions(System.Action resumeRun, System.Action restartRun, System.Action returnToMenu)
+        {
+            m_pauseResumeButton.onClick.AddListener(() => resumeRun());
+            m_pauseMainMenuButton.onClick.AddListener(() => returnToMenu());
+            m_outcomeRestartButton.onClick.AddListener(() => restartRun());
+            m_outcomeMainMenuButton.onClick.AddListener(() => returnToMenu());
+        }
+
         void IDeadSignalHud.Tick(float dt)
         {
             m_feedbackTimer = Mathf.Max(0f, m_feedbackTimer - dt);
@@ -249,6 +267,7 @@ namespace DeadSignal.Presentation
             m_runHud.SetActive(running && !paused && !m_debugMenuVisible && !m_mainMenuVisible);
             m_pauseOverlay.SetActive(paused && !m_debugMenuVisible && !m_mainMenuVisible);
             m_outcomeOverlay.SetActive(!running && !paused && !m_debugMenuVisible && !m_mainMenuVisible);
+            _refreshShellNavigation(paused, running);
             _refreshRunHud();
             _refreshOutcome();
             _refreshPause();
@@ -385,6 +404,23 @@ namespace DeadSignal.Presentation
                                    $"{debrief.Exposure}   |   {debrief.Route}\n{debrief.Coaching}\n" +
                                    $"{m_personalBestText}\n{_runReport()}";
             m_restartText.text = $"PRESS {_binding("R / ENTER", "GAMEPAD A")} TO RESTART";
+        }
+
+        private void _refreshShellNavigation(bool paused, bool running)
+        {
+            var pauseVisible = paused && running && !m_debugMenuVisible && !m_mainMenuVisible;
+            var outcomeVisible = !running && !paused && !m_debugMenuVisible && !m_mainMenuVisible;
+            if (pauseVisible && !m_pauseNavigationVisible)
+            {
+                EventSystem.current?.SetSelectedGameObject(m_pauseResumeButton.gameObject);
+            }
+            else if (outcomeVisible && !m_outcomeNavigationVisible)
+            {
+                EventSystem.current?.SetSelectedGameObject(m_outcomeRestartButton.gameObject);
+            }
+
+            m_pauseNavigationVisible = pauseVisible;
+            m_outcomeNavigationVisible = outcomeVisible;
         }
 
         private void _refreshPause()

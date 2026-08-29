@@ -8,6 +8,7 @@ namespace DeadSignal.Editor
     public static class DeadSignalProductShellSetup
     {
         private const string PREFAB_PATH = "Assets/DeadSignal/Resources/UI/DeadSignalMainMenu.prefab";
+        private const string HUD_PREFAB_PATH = "Assets/DeadSignal/Resources/UI/DeadSignalHud.prefab";
         private const string BACKDROP_PATH = "Assets/DeadSignal/Resources/UI/MainMenuStationBackdrop.png";
 
         [MenuItem("DEAD SIGNAL/Ensure Product Shell")]
@@ -124,6 +125,64 @@ namespace DeadSignal.Editor
 
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
+            _ensureHudNavigation();
+        }
+
+        private static void _ensureHudNavigation()
+        {
+            var root = PrefabUtility.LoadPrefabContents(HUD_PREFAB_PATH);
+            try
+            {
+                var hud = root.GetComponent<DeadSignalHud>();
+                var pause = root.transform.Find("Pause Overlay");
+                var outcome = root.transform.Find("Outcome Overlay");
+                if (hud == null || pause == null || outcome == null)
+                {
+                    throw new System.InvalidOperationException("The authored HUD shell-navigation anchors are missing.");
+                }
+
+                var pauseResume = _ensureHudButton("Resume Run", pause, "RESUME RUN", new Vector2(-150f, -316f));
+                var pauseMenu = _ensureHudButton("Main Menu", pause, "MAIN MENU", new Vector2(150f, -316f));
+                var outcomeRestart = _ensureHudButton("Restart Run", outcome, "RESTART RUN", new Vector2(-150f, -94f));
+                var outcomeMenu = _ensureHudButton("Main Menu", outcome, "MAIN MENU", new Vector2(150f, -94f));
+                (pause.Find("Resume") as RectTransform).anchoredPosition = new Vector2(0f, -376f);
+                (outcome.Find("Restart") as RectTransform).anchoredPosition = new Vector2(0f, -154f);
+
+                var serialized = new SerializedObject(hud);
+                _set(serialized, "m_pauseResumeButton", pauseResume);
+                _set(serialized, "m_pauseMainMenuButton", pauseMenu);
+                _set(serialized, "m_outcomeRestartButton", outcomeRestart);
+                _set(serialized, "m_outcomeMainMenuButton", outcomeMenu);
+                serialized.ApplyModifiedPropertiesWithoutUndo();
+                PrefabUtility.SaveAsPrefabAsset(root, HUD_PREFAB_PATH);
+            }
+            finally
+            {
+                PrefabUtility.UnloadPrefabContents(root);
+            }
+        }
+
+        private static Button _ensureHudButton(string name, Transform parent, string label, Vector2 position)
+        {
+            var existing = parent.Find(name);
+            if (existing != null)
+            {
+                return existing.GetComponent<Button>();
+            }
+
+            var button = _createButton(name, parent, label, position.y, 54f);
+            var rect = button.transform as RectTransform;
+            rect.pivot = new Vector2(0.5f, 0.5f);
+            rect.anchoredPosition = position;
+            rect.sizeDelta = new Vector2(270f, 54f);
+            var text = button.GetComponentInChildren<Text>();
+            text.alignment = TextAnchor.MiddleCenter;
+            text.rectTransform.anchorMin = Vector2.zero;
+            text.rectTransform.anchorMax = Vector2.one;
+            text.rectTransform.pivot = new Vector2(0.5f, 0.5f);
+            text.rectTransform.anchoredPosition = Vector2.zero;
+            text.rectTransform.sizeDelta = Vector2.zero;
+            return button;
         }
 
         private static RectTransform _createRect(string name, Transform parent, Vector2 anchorMin, Vector2 anchorMax,

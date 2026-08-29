@@ -29,6 +29,7 @@ namespace DeadSignal.Player
         bool PressedInteract();
         bool PressedDash();
         bool PressedRestart();
+        bool PressedRestartShortcut();
         bool PressedPause();
         bool PressedCameraImpulseToggle();
         bool PressedReducedFlashesToggle();
@@ -82,18 +83,18 @@ namespace DeadSignal.Player
 
         public DeadSignalInput()
         {
-            m_fireAction = new InputAction("Fire", InputActionType.Button);
+            m_fireAction = new InputAction("DEAD SIGNAL Fire", InputActionType.Button);
             m_fireAction.AddBinding("<Mouse>/leftButton");
             m_fireAction.AddBinding("<Keyboard>/space");
             m_fireAction.AddBinding("<Gamepad>/rightTrigger");
             m_fireAction.AddBinding("<Gamepad>/rightShoulder");
-            m_interactAction = new InputAction("Interact", InputActionType.Button);
+            m_interactAction = new InputAction("DEAD SIGNAL Interact", InputActionType.Button);
             m_interactAction.AddBinding("<Keyboard>/e");
             m_interactAction.AddBinding("<Gamepad>/buttonWest");
-            m_moveUpAction = _createMovementAction("Move Up", "<Keyboard>/w", "<Keyboard>/upArrow");
-            m_moveDownAction = _createMovementAction("Move Down", "<Keyboard>/s", "<Keyboard>/downArrow");
-            m_moveLeftAction = _createMovementAction("Move Left", "<Keyboard>/a", "<Keyboard>/leftArrow");
-            m_moveRightAction = _createMovementAction("Move Right", "<Keyboard>/d", "<Keyboard>/rightArrow");
+            m_moveUpAction = _createMovementAction("DEAD SIGNAL Move Up", "<Keyboard>/w", "<Keyboard>/upArrow");
+            m_moveDownAction = _createMovementAction("DEAD SIGNAL Move Down", "<Keyboard>/s", "<Keyboard>/downArrow");
+            m_moveLeftAction = _createMovementAction("DEAD SIGNAL Move Left", "<Keyboard>/a", "<Keyboard>/leftArrow");
+            m_moveRightAction = _createMovementAction("DEAD SIGNAL Move Right", "<Keyboard>/d", "<Keyboard>/rightArrow");
             _loadOverride(m_fireAction, 1, FIRE_BINDING_KEY);
             _loadOverride(m_interactAction, 0, INTERACT_BINDING_KEY);
             _loadOverride(m_moveUpAction, 0, MOVE_UP_BINDING_KEY);
@@ -300,6 +301,11 @@ namespace DeadSignal.Player
             }
 
             return _pressed(null, Gamepad.current?.buttonSouth);
+        }
+
+        public bool PressedRestartShortcut()
+        {
+            return _pressed(Keyboard.current?.rKey, null);
         }
 
         public bool PressedPause()

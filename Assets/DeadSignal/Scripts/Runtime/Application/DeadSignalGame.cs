@@ -5,7 +5,9 @@ using System.Linq;
 using Reflex.Attributes;
 using Reflex.Core;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 using DeadSignal.Combat;
 using DeadSignal.Diagnostics;
 using DeadSignal.Missions;
@@ -1369,6 +1371,20 @@ namespace DeadSignal.Application
             enabled = !open;
         }
 
+        public void ResumeRun()
+        {
+            if (m_model?.Outcome == RunOutcome.Running && !IsMainMenuOpen)
+            {
+                _setPaused(false);
+            }
+        }
+
+        public void RestartRun()
+        {
+            _resetDebugTransientState();
+            SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+        }
+
         [Inject]
         private void _construct(
             ICombatFeedback combatFeedback,
@@ -1547,10 +1563,10 @@ namespace DeadSignal.Application
             if (m_model.Outcome != RunOutcome.Running)
             {
                 _finalizeDebugRouteAfterOutcome();
-                if (m_input.PressedRestart())
+                var selectedButton = EventSystem.current?.currentSelectedGameObject?.GetComponent<Button>();
+                if (m_input.PressedRestartShortcut() || (m_input.PressedRestart() && selectedButton == null))
                 {
-                    _resetDebugTransientState();
-                    SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+                    RestartRun();
                 }
 
                 return;
