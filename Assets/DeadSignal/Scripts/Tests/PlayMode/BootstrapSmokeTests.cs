@@ -2278,6 +2278,16 @@ namespace DeadSignal.Tests
                 Assert.That(hudCanvas.transform.Find("Outcome Overlay").gameObject.activeSelf, Is.True,
                     "Completed pursuit should reveal the victory debrief.");
 
+                var outcomeHud = Object.FindFirstObjectByType<DeadSignalHud>();
+                var transitionDeadline = Time.realtimeSinceStartup + 1f;
+                while (outcomeHud.IsOutcomeTransitioning && Time.realtimeSinceStartup < transitionDeadline)
+                {
+                    yield return null;
+                }
+
+                Assert.That(outcomeHud.IsOutcomeTransitioning, Is.False,
+                    "Restart input should be tested only after the authored outcome transition releases focus.");
+
                 var completedRunInstanceId = game.GetInstanceID();
                 InputSystem.QueueStateEvent(gamepad, new GamepadState().WithButton(GamepadButton.South));
                 yield return null;
