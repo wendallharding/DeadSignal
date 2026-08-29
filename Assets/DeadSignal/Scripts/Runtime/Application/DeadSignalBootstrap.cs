@@ -73,6 +73,7 @@ namespace DeadSignal.Application
             var towerActivationSweep = root.AddComponent<TowerActivationSweepController>();
             var stationStateFeedback = root.AddComponent<StationStateFeedbackController>();
             var weaponTransformationFeedback = root.AddComponent<WeaponTransformationFeedbackController>();
+            var extractionOutcomeFeedback = root.AddComponent<ExtractionOutcomeFeedbackController>();
             var game = root.AddComponent<DeadSignalGame>();
             DeadSignalDebugMenu debugMenu = null;
             if (DeadSignalDebugMenu.IsAvailable)
@@ -94,6 +95,7 @@ namespace DeadSignal.Application
                 .RegisterValue(towerActivationSweep, new[] { typeof(ITowerActivationSweep) })
                 .RegisterValue(stationStateFeedback, new[] { typeof(IStationStateFeedback) })
                 .RegisterValue(weaponTransformationFeedback, new[] { typeof(IWeaponTransformationFeedback) })
+                .RegisterValue(extractionOutcomeFeedback, new[] { typeof(IExtractionOutcomeFeedback) })
                 .Build();
             GameObjectInjector.InjectObject(root, container);
             GameObjectInjector.InjectObject(hudInstance, container);

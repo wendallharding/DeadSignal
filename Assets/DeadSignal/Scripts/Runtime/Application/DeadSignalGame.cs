@@ -59,6 +59,8 @@ namespace DeadSignal.Application
         private ITowerActivationSweep m_towerActivationSweep;
         private IStationStateFeedback m_stationStateFeedback;
         private IWeaponTransformationFeedback m_weaponTransformationFeedback;
+        private IExtractionOutcomeFeedback m_extractionOutcomeFeedback;
+        private RunOutcome m_lastPresentedOutcome = RunOutcome.Running;
         private MissionClarityHud m_missionClarityHud;
         private Container m_container;
         private Vector3 m_playerPresentationAcceleration;
@@ -286,6 +288,8 @@ namespace DeadSignal.Application
         public int StationStateFeedbackPoolSize => m_stationStateFeedback?.PoolSize ?? 0;
         public bool HasWeaponTransformationFeedbackTextures => m_weaponTransformationFeedback?.HasTextures ?? false;
         public int WeaponTransformationFeedbackPoolSize => m_weaponTransformationFeedback?.PoolSize ?? 0;
+        public bool HasExtractionOutcomeFeedbackTexture => m_extractionOutcomeFeedback?.HasTexture ?? false;
+        public int ExtractionOutcomeFeedbackPoolSize => m_extractionOutcomeFeedback?.EventPoolSize ?? 0;
         public bool IsTowerActivationSweepPlaying => m_towerActivationSweep?.IsPlaying ?? false;
         public float TowerActivationSweepAlpha => m_towerActivationSweep?.CurrentAlpha ?? 0f;
         public float TowerActivationSweepDiameter => m_towerActivationSweep?.CurrentDiameter ?? 0f;
@@ -402,6 +406,7 @@ namespace DeadSignal.Application
         public string DebugReplayInfo =>
             $"Route seed {PlayerPrefs.GetInt("DeadSignal.RouteVariant", 0)}  Frame {Time.frameCount}  Capture {m_lastDebugCapturePath}";
         public Vector3 DebugPlayerPosition => m_world?.Player.position ?? Vector3.zero;
+        public Vector3 DebugExtractionPosition => m_world?.ExtractionPosition ?? Vector3.zero;
         public bool IsEasternCombatScenarioActive => m_debugCombatScenarioActive;
         public bool DebugCombatScenarioIncludesSwarmers => m_debugCombatScenarioIncludesSwarmers;
         public float DebugCombatScenarioSeconds => m_debugCombatScenarioSeconds;
@@ -1450,6 +1455,7 @@ namespace DeadSignal.Application
             ITowerActivationSweep towerActivationSweep,
             IStationStateFeedback stationStateFeedback,
             IWeaponTransformationFeedback weaponTransformationFeedback,
+            IExtractionOutcomeFeedback extractionOutcomeFeedback,
             Container container)
         {
             m_combatFeedback = combatFeedback;
@@ -1464,6 +1470,7 @@ namespace DeadSignal.Application
             m_towerActivationSweep = towerActivationSweep;
             m_stationStateFeedback = stationStateFeedback;
             m_weaponTransformationFeedback = weaponTransformationFeedback;
+            m_extractionOutcomeFeedback = extractionOutcomeFeedback;
             m_container = container;
         }
 
@@ -1604,6 +1611,7 @@ namespace DeadSignal.Application
                 m_debugCombatScenarioSeconds += dt;
             }
             m_hud.Tick(dt);
+            _presentOutcomeFeedbackIfChanged();
 
             if (m_combatFeedback.IsFrozen)
             {
@@ -2412,6 +2420,10 @@ namespace DeadSignal.Application
             }
 
             m_threats.BeginExtractionPressure(mode);
+            m_extractionOutcomeFeedback.BeginExtraction(
+                m_world.ExtractionPosition,
+                mode,
+                m_extractionUplink.SecondsRemaining);
             var countermeasure = m_threats.CurrentExtractionSuppressionProfile switch
             {
                 ExtractionSuppressionProfile.PiercingCrossLane => " // QUENCH CROSS-LANE COUNTERTRACE",
@@ -2498,6 +2510,7 @@ namespace DeadSignal.Application
             }
 
             m_audio.Play(DeadSignalAudioCue.Extraction);
+            m_extractionOutcomeFeedback.CompleteExtraction(m_world.ExtractionPosition);
             _showFeedback("EXTRACTION COMPLETE");
             _finalizeDebugRouteAfterOutcome();
         }
@@ -3492,6 +3505,10 @@ namespace DeadSignal.Application
             {
                 _completeExtraction();
             }
+            else if (m_extractionUplink.IsActive)
+            {
+                m_extractionOutcomeFeedback.UpdateExtraction(m_extractionUplink.SecondsRemaining);
+            }
             m_metrics.RecordSignal(m_model.Signal);
         }
 
@@ -3607,9 +3624,27 @@ namespace DeadSignal.Application
             m_directionalDamageFeedback.Tick(0f);
             m_stationStateFeedback.SetPaused(paused);
             m_weaponTransformationFeedback.SetPaused(paused);
+            m_extractionOutcomeFeedback.SetPaused(paused);
             m_audio.SetPaused(paused);
             m_signalDust.SetPaused(paused);
             m_world.PlayerSignalWake.SetPaused(paused);
+        }
+
+        private void _presentOutcomeFeedbackIfChanged()
+        {
+            if (m_model == null || m_model.Outcome == m_lastPresentedOutcome)
+            {
+                return;
+            }
+
+            m_lastPresentedOutcome = m_model.Outcome;
+            if (m_model.Outcome != RunOutcome.Running)
+            {
+                var position = m_model.Outcome == RunOutcome.Victory
+                    ? m_world.ExtractionPosition
+                    : m_world.Player.position;
+                m_extractionOutcomeFeedback.PlayOutcome(m_model.Outcome, position);
+            }
         }
     }
 }

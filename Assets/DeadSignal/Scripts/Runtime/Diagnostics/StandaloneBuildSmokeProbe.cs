@@ -490,6 +490,10 @@ namespace DeadSignal.Diagnostics
                                 game.WeaponTransformationFeedbackPoolSize == 2 &&
                                 Resources.Load<WeaponTransformationFeedbackTuning>(
                                     "Tuning/WeaponTransformationFeedbackTuning") != null &&
+                                game.HasExtractionOutcomeFeedbackTexture &&
+                                game.ExtractionOutcomeFeedbackPoolSize == 2 &&
+                                Resources.Load<ExtractionOutcomeFeedbackTuning>(
+                                    "Tuning/ExtractionOutcomeFeedbackTuning") != null &&
                                 game.HasBindingMatrixIcon &&
                                 Resources.Load<Texture2D>("UI/BindingMatrixIcon") != null &&
                                 game.HasBindingConflictIcon &&

@@ -64,6 +64,7 @@ namespace DeadSignal.Tests
                 _assertOutcomeOverlay(victoryGame);
                 var victoryInstanceId = victoryGame.GetInstanceID();
 
+                yield return _waitForOutcomeTransition();
                 yield return _pressAndRelease(gamepad, GamepadButton.South);
                 var defeatGame = Object.FindFirstObjectByType<DeadSignalGame>();
                 Assert.That(defeatGame.GetInstanceID(), Is.Not.EqualTo(victoryInstanceId));
@@ -76,6 +77,7 @@ namespace DeadSignal.Tests
                 _assertOutcomeOverlay(defeatGame);
                 var defeatInstanceId = defeatGame.GetInstanceID();
 
+                yield return _waitForOutcomeTransition();
                 yield return _pressAndRelease(gamepad, GamepadButton.South);
                 var restartedGame = Object.FindFirstObjectByType<DeadSignalGame>();
                 Assert.That(restartedGame.GetInstanceID(), Is.Not.EqualTo(defeatInstanceId));
@@ -94,6 +96,19 @@ namespace DeadSignal.Tests
             yield return null;
             InputSystem.QueueStateEvent(gamepad, new GamepadState());
             yield return null;
+        }
+
+        private static IEnumerator _waitForOutcomeTransition()
+        {
+            var hud = Object.FindFirstObjectByType<DeadSignalHud>(FindObjectsInactive.Include);
+            var deadline = Time.realtimeSinceStartup + 1f;
+            while (hud.IsOutcomeTransitioning && Time.realtimeSinceStartup < deadline)
+            {
+                yield return null;
+            }
+
+            Assert.That(hud.IsOutcomeTransitioning, Is.False,
+                "Outcome navigation did not become interactive within one real-time second.");
         }
 
         private static void _assertFreshSingletonRuntime(DeadSignalGame game)
