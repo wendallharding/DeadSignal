@@ -71,6 +71,7 @@ namespace DeadSignal.World
         public AuthoredRelayPayloadObjective RelayPayloadObjective { get; private set; }
         public AuthoredRelayNetworkReadability RelayNetworkReadability { get; private set; }
         public AuthoredSpineVentingObjective SpineVentingObjective { get; private set; }
+        public AuthoredSpineTowerReadability SpineTowerReadability { get; private set; }
         public AuthoredSpineCoreInstallationObjective SpineCoreInstallationObjective { get; private set; }
         public AuthoredInductionLatticeObjective InductionLatticeObjective { get; private set; }
         public AuthoredFluxShuntObjective FluxShuntObjective { get; private set; }
@@ -180,6 +181,8 @@ namespace DeadSignal.World
                 Object.FindFirstObjectByType<AuthoredRelayNetworkReadability>(FindObjectsInactive.Include);
             SpineVentingObjective =
                 Object.FindFirstObjectByType<AuthoredSpineVentingObjective>(FindObjectsInactive.Include);
+            SpineTowerReadability =
+                Object.FindFirstObjectByType<AuthoredSpineTowerReadability>(FindObjectsInactive.Include);
             SpineCoreInstallationObjective =
                 Object.FindFirstObjectByType<AuthoredSpineCoreInstallationObjective>(FindObjectsInactive.Include);
             InductionLatticeObjective =
@@ -428,6 +431,9 @@ namespace DeadSignal.World
             SpineVentingObjective?.SetState(
                 model.CurrentObjective.Id == MissionObjectiveId.SpineVenting,
                 model.SpineBerthVented);
+            SpineTowerReadability?.SetState(
+                model.CurrentObjective.Id == MissionObjectiveId.SpineTower,
+                model.SpineTowerOnline);
         }
 
         public void UpdateSpineCoreInstallationPresentation(RunModel model)

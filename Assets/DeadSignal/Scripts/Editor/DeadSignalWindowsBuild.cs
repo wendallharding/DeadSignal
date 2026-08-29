@@ -55,6 +55,7 @@ namespace DeadSignal.Editor
             DeadSignalActTwoCalibrationReadabilitySetup.EnsureAssets();
             DeadSignalCapacitorSpineSetup.EnsureAssets();
             DeadSignalSpineDischargeTrenchSetup.EnsureAssets();
+            DeadSignalSpineNetworkReadabilitySetup.EnsureAssets();
             DeadSignalSpineInductionGallerySetup.EnsureAssets();
             DeadSignalConvergenceChamberSetup.EnsureAssets();
             DeadSignalConvergenceBreakerGallerySetup.EnsureAssets();
@@ -244,9 +245,9 @@ namespace DeadSignal.Editor
                 throw new BuildFailedException("The scene-authored Capacitor Spine region is missing or incomplete.");
             }
 
-            if (!DeadSignalSpineDischargeTrenchSetup.HasAssets)
+            if (!DeadSignalSpineDischargeTrenchSetup.HasAssets || !DeadSignalSpineNetworkReadabilitySetup.HasAssets)
             {
-                throw new BuildFailedException("The scene-authored Spine Discharge Trench is missing or incomplete.");
+                throw new BuildFailedException("The scene-authored Spine network readability is missing or incomplete.");
             }
 
             if (!DeadSignalSpineInductionGallerySetup.HasAssets)
