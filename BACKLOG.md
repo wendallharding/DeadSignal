@@ -62,7 +62,7 @@ Work through this section after the required mission route is connected. Human-o
 
 #### Game shell and outcome flow
 
-- [ ] Audit the existing boot, pause, outcome, restart, input-focus, and scene-lifetime paths; protect the current playable route with a focused lifecycle test before changing navigation
+- [x] Audit the existing boot, pause, outcome, restart, input-focus, and scene-lifetime paths; protect the current playable route with a focused lifecycle test before changing navigation
 - [ ] Add an authored main-menu shell around the existing boot flow with Start Run, Settings, Controls, and Quit; support keyboard/mouse and controller without introducing speculative save/continue behavior
 - [ ] Add reliable Return to Menu actions from pause, defeat, and victory; prove repeated menu → run → restart/menu loops do not duplicate runtime services, input actions, audio, or scene state
 - [ ] Turn the existing defeat overlay into a proper game-over presentation with a clear failure cause, concise run summary, Restart, and Main Menu
