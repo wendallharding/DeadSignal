@@ -41,19 +41,29 @@ namespace DeadSignal.Combat
         private const string SALVAGE_CHAIN_TEXTURE_PATH = "VFX/SalvageChainBurst";
         private const float LIGHT_HIT_STOP = 0.035f;
         private const float HEAVY_HIT_STOP = 0.06f;
-        private const float IMPACT_DURATION = 0.22f;
         private const float SHAKE_DURATION = 0.16f;
-        private const float REDUCED_FLASH_ALPHA = 0.3f;
+        private const int DEFAULT_IMPACT_PREWARM_COUNT = 12;
+        private const int DEFAULT_IMPACT_MAXIMUM_COUNT = 16;
+        private const int DEFAULT_SPARK_PREWARM_COUNT = 12;
+        private const int DEFAULT_SPARK_MAXIMUM_COUNT = 16;
+        private const int DEFAULT_CHAIN_PREWARM_COUNT = 6;
+        private const int DEFAULT_CHAIN_MAXIMUM_COUNT = 8;
+        private const float DEFAULT_IMPACT_DURATION = 0.22f;
+        private const float DEFAULT_SPARK_DURATION = 0.22f;
+        private const float DEFAULT_CHAIN_DURATION = 0.18f;
+        private const float DEFAULT_REDUCED_FLASH_ALPHA = 0.3f;
 
         private static readonly Color s_signalTint = Color.white;
         private static readonly Color s_securityTint = new(1f, 0.18f, 0.14f);
         private static readonly Color s_sapperTint = new(1f, 0.14f, 0.72f);
 
-        private readonly List<ImpactVisual> m_impacts = new();
-        private readonly List<ChainArcVisual> m_chainArcs = new();
-        private readonly List<ThreatReaction> m_threatReactions = new();
+        private readonly List<ImpactVisual> m_impacts = new(DEFAULT_IMPACT_MAXIMUM_COUNT);
+        private readonly List<SparkVisual> m_sparks = new(DEFAULT_SPARK_MAXIMUM_COUNT);
+        private readonly List<ChainArcVisual> m_chainArcs = new(DEFAULT_CHAIN_MAXIMUM_COUNT);
+        private readonly List<ThreatReaction> m_threatReactions = new(DEFAULT_IMPACT_MAXIMUM_COUNT);
 
         private IComfortSettings m_comfortSettings;
+        private CombatFeedbackTuning m_tuning;
         private Camera m_targetCamera;
         private Texture2D m_impactTexture;
         private Sprite m_impactSprite;
@@ -82,7 +92,14 @@ namespace DeadSignal.Combat
         public bool CameraImpulseEnabled => m_comfortSettings?.CameraImpulseEnabled ?? true;
         public bool IsCameraShakeActive => m_shakeRemaining > 0f;
         public bool ReducedFlashesEnabled => m_comfortSettings?.ReducedFlashesEnabled ?? false;
-        public int ActiveImpactCount => m_impacts.Count;
+        public int ActiveImpactCount { get; private set; }
+        public int ActiveSparkCount { get; private set; }
+        public int ActiveChainArcCount { get; private set; }
+        public int ActiveThreatReactionCount { get; private set; }
+        public int ImpactPoolSize => m_impacts.Count;
+        public int SparkPoolSize => m_sparks.Count;
+        public int ChainArcPoolSize => m_chainArcs.Count;
+        public int CreatedPooledObjectCount { get; private set; }
         public int ChainArcsPlayed { get; private set; }
 
         private sealed class ImpactVisual
@@ -92,6 +109,17 @@ namespace DeadSignal.Combat
             public Color Tint;
             public float Age;
             public float TargetScale;
+            public bool IsActive;
+            public bool IsPriority;
+        }
+
+        private sealed class SparkVisual
+        {
+            public GameObject Root;
+            public ParticleSystem Particles;
+            public float Age;
+            public bool IsActive;
+            public bool IsPriority;
         }
 
         private sealed class ChainArcVisual
@@ -99,6 +127,7 @@ namespace DeadSignal.Combat
             public GameObject Root;
             public LineRenderer Renderer;
             public float Age;
+            public bool IsActive;
         }
 
         private sealed class ThreatReaction
@@ -106,6 +135,7 @@ namespace DeadSignal.Combat
             public Transform Target;
             public Vector3 RestScale;
             public float Age;
+            public bool IsActive;
         }
 
         [Inject]
@@ -117,6 +147,12 @@ namespace DeadSignal.Combat
 
         public void Configure(Camera targetCamera)
         {
+            m_tuning = Resources.Load<CombatFeedbackTuning>("Tuning/CombatFeedbackTuning");
+            if (m_tuning == null)
+            {
+                Debug.LogWarning("Combat feedback tuning was not found at Resources/Tuning/CombatFeedbackTuning.", this);
+            }
+
             m_targetCamera = targetCamera;
             if (m_targetCamera != null)
             {
@@ -181,15 +217,17 @@ namespace DeadSignal.Combat
                 new Rect(0f, 0f, m_salvageChainTexture.width, m_salvageChainTexture.height),
                 new Vector2(0.5f, 0.5f), pixelsPerUnit);
             m_salvageChainSprite.name = "Salvage Chain Burst Sprite";
+
+            _prewarmPools();
         }
 
         public void PlaySignalImpact(Vector3 position, bool decisive)
         {
             _playImpact(position, s_signalTint, decisive ? 1.28f : 0.86f, decisive ? 0.2f : 0.11f,
-                decisive ? HEAVY_HIT_STOP : LIGHT_HIT_STOP);
+                decisive ? HEAVY_HIT_STOP : LIGHT_HIT_STOP, decisive);
             if (decisive)
             {
-                _playImpact(position, new Color(0.2f, 0.95f, 1f), 1.9f, 0f, 0f);
+                _playImpact(position, new Color(0.2f, 0.95f, 1f), 1.9f, 0f, 0f, true);
             }
         }
 
@@ -200,7 +238,12 @@ namespace DeadSignal.Combat
                 return;
             }
 
-            m_threatReactions.Add(new ThreatReaction { Target = target, RestScale = target.localScale });
+            var reaction = _acquireThreatReaction();
+            reaction.Target = target;
+            reaction.RestScale = target.localScale;
+            reaction.Age = 0f;
+            reaction.IsActive = true;
+            ActiveThreatReactionCount++;
         }
 
         public void PlayShieldImpact(Vector3 position)
@@ -223,20 +266,20 @@ namespace DeadSignal.Combat
         {
             _playImpact(position, new Color(1f, 0.58f, 0.16f), 0.82f, 0f, 0f,
                 m_environmentImpactSprite, m_environmentImpactMaterial,
-                "Bulkhead Signal Impact");
+                "Bulkhead Signal Impact", false);
             _playImpact(position + Vector3.up * 0.03f, Color.white, 0.38f, 0f, 0f);
         }
 
         public void PlaySignalRecovery(Vector3 position)
         {
-            _playImpact(position, Color.white, 1.45f, 0f, 0f, m_signalRecoverySprite, null, "Signal Recovery Burst");
+            _playImpact(position, Color.white, 1.45f, 0f, 0f, m_signalRecoverySprite, null, "Signal Recovery Burst", true);
         }
 
         public void PlaySalvageChain(Vector3 position, int chainCount)
         {
             var tint = chainCount >= 3 ? new Color(1f, 0.72f, 0.12f) : Color.white;
             _playImpact(position, tint, 0.85f + Mathf.Min(chainCount, 3) * 0.22f, 0f, 0f,
-                m_salvageChainSprite, null, "Salvage Chain Burst");
+                m_salvageChainSprite, null, "Salvage Chain Burst", true);
         }
 
         public void PlayChainArc(Vector3 start, Vector3 end)
@@ -246,24 +289,23 @@ namespace DeadSignal.Combat
                 return;
             }
 
-            var root = new GameObject("Chain Arc Link");
-            root.transform.SetParent(transform, true);
-            var line = root.AddComponent<LineRenderer>();
-            line.sharedMaterial = m_chainArcMaterial;
-            line.useWorldSpace = true;
-            line.positionCount = 4;
-            line.startWidth = 0.075f;
-            line.endWidth = 0.025f;
-            line.numCornerVertices = 2;
-            line.numCapVertices = 2;
+            var chainArc = _acquireChainArc();
+            var line = chainArc.Renderer;
+            chainArc.Root.SetActive(true);
             var direction = end - start;
             var side = Vector3.Cross(direction.normalized, Vector3.up) * Mathf.Min(0.45f, direction.magnitude * 0.12f);
-            line.SetPositions(new[] { start, Vector3.Lerp(start, end, 0.34f) + side,
-                Vector3.Lerp(start, end, 0.68f) - side, end });
+            line.SetPosition(0, start);
+            line.SetPosition(1, Vector3.Lerp(start, end, 0.34f) + side);
+            line.SetPosition(2, Vector3.Lerp(start, end, 0.68f) - side);
+            line.SetPosition(3, end);
             line.startColor = _chainArcColor(1f);
             line.endColor = _chainArcColor(0.35f);
-            line.sortingOrder = 31;
-            m_chainArcs.Add(new ChainArcVisual { Root = root, Renderer = line });
+            chainArc.Age = 0f;
+            if (!chainArc.IsActive)
+            {
+                chainArc.IsActive = true;
+                ActiveChainArcCount++;
+            }
             ChainArcsPlayed++;
         }
 
@@ -275,6 +317,7 @@ namespace DeadSignal.Combat
                 m_hitStopEndsAt = 0f;
                 Time.timeScale = 0f;
                 _resetCamera();
+                _clearTransientVisuals();
                 return;
             }
 
@@ -291,6 +334,7 @@ namespace DeadSignal.Combat
 
             float dt = Time.deltaTime;
             _updateImpacts(dt);
+            _updateSparks(dt);
             _updateChainArcs(dt);
             _updateThreatReactions(dt);
             _updateCameraShake(dt);
@@ -326,18 +370,18 @@ namespace DeadSignal.Combat
                 Destroy(m_salvageChainSprite);
             }
 
-            foreach (var chainArc in m_chainArcs)
-            {
-                if (chainArc.Root != null)
-                {
-                    Destroy(chainArc.Root);
-                }
-            }
         }
 
-        private void _playImpact(Vector3 position, Color tint, float targetScale, float shakeIntensity, float hitStopDuration)
+        private void _playImpact(
+            Vector3 position,
+            Color tint,
+            float targetScale,
+            float shakeIntensity,
+            float hitStopDuration,
+            bool priority = false)
         {
-            _playImpact(position, tint, targetScale, shakeIntensity, hitStopDuration, m_impactSprite, null, "Combat Impact Burst");
+            _playImpact(position, tint, targetScale, shakeIntensity, hitStopDuration, m_impactSprite, null,
+                "Combat Impact Burst", priority);
         }
 
         private void _playImpact(
@@ -348,38 +392,36 @@ namespace DeadSignal.Combat
             float hitStopDuration,
             Sprite sprite,
             Material material,
-            string objectName)
+            string objectName,
+            bool priority)
         {
             if (m_isPaused || sprite == null)
             {
                 return;
             }
 
-            var root = new GameObject(objectName);
-            root.transform.SetParent(transform, true);
-            root.transform.position = position;
-            root.transform.rotation = m_targetCamera != null
-                ? Quaternion.LookRotation(-m_targetCamera.transform.forward, m_targetCamera.transform.up)
-                : Quaternion.Euler(-90f, 0f, 0f);
-            root.transform.localScale = Vector3.one * 0.12f;
-
-            var spriteRenderer = root.AddComponent<SpriteRenderer>();
-            spriteRenderer.sprite = sprite;
-            if (material != null)
+            var impact = _acquireImpact(priority);
+            if (impact != null)
             {
+                var root = impact.Root;
+                root.name = objectName;
+                root.SetActive(true);
+                root.transform.position = position;
+                root.transform.rotation = m_targetCamera != null
+                    ? Quaternion.LookRotation(-m_targetCamera.transform.forward, m_targetCamera.transform.up)
+                    : Quaternion.Euler(-90f, 0f, 0f);
+                root.transform.localScale = Vector3.one * 0.12f;
+
+                var spriteRenderer = impact.Renderer;
+                spriteRenderer.sprite = sprite;
                 spriteRenderer.sharedMaterial = material;
+                spriteRenderer.color = _impactColor(tint, 0f);
+                impact.Tint = tint;
+                impact.TargetScale = targetScale;
+                impact.Age = 0f;
+                impact.IsPriority = priority;
+                _playDirectionalSparks(position, tint, priority);
             }
-            spriteRenderer.color = _impactColor(tint, 0f);
-            spriteRenderer.sortingOrder = 30;
-
-            m_impacts.Add(new ImpactVisual
-            {
-                Root = root,
-                Renderer = spriteRenderer,
-                Tint = tint,
-                TargetScale = targetScale
-            });
-            _playDirectionalSparks(position, tint);
 
             if (CameraImpulseEnabled)
             {
@@ -394,33 +436,25 @@ namespace DeadSignal.Combat
             }
         }
 
-        private void _playDirectionalSparks(Vector3 position, Color tint)
+        private void _playDirectionalSparks(Vector3 position, Color tint, bool priority)
         {
-            var root = new GameObject("Directional Impact Sparks");
-            root.transform.SetParent(transform, true);
+            var spark = _acquireSpark(priority);
+            if (spark == null)
+            {
+                return;
+            }
+
+            var root = spark.Root;
+            root.SetActive(true);
             root.transform.position = position + Vector3.up * 0.12f;
-            var particles = root.AddComponent<ParticleSystem>();
+            var particles = spark.Particles;
             particles.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
             var main = particles.main;
-            main.loop = false;
-            main.playOnAwake = false;
-            main.duration = 0.12f;
-            main.startLifetime = new ParticleSystem.MinMaxCurve(0.08f, 0.18f);
-            main.startSpeed = new ParticleSystem.MinMaxCurve(1.2f, 2.8f);
-            main.startSize = new ParticleSystem.MinMaxCurve(0.025f, 0.06f);
             main.startColor = tint;
-            main.gravityModifier = 0.35f;
-            main.stopAction = ParticleSystemStopAction.Destroy;
-            var emission = particles.emission;
-            emission.enabled = false;
-            var shape = particles.shape;
-            shape.shapeType = ParticleSystemShapeType.Hemisphere;
-            shape.radius = 0.08f;
-            var renderer = root.GetComponent<ParticleSystemRenderer>();
-            renderer.renderMode = ParticleSystemRenderMode.Stretch;
-            renderer.velocityScale = 0.12f;
             particles.Emit(ReducedFlashesEnabled ? 3 : 6);
             particles.Play();
+            spark.Age = 0f;
+            spark.IsPriority = priority;
         }
 
         private void _updateHitStop()
@@ -439,11 +473,16 @@ namespace DeadSignal.Combat
 
         private void _updateImpacts(float dt)
         {
-            for (int index = m_impacts.Count - 1; index >= 0; index--)
+            for (var index = 0; index < m_impacts.Count; index++)
             {
-                ImpactVisual impact = m_impacts[index];
+                var impact = m_impacts[index];
+                if (!impact.IsActive)
+                {
+                    continue;
+                }
+
                 impact.Age += dt;
-                float progress = Mathf.Clamp01(impact.Age / IMPACT_DURATION);
+                float progress = Mathf.Clamp01(impact.Age / _impactDuration());
                 float easedProgress = 1f - Mathf.Pow(1f - progress, 3f);
                 impact.Root.transform.localScale = Vector3.one * Mathf.Lerp(0.12f, impact.TargetScale, easedProgress);
                 impact.Renderer.color = _impactColor(impact.Tint, progress);
@@ -453,8 +492,27 @@ namespace DeadSignal.Combat
                     continue;
                 }
 
-                Destroy(impact.Root);
-                m_impacts.RemoveAt(index);
+                _deactivateImpact(impact);
+            }
+        }
+
+        private void _updateSparks(float dt)
+        {
+            for (var index = 0; index < m_sparks.Count; index++)
+            {
+                var spark = m_sparks[index];
+                if (!spark.IsActive)
+                {
+                    continue;
+                }
+
+                spark.Age += dt;
+                if (spark.Age < _sparkDuration())
+                {
+                    continue;
+                }
+
+                _deactivateSpark(spark);
             }
         }
 
@@ -493,11 +551,16 @@ namespace DeadSignal.Combat
 
         private void _updateChainArcs(float dt)
         {
-            for (var index = m_chainArcs.Count - 1; index >= 0; index--)
+            for (var index = 0; index < m_chainArcs.Count; index++)
             {
                 var chainArc = m_chainArcs[index];
+                if (!chainArc.IsActive)
+                {
+                    continue;
+                }
+
                 chainArc.Age += dt;
-                var progress = Mathf.Clamp01(chainArc.Age / 0.18f);
+                var progress = Mathf.Clamp01(chainArc.Age / _chainDuration());
                 chainArc.Renderer.startColor = _chainArcColor(1f - progress);
                 chainArc.Renderer.endColor = _chainArcColor((1f - progress) * 0.35f);
                 if (progress < 1f)
@@ -505,19 +568,25 @@ namespace DeadSignal.Combat
                     continue;
                 }
 
-                Destroy(chainArc.Root);
-                m_chainArcs.RemoveAt(index);
+                chainArc.IsActive = false;
+                chainArc.Root.SetActive(false);
+                ActiveChainArcCount--;
             }
         }
 
         private void _updateThreatReactions(float dt)
         {
-            for (var index = m_threatReactions.Count - 1; index >= 0; index--)
+            for (var index = 0; index < m_threatReactions.Count; index++)
             {
                 var reaction = m_threatReactions[index];
+                if (!reaction.IsActive)
+                {
+                    continue;
+                }
+
                 if (reaction.Target == null || !reaction.Target.gameObject.activeInHierarchy)
                 {
-                    m_threatReactions.RemoveAt(index);
+                    _deactivateThreatReaction(reaction, false);
                     continue;
                 }
 
@@ -531,7 +600,7 @@ namespace DeadSignal.Combat
                 }
 
                 reaction.Target.localScale = reaction.RestScale;
-                m_threatReactions.RemoveAt(index);
+                _deactivateThreatReaction(reaction, false);
             }
         }
 
@@ -560,14 +629,322 @@ namespace DeadSignal.Combat
 
         private Color _impactColor(Color tint, float progress)
         {
-            float maximumAlpha = ReducedFlashesEnabled ? REDUCED_FLASH_ALPHA : 1f;
+            float maximumAlpha = ReducedFlashesEnabled ? _reducedFlashesMaximumAlpha() : 1f;
             return new Color(tint.r, tint.g, tint.b, maximumAlpha * (1f - progress));
         }
 
         private Color _chainArcColor(float alpha)
         {
-            var maximumAlpha = ReducedFlashesEnabled ? REDUCED_FLASH_ALPHA : 1f;
+            var maximumAlpha = ReducedFlashesEnabled ? _reducedFlashesMaximumAlpha() : 1f;
             return new Color(0.18f, 0.95f, 1f, alpha * maximumAlpha);
         }
+
+        private void _prewarmPools()
+        {
+            while (m_impacts.Count < _impactPrewarmCount())
+            {
+                m_impacts.Add(_createImpactVisual());
+            }
+
+            while (m_sparks.Count < _sparkPrewarmCount())
+            {
+                m_sparks.Add(_createSparkVisual());
+            }
+
+            while (m_chainArcs.Count < _chainPrewarmCount())
+            {
+                m_chainArcs.Add(_createChainArcVisual());
+            }
+
+            while (m_threatReactions.Count < DEFAULT_IMPACT_MAXIMUM_COUNT)
+            {
+                m_threatReactions.Add(new ThreatReaction());
+            }
+        }
+
+        private ImpactVisual _createImpactVisual()
+        {
+            var root = new GameObject("Pooled Combat Impact");
+            root.transform.SetParent(transform, false);
+            var renderer = root.AddComponent<SpriteRenderer>();
+            renderer.sortingOrder = 30;
+            root.SetActive(false);
+            CreatedPooledObjectCount++;
+            return new ImpactVisual { Root = root, Renderer = renderer };
+        }
+
+        private SparkVisual _createSparkVisual()
+        {
+            var root = new GameObject("Directional Impact Sparks");
+            root.transform.SetParent(transform, false);
+            var particles = root.AddComponent<ParticleSystem>();
+            particles.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+            var main = particles.main;
+            main.loop = false;
+            main.playOnAwake = false;
+            main.duration = 0.12f;
+            main.startLifetime = new ParticleSystem.MinMaxCurve(0.08f, 0.18f);
+            main.startSpeed = new ParticleSystem.MinMaxCurve(1.2f, 2.8f);
+            main.startSize = new ParticleSystem.MinMaxCurve(0.025f, 0.06f);
+            main.gravityModifier = 0.35f;
+            main.stopAction = ParticleSystemStopAction.None;
+            var emission = particles.emission;
+            emission.enabled = false;
+            var shape = particles.shape;
+            shape.shapeType = ParticleSystemShapeType.Hemisphere;
+            shape.radius = 0.08f;
+            var renderer = root.GetComponent<ParticleSystemRenderer>();
+            renderer.renderMode = ParticleSystemRenderMode.Stretch;
+            renderer.velocityScale = 0.12f;
+            root.SetActive(false);
+            CreatedPooledObjectCount++;
+            return new SparkVisual { Root = root, Particles = particles };
+        }
+
+        private ChainArcVisual _createChainArcVisual()
+        {
+            var root = new GameObject("Chain Arc Link");
+            root.transform.SetParent(transform, false);
+            var line = root.AddComponent<LineRenderer>();
+            line.sharedMaterial = m_chainArcMaterial;
+            line.useWorldSpace = true;
+            line.positionCount = 4;
+            line.startWidth = 0.075f;
+            line.endWidth = 0.025f;
+            line.numCornerVertices = 2;
+            line.numCapVertices = 2;
+            line.sortingOrder = 31;
+            root.SetActive(false);
+            CreatedPooledObjectCount++;
+            return new ChainArcVisual { Root = root, Renderer = line };
+        }
+
+        private ImpactVisual _acquireImpact(bool priority)
+        {
+            for (var index = 0; index < m_impacts.Count; index++)
+            {
+                if (!m_impacts[index].IsActive)
+                {
+                    m_impacts[index].IsActive = true;
+                    ActiveImpactCount++;
+                    return m_impacts[index];
+                }
+            }
+
+            if (m_impacts.Count < _impactMaximumCount())
+            {
+                var created = _createImpactVisual();
+                created.IsActive = true;
+                m_impacts.Add(created);
+                ActiveImpactCount++;
+                return created;
+            }
+
+            ImpactVisual oldest = null;
+            for (var index = 0; index < m_impacts.Count; index++)
+            {
+                var candidate = m_impacts[index];
+                if (candidate.IsPriority || (oldest != null && candidate.Age <= oldest.Age))
+                {
+                    continue;
+                }
+
+                oldest = candidate;
+            }
+
+            if (oldest == null && priority)
+            {
+                oldest = m_impacts[0];
+                for (var index = 1; index < m_impacts.Count; index++)
+                {
+                    if (m_impacts[index].Age > oldest.Age)
+                    {
+                        oldest = m_impacts[index];
+                    }
+                }
+            }
+
+            return oldest;
+        }
+
+        private SparkVisual _acquireSpark(bool priority)
+        {
+            for (var index = 0; index < m_sparks.Count; index++)
+            {
+                if (!m_sparks[index].IsActive)
+                {
+                    m_sparks[index].IsActive = true;
+                    ActiveSparkCount++;
+                    return m_sparks[index];
+                }
+            }
+
+            if (m_sparks.Count < _sparkMaximumCount())
+            {
+                var created = _createSparkVisual();
+                created.IsActive = true;
+                m_sparks.Add(created);
+                ActiveSparkCount++;
+                return created;
+            }
+
+            SparkVisual oldest = null;
+            for (var index = 0; index < m_sparks.Count; index++)
+            {
+                var candidate = m_sparks[index];
+                if (candidate.IsPriority || (oldest != null && candidate.Age <= oldest.Age))
+                {
+                    continue;
+                }
+
+                oldest = candidate;
+            }
+
+            if (oldest == null && priority)
+            {
+                oldest = m_sparks[0];
+                for (var index = 1; index < m_sparks.Count; index++)
+                {
+                    if (m_sparks[index].Age > oldest.Age)
+                    {
+                        oldest = m_sparks[index];
+                    }
+                }
+            }
+
+            return oldest;
+        }
+
+        private ChainArcVisual _acquireChainArc()
+        {
+            for (var index = 0; index < m_chainArcs.Count; index++)
+            {
+                if (!m_chainArcs[index].IsActive)
+                {
+                    return m_chainArcs[index];
+                }
+            }
+
+            if (m_chainArcs.Count < _chainMaximumCount())
+            {
+                var created = _createChainArcVisual();
+                m_chainArcs.Add(created);
+                return created;
+            }
+
+            var oldest = m_chainArcs[0];
+            for (var index = 1; index < m_chainArcs.Count; index++)
+            {
+                if (m_chainArcs[index].Age > oldest.Age)
+                {
+                    oldest = m_chainArcs[index];
+                }
+            }
+
+            return oldest;
+        }
+
+        private ThreatReaction _acquireThreatReaction()
+        {
+            for (var index = 0; index < m_threatReactions.Count; index++)
+            {
+                if (!m_threatReactions[index].IsActive)
+                {
+                    return m_threatReactions[index];
+                }
+            }
+
+            var oldest = m_threatReactions[0];
+            for (var index = 1; index < m_threatReactions.Count; index++)
+            {
+                if (m_threatReactions[index].Age > oldest.Age)
+                {
+                    oldest = m_threatReactions[index];
+                }
+            }
+
+            _deactivateThreatReaction(oldest, true);
+            return oldest;
+        }
+
+        private void _deactivateImpact(ImpactVisual impact)
+        {
+            impact.IsActive = false;
+            impact.IsPriority = false;
+            impact.Root.SetActive(false);
+            ActiveImpactCount--;
+        }
+
+        private void _deactivateSpark(SparkVisual spark)
+        {
+            spark.Particles.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+            spark.IsActive = false;
+            spark.IsPriority = false;
+            spark.Root.SetActive(false);
+            ActiveSparkCount--;
+        }
+
+        private void _deactivateThreatReaction(ThreatReaction reaction, bool restoreScale)
+        {
+            if (restoreScale && reaction.Target != null)
+            {
+                reaction.Target.localScale = reaction.RestScale;
+            }
+
+            reaction.Target = null;
+            reaction.IsActive = false;
+            ActiveThreatReactionCount--;
+        }
+
+        private void _clearTransientVisuals()
+        {
+            for (var index = 0; index < m_impacts.Count; index++)
+            {
+                if (m_impacts[index].IsActive)
+                {
+                    _deactivateImpact(m_impacts[index]);
+                }
+            }
+
+            for (var index = 0; index < m_sparks.Count; index++)
+            {
+                if (m_sparks[index].IsActive)
+                {
+                    _deactivateSpark(m_sparks[index]);
+                }
+            }
+
+            for (var index = 0; index < m_chainArcs.Count; index++)
+            {
+                if (!m_chainArcs[index].IsActive)
+                {
+                    continue;
+                }
+
+                m_chainArcs[index].IsActive = false;
+                m_chainArcs[index].Root.SetActive(false);
+                ActiveChainArcCount--;
+            }
+
+            for (var index = 0; index < m_threatReactions.Count; index++)
+            {
+                if (m_threatReactions[index].IsActive)
+                {
+                    _deactivateThreatReaction(m_threatReactions[index], true);
+                }
+            }
+        }
+
+        private int _impactPrewarmCount() => m_tuning == null ? DEFAULT_IMPACT_PREWARM_COUNT : m_tuning.ImpactPrewarmCount;
+        private int _impactMaximumCount() => m_tuning == null ? DEFAULT_IMPACT_MAXIMUM_COUNT : m_tuning.ImpactMaximumCount;
+        private float _impactDuration() => m_tuning == null ? DEFAULT_IMPACT_DURATION : m_tuning.ImpactDuration;
+        private int _sparkPrewarmCount() => m_tuning == null ? DEFAULT_SPARK_PREWARM_COUNT : m_tuning.SparkPrewarmCount;
+        private int _sparkMaximumCount() => m_tuning == null ? DEFAULT_SPARK_MAXIMUM_COUNT : m_tuning.SparkMaximumCount;
+        private float _sparkDuration() => m_tuning == null ? DEFAULT_SPARK_DURATION : m_tuning.SparkDuration;
+        private int _chainPrewarmCount() => m_tuning == null ? DEFAULT_CHAIN_PREWARM_COUNT : m_tuning.ChainPrewarmCount;
+        private int _chainMaximumCount() => m_tuning == null ? DEFAULT_CHAIN_MAXIMUM_COUNT : m_tuning.ChainMaximumCount;
+        private float _chainDuration() => m_tuning == null ? DEFAULT_CHAIN_DURATION : m_tuning.ChainDuration;
+        private float _reducedFlashesMaximumAlpha() =>
+            m_tuning == null ? DEFAULT_REDUCED_FLASH_ALPHA : m_tuning.ReducedFlashesMaximumAlpha;
     }
 }

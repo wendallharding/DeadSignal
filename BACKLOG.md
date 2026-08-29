@@ -72,7 +72,7 @@ Work through this section after the required mission route is connected. Human-o
 #### Presentation-effect foundation
 
 - [x] Inventory current particles, trails, flashes, camera impulses, post-processing, generated materials, and effect ownership; define per-effect lifetime, pooling/allocation, contrast, and accessibility limits before adding effects — see `PRESENTATION_EFFECT_AUDIT.md`
-- [ ] Add or refine pooled projectile-impact and enemy-purge effects with distinct enemy, wall, and shield reads; keep projectile collision and damage rules unchanged
+- [x] Add or refine pooled projectile-impact and enemy-purge effects with distinct enemy, wall, and shield reads; keep projectile collision and damage rules unchanged
 - [ ] Add restrained directional damage and critical-Signal screen feedback that never obscures projectiles, interaction prompts, enemy telegraphs, or escape lanes
 - [ ] Add authored activation/completion effects for towers, payload installation, doors, shortcuts, and machinery state changes using the established amber → cyan language
 - [ ] Add bounded lockdown-entry, phase-transition, room-clear, capacitor/salvage recovery, and reward-release effects without changing encounter timing, population, rewards, or door authority
