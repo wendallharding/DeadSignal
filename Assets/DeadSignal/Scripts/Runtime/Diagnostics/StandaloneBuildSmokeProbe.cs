@@ -49,6 +49,10 @@ namespace DeadSignal.Diagnostics
             var game = FindFirstObjectByType<DeadSignalGame>();
             var missionObjectives = Resources.Load<MissionObjectiveGraphConfiguration>("Tuning/CompatibilityMissionObjectives");
             var missionObjectivesReady = missionObjectives != null && missionObjectives.ObjectiveCount == 23;
+            var productShell = FindFirstObjectByType<DeadSignalShellController>(FindObjectsInactive.Include);
+            var productShellReady = productShell != null && !productShell.IsMenuVisible &&
+                                    game != null && !game.IsMainMenuOpen &&
+                                    Resources.Load<Texture2D>("UI/MainMenuStationBackdrop") != null;
             var objectiveConsumersReady = game != null &&
                                           game.CurrentMissionObjectiveId == MissionObjectiveId.CentralTower &&
                                           game.CurrentMissionGuidanceTitle == "RESTORE CENTRAL" &&
@@ -192,6 +196,9 @@ namespace DeadSignal.Diagnostics
             Debug.Log($"[DEAD SIGNAL STANDALONE SMOKE] MISSION OBJECTIVES | " +
                       $"resource={missionObjectives != null} objectives={missionObjectives?.ObjectiveCount ?? 0} " +
                       $"consumers={objectiveConsumersReady} current={game?.CurrentMissionObjectiveId}");
+            Debug.Log($"[DEAD SIGNAL STANDALONE SMOKE] PRODUCT SHELL | " +
+                      $"controller={productShell != null} backdrop={Resources.Load<Texture2D>("UI/MainMenuStationBackdrop") != null} " +
+                      $"commandLineBypass={productShell != null && !productShell.IsMenuVisible && game != null && !game.IsMainMenuOpen}");
             Debug.Log($"[DEAD SIGNAL STANDALONE SMOKE] CARGO ANNEX | " +
                       $"configured={cargoAnnexObjective?.IsConfigured ?? false} phase={cargoAnnexObjective?.Phase}");
             Debug.Log($"[DEAD SIGNAL STANDALONE SMOKE] COOLANT RECLAMATION | " +
@@ -228,6 +235,7 @@ namespace DeadSignal.Diagnostics
                       $"quench={quenchStabilizationObjective?.IsConfigured ?? false} " +
                       $"forged={game?.IsLatticeForged ?? false} stabilized={game?.IsCoreStabilized ?? false}");
             var runtimeReady = game != null &&
+                                productShellReady &&
                                 missionObjectivesReady &&
                                 objectiveConsumersReady &&
                                 cargoAnnexReady &&

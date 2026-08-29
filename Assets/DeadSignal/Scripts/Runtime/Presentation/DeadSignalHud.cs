@@ -32,6 +32,7 @@ namespace DeadSignal.Presentation
         void ShowFeedback(string message);
         void SetDebugObjective(string objective);
         void SetDebugMenuVisible(bool visible);
+        void SetMainMenuVisible(bool visible);
         void Tick(float dt);
     }
 
@@ -104,6 +105,7 @@ namespace DeadSignal.Presentation
         private int m_feedbackPriority;
         private bool m_resultRecorded;
         private bool m_debugMenuVisible;
+        private bool m_mainMenuVisible;
         private string m_personalBestText = string.Empty;
         private string m_feedback = string.Empty;
         private string m_debugObjective = string.Empty;
@@ -199,6 +201,12 @@ namespace DeadSignal.Presentation
             _refresh();
         }
 
+        void IDeadSignalHud.SetMainMenuVisible(bool visible)
+        {
+            m_mainMenuVisible = visible;
+            _refresh();
+        }
+
         void IDeadSignalHud.Tick(float dt)
         {
             m_feedbackTimer = Mathf.Max(0f, m_feedbackTimer - dt);
@@ -238,9 +246,9 @@ namespace DeadSignal.Presentation
 
             var paused = m_combatFeedback.IsPaused;
             var running = m_model.Outcome == RunOutcome.Running;
-            m_runHud.SetActive(running && !paused && !m_debugMenuVisible);
-            m_pauseOverlay.SetActive(paused && !m_debugMenuVisible);
-            m_outcomeOverlay.SetActive(!running && !paused && !m_debugMenuVisible);
+            m_runHud.SetActive(running && !paused && !m_debugMenuVisible && !m_mainMenuVisible);
+            m_pauseOverlay.SetActive(paused && !m_debugMenuVisible && !m_mainMenuVisible);
+            m_outcomeOverlay.SetActive(!running && !paused && !m_debugMenuVisible && !m_mainMenuVisible);
             _refreshRunHud();
             _refreshOutcome();
             _refreshPause();

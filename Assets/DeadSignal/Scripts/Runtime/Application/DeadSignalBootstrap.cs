@@ -50,18 +50,22 @@ namespace DeadSignal.Application
             var comfortSettings = new ComfortSettings();
             var input = new DeadSignalInput();
             var hudPrefab = Resources.Load<GameObject>("UI/DeadSignalHud");
-            if (hudPrefab == null)
+            var shellPrefab = Resources.Load<GameObject>("UI/DeadSignalMainMenu");
+            if (hudPrefab == null || shellPrefab == null)
             {
-                Debug.LogError("The authored HUD prefab was not found at Resources/UI/DeadSignalHud.");
+                Debug.LogError("The authored HUD or product-shell prefab was not found in Resources/UI.");
                 Object.Destroy(root);
                 return;
             }
 
             var hudInstance = Object.Instantiate(hudPrefab, root.transform);
             hudInstance.name = hudPrefab.name;
+            var shellInstance = Object.Instantiate(shellPrefab, hudInstance.transform);
+            shellInstance.name = shellPrefab.name;
             var audio = root.AddComponent<DeadSignalAudio>();
             var combatFeedback = root.AddComponent<CombatFeedbackController>();
             var hud = hudInstance.GetComponent<DeadSignalHud>();
+            var shell = shellInstance.GetComponent<DeadSignalShellController>();
             var objectiveBeacon = hudInstance.GetComponent<ObjectiveBeaconHud>();
             var signalDust = root.AddComponent<SignalDustController>();
             var lowSignalWarning = hudInstance.GetComponent<LowSignalWarningController>();
@@ -88,6 +92,12 @@ namespace DeadSignal.Application
             GameObjectInjector.InjectObject(root, container);
             GameObjectInjector.InjectObject(hudInstance, container);
             root.SetActive(true);
+            if (shell == null)
+            {
+                Debug.LogError("The authored HUD prefab is missing its product-shell controller.");
+                return;
+            }
+            shell.Configure(game, hud, comfortSettings, input);
             debugMenu?.Configure(game);
         }
     }

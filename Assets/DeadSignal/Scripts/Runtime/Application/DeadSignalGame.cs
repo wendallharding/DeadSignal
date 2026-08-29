@@ -206,6 +206,7 @@ namespace DeadSignal.Application
         public float CurrentExtractionPurgeAcceleration => m_extractionUplink?.CurrentPurgeAcceleration ?? 0f;
         public bool LastSignalBoltBlockedByEnvironment => m_threats?.LastShotBlockedByEnvironment ?? false;
         public bool IsPaused => m_combatFeedback?.IsPaused ?? false;
+        public bool IsMainMenuOpen { get; private set; }
         public bool HasPauseInsignia => m_hud?.HasPauseInsignia ?? false;
         public bool HasBindingMatrixIcon => m_hud?.HasBindingMatrixIcon ?? false;
         public bool HasBindingConflictIcon => m_hud?.HasBindingConflictIcon ?? false;
@@ -1359,6 +1360,13 @@ namespace DeadSignal.Application
             {
                 m_comfortSettings.ToggleAudio();
             }
+        }
+
+        public void SetMainMenuOpen(bool open)
+        {
+            IsMainMenuOpen = open;
+            _setPaused(open);
+            enabled = !open;
         }
 
         [Inject]

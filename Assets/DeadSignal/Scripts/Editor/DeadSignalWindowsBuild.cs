@@ -65,6 +65,7 @@ namespace DeadSignal.Editor
             DeadSignalSignalSpineSetup.EnsureAssets();
             DeadSignalBoundaryThresholdSetup.EnsureAssets();
             DeadSignalHudSetup.EnsureAssets();
+            DeadSignalProductShellSetup.EnsureAssets();
             DeadSignalThreatSetup.EnsureAssets();
             DeadSignalInterceptorSetup.EnsureAssets();
             DeadSignalSwarmerSetup.EnsureAssets();
