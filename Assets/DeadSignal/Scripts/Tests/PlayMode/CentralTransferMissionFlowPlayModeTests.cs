@@ -122,6 +122,7 @@ namespace DeadSignal.Tests.PlayMode
             Assert.That(transferVault.transform.Find("Central Payload Assembled").gameObject.activeSelf, Is.True);
             Assert.That(transferVault.IsRouteConfigured, Is.True);
             Assert.That(transferVault.IsRelayRouteOpen, Is.False);
+            Assert.That(transferVault.RoutePresentationState, Is.EqualTo(RouteDoorPresentationState.Locked));
             var relayRouteGate = transferVault.transform.Find("Central Relay Route Gate");
             Assert.That(relayRouteGate, Is.Not.Null);
             Assert.That(relayRouteGate.gameObject.activeSelf, Is.True);
@@ -151,7 +152,10 @@ namespace DeadSignal.Tests.PlayMode
             Assert.That(game.IsCentralPayloadSecured, Is.True);
             Assert.That(game.CurrentMissionObjectiveId, Is.EqualTo(MissionObjectiveId.RelayTower));
             Assert.That(transferVault.IsRelayRouteOpen, Is.True);
+            Assert.That(transferVault.RoutePresentationState, Is.EqualTo(RouteDoorPresentationState.Open));
             Assert.That(relayRouteGate.gameObject.activeSelf, Is.False);
+            Assert.That(transferVault.transform.Find("Central Relay Route Threshold").gameObject.activeSelf, Is.True,
+                "The open route must keep a persistent authored threshold read.");
             Assert.That(centralInstallation.transform.Find("Central Payload Installed").gameObject.activeSelf, Is.True);
             Assert.That(game.AuthoredMapObstacleCount, Is.EqualTo(138));
 

@@ -63,7 +63,10 @@ namespace DeadSignal.Editor
                     throw new InvalidOperationException("The East Transfer Vault has no authored assembly objective.");
                 }
 
-                transferObjective.ConfigureRouteGate(gate, routeOpen);
+                transferObjective.ConfigureRouteGate(
+                    gate,
+                    routeOpen,
+                    prefabRoot.GetComponent<AuthoredRouteDoorReadability>());
                 PrefabUtility.SaveAsPrefabAsset(prefabRoot, VAULT_PREFAB_PATH);
             }
             finally

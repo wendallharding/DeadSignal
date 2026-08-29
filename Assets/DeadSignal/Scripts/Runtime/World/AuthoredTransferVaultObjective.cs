@@ -27,12 +27,17 @@ namespace DeadSignal.World
         [SerializeField] private Transform m_assemblerRotor;
         [SerializeField] private GameObject m_relayRouteGate;
         [SerializeField] private GameObject m_relayRouteOpenMarker;
+        [SerializeField] private AuthoredRouteDoorReadability m_relayRouteReadability;
 
         public Vector3 Position => m_assemblyAnchor != null ? m_assemblyAnchor.position : transform.position;
         public bool IsConfigured => m_assemblyAnchor != null && m_availableMarker != null && m_assembledMarker != null;
         public bool HasReadabilityAssets => m_assemblerStatusRenderer != null && m_assemblerRotor != null;
-        public bool IsRouteConfigured => m_relayRouteGate != null && m_relayRouteOpenMarker != null;
+        public bool IsRouteConfigured => m_relayRouteGate != null && m_relayRouteOpenMarker != null &&
+                                         m_relayRouteReadability != null && m_relayRouteReadability.IsConfigured;
         public bool IsRelayRouteOpen => m_relayRouteGate != null && !m_relayRouteGate.activeSelf;
+        public RouteDoorPresentationState RoutePresentationState => m_relayRouteReadability != null
+            ? m_relayRouteReadability.PresentationState
+            : RouteDoorPresentationState.Locked;
         public TransferVaultPresentationState PresentationState { get; private set; } = TransferVaultPresentationState.Locked;
 
         private void Awake()
@@ -98,15 +103,25 @@ namespace DeadSignal.World
             _refreshPresentation();
         }
 
-        public void ConfigureRouteGate(GameObject relayRouteGate, GameObject relayRouteOpenMarker)
+        public void ConfigureRouteGate(
+            GameObject relayRouteGate,
+            GameObject relayRouteOpenMarker,
+            AuthoredRouteDoorReadability relayRouteReadability)
         {
             m_relayRouteGate = relayRouteGate;
             m_relayRouteOpenMarker = relayRouteOpenMarker;
+            m_relayRouteReadability = relayRouteReadability;
             SetRouteOpen(false);
         }
 
         public void SetRouteOpen(bool open)
         {
+            if (m_relayRouteReadability != null)
+            {
+                m_relayRouteReadability.SetOpen(open);
+                return;
+            }
+
             if (m_relayRouteGate != null)
             {
                 m_relayRouteGate.SetActive(!open);

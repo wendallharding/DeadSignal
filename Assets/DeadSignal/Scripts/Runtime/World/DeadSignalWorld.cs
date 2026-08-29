@@ -687,7 +687,14 @@ namespace DeadSignal.World
 
         public void OpenShortcut()
         {
-            m_shortcutGate.SetActive(false);
+            if (m_shortcutDoorReadability != null)
+            {
+                m_shortcutDoorReadability.SetOpen(true);
+            }
+            else
+            {
+                m_shortcutGate.SetActive(false);
+            }
             m_shortcutOpen = true;
             _rebuildNavMesh();
         }
@@ -1202,6 +1209,7 @@ namespace DeadSignal.World
                 ShortcutGatePartCount++;
             }
             m_shortcutGate = shortcut.Find("Signal Shortcut Gate").gameObject;
+            m_shortcutDoorReadability = shortcut.GetComponent<AuthoredRouteDoorReadability>();
             HasShortcutGateAssets = ShortcutGatePartCount == 6 && m_palette.HasShortcutTexture;
             _addShortcutMovementBlockers();
             m_movementBlockers.Add(new MovementBlocker(
@@ -1989,6 +1997,7 @@ namespace DeadSignal.World
         private bool m_relayShortcutOpen;
         private GameObject m_extractionBeacon;
         private GameObject m_shortcutGate;
+        private AuthoredRouteDoorReadability m_shortcutDoorReadability;
         private bool m_shortcutOpen;
         private DeadSignalNavMeshPlanner m_navMeshPlanner;
         private Transform m_cameraRig;

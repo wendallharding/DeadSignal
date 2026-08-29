@@ -48,6 +48,7 @@ namespace DeadSignal.Editor
             DeadSignalEastVaultSetup.EnsureAssets();
             DeadSignalCentralInstallationSetup.EnsureAssets();
             DeadSignalCentralReadabilitySetup.EnsureAssets();
+            DeadSignalActOneRouteReadabilitySetup.EnsureAssets();
             DeadSignalRelayFoundrySetup.EnsureAssets();
             DeadSignalRelayCoolingGantrySetup.EnsureAssets();
             DeadSignalCapacitorSpineSetup.EnsureAssets();
@@ -194,6 +195,11 @@ namespace DeadSignal.Editor
             if (!DeadSignalProjectSetup.HasShortcutGateAssets)
             {
                 throw new BuildFailedException("The authored shortcut gate assets are missing.");
+            }
+
+            if (!DeadSignalActOneRouteReadabilitySetup.HasAssets)
+            {
+                throw new BuildFailedException("The authored Act I route-readability assets are missing.");
             }
 
             if (!DeadSignalProjectSetup.HasSignalRoutingAssets)
