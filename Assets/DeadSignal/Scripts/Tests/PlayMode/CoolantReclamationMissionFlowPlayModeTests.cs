@@ -25,8 +25,32 @@ namespace DeadSignal.Tests.PlayMode
             Assert.That(scene, Is.Not.Null);
             Assert.That(objective, Is.Not.Null);
             Assert.That(objective.IsConfigured, Is.True);
+            Assert.That(objective.HasReadabilityAssets, Is.True);
+            Assert.That(objective.PresentationState, Is.EqualTo(CoolantReclamationPresentationState.Locked));
+
+            var statusBase = objective.transform.Find("Coolant Status Base");
+            var statusDial = objective.transform.Find("Coolant Status Dial");
+            Assert.That(statusBase, Is.Not.Null);
+            Assert.That(statusDial, Is.Not.Null);
+            Assert.That(statusBase.GetComponent<MeshFilter>().sharedMesh.name,
+                Is.EqualTo("CoolantStatusBaseReadability"));
+            Assert.That(statusDial.GetComponent<MeshFilter>().sharedMesh.name,
+                Is.EqualTo("CoolantStatusDialReadability"));
+            Assert.That(statusBase.GetComponent<MeshFilter>().sharedMesh.vertexCount, Is.GreaterThanOrEqualTo(24));
+            Assert.That(statusDial.GetComponent<MeshFilter>().sharedMesh.vertexCount, Is.GreaterThanOrEqualTo(24));
+            Assert.That(statusDial.GetComponent<MeshFilter>().sharedMesh.HasVertexAttribute(
+                UnityEngine.Rendering.VertexAttribute.TexCoord0), Is.True);
+            Assert.That(statusDial.GetComponent<Renderer>().sharedMaterial.mainTexture.name,
+                Is.EqualTo("CoolantReclamationStatusPanel"));
+            Assert.That(statusBase.GetComponentsInChildren<Collider>(true), Is.Empty);
+            Assert.That(statusDial.GetComponentsInChildren<Collider>(true), Is.Empty,
+                "Coolant readability meshes must remain presentation-only.");
+            Assert.That(objective.transform.Find("First Baffle Route Marker").gameObject.activeSelf, Is.False,
+                "Locked Coolant machinery must not imply that its threading route is active.");
 
             game.DebugActivateTower();
+            yield return null;
+            Assert.That(objective.PresentationState, Is.EqualTo(CoolantReclamationPresentationState.FirstBaffle));
             scene.Player.position = game.CargoCommitmentPosition;
             yield return null;
             scene.Player.position = game.CargoCouplingPosition;
@@ -49,10 +73,12 @@ namespace DeadSignal.Tests.PlayMode
             scene.Player.position = objective.FirstBafflePosition;
             yield return null;
             Assert.That(game.CoolantSealPhase, Is.EqualTo(CoolantSealThreadingPhase.AwaitingSecondBaffle));
+            Assert.That(objective.PresentationState, Is.EqualTo(CoolantReclamationPresentationState.SecondBaffle));
 
             scene.Player.position = objective.SecondBafflePosition;
             yield return null;
             Assert.That(game.CoolantSealPhase, Is.EqualTo(CoolantSealThreadingPhase.SealAvailable));
+            Assert.That(objective.PresentationState, Is.EqualTo(CoolantReclamationPresentationState.Release));
 
             scene.Player.position = objective.SealPosition;
             yield return null;
@@ -60,6 +86,7 @@ namespace DeadSignal.Tests.PlayMode
                 "Releasing the seal must not complete the objective before the outward crossing.");
             Assert.That(game.CoolantSealPhase, Is.EqualTo(CoolantSealThreadingPhase.Releasing));
             Assert.That(game.CurrentSalvage, Is.EqualTo(1));
+            Assert.That(objective.PresentationState, Is.EqualTo(CoolantReclamationPresentationState.Release));
 
             scene.Player.position = Vector3.Lerp(objective.SealPosition, objective.ReleasePosition, 0.5f);
             yield return null;
@@ -69,6 +96,7 @@ namespace DeadSignal.Tests.PlayMode
             yield return null;
             Assert.That(game.IsCoolantSealSecured, Is.True);
             Assert.That(game.CoolantSealPhase, Is.EqualTo(CoolantSealThreadingPhase.Complete));
+            Assert.That(objective.PresentationState, Is.EqualTo(CoolantReclamationPresentationState.Stable));
             Assert.That(game.CurrentMissionObjectiveId, Is.EqualTo(MissionObjectiveId.RelayFork),
                 "Both Central components must now advance to the authored Relay Fork routing step.");
             Assert.That(game.CurrentSalvage, Is.EqualTo(1),
@@ -88,6 +116,13 @@ namespace DeadSignal.Tests.PlayMode
             yield return null;
 
             Assert.That(game.CurrentSalvage, Is.EqualTo(1), "The stabilized coolant line must remain idempotent.");
+
+            SceneManager.LoadScene("SampleScene");
+            yield return null;
+            yield return null;
+            objective = Object.FindFirstObjectByType<AuthoredCoolantReclamationObjective>(FindObjectsInactive.Include);
+            Assert.That(objective.PresentationState, Is.EqualTo(CoolantReclamationPresentationState.Locked),
+                "A fresh run must restore the persistent dormant Coolant read.");
         }
     }
 }
