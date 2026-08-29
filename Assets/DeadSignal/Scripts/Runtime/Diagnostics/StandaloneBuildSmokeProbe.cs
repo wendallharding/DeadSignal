@@ -367,6 +367,13 @@ namespace DeadSignal.Diagnostics
                                 Resources.Load<Material>(
                                     "Materials/SpineInductionGallery/SpineInductionGalleryRouteDecal") != null &&
                                 game.transform.Find(
+                                    "Spine Induction Gallery Region/Induction Lattice Objective/" +
+                                    "Induction Charge Status") != null &&
+                                Resources.Load<Texture2D>("Environment/DeepCoreMachineryStatusPanel") != null &&
+                                Resources.Load<Mesh>("Environment/InductionChargeGlyphReadability") != null &&
+                                Resources.Load<Material>(
+                                    "Materials/DeepCoreReadability/DeepCoreMachineryStatus") != null &&
+                                game.transform.Find(
                                     "Spine Induction Gallery Region/Convergence Chamber Region/" +
                                     "Convergence Busbar Assembly") != null &&
                                 game.transform.Find(
@@ -394,6 +401,9 @@ namespace DeadSignal.Diagnostics
                                 Resources.Load<GameObject>("Environment/FluxBypassRegion") != null &&
                                 Resources.Load<Texture2D>("Environment/FluxBypassRouteDecal") != null &&
                                 Resources.Load<Material>("Materials/FluxBypass/FluxBypassRouteDecal") != null &&
+                                game.transform.Find(
+                                    "Spine Induction Gallery Region/Flux Bypass Region/Flux Shunt Route Status") != null &&
+                                Resources.Load<Mesh>("Environment/FluxShuntGlyphReadability") != null &&
                                 game.transform.Find(
                                     "Spine Induction Gallery Region/Convergence Chamber Region/" +
                                     "Arc Furnace Region/Arc Furnace Assembly") != null &&

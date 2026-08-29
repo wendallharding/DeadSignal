@@ -61,6 +61,7 @@ namespace DeadSignal.Editor
             DeadSignalConvergenceChamberSetup.EnsureAssets();
             DeadSignalConvergenceBreakerGallerySetup.EnsureAssets();
             DeadSignalFluxBypassSetup.EnsureAssets();
+            DeadSignalDeepCoreReadabilitySetup.EnsureAssets();
             DeadSignalArcFurnaceSetup.EnsureAssets();
             DeadSignalQuenchLoopSetup.EnsureAssets();
             DeadSignalEasternCombatScenarioSetup.EnsureAssets();
@@ -270,6 +271,11 @@ namespace DeadSignal.Editor
             if (!DeadSignalFluxBypassSetup.HasAssets)
             {
                 throw new BuildFailedException("The scene-authored Flux Bypass is missing or incomplete.");
+            }
+
+            if (!DeadSignalDeepCoreReadabilitySetup.HasAssets)
+            {
+                throw new BuildFailedException("The deep-core machinery readability is missing or incomplete.");
             }
 
             if (!DeadSignalArcFurnaceSetup.HasAssets)
