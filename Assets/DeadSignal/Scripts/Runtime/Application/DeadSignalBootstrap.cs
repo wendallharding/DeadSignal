@@ -71,6 +71,7 @@ namespace DeadSignal.Application
             var lowSignalWarning = hudInstance.GetComponent<LowSignalWarningController>();
             var directionalDamageFeedback = hudInstance.GetComponent<DirectionalDamageFeedbackController>();
             var towerActivationSweep = root.AddComponent<TowerActivationSweepController>();
+            var stationStateFeedback = root.AddComponent<StationStateFeedbackController>();
             var game = root.AddComponent<DeadSignalGame>();
             DeadSignalDebugMenu debugMenu = null;
             if (DeadSignalDebugMenu.IsAvailable)
@@ -90,6 +91,7 @@ namespace DeadSignal.Application
                 .RegisterValue(lowSignalWarning, new[] { typeof(ILowSignalWarning) })
                 .RegisterValue(directionalDamageFeedback, new[] { typeof(IDirectionalDamageFeedback) })
                 .RegisterValue(towerActivationSweep, new[] { typeof(ITowerActivationSweep) })
+                .RegisterValue(stationStateFeedback, new[] { typeof(IStationStateFeedback) })
                 .Build();
             GameObjectInjector.InjectObject(root, container);
             GameObjectInjector.InjectObject(hudInstance, container);

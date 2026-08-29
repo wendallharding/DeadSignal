@@ -57,6 +57,7 @@ namespace DeadSignal.Application
         private ILowSignalWarning m_lowSignalWarning;
         private IDirectionalDamageFeedback m_directionalDamageFeedback;
         private ITowerActivationSweep m_towerActivationSweep;
+        private IStationStateFeedback m_stationStateFeedback;
         private MissionClarityHud m_missionClarityHud;
         private Container m_container;
         private Vector3 m_playerPresentationAcceleration;
@@ -110,6 +111,8 @@ namespace DeadSignal.Application
         public float CurrentSignal => m_model?.Signal ?? 0f;
         public int CurrentSalvage => m_model?.Salvage ?? 0;
         public bool IsTowerOnline => m_model?.TowerOnline ?? false;
+        public Vector3 TowerPosition => m_world?.TowerPosition ?? Vector3.zero;
+        public Vector3 ShortcutPosition => m_world?.ShortcutPosition ?? Vector3.zero;
         public RunOutcome CurrentRunOutcome => m_model?.Outcome ?? RunOutcome.Destroyed;
         public bool IsRelayTowerOnline => m_model?.RelayTowerOnline ?? false;
         public Vector3 RelayTowerPosition => m_world?.RelayTowerPosition ?? Vector3.zero;
@@ -278,6 +281,8 @@ namespace DeadSignal.Application
         public int SignalDustMaximumParticles => m_signalDust?.MaximumParticles ?? 0;
         public float SignalDustEmissionRate => m_signalDust?.EmissionRate ?? 0f;
         public bool HasTowerActivationSweepTexture => m_towerActivationSweep?.HasTexture ?? false;
+        public bool HasStationStateFeedbackTexture => m_stationStateFeedback?.HasTexture ?? false;
+        public int StationStateFeedbackPoolSize => m_stationStateFeedback?.PoolSize ?? 0;
         public bool IsTowerActivationSweepPlaying => m_towerActivationSweep?.IsPlaying ?? false;
         public float TowerActivationSweepAlpha => m_towerActivationSweep?.CurrentAlpha ?? 0f;
         public float TowerActivationSweepDiameter => m_towerActivationSweep?.CurrentDiameter ?? 0f;
@@ -757,6 +762,7 @@ namespace DeadSignal.Application
             {
                 m_world.ActivateTower(m_threats.SapperPulseInterval);
                 m_towerActivationSweep.Play();
+                m_stationStateFeedback.Play(m_world.TowerPosition, StationStateFeedbackKind.Tower);
                 _showFeedback("DEBUG — CENTRAL TOWER ACTIVATED");
             }
         }
@@ -780,6 +786,9 @@ namespace DeadSignal.Application
             {
                 m_model.TryInstallCentralPayload();
                 m_world.CompleteCentralInstallation();
+                m_stationStateFeedback.Play(
+                    m_world.CentralInstallationObjective.Position,
+                    StationStateFeedbackKind.Installation);
             }
             m_world.UpdateCentralTransferPresentation(m_model);
             if (m_model.RelayTowerOnline)
@@ -790,6 +799,7 @@ namespace DeadSignal.Application
             if (m_model.TryActivateRelayTower())
             {
                 m_world.ActivateRelayTower();
+                m_stationStateFeedback.Play(m_world.RelayTowerPosition, StationStateFeedbackKind.Tower);
                 _showFeedback("DEBUG — RELAY TOWER ACTIVATED");
             }
         }
@@ -802,6 +812,7 @@ namespace DeadSignal.Application
             }
 
             m_world.UpdateCentralTransferPresentation(m_model);
+            m_stationStateFeedback.Play(m_world.RelayForkObjective.Position, StationStateFeedbackKind.Machinery);
             _showFeedback("DEBUG — CENTRAL FEEDS ROUTED");
         }
 
@@ -813,6 +824,7 @@ namespace DeadSignal.Application
             }
 
             m_world.UpdateCentralTransferPresentation(m_model);
+            m_stationStateFeedback.Play(m_world.TransferVaultObjective.Position, StationStateFeedbackKind.Machinery);
             _showFeedback("DEBUG — CENTRAL PAYLOAD ASSEMBLED");
         }
 
@@ -824,6 +836,9 @@ namespace DeadSignal.Application
             }
 
             m_world.CompleteCentralInstallation();
+            m_stationStateFeedback.Play(
+                m_world.CentralInstallationObjective.Position,
+                StationStateFeedbackKind.Installation);
             _showFeedback("DEBUG — CENTRAL PAYLOAD INSTALLED  //  RELAY ROUTE OPEN");
         }
 
@@ -852,6 +867,7 @@ namespace DeadSignal.Application
             {
                 m_world.CompleteSpineRelayInstallation();
                 m_overclockChoice.NotifySpineActivated();
+                m_stationStateFeedback.Play(m_world.SpineTowerPosition, StationStateFeedbackKind.Tower);
                 _showFeedback("DEBUG — RELAY RESULT INSTALLED  //  CORE REBUILD OPEN");
             }
         }
@@ -864,6 +880,7 @@ namespace DeadSignal.Application
             }
 
             m_world.UpdateSpineVentingPresentation(m_model);
+            m_stationStateFeedback.Play(m_world.SpineVentingObjective.Position, StationStateFeedbackKind.Machinery);
             _showFeedback("DEBUG — SPINE BERTH VENTED");
         }
 
@@ -876,6 +893,7 @@ namespace DeadSignal.Application
             }
 
             m_world.UpdateInductionLatticePresentation(m_model);
+            m_stationStateFeedback.Play(m_world.InductionLatticeObjective.Position, StationStateFeedbackKind.Machinery);
             _showFeedback("DEBUG — CORE LATTICE CHARGED");
         }
 
@@ -890,6 +908,7 @@ namespace DeadSignal.Application
             m_world.UpdateFluxShuntPresentation(m_model);
             m_world.UpdateConvergenceCalibrationPresentation(m_model);
             m_world.UpdateBreakerResetPresentation(m_model);
+            m_stationStateFeedback.Play(m_world.FluxShuntObjective.Position, StationStateFeedbackKind.Machinery);
             _showFeedback("DEBUG — FLUX SHUNT ROUTED");
         }
 
@@ -900,6 +919,9 @@ namespace DeadSignal.Application
             {
                 m_model.AdvanceConvergenceCalibration(m_model.ConvergenceCalibrationDuration, true);
                 m_world.UpdateConvergenceCalibrationPresentation(m_model);
+                m_stationStateFeedback.Play(
+                    m_world.ConvergenceCalibrationObjective.Position,
+                    StationStateFeedbackKind.Machinery);
                 _showFeedback("DEBUG — CONVERGENCE CALIBRATED");
             }
         }
@@ -913,6 +935,7 @@ namespace DeadSignal.Application
             }
 
             m_world.UpdateBreakerResetPresentation(m_model);
+            m_stationStateFeedback.Play(m_world.BreakerResetObjective.Position, StationStateFeedbackKind.Machinery);
             _showFeedback("DEBUG — BREAKER DISTRIBUTION RESET");
         }
 
@@ -925,6 +948,7 @@ namespace DeadSignal.Application
             }
 
             m_world.UpdateCoreProcessingPresentation(m_model);
+            m_stationStateFeedback.Play(m_world.FurnaceForgeObjective.Position, StationStateFeedbackKind.Machinery);
             _showFeedback("DEBUG — CORE LATTICE FORGED");
         }
 
@@ -938,6 +962,7 @@ namespace DeadSignal.Application
 
             m_world.UpdateCoreProcessingPresentation(m_model);
             m_world.OpenQuenchReturn();
+            m_stationStateFeedback.Play(m_world.QuenchStabilizationObjective.Position, StationStateFeedbackKind.Passage);
             _showFeedback("DEBUG — CORE STABILIZED  //  QUENCH RETURN OPEN");
         }
 
@@ -995,6 +1020,9 @@ namespace DeadSignal.Application
             }
 
             m_world.UpdateSpineCoreInstallationPresentation(m_model);
+            m_stationStateFeedback.Play(
+                m_world.SpineCoreInstallationObjective.Position,
+                StationStateFeedbackKind.Installation);
             _showFeedback("DEBUG — SIGNAL CORE INSTALLED  //  WITHDRAWAL ENABLED");
         }
 
@@ -1036,6 +1064,7 @@ namespace DeadSignal.Application
             if (m_model.TryOpenShortcut())
             {
                 m_world.OpenShortcut();
+                m_stationStateFeedback.Play(m_world.ShortcutPosition, StationStateFeedbackKind.Passage);
             }
         }
 
@@ -1223,6 +1252,7 @@ namespace DeadSignal.Application
 
             m_world.UpdateRelayPayloadPresentation(m_model);
             m_overclockChoice.NotifyRelayActivated();
+            m_stationStateFeedback.Play(m_world.RelayPayloadObjective.Position, StationStateFeedbackKind.Installation);
             _showFeedback("DEBUG — RELAY PAYLOAD INSTALLED");
         }
 
@@ -1402,6 +1432,7 @@ namespace DeadSignal.Application
             ILowSignalWarning lowSignalWarning,
             IDirectionalDamageFeedback directionalDamageFeedback,
             ITowerActivationSweep towerActivationSweep,
+            IStationStateFeedback stationStateFeedback,
             Container container)
         {
             m_combatFeedback = combatFeedback;
@@ -1414,6 +1445,7 @@ namespace DeadSignal.Application
             m_lowSignalWarning = lowSignalWarning;
             m_directionalDamageFeedback = directionalDamageFeedback;
             m_towerActivationSweep = towerActivationSweep;
+            m_stationStateFeedback = stationStateFeedback;
             m_container = container;
         }
 
@@ -1931,6 +1963,9 @@ namespace DeadSignal.Application
                 {
                     m_world.UpdateCoreProcessingPresentation(m_model);
                     m_world.OpenQuenchReturn();
+                    m_stationStateFeedback.Play(
+                        m_world.QuenchStabilizationObjective.Position,
+                        StationStateFeedbackKind.Passage);
                     m_audio.Play(DeadSignalAudioCue.Shortcut);
                     _showFeedback("CORE STABILIZED — QUENCH RETURN OPEN");
                 }
@@ -1947,6 +1982,9 @@ namespace DeadSignal.Application
                 if (m_model.TryForgeLattice())
                 {
                     m_world.UpdateCoreProcessingPresentation(m_model);
+                    m_stationStateFeedback.Play(
+                        m_world.FurnaceForgeObjective.Position,
+                        StationStateFeedbackKind.Machinery);
                     m_audio.Play(DeadSignalAudioCue.TowerOnline);
                     _showFeedback("LATTICE FORGED — STABILIZE IT IN THE QUENCH LOOP");
                 }
@@ -1963,6 +2001,9 @@ namespace DeadSignal.Application
                 if (m_model.TryResetBreakerDistribution())
                 {
                     m_world.UpdateBreakerResetPresentation(m_model);
+                    m_stationStateFeedback.Play(
+                        m_world.BreakerResetObjective.Position,
+                        StationStateFeedbackKind.Machinery);
                     m_audio.Play(DeadSignalAudioCue.Shortcut);
                     _showFeedback("BREAKER RESET — FURNACE PROCESS ONLINE");
                 }
@@ -2005,6 +2046,9 @@ namespace DeadSignal.Application
                 {
                     m_world.UpdateFluxShuntPresentation(m_model);
                     m_world.UpdateConvergenceCalibrationPresentation(m_model);
+                    m_stationStateFeedback.Play(
+                        m_world.FluxShuntObjective.Position,
+                        StationStateFeedbackKind.Machinery);
                     m_audio.Play(DeadSignalAudioCue.Shortcut);
                     _showFeedback("FLUX SHUNT ROUTED — CONVERGENCE FEED ONLINE");
                 }
@@ -2054,6 +2098,9 @@ namespace DeadSignal.Application
                 if (m_model.TryRouteCentralComponents())
                 {
                     m_world.UpdateCentralTransferPresentation(m_model);
+                    m_stationStateFeedback.Play(
+                        m_world.RelayForkObjective.Position,
+                        StationStateFeedbackKind.Machinery);
                     m_audio.Play(DeadSignalAudioCue.Shortcut);
                     _showFeedback("BOTH FEEDS ROUTED — ASSEMBLE THE PAYLOAD IN THE EAST TRANSFER VAULT");
                 }
@@ -2072,6 +2119,9 @@ namespace DeadSignal.Application
                 if (m_model.TryAssembleCentralPayload())
                 {
                     m_world.UpdateCentralTransferPresentation(m_model);
+                    m_stationStateFeedback.Play(
+                        m_world.TransferVaultObjective.Position,
+                        StationStateFeedbackKind.Machinery);
                     m_audio.Play(DeadSignalAudioCue.TowerOnline);
                     _showFeedback("CENTRAL PAYLOAD ASSEMBLED — RETURN TO CENTRAL FOR INSTALLATION");
                 }
@@ -2090,6 +2140,9 @@ namespace DeadSignal.Application
                 if (m_model.TryInstallCentralPayload())
                 {
                     m_world.CompleteCentralInstallation();
+                    m_stationStateFeedback.Play(
+                        m_world.CentralInstallationObjective.Position,
+                        StationStateFeedbackKind.Installation);
                     m_audio.Play(DeadSignalAudioCue.Shortcut);
                     _showFeedback("CENTRAL PAYLOAD INSTALLED — RELAY ROUTE OPEN");
                 }
@@ -2105,6 +2158,9 @@ namespace DeadSignal.Application
                 {
                     m_world.UpdateRelayPayloadPresentation(m_model);
                     m_overclockChoice.NotifyRelayActivated();
+                    m_stationStateFeedback.Play(
+                        m_world.RelayPayloadObjective.Position,
+                        StationStateFeedbackKind.Installation);
                     m_audio.Play(DeadSignalAudioCue.TowerOnline);
                     _showFeedback("RELAY PAYLOAD INSTALLED — CHOOSE WEAPON CALIBRATION");
                 }
@@ -2119,6 +2175,9 @@ namespace DeadSignal.Application
                 if (m_model.TryVentSpineBerth())
                 {
                     m_world.UpdateSpineVentingPresentation(m_model);
+                    m_stationStateFeedback.Play(
+                        m_world.SpineVentingObjective.Position,
+                        StationStateFeedbackKind.Machinery);
                     m_audio.Play(DeadSignalAudioCue.Shortcut);
                     _showFeedback("SPINE BERTH VENTED — RETURN TO THE TOWER");
                 }
@@ -2139,6 +2198,9 @@ namespace DeadSignal.Application
                 if (m_model.TryInstallSpineCore())
                 {
                     m_world.UpdateSpineCoreInstallationPresentation(m_model);
+                    m_stationStateFeedback.Play(
+                        m_world.SpineCoreInstallationObjective.Position,
+                        StationStateFeedbackKind.Installation);
                     m_audio.Play(DeadSignalAudioCue.TowerOnline);
                     _showFeedback("SIGNAL CORE INSTALLED — WITHDRAWAL ENABLED");
                 }
@@ -2153,6 +2215,9 @@ namespace DeadSignal.Application
                 if (m_model.TryChargeInductionLattice())
                 {
                     m_world.UpdateInductionLatticePresentation(m_model);
+                    m_stationStateFeedback.Play(
+                        m_world.InductionLatticeObjective.Position,
+                        StationStateFeedbackKind.Machinery);
                     m_audio.Play(DeadSignalAudioCue.TowerOnline);
                     _showFeedback("CORE LATTICE CHARGED — ROUTE THE FLUX SHUNT");
                 }
@@ -2171,6 +2236,7 @@ namespace DeadSignal.Application
                 {
                     m_world.CompleteSpineRelayInstallation();
                     m_overclockChoice.NotifySpineActivated();
+                    m_stationStateFeedback.Play(m_world.SpineTowerPosition, StationStateFeedbackKind.Tower);
                     m_audio.Play(DeadSignalAudioCue.TowerOnline);
                     var evolution = m_overclockChoice.SelectedWeapon == SignalWeaponOverclock.PiercingPulse
                         ? "PIERCING PULSE EVOLVED — THREE TARGETS"
@@ -2198,6 +2264,7 @@ namespace DeadSignal.Application
                 if (m_model.TryActivateRelayTower())
                 {
                     m_world.ActivateRelayTower();
+                    m_stationStateFeedback.Play(m_world.RelayTowerPosition, StationStateFeedbackKind.Tower);
                     m_audio.Play(DeadSignalAudioCue.TowerOnline);
                     _showFeedback("RELAY FOUNDRY ONLINE — RETURN BULKHEAD OPEN  //  PAYLOAD PROCESSING READY");
                 }
@@ -2219,6 +2286,7 @@ namespace DeadSignal.Application
                 {
                     m_world.ActivateTower(m_threats.SapperPulseInterval);
                     m_towerActivationSweep.Play();
+                    m_stationStateFeedback.Play(m_world.TowerPosition, StationStateFeedbackKind.Tower);
                     m_audio.Play(DeadSignalAudioCue.TowerOnline);
                     _showFeedback("CENTRAL ONLINE — CARGO COUPLING + COOLANT SEAL REQUIRED");
                 }
@@ -2235,6 +2303,7 @@ namespace DeadSignal.Application
                 if (m_model.TryOpenShortcut())
                 {
                     m_world.OpenShortcut();
+                    m_stationStateFeedback.Play(m_world.ShortcutPosition, StationStateFeedbackKind.Passage);
                     m_audio.Play(DeadSignalAudioCue.Shortcut);
                     _showFeedback($"SHORTCUT OPEN  -{RunModel.ShortcutCost:0} SIGNAL");
                 }
@@ -3437,6 +3506,9 @@ namespace DeadSignal.Application
             }
 
             m_world.UpdateConvergenceCalibrationPresentation(m_model);
+            m_stationStateFeedback.Play(
+                m_world.ConvergenceCalibrationObjective.Position,
+                StationStateFeedbackKind.Machinery);
             m_audio.Play(DeadSignalAudioCue.TowerOnline);
             _showFeedback("CONVERGENCE CALIBRATED — DISTRIBUTION PATH READY");
         }
@@ -3488,6 +3560,7 @@ namespace DeadSignal.Application
         {
             m_combatFeedback.SetPaused(paused);
             m_directionalDamageFeedback.Tick(0f);
+            m_stationStateFeedback.SetPaused(paused);
             m_audio.SetPaused(paused);
             m_signalDust.SetPaused(paused);
             m_world.PlayerSignalWake.SetPaused(paused);

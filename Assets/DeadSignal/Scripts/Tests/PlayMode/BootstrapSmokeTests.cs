@@ -1648,6 +1648,11 @@ namespace DeadSignal.Tests
                 "Reflex composition should provide a dedicated tower-activation presenter.");
             Assert.That(game.HasTowerActivationSweepTexture, Is.True,
                 "The tower-activation presenter should load its original circuit-ring texture from Resources.");
+            Assert.That(Object.FindFirstObjectByType<StationStateFeedbackController>(), Is.Not.Null,
+                "Reflex composition should provide one pooled station-state presenter.");
+            Assert.That(game.HasStationStateFeedbackTexture, Is.True,
+                "The station-state presenter should load its authored transparent glyph from Resources.");
+            Assert.That(game.StationStateFeedbackPoolSize, Is.EqualTo(4));
             Assert.That(game.IsTowerActivationSweepPlaying, Is.False,
                 "The activation sweep should remain hidden while the tower is dormant.");
             Assert.That(game.LowSignalWarningIntensity, Is.Zero,

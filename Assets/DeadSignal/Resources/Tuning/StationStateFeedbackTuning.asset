@@ -1,0 +1,22 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d3cc84d26d9ac974ea0b9a0fcaae02c4, type: 3}
+  m_Name: StationStateFeedbackTuning
+  m_EditorClassIdentifier: DeadSignal.Runtime::DeadSignal.Presentation.StationStateFeedbackTuning
+  m_poolSize: 4
+  m_duration: 0.82
+  m_maximumAlpha: 0.62
+  m_reducedFlashesMaximumAlpha: 0.28
+  m_startingDiameterMultiplier: 0.58
+  m_endingDiameterMultiplier: 1.15
+  m_availableColor: {r: 1, g: 0.58, b: 0.08, a: 1}
+  m_completeColor: {r: 0.1, g: 0.88, b: 1, a: 1}

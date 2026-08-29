@@ -483,6 +483,9 @@ namespace DeadSignal.Diagnostics
                                 game.HasDirectionalDamageIndicator &&
                                 Resources.Load<ScreenFeedbackTuning>("Tuning/ScreenFeedbackTuning") != null &&
                                 game.HasTowerActivationSweepTexture &&
+                                game.HasStationStateFeedbackTexture &&
+                                game.StationStateFeedbackPoolSize == 4 &&
+                                Resources.Load<StationStateFeedbackTuning>("Tuning/StationStateFeedbackTuning") != null &&
                                 game.HasBindingMatrixIcon &&
                                 Resources.Load<Texture2D>("UI/BindingMatrixIcon") != null &&
                                 game.HasBindingConflictIcon &&
