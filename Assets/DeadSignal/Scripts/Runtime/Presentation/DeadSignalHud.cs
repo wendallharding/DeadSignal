@@ -399,13 +399,13 @@ namespace DeadSignal.Presentation
             if (victory)
             {
                 var debrief = RunDebrief.Evaluate(m_model, m_metrics);
-                m_outcomeTitle.text = "SIGNAL RECOVERED";
+                m_outcomeTitle.text = "MISSION COMPLETE";
                 m_outcomeTitle.color = new Color(0.08f, 0.96f, 1f);
-                m_outcomeDetail.text = "Salvage extracted. The station lives a little longer.";
-                m_runReportText.text = $"DEBRIEF GRADE  {debrief.Grade}\n{debrief.Signal}   |   {debrief.Combat}\n" +
-                                       $"{debrief.Exposure}   |   {debrief.Route}\n{debrief.Coaching}\n" +
-                                       $"{m_personalBestText}\n{_runReport()}";
-                m_restartText.text = $"PRESS {_binding("R / ENTER", "GAMEPAD A")} TO RESTART";
+                m_outcomeDetail.text = "STATION RESTARTED  //  NETWORK EXTENDED  //  SIGNAL CORE REBUILT  //  EXTRACTION SECURED";
+                m_runReportText.text = $"{debrief.Mission}  //  GRADE {debrief.Grade}  //  {m_personalBestText}\n" +
+                                       $"{debrief.Station}  //  {debrief.Route}\n" +
+                                       $"{debrief.CombatHighlight}  //  {debrief.SignalHighlight}";
+                m_restartText.text = $"RESTART RUN  {_binding("R / ENTER", "GAMEPAD A")}   |   MAIN MENU AVAILABLE";
                 return;
             }
 

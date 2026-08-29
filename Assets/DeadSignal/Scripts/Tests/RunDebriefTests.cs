@@ -20,6 +20,10 @@ namespace DeadSignal.Tests
             Assert.That(debrief.Combat, Is.EqualTo("NO SECURITY DRAINS"));
             Assert.That(debrief.Exposure, Is.EqualTo("EXPOSURE CONTROLLED"));
             Assert.That(debrief.Route, Is.EqualTo("REQUIRED ROUTE — WITHDREW"));
+            Assert.That(debrief.Mission, Is.EqualTo("MISSION 00:10"));
+            Assert.That(debrief.Station, Is.EqualTo("STATION  CENTRAL > RELAY > SPINE > DOCK"));
+            Assert.That(debrief.CombatHighlight, Is.EqualTo("COMBAT  0 PURGES  //  0 CONTACTS  //  PEAK 0"));
+            Assert.That(debrief.SignalHighlight, Is.EqualTo("SIGNAL  100 FINAL  //  72 LOW  //  0 RECOVERED"));
         }
 
         [Test]
@@ -29,12 +33,15 @@ namespace DeadSignal.Tests
             var metrics = new RunMetrics();
             model.TryActivateTower(); model.TryOpenShortcut(); model.TakeSecurityHit();
             metrics.RecordSecurityHit(); metrics.RecordSapperPulse();
+            metrics.RecordSwarmerContact();
+            metrics.RecordThreatConcurrency(3);
             metrics.Advance(4f, true); metrics.Advance(6f, false);
             var debrief = RunDebrief.Evaluate(model, metrics);
             Assert.That(debrief.Combat, Is.EqualTo("2 SECURITY DRAINS"));
             Assert.That(debrief.Exposure, Is.EqualTo("EXPOSURE SEVERE"));
             Assert.That(debrief.Route, Is.EqualTo("SHORTCUT ROUTE"));
             Assert.That(debrief.Grade, Is.EqualTo("D"));
+            Assert.That(debrief.CombatHighlight, Is.EqualTo("COMBAT  0 PURGES  //  3 CONTACTS  //  PEAK 3"));
         }
 
         [Test]

@@ -132,6 +132,7 @@ namespace DeadSignal.Tests
                 defeatReturnGame.DebugApplyScenario(DebugScenario.Victory);
                 yield return null;
                 Assert.That(EventSystem.current.currentSelectedGameObject.name, Is.EqualTo("Restart Run"));
+                _assertVictoryPresentation();
                 var victoryId = defeatReturnGame.GetInstanceID();
                 _activeHudButton("Main Menu").onClick.Invoke();
                 yield return null;
@@ -264,6 +265,23 @@ namespace DeadSignal.Tests
             Assert.That(report.text, Does.Contain("NEXT:"));
             Assert.That(report.preferredHeight, Is.LessThanOrEqualTo(report.rectTransform.rect.height),
                 "The concise defeat report must fit its authored text region without covering outcome actions.");
+            Assert.That(outcome.Find("Restart").GetComponent<Text>().text, Does.Contain("MAIN MENU AVAILABLE"));
+        }
+
+        private static void _assertVictoryPresentation()
+        {
+            var hud = Object.FindFirstObjectByType<DeadSignalHud>(FindObjectsInactive.Include);
+            var outcome = hud.transform.Find("Outcome Overlay");
+            Assert.That(outcome.Find("Result").GetComponent<Text>().text, Is.EqualTo("MISSION COMPLETE"));
+            Assert.That(outcome.Find("Detail").GetComponent<Text>().text,
+                Is.EqualTo("STATION RESTARTED  //  NETWORK EXTENDED  //  SIGNAL CORE REBUILT  //  EXTRACTION SECURED"));
+            var report = outcome.Find("Run Report").GetComponent<Text>();
+            Assert.That(report.text, Does.Contain("MISSION "));
+            Assert.That(report.text, Does.Contain("CENTRAL > RELAY > SPINE > DOCK"));
+            Assert.That(report.text, Does.Contain("COMBAT"));
+            Assert.That(report.text, Does.Contain("SIGNAL"));
+            Assert.That(report.preferredHeight, Is.LessThanOrEqualTo(report.rectTransform.rect.height),
+                "The completion report must fit its authored text region without covering outcome actions.");
             Assert.That(outcome.Find("Restart").GetComponent<Text>().text, Does.Contain("MAIN MENU AVAILABLE"));
         }
     }

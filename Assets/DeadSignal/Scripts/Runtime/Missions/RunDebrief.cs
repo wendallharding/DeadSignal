@@ -1,10 +1,22 @@
+using System;
+
 namespace DeadSignal.Missions
 {
     public readonly struct RunDebrief
     {
-        public RunDebrief(string grade, string signal, string combat, string exposure, string route, string coaching = "")
+        public RunDebrief(string grade, string signal, string combat, string exposure, string route, string coaching,
+            string mission, string station, string combatHighlight, string signalHighlight)
         {
-            Grade = grade; Signal = signal; Combat = combat; Exposure = exposure; Route = route; Coaching = coaching;
+            Grade = grade;
+            Signal = signal;
+            Combat = combat;
+            Exposure = exposure;
+            Route = route;
+            Coaching = coaching;
+            Mission = mission;
+            Station = station;
+            CombatHighlight = combatHighlight;
+            SignalHighlight = signalHighlight;
         }
 
         public string Grade { get; }
@@ -13,12 +25,19 @@ namespace DeadSignal.Missions
         public string Exposure { get; }
         public string Route { get; }
         public string Coaching { get; }
+        public string Mission { get; }
+        public string Station { get; }
+        public string CombatHighlight { get; }
+        public string SignalHighlight { get; }
 
         public static RunDebrief Evaluate(RunModel model, RunMetrics metrics)
         {
             var signalRatio = model.Signal / RunModel.MaximumSignal;
             var deadZoneRatio = metrics.ElapsedSeconds > 0f ? metrics.DeadZoneSeconds / metrics.ElapsedSeconds : 0f;
             var pressure = metrics.SecurityHits + metrics.SapperPulses;
+            var contacts = pressure + metrics.SwarmerContacts;
+            var totalSeconds = (int)metrics.ElapsedSeconds;
+            var recovered = metrics.SignalRecovered + metrics.SalvageSignalRecovered;
             var score = (model.Outcome == RunOutcome.Victory ? 2 : 0) + (signalRatio >= 0.4f ? 1 : 0) +
                         (pressure == 0 ? 1 : 0) + (deadZoneRatio <= 0.45f ? 1 : 0);
             return new RunDebrief(
@@ -28,7 +47,11 @@ namespace DeadSignal.Missions
                 deadZoneRatio <= 0.3f ? "EXPOSURE CONTROLLED" : deadZoneRatio <= 0.55f ? "EXPOSURE ELEVATED" : "EXPOSURE SEVERE",
                 model.OptionalSalvageSecured ? "GREED ROUTE — OPTIONAL SECURED" :
                 model.ShortcutOpen ? "SHORTCUT ROUTE" : "REQUIRED ROUTE — WITHDREW",
-                _coaching(model, metrics));
+                _coaching(model, metrics),
+                $"MISSION {totalSeconds / 60:00}:{totalSeconds % 60:00}",
+                "STATION  CENTRAL > RELAY > SPINE > DOCK",
+                $"COMBAT  {metrics.ThreatsPurged} PURGES  //  {contacts} CONTACTS  //  PEAK {metrics.PeakThreatConcurrency}",
+                $"SIGNAL  {Math.Ceiling(model.Signal):0} FINAL  //  {Math.Ceiling(metrics.MinimumSignal):0} LOW  //  {recovered:0} RECOVERED");
         }
 
         private static string _coaching(RunModel model, RunMetrics metrics)

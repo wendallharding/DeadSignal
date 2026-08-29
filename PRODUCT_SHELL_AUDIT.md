@@ -55,7 +55,8 @@ input-focus, and scene-lifetime paths. It does not authorize a second scene, sav
 - The shell reasserts menu pause ownership after scene teardown, restores deterministic Start/Resume/Restart focus, and retains exactly one EventSystem,
   game, HUD, audio, combat-feedback, and six-action DEAD SIGNAL input set through repeated pause/defeat/victory loops.
 - Defeat now owns a distinct `MISSION LOST` presentation: exact Signal-collapse cause, last objective and room, a compact pressure summary,
-  one prioritized next-run lesson, Restart, and Main Menu. Its deterministic text is constrained to the existing authored report region so it cannot
-  cover the action row. Victory remains on the established completion debrief and is the next bounded outcome slice.
+  one prioritized next-run lesson, Restart, and Main Menu. Victory now owns a distinct `MISSION COMPLETE` presentation with mission time, grade,
+  Central-to-Dock restoration milestones, combat pressure, final/low/recovered Signal, personal best, route choice, Restart, and Main Menu. Both
+  deterministic reports are constrained to the existing authored report region so they cannot cover the action row.
 - Resolution, ultrawide, repeated menu-cycle, and human keyboard/controller presentation remain unproven until the corresponding Phase 6
   validation slices. Automated controller selection, complete-route compatibility, Windows build, and packaged command-line smoke now pass.
