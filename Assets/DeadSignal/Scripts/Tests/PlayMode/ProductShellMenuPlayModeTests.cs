@@ -122,6 +122,7 @@ namespace DeadSignal.Tests
                 pausedReturnGame.DebugApplyScenario(DebugScenario.Failure);
                 yield return null;
                 Assert.That(EventSystem.current.currentSelectedGameObject.name, Is.EqualTo("Restart Run"));
+                _assertDefeatPresentation();
                 var defeatId = pausedReturnGame.GetInstanceID();
                 _activeHudButton("Main Menu").onClick.Invoke();
                 yield return null;
@@ -249,6 +250,21 @@ namespace DeadSignal.Tests
         {
             var hud = Object.FindFirstObjectByType<DeadSignalHud>(FindObjectsInactive.Include);
             Assert.That(hud.transform.Find(name).gameObject.activeSelf, Is.EqualTo(expected));
+        }
+
+        private static void _assertDefeatPresentation()
+        {
+            var hud = Object.FindFirstObjectByType<DeadSignalHud>(FindObjectsInactive.Include);
+            var outcome = hud.transform.Find("Outcome Overlay");
+            Assert.That(outcome.Find("Result").GetComponent<Text>().text, Is.EqualTo("MISSION LOST"));
+            Assert.That(outcome.Find("Detail").GetComponent<Text>().text,
+                Is.EqualTo("SIGNAL DEPLETED — EMERGENCY RECOVERY EXPIRED"));
+            var report = outcome.Find("Run Report").GetComponent<Text>();
+            Assert.That(report.text, Does.Contain("FAILED AT"));
+            Assert.That(report.text, Does.Contain("NEXT:"));
+            Assert.That(report.preferredHeight, Is.LessThanOrEqualTo(report.rectTransform.rect.height),
+                "The concise defeat report must fit its authored text region without covering outcome actions.");
+            Assert.That(outcome.Find("Restart").GetComponent<Text>().text, Does.Contain("MAIN MENU AVAILABLE"));
         }
     }
 }

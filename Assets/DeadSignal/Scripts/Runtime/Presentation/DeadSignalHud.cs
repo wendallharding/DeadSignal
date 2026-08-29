@@ -395,15 +395,26 @@ namespace DeadSignal.Presentation
             }
 
             var victory = m_model.Outcome == RunOutcome.Victory;
-            var debrief = RunDebrief.Evaluate(m_model, m_metrics);
             _recordPersonalBest();
-            m_outcomeTitle.text = victory ? "SIGNAL RECOVERED" : "DRONE OFFLINE";
-            m_outcomeTitle.color = victory ? new Color(0.08f, 0.96f, 1f) : new Color(1f, 0.08f, 0.06f);
-            m_outcomeDetail.text = victory ? "Salvage extracted. The station lives a little longer." : "Signal depleted in the dark.";
-            m_runReportText.text = $"DEBRIEF GRADE  {debrief.Grade}\n{debrief.Signal}   |   {debrief.Combat}\n" +
-                                   $"{debrief.Exposure}   |   {debrief.Route}\n{debrief.Coaching}\n" +
-                                   $"{m_personalBestText}\n{_runReport()}";
-            m_restartText.text = $"PRESS {_binding("R / ENTER", "GAMEPAD A")} TO RESTART";
+            if (victory)
+            {
+                var debrief = RunDebrief.Evaluate(m_model, m_metrics);
+                m_outcomeTitle.text = "SIGNAL RECOVERED";
+                m_outcomeTitle.color = new Color(0.08f, 0.96f, 1f);
+                m_outcomeDetail.text = "Salvage extracted. The station lives a little longer.";
+                m_runReportText.text = $"DEBRIEF GRADE  {debrief.Grade}\n{debrief.Signal}   |   {debrief.Combat}\n" +
+                                       $"{debrief.Exposure}   |   {debrief.Route}\n{debrief.Coaching}\n" +
+                                       $"{m_personalBestText}\n{_runReport()}";
+                m_restartText.text = $"PRESS {_binding("R / ENTER", "GAMEPAD A")} TO RESTART";
+                return;
+            }
+
+            var failure = RunFailureDebrief.Evaluate(m_model, m_metrics);
+            m_outcomeTitle.text = "MISSION LOST";
+            m_outcomeTitle.color = new Color(1f, 0.08f, 0.06f);
+            m_outcomeDetail.text = failure.Cause;
+            m_runReportText.text = $"{failure.Progress}\n{failure.Summary}\n{failure.Coaching}";
+            m_restartText.text = $"RESTART RUN  {_binding("R / ENTER", "GAMEPAD A")}   |   MAIN MENU AVAILABLE";
         }
 
         private void _refreshShellNavigation(bool paused, bool running)

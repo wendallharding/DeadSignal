@@ -50,6 +50,45 @@ namespace DeadSignal.Tests
             Assert.That(debrief.Route, Is.EqualTo("GREED ROUTE — OPTIONAL SECURED"));
         }
 
+        [Test]
+        public void FailureDebrief_ReportsExactCauseProgressAndDeadZoneLesson()
+        {
+            var model = new RunModel();
+            var metrics = new RunMetrics();
+            model.TryActivateTower();
+            metrics.Advance(12f, false);
+            metrics.Advance(4f, true);
+            metrics.RecordTraversalDrain(72f, 18f);
+            model.TrySpend(model.Signal);
+            model.Advance(RunModel.CriticalRecoveryDuration, false, false);
+
+            var debrief = RunFailureDebrief.Evaluate(model, metrics);
+
+            Assert.That(debrief.Cause, Is.EqualTo("SIGNAL DEPLETED — EMERGENCY RECOVERY EXPIRED"));
+            Assert.That(debrief.Progress, Does.Contain("FAILED AT  RESTART CENTRAL"));
+            Assert.That(debrief.Progress, Does.Contain("CARGO ANNEX"));
+            Assert.That(debrief.Summary, Does.Contain("RUN 00:16"));
+            Assert.That(debrief.Summary, Does.Contain("TRAVEL 90"));
+            Assert.That(debrief.Coaching, Does.Contain("CROSS CYAN POWER"));
+        }
+
+        [Test]
+        public void FailureDebrief_PrioritizesSecurityLessonWhenExposureIsControlled()
+        {
+            var model = new RunModel();
+            var metrics = new RunMetrics();
+            metrics.Advance(20f, true);
+            metrics.RecordSecurityHit();
+            metrics.RecordSapperPulse();
+            model.TrySpend(model.Signal);
+            model.Advance(RunModel.CriticalRecoveryDuration, true, false);
+
+            var debrief = RunFailureDebrief.Evaluate(model, metrics);
+
+            Assert.That(debrief.Summary, Does.Contain("CONTACTS 2"));
+            Assert.That(debrief.Coaching, Does.Contain("PURGE THE SAPPER LINK FIRST"));
+        }
+
         private static void _completeRequiredJourney(RunModel model)
         {
             model.TryActivateTower();
