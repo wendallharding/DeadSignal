@@ -69,6 +69,7 @@ namespace DeadSignal.World
         public AuthoredTransferVaultObjective TransferVaultObjective { get; private set; }
         public AuthoredCentralInstallationObjective CentralInstallationObjective { get; private set; }
         public AuthoredRelayPayloadObjective RelayPayloadObjective { get; private set; }
+        public AuthoredRelayNetworkReadability RelayNetworkReadability { get; private set; }
         public AuthoredSpineVentingObjective SpineVentingObjective { get; private set; }
         public AuthoredSpineCoreInstallationObjective SpineCoreInstallationObjective { get; private set; }
         public AuthoredInductionLatticeObjective InductionLatticeObjective { get; private set; }
@@ -175,6 +176,8 @@ namespace DeadSignal.World
                 Object.FindFirstObjectByType<AuthoredCentralInstallationObjective>(FindObjectsInactive.Include);
             RelayPayloadObjective =
                 Object.FindFirstObjectByType<AuthoredRelayPayloadObjective>(FindObjectsInactive.Include);
+            RelayNetworkReadability =
+                Object.FindFirstObjectByType<AuthoredRelayNetworkReadability>(FindObjectsInactive.Include);
             SpineVentingObjective =
                 Object.FindFirstObjectByType<AuthoredSpineVentingObjective>(FindObjectsInactive.Include);
             SpineCoreInstallationObjective =
@@ -412,6 +415,11 @@ namespace DeadSignal.World
                 model.RelayPayloadStabilized,
                 model.CurrentObjective.Id == MissionObjectiveId.RelayInstallation,
                 model.RelayPayloadSecured);
+            RelayNetworkReadability?.SetState(
+                model.CurrentObjective.Id == MissionObjectiveId.RelayTower,
+                model.RelayTowerOnline,
+                model.CurrentObjective.Id == MissionObjectiveId.RelayPayload,
+                model.RelayPayloadStabilized);
         }
 
         public void UpdateSpineVentingPresentation(RunModel model)
