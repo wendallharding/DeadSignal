@@ -68,6 +68,7 @@ namespace DeadSignal.Editor
             DeadSignalProductShellSetup.EnsureAssets();
             DeadSignalScreenFeedbackSetup.EnsureAssets();
             DeadSignalStationStateFeedbackSetup.EnsureAssets();
+            DeadSignalWeaponTransformationFeedbackSetup.EnsureAssets();
             DeadSignalThreatSetup.EnsureAssets();
             DeadSignalInterceptorSetup.EnsureAssets();
             DeadSignalSwarmerSetup.EnsureAssets();

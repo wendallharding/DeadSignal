@@ -58,6 +58,7 @@ namespace DeadSignal.Application
         private IDirectionalDamageFeedback m_directionalDamageFeedback;
         private ITowerActivationSweep m_towerActivationSweep;
         private IStationStateFeedback m_stationStateFeedback;
+        private IWeaponTransformationFeedback m_weaponTransformationFeedback;
         private MissionClarityHud m_missionClarityHud;
         private Container m_container;
         private Vector3 m_playerPresentationAcceleration;
@@ -283,6 +284,8 @@ namespace DeadSignal.Application
         public bool HasTowerActivationSweepTexture => m_towerActivationSweep?.HasTexture ?? false;
         public bool HasStationStateFeedbackTexture => m_stationStateFeedback?.HasTexture ?? false;
         public int StationStateFeedbackPoolSize => m_stationStateFeedback?.PoolSize ?? 0;
+        public bool HasWeaponTransformationFeedbackTextures => m_weaponTransformationFeedback?.HasTextures ?? false;
+        public int WeaponTransformationFeedbackPoolSize => m_weaponTransformationFeedback?.PoolSize ?? 0;
         public bool IsTowerActivationSweepPlaying => m_towerActivationSweep?.IsPlaying ?? false;
         public float TowerActivationSweepAlpha => m_towerActivationSweep?.CurrentAlpha ?? 0f;
         public float TowerActivationSweepDiameter => m_towerActivationSweep?.CurrentDiameter ?? 0f;
@@ -866,8 +869,15 @@ namespace DeadSignal.Application
             if (m_model.TryActivateSpineTower())
             {
                 m_world.CompleteSpineRelayInstallation();
-                m_overclockChoice.NotifySpineActivated();
+                var weaponEvolved = m_overclockChoice.NotifySpineActivated();
                 m_stationStateFeedback.Play(m_world.SpineTowerPosition, StationStateFeedbackKind.Tower);
+                if (weaponEvolved)
+                {
+                    m_weaponTransformationFeedback.Play(
+                        m_world.Player.position,
+                        m_overclockChoice.SelectedWeapon,
+                        true);
+                }
                 _showFeedback("DEBUG — RELAY RESULT INSTALLED  //  CORE REBUILD OPEN");
             }
         }
@@ -1243,7 +1253,10 @@ namespace DeadSignal.Application
         public void DebugSelectWeapon(SignalWeaponOverclock overclock)
         {
             m_overclockChoice.NotifyRelayActivated();
-            m_overclockChoice.TrySelect(overclock);
+            if (m_overclockChoice.TrySelect(overclock))
+            {
+                m_weaponTransformationFeedback.Play(m_world.Player.position, overclock, false);
+            }
         }
 
         public void DebugInstallRelayPayload()
@@ -1436,6 +1449,7 @@ namespace DeadSignal.Application
             IDirectionalDamageFeedback directionalDamageFeedback,
             ITowerActivationSweep towerActivationSweep,
             IStationStateFeedback stationStateFeedback,
+            IWeaponTransformationFeedback weaponTransformationFeedback,
             Container container)
         {
             m_combatFeedback = combatFeedback;
@@ -1449,6 +1463,7 @@ namespace DeadSignal.Application
             m_directionalDamageFeedback = directionalDamageFeedback;
             m_towerActivationSweep = towerActivationSweep;
             m_stationStateFeedback = stationStateFeedback;
+            m_weaponTransformationFeedback = weaponTransformationFeedback;
             m_container = container;
         }
 
@@ -2242,8 +2257,15 @@ namespace DeadSignal.Application
                 if (m_model.TryActivateSpineTower())
                 {
                     m_world.CompleteSpineRelayInstallation();
-                    m_overclockChoice.NotifySpineActivated();
+                    var weaponEvolved = m_overclockChoice.NotifySpineActivated();
                     m_stationStateFeedback.Play(m_world.SpineTowerPosition, StationStateFeedbackKind.Tower);
+                    if (weaponEvolved)
+                    {
+                        m_weaponTransformationFeedback.Play(
+                            m_world.Player.position,
+                            m_overclockChoice.SelectedWeapon,
+                            true);
+                    }
                     m_audio.Play(DeadSignalAudioCue.TowerOnline);
                     var evolution = m_overclockChoice.SelectedWeapon == SignalWeaponOverclock.PiercingPulse
                         ? "PIERCING PULSE EVOLVED — THREE TARGETS"
@@ -2437,6 +2459,10 @@ namespace DeadSignal.Application
                 m_fireBuffered = false;
                 if (m_overclockChoice.TrySelect(SignalWeaponOverclock.PiercingPulse))
                 {
+                    m_weaponTransformationFeedback.Play(
+                        m_world.Player.position,
+                        SignalWeaponOverclock.PiercingPulse,
+                        false);
                     _showFeedback("PIERCING PULSE ONLINE — EACH BOLT CAN STRIKE TWO THREATS");
                 }
 
@@ -2445,6 +2471,10 @@ namespace DeadSignal.Application
 
             if (m_input.PressedInteract() && m_overclockChoice.TrySelect(SignalWeaponOverclock.ControlledRicochet))
             {
+                m_weaponTransformationFeedback.Play(
+                    m_world.Player.position,
+                    SignalWeaponOverclock.ControlledRicochet,
+                    false);
                 _showFeedback("CONTROLLED RICOCHET ONLINE — COVER CAN REDIRECT ONE BOLT");
             }
         }
@@ -3576,6 +3606,7 @@ namespace DeadSignal.Application
             m_combatFeedback.SetPaused(paused);
             m_directionalDamageFeedback.Tick(0f);
             m_stationStateFeedback.SetPaused(paused);
+            m_weaponTransformationFeedback.SetPaused(paused);
             m_audio.SetPaused(paused);
             m_signalDust.SetPaused(paused);
             m_world.PlayerSignalWake.SetPaused(paused);

@@ -1,0 +1,22 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 533d650b84e18cd47873a54b5c7d54f3, type: 3}
+  m_Name: WeaponTransformationFeedbackTuning
+  m_EditorClassIdentifier: DeadSignal.Runtime::DeadSignal.Presentation.WeaponTransformationFeedbackTuning
+  m_poolSize: 2
+  m_duration: 0.9
+  m_maximumAlpha: 0.66
+  m_reducedFlashesMaximumAlpha: 0.28
+  m_transformationDiameter: 2.35
+  m_evolutionDiameter: 3.15
+  m_startingDiameterMultiplier: 0.58
+  m_endingDiameterMultiplier: 1.1

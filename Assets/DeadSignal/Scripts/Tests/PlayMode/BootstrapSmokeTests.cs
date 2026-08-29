@@ -1653,6 +1653,11 @@ namespace DeadSignal.Tests
             Assert.That(game.HasStationStateFeedbackTexture, Is.True,
                 "The station-state presenter should load its authored transparent glyph from Resources.");
             Assert.That(game.StationStateFeedbackPoolSize, Is.EqualTo(4));
+            Assert.That(Object.FindFirstObjectByType<WeaponTransformationFeedbackController>(), Is.Not.Null,
+                "Reflex composition should provide one pooled weapon-transformation presenter.");
+            Assert.That(game.HasWeaponTransformationFeedbackTextures, Is.True,
+                "The weapon-transformation presenter should load both authored transparent glyphs from Resources.");
+            Assert.That(game.WeaponTransformationFeedbackPoolSize, Is.EqualTo(2));
             Assert.That(game.IsTowerActivationSweepPlaying, Is.False,
                 "The activation sweep should remain hidden while the tower is dormant.");
             Assert.That(game.LowSignalWarningIntensity, Is.Zero,

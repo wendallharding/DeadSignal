@@ -486,6 +486,10 @@ namespace DeadSignal.Diagnostics
                                 game.HasStationStateFeedbackTexture &&
                                 game.StationStateFeedbackPoolSize == 4 &&
                                 Resources.Load<StationStateFeedbackTuning>("Tuning/StationStateFeedbackTuning") != null &&
+                                game.HasWeaponTransformationFeedbackTextures &&
+                                game.WeaponTransformationFeedbackPoolSize == 2 &&
+                                Resources.Load<WeaponTransformationFeedbackTuning>(
+                                    "Tuning/WeaponTransformationFeedbackTuning") != null &&
                                 game.HasBindingMatrixIcon &&
                                 Resources.Load<Texture2D>("UI/BindingMatrixIcon") != null &&
                                 game.HasBindingConflictIcon &&
