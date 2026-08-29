@@ -422,7 +422,7 @@ namespace DeadSignal.Editor
             var meshes = prefab.GetComponentsInChildren<MeshFilter>();
             var hasCentralRouteGate = prefab.GetComponentsInChildren<AuthoredMapObstacle>(true)
                 .Any(obstacle => obstacle.name == "Central Relay Route Gate");
-            var hasExpectedMeshCount = hasCentralRouteGate ? meshes.Length is 9 or 10 : meshes.Length is 8 or 9;
+            var hasExpectedMeshCount = hasCentralRouteGate ? meshes.Length is 9 or 10 or 11 : meshes.Length is 8 or 9;
             return hasExpectedMeshCount && meshes.All(filter => filter.sharedMesh != null) &&
                    prefab.GetComponentsInChildren<Collider>().Length == 0;
         }

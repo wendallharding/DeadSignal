@@ -47,6 +47,7 @@ namespace DeadSignal.Editor
             DeadSignalCameraSetup.EnsureAssets();
             DeadSignalEastVaultSetup.EnsureAssets();
             DeadSignalCentralInstallationSetup.EnsureAssets();
+            DeadSignalCentralReadabilitySetup.EnsureAssets();
             DeadSignalRelayFoundrySetup.EnsureAssets();
             DeadSignalRelayCoolingGantrySetup.EnsureAssets();
             DeadSignalCapacitorSpineSetup.EnsureAssets();

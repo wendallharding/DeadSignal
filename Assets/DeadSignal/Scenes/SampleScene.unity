@@ -832,7 +832,7 @@ PrefabInstance:
     - target: {fileID: 4993385663680587234, guid: 4bf93dfa3a2586243b93bb789b185732, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
-      objectReference: {fileID: 2100000, guid: 5704c2aa38ad09b49acf1bff6b44de9d, type: 2}
+      objectReference: {fileID: 2100000, guid: 46cfa76501410e940bb185d3dc3930ee, type: 2}
     - target: {fileID: 6387087320955108588, guid: 4bf93dfa3a2586243b93bb789b185732, type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
@@ -844,7 +844,10 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 3992784759083235401, guid: 4bf93dfa3a2586243b93bb789b185732, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 156426355}
   m_SourcePrefab: {fileID: 100100000, guid: 4bf93dfa3a2586243b93bb789b185732, type: 3}
 --- !u!4 &156426352 stripped
 Transform:
@@ -856,6 +859,33 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 3992784759083235401, guid: 4bf93dfa3a2586243b93bb789b185732, type: 3}
   m_PrefabInstance: {fileID: 156426351}
   m_PrefabAsset: {fileID: 0}
+--- !u!23 &156426354 stripped
+MeshRenderer:
+  m_CorrespondingSourceObject: {fileID: 4993385663680587234, guid: 4bf93dfa3a2586243b93bb789b185732, type: 3}
+  m_PrefabInstance: {fileID: 156426351}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &156426355
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 156426353}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: def0030a0950e894ba91c88ddb753553, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: DeadSignal.Runtime::DeadSignal.World.AuthoredCentralTowerReadability
+  m_statusRenderer: {fileID: 156426354}
+  m_payloadSocketRenderers:
+  - {fileID: 240210666}
+  - {fileID: 520855501}
+  - {fileID: 1753857265}
+  - {fileID: 1575151804}
+  - {fileID: 45005696}
+  - {fileID: 1003606522}
+  - {fileID: 1893902363}
+  - {fileID: 1095729101}
 --- !u!1001 &171198311
 PrefabInstance:
   m_ObjectHideFlags: 0

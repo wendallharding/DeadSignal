@@ -1160,7 +1160,9 @@ namespace DeadSignal.Tests
             var eastVaultMeshes = eastVault.GetComponentsInChildren<MeshFilter>()
                 .Select(filter => filter.sharedMesh)
                 .ToArray();
-            Assert.That(eastVaultMeshes.Length, Is.EqualTo(10));
+            Assert.That(eastVaultMeshes.Length, Is.EqualTo(11));
+            Assert.That(eastVaultMeshes.Any(mesh => mesh.name == "TransferVaultAssemblerReadability"), Is.True,
+                "The transfer-vault assembler should use its purpose-built machinery mesh.");
             Assert.That(eastVaultMeshes.All(mesh => mesh != null && mesh.vertexCount >= 24), Is.True,
                 "Every east-vault part should use authored beveled geometry instead of a primitive placeholder.");
             Assert.That(eastVaultMeshes.All(mesh =>

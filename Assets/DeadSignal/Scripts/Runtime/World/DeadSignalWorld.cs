@@ -59,6 +59,7 @@ namespace DeadSignal.World
         public Transform SuppressorCore { get; private set; }
         public SuppressorFieldTelegraph SuppressorFieldTelegraph { get; private set; }
         public Transform TowerCore { get; private set; }
+        public AuthoredCentralTowerReadability CentralTowerReadability { get; private set; }
         public Transform RelayTowerCore { get; private set; }
         public Transform SpineTowerCore { get; private set; }
         public SignalSapperTelegraph SapperTelegraph { get; private set; }
@@ -384,6 +385,11 @@ namespace DeadSignal.World
 
         public void UpdateCentralTransferPresentation(RunModel model)
         {
+            CentralTowerReadability?.SetState(
+                model.CurrentObjective.Id == MissionObjectiveId.CentralTower,
+                model.TowerOnline,
+                model.CurrentObjective.Id == MissionObjectiveId.CentralInstallation,
+                model.CentralPayloadSecured);
             RelayForkObjective?.SetState(model.CurrentObjective.Id == MissionObjectiveId.RelayFork, model.RelayFeedsRouted);
             TransferVaultObjective?.SetState(
                 model.CurrentObjective.Id == MissionObjectiveId.CentralAssembly,
@@ -1131,6 +1137,7 @@ namespace DeadSignal.World
 
             var tower = m_scene.SignalTower.transform;
             TowerCore = tower.Find("Tower Core");
+            CentralTowerReadability = tower.GetComponent<AuthoredCentralTowerReadability>();
             m_environmentAnimators.Add(TowerCore);
             SignalTowerPartCount = 3;
             HasSignalTowerAssets = m_palette.HasTowerTexture;
