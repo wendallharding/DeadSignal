@@ -22,18 +22,23 @@ namespace DeadSignal.Tests.PlayMode
             var game = Object.FindFirstObjectByType<DeadSignalGame>();
             var venting = Object.FindFirstObjectByType<AuthoredSpineVentingObjective>(FindObjectsInactive.Include);
             var tower = Object.FindFirstObjectByType<AuthoredSpineTowerReadability>(FindObjectsInactive.Include);
+            var returnGate = GameObject.Find("Capacitor Spine Region").GetComponent<AuthoredRouteDoorReadability>();
             Assert.That(game, Is.Not.Null);
             Assert.That(venting, Is.Not.Null);
             Assert.That(tower, Is.Not.Null);
+            Assert.That(returnGate, Is.Not.Null);
             Assert.That(venting.HasReadabilityAssets, Is.True);
             Assert.That(tower.IsConfigured, Is.True);
+            Assert.That(returnGate.IsConfigured, Is.True);
             Assert.That(venting.PresentationState, Is.EqualTo(SpineBerthPresentationState.DormantPressurized));
             Assert.That(tower.PresentationState, Is.EqualTo(SpineTowerPresentationState.PressurizedLocked));
+            Assert.That(returnGate.PresentationState, Is.EqualTo(RouteDoorPresentationState.Locked));
 
             var pressureConsole = venting.transform.Find("Spine Berth Discharge Control/Pressure Status Console");
             var pressureSelector = venting.transform.Find("Spine Berth Discharge Control/Pressure Selector");
             var towerConsole = tower.transform.Find("Spine Tower Status Console");
             var towerSelector = tower.transform.Find("Spine Tower Network Selector");
+            var returnThreshold = returnGate.transform.Find("Spine Return Threshold");
             Assert.That(pressureConsole.GetComponent<MeshFilter>().sharedMesh.name,
                 Is.EqualTo("SpinePressureConsoleReadability"));
             Assert.That(pressureSelector.GetComponent<MeshFilter>().sharedMesh.name,
@@ -50,6 +55,10 @@ namespace DeadSignal.Tests.PlayMode
             Assert.That(pressureSelector.GetComponentsInChildren<Collider>(true), Is.Empty);
             Assert.That(towerConsole.GetComponentsInChildren<Collider>(true), Is.Empty);
             Assert.That(towerSelector.GetComponentsInChildren<Collider>(true), Is.Empty);
+            Assert.That(returnThreshold.GetComponent<MeshFilter>().sharedMesh.name,
+                Is.EqualTo("RouteDoorThresholdReadability"));
+            Assert.That(returnThreshold.GetComponentsInChildren<Collider>(true), Is.Empty);
+            Assert.That(returnThreshold.gameObject.activeSelf, Is.True);
 
             game.DebugActivateRelayTower();
             game.DebugCollectNextCache();
@@ -69,6 +78,10 @@ namespace DeadSignal.Tests.PlayMode
             game.DebugActivateSpineTower();
             yield return null;
             Assert.That(tower.PresentationState, Is.EqualTo(SpineTowerPresentationState.Activating));
+            Assert.That(returnGate.PresentationState, Is.EqualTo(RouteDoorPresentationState.Open));
+            Assert.That(returnGate.transform.Find("Capacitor Transfer Bank").gameObject.activeSelf, Is.False);
+            Assert.That(returnThreshold.gameObject.activeSelf, Is.True,
+                "The powered return must retain a readable threshold after its blocking bank retracts.");
             yield return new WaitForSecondsRealtime(0.8f);
             Assert.That(tower.PresentationState, Is.EqualTo(SpineTowerPresentationState.Powered));
 
@@ -77,8 +90,10 @@ namespace DeadSignal.Tests.PlayMode
             yield return null;
             venting = Object.FindFirstObjectByType<AuthoredSpineVentingObjective>(FindObjectsInactive.Include);
             tower = Object.FindFirstObjectByType<AuthoredSpineTowerReadability>(FindObjectsInactive.Include);
+            returnGate = GameObject.Find("Capacitor Spine Region").GetComponent<AuthoredRouteDoorReadability>();
             Assert.That(venting.PresentationState, Is.EqualTo(SpineBerthPresentationState.DormantPressurized));
             Assert.That(tower.PresentationState, Is.EqualTo(SpineTowerPresentationState.PressurizedLocked));
+            Assert.That(returnGate.PresentationState, Is.EqualTo(RouteDoorPresentationState.Locked));
         }
     }
 }

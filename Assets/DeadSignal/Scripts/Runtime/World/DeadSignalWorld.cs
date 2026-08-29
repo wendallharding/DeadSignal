@@ -72,6 +72,7 @@ namespace DeadSignal.World
         public AuthoredRelayNetworkReadability RelayNetworkReadability { get; private set; }
         public AuthoredSpineVentingObjective SpineVentingObjective { get; private set; }
         public AuthoredSpineTowerReadability SpineTowerReadability { get; private set; }
+        public AuthoredRouteDoorReadability SpineReturnReadability { get; private set; }
         public AuthoredSpineCoreInstallationObjective SpineCoreInstallationObjective { get; private set; }
         public AuthoredInductionLatticeObjective InductionLatticeObjective { get; private set; }
         public AuthoredFluxShuntObjective FluxShuntObjective { get; private set; }
@@ -183,6 +184,7 @@ namespace DeadSignal.World
                 Object.FindFirstObjectByType<AuthoredSpineVentingObjective>(FindObjectsInactive.Include);
             SpineTowerReadability =
                 Object.FindFirstObjectByType<AuthoredSpineTowerReadability>(FindObjectsInactive.Include);
+            SpineReturnReadability = m_scene.CapacitorSpine.GetComponent<AuthoredRouteDoorReadability>();
             SpineCoreInstallationObjective =
                 Object.FindFirstObjectByType<AuthoredSpineCoreInstallationObjective>(FindObjectsInactive.Include);
             InductionLatticeObjective =
@@ -583,7 +585,14 @@ namespace DeadSignal.World
             }
             SpineTowerCore.GetComponent<Renderer>().sharedMaterial = m_palette.Cyan;
             m_spineSignalLines.SetActive(true);
-            m_spineReturnGate.SetActive(false);
+            if (SpineReturnReadability != null)
+            {
+                SpineReturnReadability.SetOpen(true);
+            }
+            else
+            {
+                m_spineReturnGate.SetActive(false);
+            }
             m_spineReturnOpen = true;
             _rebuildNavMesh();
             _activateAuthoredTerritories(PoweredTerritorySource.SpineTower);
