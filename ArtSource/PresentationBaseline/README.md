@@ -8,5 +8,6 @@ These are unchanged reference captures selected during Presentation Run P01. The
 | `P01-Spine-Powered-Gate-Open-1600x900.png` | `Logs/PresentationPlaytest-20260829/05-Spine-Tower-Powered-Gate-Open.png` | Spine powered, return gate open |
 | `P01-Security-Trial-Cleared-1600x900.png` | `Logs/PresentationPlaytest-20260829/11-Lockdown-Cleared-Doors-Open.png` | Room B cleared, doors open |
 | `P01-Dock-Uplink-Locked-1616x939.png` | `Logs/Run109-Final-Full/Full-16.png` | Legacy Dock return, uplink locked |
+| `P02-Central-Tower-Hero-Finish-1600x900.png` | `Logs/Run206-CentralHeroCapture.xml` | Central activation available after the P02 hero finish |
 
 Keep each source unchanged. Owning presentation runs should add clean post-change captures rather than overwrite these files. The Dock source includes development-window chrome and is suitable only for composition/state comparison; P14 must replace it with a clean 1600×900 post-change frame.

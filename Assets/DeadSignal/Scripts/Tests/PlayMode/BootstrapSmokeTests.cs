@@ -1599,11 +1599,14 @@ namespace DeadSignal.Tests
             Assert.That(game.HasSignalTowerAssets, Is.True,
                 "The Signal-tower prefab and original housing texture should load from Resources.");
             Assert.That(game.SignalTowerPartCount, Is.EqualTo(3));
-            Assert.That(signalTower.GetComponentsInChildren<Renderer>().Length, Is.EqualTo(3));
+            Assert.That(signalTower.GetComponentsInChildren<Renderer>().Length, Is.EqualTo(4));
+            Assert.That(signalTower.GetComponentInChildren<AuthoredCentralHeroFinish>(), Is.Not.Null,
+                "The Central instance should add one collider-free hero-finish renderer without changing the shared tower prefab.");
             Assert.That(signalTower.GetComponentsInChildren<Collider>().Length, Is.Zero,
                 "The authored tower should remain presentation-only so existing interaction rules stay authoritative.");
-            Assert.That(signalTower.Find("Tower Base").GetComponent<Renderer>().sharedMaterial.mainTexture, Is.Not.Null,
-                "The authored tower housing should render the original control-panel texture.");
+            Assert.That(signalTower.Find("Tower Base").GetComponent<Renderer>().sharedMaterial.mainTexture.name,
+                Is.EqualTo("CentralTowerHeroAtlas"),
+                "The Central tower base should use the authored hero atlas while the reusable prefab remains available.");
             Assert.That(Camera.main != null || Object.FindFirstObjectByType<Camera>() != null, Is.True);
             Assert.That(game.HasPlayerCameraTuning, Is.True,
                 "The authored tactical-camera tuning should load from Resources.");
