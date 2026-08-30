@@ -1492,13 +1492,16 @@ namespace DeadSignal.Tests
             Assert.That(extractionPad, Is.Not.Null, "The start and finish objective should load from the authored extraction-pad prefab.");
             Assert.That(game.HasExtractionPadAssets, Is.True,
                 "The extraction-pad prefab and original docking texture should load from Resources.");
-            Assert.That(game.ExtractionPadPartCount, Is.EqualTo(4));
-            Assert.That(extractionPad.GetComponentsInChildren<Renderer>().Length, Is.EqualTo(4));
+            Assert.That(game.ExtractionPadPartCount, Is.EqualTo(5));
+            Assert.That(extractionPad.GetComponentsInChildren<Renderer>().Length, Is.EqualTo(5));
             Assert.That(extractionPad.GetComponentsInChildren<Collider>().Length, Is.Zero,
                 "The authored extraction pad should remain presentation-only so existing interaction rules stay authoritative.");
             Assert.That(extractionPad.Find("Extraction Plinth").GetComponent<Renderer>().sharedMaterial.mainTexture, Is.Not.Null,
                 "The authored extraction housing should render the original docking texture.");
             Assert.That(extractionPad.Find("Extraction Beacon"), Is.Not.Null);
+            Assert.That(extractionPad.GetComponent<AuthoredExtractionDockReadability>() is
+                { IsConfigured: true, HasStatusTexture: true }, Is.True,
+                "The physical Dock uplink should load its authored lifecycle presentation.");
             var shortcut = game.transform.Find("Shortcut Gate Assembly");
             Assert.That(shortcut, Is.Not.Null, "The optional route choice should load from the authored shortcut prefab.");
             Assert.That(game.HasShortcutGateAssets, Is.True,

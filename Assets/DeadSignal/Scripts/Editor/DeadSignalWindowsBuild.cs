@@ -26,6 +26,7 @@ namespace DeadSignal.Editor
             DeadSignalProjectSetup.EnsureMaintenanceRoomShellAssets();
             DeadSignalProjectSetup.EnsureSignalTowerAssets();
             DeadSignalProjectSetup.EnsureExtractionPadAssets();
+            DeadSignalExtractionDockReadabilitySetup.EnsureAssets();
             DeadSignalProjectSetup.EnsureShortcutGateAssets();
             DeadSignalProjectSetup.EnsureSignalRoutingAssets();
             DeadSignalProjectSetup.EnsureStationMachineAssets();
@@ -201,6 +202,11 @@ namespace DeadSignal.Editor
             if (!DeadSignalProjectSetup.HasExtractionPadAssets)
             {
                 throw new BuildFailedException("The authored extraction pad assets are missing.");
+            }
+
+            if (!DeadSignalExtractionDockReadabilitySetup.HasAssets)
+            {
+                throw new BuildFailedException("The authored Extraction Dock readability assets are missing.");
             }
 
             if (!DeadSignalProjectSetup.HasShortcutGateAssets)

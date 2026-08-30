@@ -83,6 +83,7 @@ namespace DeadSignal.World
         public AuthoredCombatChamber CombatChamber { get; private set; }
         public AuthoredWithdrawalPursuitLandmark WardenBayLandmark { get; private set; }
         public AuthoredWithdrawalPursuitLandmark SapperCradleLandmark { get; private set; }
+        public AuthoredExtractionDockReadability ExtractionDockReadability { get; private set; }
         public IReadOnlyList<GameObject> SalvagePickups => m_salvagePickups;
 
         public SignalRegion GetPayloadRegion(GameObject pickup) => m_salvageRegions.TryGetValue(pickup, out var region)
@@ -488,6 +489,34 @@ namespace DeadSignal.World
         public void UpdateSecurityTrialPresentation(RunModel model)
         {
             CombatChamber?.SetCommitmentAvailable(model.CurrentObjective.Id == MissionObjectiveId.TrialCommitment);
+        }
+
+        public void UpdateExtractionPresentation(RunModel model, ExtractionUplink uplink)
+        {
+            if (model == null || uplink == null || ExtractionDockReadability == null)
+            {
+                return;
+            }
+
+            var duration = uplink.Mode == ExtractionUplinkMode.Overdrive
+                ? uplink.OverdriveDuration
+                : uplink.StableDuration;
+            var progress = uplink.IsActive || uplink.IsComplete
+                ? 1f - uplink.SecondsRemaining / duration
+                : 0f;
+            ExtractionDockReadability.SetState(
+                model.TowerOnline,
+                model.CanExtract,
+                uplink.IsActive,
+                progress,
+                uplink.IsComplete,
+                uplink.Mode,
+                model.Outcome);
+        }
+
+        public void SetExtractionOutcomePresentation(RunOutcome outcome, bool extractionComplete)
+        {
+            ExtractionDockReadability?.SetOutcome(outcome, extractionComplete);
         }
 
         public Vector3 GetObjectiveGuidanceWaypoint(RunModel model, float radius)
@@ -1188,9 +1217,13 @@ namespace DeadSignal.World
                                             m_palette.HasBulkheadTexture;
             var extraction = m_scene.ExtractionPad.transform;
             m_extractionBeacon = extraction.Find("Extraction Beacon").gameObject;
+            ExtractionDockReadability = extraction.GetComponent<AuthoredExtractionDockReadability>();
+            ExtractionDockReadability?.ResetPresentation();
             m_environmentAnimators.Add(m_extractionBeacon.transform);
-            ExtractionPadPartCount = 4;
-            HasExtractionPadAssets = m_palette.HasExtractionTexture;
+            ExtractionPadPartCount = extraction.GetComponentsInChildren<Renderer>().Length;
+            HasExtractionPadAssets = m_palette.HasExtractionTexture &&
+                                     ExtractionDockReadability is { IsConfigured: true, HasStatusTexture: true } &&
+                                     ExtractionPadPartCount == 5;
 
             var tower = m_scene.SignalTower.transform;
             TowerCore = tower.Find("Tower Core");

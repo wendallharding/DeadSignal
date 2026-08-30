@@ -1667,6 +1667,7 @@ namespace DeadSignal.Application
             m_world.UpdateBreakerResetPresentation(m_model);
             m_world.UpdateCoreProcessingPresentation(m_model);
             m_world.UpdateSecurityTrialPresentation(m_model);
+            m_world.UpdateExtractionPresentation(m_model, m_extractionUplink);
             m_world.PlayerSignalWake.Tick(m_playerMovement.Velocity);
             m_world.TickGameplayAssists(dt, m_threats, aimDirection);
 
@@ -2428,6 +2429,7 @@ namespace DeadSignal.Application
                 m_world.ExtractionPosition,
                 mode,
                 m_extractionUplink.SecondsRemaining);
+            m_world.UpdateExtractionPresentation(m_model, m_extractionUplink);
             var countermeasure = m_threats.CurrentExtractionSuppressionProfile switch
             {
                 ExtractionSuppressionProfile.PiercingCrossLane => " // QUENCH CROSS-LANE COUNTERTRACE",
@@ -2515,6 +2517,7 @@ namespace DeadSignal.Application
 
             m_audio.Play(DeadSignalAudioCue.Extraction);
             m_extractionOutcomeFeedback.CompleteExtraction(m_world.ExtractionPosition);
+            m_world.UpdateExtractionPresentation(m_model, m_extractionUplink);
             _showFeedback("EXTRACTION COMPLETE");
             _finalizeDebugRouteAfterOutcome();
         }
@@ -3516,6 +3519,7 @@ namespace DeadSignal.Application
             {
                 m_extractionOutcomeFeedback.UpdateExtraction(m_extractionUplink.SecondsRemaining);
             }
+            m_world.UpdateExtractionPresentation(m_model, m_extractionUplink);
             m_metrics.RecordSignal(m_model.Signal);
         }
 
@@ -3651,6 +3655,7 @@ namespace DeadSignal.Application
                     ? m_world.ExtractionPosition
                     : m_world.Player.position;
                 m_extractionOutcomeFeedback.PlayOutcome(m_model.Outcome, position);
+                m_world.SetExtractionOutcomePresentation(m_model.Outcome, m_model.ExtractionUplinkComplete);
             }
         }
     }
