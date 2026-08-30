@@ -438,7 +438,7 @@ namespace DeadSignal.Combat
             m_world.ResetWardenPresentation();
             m_world.ResetSapperPresentation();
             m_world.ResetInterceptorPresentation();
-            m_world.PurgeSuppressor();
+            m_world.ResetSuppressorPresentation();
             m_world.SetReinforcementEntryWarning(SecurityReinforcement.None, -1, false, 0f);
         }
 
@@ -1575,6 +1575,7 @@ namespace DeadSignal.Combat
         private void _hitSuppressor()
         {
             m_suppressorHealth -= 1f;
+            m_world.PlaySuppressorHit(m_world.Player.position);
             m_combatFeedback.PlaySignalImpact(m_world.Suppressor.position + Vector3.up * 0.5f, m_suppressorHealth <= 0f);
             if (m_suppressorHealth > 0f)
             {

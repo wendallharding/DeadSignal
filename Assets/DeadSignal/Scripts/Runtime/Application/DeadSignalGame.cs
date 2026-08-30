@@ -320,6 +320,7 @@ namespace DeadSignal.Application
         public bool HasSecurityWardenPresentation => m_world?.WardenPresentation?.IsConfigured ?? false;
         public bool HasSignalSapperPresentation => m_world?.SapperPresentation?.IsConfigured ?? false;
         public bool HasSecurityInterceptorPresentation => m_world?.InterceptorPresentation?.IsConfigured ?? false;
+        public bool HasSecuritySuppressorPresentation => m_world?.SuppressorPresentation?.IsConfigured ?? false;
         public bool HasForegroundOcclusion => m_world?.ForegroundOcclusion != null;
         public bool HasSignalBoltBulkheadImpact => m_combatFeedback?.HasEnvironmentImpactTexture ?? false;
         public bool HasSignalRecoveryBurst => m_combatFeedback?.HasSignalRecoveryTexture ?? false;

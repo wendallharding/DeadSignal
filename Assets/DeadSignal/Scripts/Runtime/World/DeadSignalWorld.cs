@@ -61,6 +61,7 @@ namespace DeadSignal.World
         public SecurityInterceptorPresentation InterceptorPresentation { get; private set; }
         public Transform Suppressor { get; private set; }
         public Transform SuppressorCore { get; private set; }
+        public SecuritySuppressorPresentation SuppressorPresentation { get; private set; }
         public SuppressorFieldTelegraph SuppressorFieldTelegraph { get; private set; }
         public Transform TowerCore { get; private set; }
         public AuthoredCentralTowerReadability CentralTowerReadability { get; private set; }
@@ -832,9 +833,19 @@ namespace DeadSignal.World
 
         public void PurgeSuppressor()
         {
+            SuppressorPresentation?.PlayPurge();
             Suppressor.gameObject.SetActive(false);
             SetSuppressorField(false, false, 1f);
         }
+
+        public void ResetSuppressorPresentation()
+        {
+            SuppressorPresentation?.ResetPresentation();
+            Suppressor.gameObject.SetActive(false);
+            SetSuppressorField(false, false, 1f);
+        }
+
+        public void PlaySuppressorHit(Vector3 sourcePosition) => SuppressorPresentation?.PlayHit(sourcePosition);
 
         public float GetSafestInterceptorEntryDistance(Vector3 playerPosition)
         {
@@ -883,6 +894,7 @@ namespace DeadSignal.World
             var index = entranceIndex >= 0 ? entranceIndex : GetSafestInterceptorEntryIndex(Player.position);
             Suppressor.position = m_interceptorEntrances[index];
             Suppressor.gameObject.SetActive(true);
+            SuppressorPresentation?.PlayWake();
             SetSuppressorField(false, false, 1f);
         }
 
@@ -915,6 +927,7 @@ namespace DeadSignal.World
         public void SetSuppressorFieldAt(bool visible, bool active, float radius, Vector3 center)
         {
             SuppressorFieldTelegraph.SetState(visible, active, radius, center);
+            SuppressorPresentation?.SetFieldState(visible, active);
         }
 
         public void SetInterceptorTelegraph(bool visible, Vector3 target)
@@ -1541,6 +1554,13 @@ namespace DeadSignal.World
             Suppressor = m_scene.Suppressor;
             Suppressor.SetParent(m_root, true);
             SuppressorCore = Suppressor.Find("Suppressor Core");
+            SuppressorPresentation = m_root.gameObject.AddComponent<SecuritySuppressorPresentation>();
+            SuppressorPresentation.Configure(
+                Suppressor,
+                Suppressor.Find("Suppressor Chassis"),
+                Suppressor.Find("Suppressor Emitter Left"),
+                Suppressor.Find("Suppressor Emitter Right"),
+                SuppressorCore);
             HasSecuritySuppressorAssets = true;
             SecuritySuppressorPartCount = 4;
 

@@ -386,8 +386,10 @@ namespace DeadSignal.Diagnostics
                                 Resources.Load<GameObject>("Actors/SecurityInterceptorAssembly") != null &&
                                 Resources.Load<Texture2D>("Actors/SecurityInterceptorAlbedo") != null &&
                                 game.HasSecuritySuppressorAssets &&
+                                game.HasSecuritySuppressorPresentation &&
                                 game.SecuritySuppressorPartCount == 4 &&
                                 Resources.Load<GameObject>("Actors/SecuritySuppressorAssembly") != null &&
+                                Resources.Load<Texture2D>("Actors/SecuritySuppressorAlbedo") != null &&
                                 game.HasSuppressorFieldTexture &&
                                 Resources.Load<Texture2D>("VFX/SuppressorFieldActive") != null &&
                                 Resources.Load<GameObject>("Environment/InterceptorEntryGate") != null &&

@@ -19,7 +19,6 @@ namespace DeadSignal.Editor
         private const string SCENE_PATH = "Assets/DeadSignal/Scenes/SampleScene.unity";
         private const string ARMOR_MATERIAL_PATH = "Assets/DeadSignal/Resources/Materials/SecurityWardenArmor.mat";
         private const string RED_MATERIAL_PATH = "Assets/DeadSignal/Resources/Materials/SecurityWardenEye.mat";
-        private const string AMBER_MATERIAL_PATH = "Assets/DeadSignal/Resources/Materials/EastVaultEnergy.mat";
 
         private static readonly Vector3 s_northPosition = new(-16.4f, 0f, 7.1f);
         private static readonly Vector3 s_southPosition = new(1.5f, 0f, -7.5f);
@@ -213,23 +212,7 @@ namespace DeadSignal.Editor
 
         private static void _ensureSuppressorPrefab()
         {
-            var root = new GameObject("SecuritySuppressorAssembly");
-            try
-            {
-                _createPart(root.transform, "Suppressor Chassis", PrimitiveType.Cylinder,
-                    new Vector3(0f, 0.34f, 0f), new Vector3(0.9f, 0.22f, 0.9f), ARMOR_MATERIAL_PATH);
-                _createPart(root.transform, "Suppressor Emitter Left", PrimitiveType.Cube,
-                    new Vector3(-0.58f, 0.38f, 0f), new Vector3(0.18f, 0.18f, 0.92f), RED_MATERIAL_PATH);
-                _createPart(root.transform, "Suppressor Emitter Right", PrimitiveType.Cube,
-                    new Vector3(0.58f, 0.38f, 0f), new Vector3(0.18f, 0.18f, 0.92f), RED_MATERIAL_PATH);
-                _createPart(root.transform, "Suppressor Core", PrimitiveType.Sphere,
-                    new Vector3(0f, 0.58f, 0f), new Vector3(0.3f, 0.22f, 0.3f), AMBER_MATERIAL_PATH);
-                PrefabUtility.SaveAsPrefabAsset(root, SUPPRESSOR_PREFAB_PATH);
-            }
-            finally
-            {
-                UnityEngine.Object.DestroyImmediate(root);
-            }
+            DeadSignalSuppressorSetup.EnsureAssets();
         }
 
         private static void _ensureScenePlacements()

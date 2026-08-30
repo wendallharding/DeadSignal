@@ -1465,6 +1465,7 @@ namespace DeadSignal.Tests
             var suppressor = game.transform.Find("Security Suppressor");
             Assert.That(suppressor, Is.Not.Null, "The extraction Suppressor should be composed before its bounded reserve deploys.");
             Assert.That(game.HasSecuritySuppressorAssets, Is.True);
+            Assert.That(game.HasSecuritySuppressorPresentation, Is.True);
             Assert.That(game.SecuritySuppressorPartCount, Is.EqualTo(4));
             Assert.That(suppressor.gameObject.activeSelf, Is.False);
             var suppressorField = game.transform.Find("Suppressor Field Warning");
