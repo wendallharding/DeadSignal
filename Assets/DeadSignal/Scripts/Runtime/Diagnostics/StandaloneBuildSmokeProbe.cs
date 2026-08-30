@@ -594,6 +594,8 @@ namespace DeadSignal.Diagnostics
                                 Resources.Load<GameObject>("Environment/CoolantBaffle") != null &&
                                 Resources.Load<GameObject>("Environment/SoutheastCoolantGauntlet") != null &&
                                 Resources.Load<Texture2D>("Environment/CoolantGauntletAlbedo") != null &&
+                                Resources.Load<Texture2D>("Environment/CoolantReclamationHeroAtlas") != null &&
+                                Resources.Load<Mesh>("Environment/CoolantReclamationHeroFinish") != null &&
                                 Resources.Load<GameObject>("Environment/RelayBank") != null &&
                                 Resources.Load<GameObject>("Environment/NorthwestRelayFork") != null &&
                                 Resources.Load<Texture2D>("Environment/RelayForkAlbedo") != null &&

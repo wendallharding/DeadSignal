@@ -36,6 +36,7 @@ namespace DeadSignal.World
         [SerializeField] private Transform m_statusDial;
         [SerializeField] private Renderer m_firstBaffleStatusRenderer;
         [SerializeField] private Renderer m_secondBaffleStatusRenderer;
+        [SerializeField] private AuthoredCoolantReclamationHeroFinish m_heroFinish;
 
         public CoolantSealThreadingPhase Phase => m_threading?.Phase ?? CoolantSealThreadingPhase.AwaitingFirstBaffle;
         public Vector3 FirstBafflePosition => m_firstBaffleAnchor != null ? m_firstBaffleAnchor.position : transform.position;
@@ -111,6 +112,12 @@ namespace DeadSignal.World
             m_hasAppliedPresentation = false;
             m_transitionRemaining = 0f;
             _applyPresentation(CoolantReclamationPresentationState.Locked);
+        }
+
+        public void ConfigureHeroFinish(AuthoredCoolantReclamationHeroFinish heroFinish)
+        {
+            m_heroFinish = heroFinish;
+            m_heroFinish?.ApplyState(PresentationState);
         }
 
         public void ResetState()
@@ -204,6 +211,7 @@ namespace DeadSignal.World
 
             m_hasAppliedPresentation = true;
             PresentationState = state;
+            m_heroFinish?.ApplyState(state);
             var locked = new Color(0.18f, 0.07f, 0.06f);
             var dormant = new Color(0.12f, 0.18f, 0.2f);
             var amber = new Color(1f, 0.48f, 0.06f);

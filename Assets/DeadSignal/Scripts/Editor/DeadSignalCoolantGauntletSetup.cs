@@ -14,16 +14,25 @@ namespace DeadSignal.Editor
         private const string TEXTURE_PATH = "Assets/DeadSignal/Resources/Environment/CoolantGauntletAlbedo.png";
         private const string STATUS_TEXTURE_PATH =
             "Assets/DeadSignal/Resources/Environment/CoolantReclamationStatusPanel.png";
+        private const string HERO_TEXTURE_PATH =
+            "Assets/DeadSignal/Resources/Environment/CoolantReclamationHeroAtlas.png";
         private const string MODEL_PATH = "Assets/DeadSignal/Resources/Environment/CoolantBaffleModel.fbx";
         private const string STATUS_BASE_MESH_PATH =
             "Assets/DeadSignal/Resources/Environment/CoolantStatusBaseReadability.asset";
         private const string STATUS_DIAL_MESH_PATH =
             "Assets/DeadSignal/Resources/Environment/CoolantStatusDialReadability.asset";
+        private const string HERO_FINISH_MESH_PATH =
+            "Assets/DeadSignal/Resources/Environment/CoolantReclamationHeroFinish.asset";
         private const string ARMOR_MATERIAL_PATH = "Assets/DeadSignal/Resources/Materials/CoolantBaffleArmor.mat";
         private const string FIN_MATERIAL_PATH = "Assets/DeadSignal/Resources/Materials/CoolantBaffleFins.mat";
         private const string PIPE_MATERIAL_PATH = "Assets/DeadSignal/Resources/Materials/CoolantBafflePipes.mat";
         private const string LIGHT_MATERIAL_PATH = "Assets/DeadSignal/Resources/Materials/CoolantBaffleLights.mat";
         private const string STATUS_MATERIAL_PATH = "Assets/DeadSignal/Resources/Materials/CoolantReclamationStatus.mat";
+        private const string HERO_MATERIAL_FOLDER = "Assets/DeadSignal/Resources/Materials/CoolantReclamationFinish";
+        private const string HERO_GRAPHITE_MATERIAL_PATH = HERO_MATERIAL_FOLDER + "/CoolantGraphite.mat";
+        private const string HERO_CERAMIC_MATERIAL_PATH = HERO_MATERIAL_FOLDER + "/CoolantCeramic.mat";
+        private const string HERO_CONDUIT_MATERIAL_PATH = HERO_MATERIAL_FOLDER + "/CoolantConduit.mat";
+        private const string HERO_DECK_MATERIAL_PATH = HERO_MATERIAL_FOLDER + "/CoolantDeck.mat";
         private const string AMBER_MATERIAL_PATH = "Assets/DeadSignal/Resources/Materials/WorldPalette/SalvageAmber.mat";
         private const string CYAN_MATERIAL_PATH = "Assets/DeadSignal/Resources/Materials/WorldPalette/SignalCyan.mat";
         private const string BAFFLE_PREFAB_PATH = "Assets/DeadSignal/Resources/Environment/CoolantBaffle.prefab";
@@ -40,20 +49,27 @@ namespace DeadSignal.Editor
                 var gauntlet = AssetDatabase.LoadAssetAtPath<GameObject>(GAUNTLET_PREFAB_PATH);
                 return AssetDatabase.LoadAssetAtPath<Texture2D>(TEXTURE_PATH) != null &&
                        AssetDatabase.LoadAssetAtPath<Texture2D>(STATUS_TEXTURE_PATH) != null &&
+                       AssetDatabase.LoadAssetAtPath<Texture2D>(HERO_TEXTURE_PATH) != null &&
                        AssetDatabase.LoadAssetAtPath<GameObject>(MODEL_PATH) != null &&
                        AssetDatabase.LoadAssetAtPath<Mesh>(STATUS_BASE_MESH_PATH) != null &&
                        AssetDatabase.LoadAssetAtPath<Mesh>(STATUS_DIAL_MESH_PATH) != null &&
+                       AssetDatabase.LoadAssetAtPath<Mesh>(HERO_FINISH_MESH_PATH) != null &&
                        AssetDatabase.LoadAssetAtPath<Material>(ARMOR_MATERIAL_PATH) != null &&
                        AssetDatabase.LoadAssetAtPath<Material>(FIN_MATERIAL_PATH) != null &&
                        AssetDatabase.LoadAssetAtPath<Material>(PIPE_MATERIAL_PATH) != null &&
                        AssetDatabase.LoadAssetAtPath<Material>(LIGHT_MATERIAL_PATH) != null &&
                        AssetDatabase.LoadAssetAtPath<Material>(STATUS_MATERIAL_PATH) != null &&
+                       AssetDatabase.LoadAssetAtPath<Material>(HERO_GRAPHITE_MATERIAL_PATH) != null &&
+                       AssetDatabase.LoadAssetAtPath<Material>(HERO_CERAMIC_MATERIAL_PATH) != null &&
+                       AssetDatabase.LoadAssetAtPath<Material>(HERO_CONDUIT_MATERIAL_PATH) != null &&
+                       AssetDatabase.LoadAssetAtPath<Material>(HERO_DECK_MATERIAL_PATH) != null &&
                        _hasValidBaffle(baffle) &&
                        gauntlet != null &&
                        gauntlet.GetComponentsInChildren<AuthoredMapObstacle>().Length == 2 &&
                        gauntlet.TryGetComponent<AuthoredCoolantReclamationObjective>(out var objective) &&
                        objective.IsConfigured &&
-                       objective.HasReadabilityAssets;
+                       objective.HasReadabilityAssets &&
+                       gauntlet.GetComponentInChildren<AuthoredCoolantReclamationHeroFinish>(true) != null;
             }
         }
 
@@ -61,7 +77,9 @@ namespace DeadSignal.Editor
         {
             _configureTextureImport();
             _configureStatusTextureImport();
+            _configureHeroTextureImport();
             _configureModelImport();
+            _ensureHeroMaterialFolder();
             _ensureMaterials();
             _ensureReadabilityMeshes();
             _ensureBafflePrefab();
@@ -126,6 +144,32 @@ namespace DeadSignal.Editor
             importer.SaveAndReimport();
         }
 
+        private static void _configureHeroTextureImport()
+        {
+            var importer = AssetImporter.GetAtPath(HERO_TEXTURE_PATH) as TextureImporter;
+            if (importer == null)
+            {
+                throw new InvalidOperationException($"Could not find the Coolant Reclamation hero atlas at {HERO_TEXTURE_PATH}.");
+            }
+
+            importer.alphaIsTransparency = false;
+            importer.mipmapEnabled = true;
+            importer.maxTextureSize = 1024;
+            importer.wrapMode = TextureWrapMode.Clamp;
+            importer.filterMode = FilterMode.Trilinear;
+            importer.anisoLevel = 4;
+            importer.textureCompression = TextureImporterCompression.CompressedHQ;
+            importer.SaveAndReimport();
+        }
+
+        private static void _ensureHeroMaterialFolder()
+        {
+            if (!AssetDatabase.IsValidFolder(HERO_MATERIAL_FOLDER))
+            {
+                AssetDatabase.CreateFolder("Assets/DeadSignal/Resources/Materials", "CoolantReclamationFinish");
+            }
+        }
+
         private static void _ensureMaterials()
         {
             var texture = AssetDatabase.LoadAssetAtPath<Texture2D>(TEXTURE_PATH);
@@ -167,6 +211,37 @@ namespace DeadSignal.Editor
             status.SetFloat("_Smoothness", 0.44f);
             status.EnableKeyword("_EMISSION");
             EditorUtility.SetDirty(status);
+
+            var heroTexture = AssetDatabase.LoadAssetAtPath<Texture2D>(HERO_TEXTURE_PATH);
+            _ensureHeroMaterial(HERO_GRAPHITE_MATERIAL_PATH, "Coolant Graphite", heroTexture,
+                new Vector2(0f, 0.52f), 0.68f, 0.38f);
+            _ensureHeroMaterial(HERO_CERAMIC_MATERIAL_PATH, "Coolant Ceramic", heroTexture,
+                new Vector2(0.52f, 0.52f), 0.12f, 0.3f);
+            _ensureHeroMaterial(HERO_CONDUIT_MATERIAL_PATH, "Coolant Conduit", heroTexture,
+                new Vector2(0f, 0f), 0.72f, 0.48f);
+            _ensureHeroMaterial(HERO_DECK_MATERIAL_PATH, "Coolant Deck", heroTexture,
+                new Vector2(0.52f, 0f), 0.5f, 0.22f);
+        }
+
+        private static void _ensureHeroMaterial(
+            string path,
+            string materialName,
+            Texture texture,
+            Vector2 offset,
+            float metallic,
+            float smoothness)
+        {
+            var material = _loadOrCreateMaterial(path, materialName);
+            material.SetTexture("_BaseMap", texture);
+            material.SetTextureScale("_BaseMap", new Vector2(0.48f, 0.48f));
+            material.SetTextureOffset("_BaseMap", offset);
+            material.SetColor("_BaseColor", Color.white);
+            material.SetColor("_EmissionColor", Color.black);
+            material.SetFloat("_Metallic", metallic);
+            material.SetFloat("_Smoothness", smoothness);
+            material.DisableKeyword("_EMISSION");
+            material.enableInstancing = true;
+            EditorUtility.SetDirty(material);
         }
 
         private static void _ensureReadabilityMeshes()
@@ -190,6 +265,24 @@ namespace DeadSignal.Editor
                 dialBuilder.AddBox(direction * 0.48f + Vector3.up * 0.23f, new Vector3(0.18f, 0.16f, 0.34f), angle);
             }
             _saveOrReplaceMesh(STATUS_DIAL_MESH_PATH, dialBuilder.Build());
+
+            var finishBuilder = new MeshBuilder("CoolantReclamationHeroFinish", 4);
+            finishBuilder.AddBox(new Vector3(0f, 0.03f, 0f), new Vector3(4.7f, 0.04f, 5.5f), 0f, 3);
+            finishBuilder.AddBox(new Vector3(-2.18f, 0.1f, 0f), new Vector3(0.18f, 0.2f, 5.15f), 0f, 0);
+            finishBuilder.AddBox(new Vector3(2.18f, 0.1f, 0f), new Vector3(0.18f, 0.2f, 5.15f), 0f, 0);
+            finishBuilder.AddBox(new Vector3(0f, 0.11f, 2.36f), new Vector3(4.45f, 0.22f, 0.22f), 0f, 0);
+            finishBuilder.AddBox(new Vector3(0f, 0.14f, 2.18f), new Vector3(2.15f, 0.22f, 0.26f), 0f, 1);
+            finishBuilder.AddBox(new Vector3(-1.85f, 0.13f, -0.55f), new Vector3(0.15f, 0.12f, 3.3f), 0f, 2);
+            finishBuilder.AddBox(new Vector3(1.85f, 0.13f, 0.7f), new Vector3(0.15f, 0.12f, 3.3f), 0f, 2);
+            finishBuilder.AddBox(new Vector3(-0.55f, 0.095f, -2.32f), new Vector3(3.2f, 0.08f, 0.12f), 0f, 2);
+            for (var index = 0; index < 4; index++)
+            {
+                var angle = index * 90f;
+                var direction = Quaternion.Euler(0f, angle, 0f) * Vector3.forward;
+                finishBuilder.AddBox(direction * 0.92f + new Vector3(0f, 0.16f, 2.18f),
+                    new Vector3(0.26f, 0.22f, 0.48f), angle, 1);
+            }
+            _saveOrReplaceMesh(HERO_FINISH_MESH_PATH, finishBuilder.Build());
         }
 
         private static void _saveOrReplaceMesh(string path, Mesh mesh)
@@ -304,6 +397,24 @@ namespace DeadSignal.Editor
                     sealSocket.localPosition, STATUS_BASE_MESH_PATH, ARMOR_MATERIAL_PATH);
                 var statusDial = _ensureReadabilityPart(gauntlet.transform, "Coolant Status Dial",
                     sealSocket.localPosition, STATUS_DIAL_MESH_PATH, STATUS_MATERIAL_PATH);
+                var heroFinish = _ensureReadabilityPart(gauntlet.transform, "Coolant Reclamation Hero Finish",
+                    Vector3.zero, HERO_FINISH_MESH_PATH, HERO_GRAPHITE_MATERIAL_PATH);
+                var heroRenderer = heroFinish.GetComponent<MeshRenderer>();
+                heroRenderer.sharedMaterials = new[]
+                {
+                    AssetDatabase.LoadAssetAtPath<Material>(HERO_GRAPHITE_MATERIAL_PATH),
+                    AssetDatabase.LoadAssetAtPath<Material>(HERO_CERAMIC_MATERIAL_PATH),
+                    AssetDatabase.LoadAssetAtPath<Material>(HERO_CONDUIT_MATERIAL_PATH),
+                    AssetDatabase.LoadAssetAtPath<Material>(HERO_DECK_MATERIAL_PATH)
+                };
+                var heroComponent = heroFinish.GetComponent<AuthoredCoolantReclamationHeroFinish>() ??
+                                    heroFinish.gameObject.AddComponent<AuthoredCoolantReclamationHeroFinish>();
+                heroComponent.Configure(
+                    heroRenderer,
+                    gauntlet.transform.Find("Coolant Status Base").GetComponent<MeshRenderer>(),
+                    gauntlet.GetComponentsInChildren<AuthoredMapObstacle>(true)
+                        .SelectMany(obstacle => obstacle.GetComponentsInChildren<MeshRenderer>(true))
+                        .ToArray());
                 var firstBaffleStatusRenderer = gauntlet.transform.Find("Northwest Coolant Baffle/Coolant Baffle Lights")
                     ?.GetComponent<Renderer>();
                 var secondBaffleStatusRenderer = gauntlet.transform.Find("Southeast Coolant Baffle/Coolant Baffle Lights")
@@ -320,6 +431,7 @@ namespace DeadSignal.Editor
                     statusDial,
                     firstBaffleStatusRenderer,
                     secondBaffleStatusRenderer);
+                objective.ConfigureHeroFinish(heroComponent);
                 PrefabUtility.SaveAsPrefabAsset(gauntlet, GAUNTLET_PREFAB_PATH);
             }
             finally
@@ -474,12 +586,13 @@ namespace DeadSignal.Editor
 
         private sealed class MeshBuilder
         {
-            public MeshBuilder(string name)
+            public MeshBuilder(string name, int subMeshCount = 1)
             {
                 m_name = name;
+                m_triangles = Enumerable.Range(0, subMeshCount).Select(_ => new List<int>()).ToList();
             }
 
-            public void AddBox(Vector3 center, Vector3 size, float yaw)
+            public void AddBox(Vector3 center, Vector3 size, float yaw, int subMesh = 0)
             {
                 var half = size * 0.5f;
                 var rotation = Quaternion.Euler(0f, yaw, 0f);
@@ -502,7 +615,7 @@ namespace DeadSignal.Editor
                     Vector2.zero, Vector2.right, Vector2.one, Vector2.up,
                     Vector2.zero, Vector2.right, Vector2.one, Vector2.up
                 });
-                m_triangles.AddRange(new[]
+                m_triangles[subMesh].AddRange(new[]
                 {
                     start, start + 2, start + 1, start, start + 3, start + 2,
                     start + 4, start + 5, start + 6, start + 4, start + 6, start + 7,
@@ -513,7 +626,13 @@ namespace DeadSignal.Editor
                 });
             }
 
-            public void AddPrism(Vector3 center, int sides, float bottomRadius, float topRadius, float height)
+            public void AddPrism(
+                Vector3 center,
+                int sides,
+                float bottomRadius,
+                float topRadius,
+                float height,
+                int subMesh = 0)
             {
                 var start = m_vertices.Count;
                 var halfHeight = height * 0.5f;
@@ -536,7 +655,7 @@ namespace DeadSignal.Editor
                 for (var index = 0; index < sides; index++)
                 {
                     var next = (index + 1) % sides;
-                    m_triangles.AddRange(new[]
+                    m_triangles[subMesh].AddRange(new[]
                     {
                         start + index * 2, start + next * 2 + 1, start + next * 2,
                         start + index * 2, start + index * 2 + 1, start + next * 2 + 1,
@@ -551,7 +670,11 @@ namespace DeadSignal.Editor
                 var mesh = new Mesh { name = m_name };
                 mesh.SetVertices(m_vertices);
                 mesh.SetUVs(0, m_uvs);
-                mesh.SetTriangles(m_triangles, 0);
+                mesh.subMeshCount = m_triangles.Count;
+                for (var index = 0; index < m_triangles.Count; index++)
+                {
+                    mesh.SetTriangles(m_triangles[index], index);
+                }
                 mesh.RecalculateNormals();
                 mesh.RecalculateTangents();
                 mesh.RecalculateBounds();
@@ -561,7 +684,7 @@ namespace DeadSignal.Editor
             private readonly string m_name;
             private readonly List<Vector3> m_vertices = new();
             private readonly List<Vector2> m_uvs = new();
-            private readonly List<int> m_triangles = new();
+            private readonly List<List<int>> m_triangles;
         }
     }
 }

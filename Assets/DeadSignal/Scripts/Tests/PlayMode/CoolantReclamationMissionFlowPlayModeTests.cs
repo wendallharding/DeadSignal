@@ -1,4 +1,6 @@
+using System;
 using System.Collections;
+using System.IO;
 using DeadSignal.Application;
 using DeadSignal.Missions;
 using DeadSignal.World;
@@ -6,6 +8,7 @@ using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
+using Object = UnityEngine.Object;
 
 namespace DeadSignal.Tests.PlayMode
 {
@@ -27,6 +30,19 @@ namespace DeadSignal.Tests.PlayMode
             Assert.That(objective.IsConfigured, Is.True);
             Assert.That(objective.HasReadabilityAssets, Is.True);
             Assert.That(objective.PresentationState, Is.EqualTo(CoolantReclamationPresentationState.Locked));
+
+            var hero = objective.GetComponentInChildren<AuthoredCoolantReclamationHeroFinish>(true);
+            Assert.That(hero, Is.Not.Null);
+            var heroMesh = hero.FinishRenderer.GetComponent<MeshFilter>().sharedMesh;
+            Assert.That(heroMesh.name, Is.EqualTo("CoolantReclamationHeroFinish"));
+            Assert.That(heroMesh.vertexCount, Is.GreaterThanOrEqualTo(80));
+            Assert.That(hero.FinishRenderer.sharedMaterials, Has.Length.EqualTo(4));
+            Assert.That(hero.FinishRenderer.sharedMaterials[0].mainTexture.name,
+                Is.EqualTo("CoolantReclamationHeroAtlas"));
+            Assert.That(hero.FinishRenderer.GetComponentsInChildren<Collider>(true), Is.Empty,
+                "The Coolant room finish must remain presentation-only.");
+            Assert.That(hero.BaffleRendererCount, Is.EqualTo(8));
+            Assert.That(hero.AppliedState, Is.EqualTo(CoolantReclamationPresentationState.Locked));
 
             var statusBase = objective.transform.Find("Coolant Status Base");
             var statusDial = objective.transform.Find("Coolant Status Dial");
@@ -51,6 +67,7 @@ namespace DeadSignal.Tests.PlayMode
             game.DebugActivateTower();
             yield return null;
             Assert.That(objective.PresentationState, Is.EqualTo(CoolantReclamationPresentationState.FirstBaffle));
+            Assert.That(hero.AppliedState, Is.EqualTo(CoolantReclamationPresentationState.FirstBaffle));
             scene.Player.position = game.CargoCommitmentPosition;
             yield return null;
             scene.Player.position = game.CargoCouplingPosition;
@@ -97,6 +114,7 @@ namespace DeadSignal.Tests.PlayMode
             Assert.That(game.IsCoolantSealSecured, Is.True);
             Assert.That(game.CoolantSealPhase, Is.EqualTo(CoolantSealThreadingPhase.Complete));
             Assert.That(objective.PresentationState, Is.EqualTo(CoolantReclamationPresentationState.Stable));
+            Assert.That(hero.AppliedState, Is.EqualTo(CoolantReclamationPresentationState.Stable));
             Assert.That(game.CurrentMissionObjectiveId, Is.EqualTo(MissionObjectiveId.RelayFork),
                 "Both Central components must now advance to the authored Relay Fork routing step.");
             Assert.That(game.CurrentSalvage, Is.EqualTo(1),
@@ -117,12 +135,54 @@ namespace DeadSignal.Tests.PlayMode
 
             Assert.That(game.CurrentSalvage, Is.EqualTo(1), "The stabilized coolant line must remain idempotent.");
 
+            var capturePath = Environment.GetEnvironmentVariable("DEAD_SIGNAL_COOLANT_HERO_CAPTURE");
+            if (!string.IsNullOrWhiteSpace(capturePath))
+            {
+                scene.Player.position = Vector3.Lerp(objective.FirstBafflePosition, objective.SecondBafflePosition, 0.5f);
+                yield return null;
+                yield return new WaitForSecondsRealtime(0.6f);
+                _captureCamera(scene.PlayerCamera, capturePath);
+            }
+
             SceneManager.LoadScene("SampleScene");
             yield return null;
             yield return null;
             objective = Object.FindFirstObjectByType<AuthoredCoolantReclamationObjective>(FindObjectsInactive.Include);
             Assert.That(objective.PresentationState, Is.EqualTo(CoolantReclamationPresentationState.Locked),
                 "A fresh run must restore the persistent dormant Coolant read.");
+            hero = objective.GetComponentInChildren<AuthoredCoolantReclamationHeroFinish>(true);
+            Assert.That(hero.AppliedState, Is.EqualTo(CoolantReclamationPresentationState.Locked));
+        }
+
+        private static void _captureCamera(Camera camera, string path)
+        {
+            Assert.That(camera, Is.Not.Null);
+            var directory = Path.GetDirectoryName(path);
+            if (!string.IsNullOrEmpty(directory))
+            {
+                Directory.CreateDirectory(directory);
+            }
+
+            var renderTexture = new RenderTexture(1600, 900, 24, RenderTextureFormat.ARGB32);
+            var texture = new Texture2D(1600, 900, TextureFormat.RGB24, false);
+            var previousTarget = camera.targetTexture;
+            var previousActive = RenderTexture.active;
+            try
+            {
+                camera.targetTexture = renderTexture;
+                camera.Render();
+                RenderTexture.active = renderTexture;
+                texture.ReadPixels(new Rect(0f, 0f, 1600f, 900f), 0, 0);
+                texture.Apply();
+                File.WriteAllBytes(path, texture.EncodeToPNG());
+            }
+            finally
+            {
+                camera.targetTexture = previousTarget;
+                RenderTexture.active = previousActive;
+                Object.DestroyImmediate(texture);
+                Object.DestroyImmediate(renderTexture);
+            }
         }
     }
 }

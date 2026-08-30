@@ -1260,10 +1260,16 @@ namespace DeadSignal.Tests
                 new Vector3(1f, 0f, -1.35f)
             }), "The staggered baffles should preserve the authored salvage corridor.");
             var coolantTexture = Resources.Load<Texture2D>("Environment/CoolantGauntletAlbedo");
+            var coolantHeroTexture = Resources.Load<Texture2D>("Environment/CoolantReclamationHeroAtlas");
             var coolantArmor = Resources.Load<Material>("Materials/CoolantBaffleArmor");
             Assert.That(coolantTexture, Is.Not.Null);
+            Assert.That(coolantHeroTexture, Is.Not.Null);
             Assert.That(coolantArmor.mainTexture, Is.EqualTo(coolantTexture),
                 "The coolant baffles should persistently map their original reclamation-yard albedo.");
+            var coolantHero = coolantGauntlet.GetComponentInChildren<AuthoredCoolantReclamationHeroFinish>(true);
+            Assert.That(coolantHero, Is.Not.Null);
+            Assert.That(coolantHero.FinishRenderer.sharedMaterials, Has.Length.EqualTo(4));
+            Assert.That(coolantHero.FinishRenderer.GetComponentsInChildren<Collider>(true), Is.Empty);
             var relayFork = GameObject.Find("Northwest Relay Fork");
             Assert.That(relayFork, Is.Not.Null,
                 "The northwest cache should sit beyond a scene-authored relay route fork.");
