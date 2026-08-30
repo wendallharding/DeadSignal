@@ -58,6 +58,7 @@ namespace DeadSignal.World
         public SignalSapperPresentation SapperPresentation { get; private set; }
         public Transform Interceptor { get; private set; }
         public Transform InterceptorCore { get; private set; }
+        public SecurityInterceptorPresentation InterceptorPresentation { get; private set; }
         public Transform Suppressor { get; private set; }
         public Transform SuppressorCore { get; private set; }
         public SuppressorFieldTelegraph SuppressorFieldTelegraph { get; private set; }
@@ -817,6 +818,14 @@ namespace DeadSignal.World
 
         public void PurgeInterceptor()
         {
+            InterceptorPresentation?.PlayPurge();
+            Interceptor.gameObject.SetActive(false);
+            SetInterceptorTelegraph(false, Interceptor.position);
+        }
+
+        public void ResetInterceptorPresentation()
+        {
+            InterceptorPresentation?.ResetPresentation();
             Interceptor.gameObject.SetActive(false);
             SetInterceptorTelegraph(false, Interceptor.position);
         }
@@ -858,7 +867,16 @@ namespace DeadSignal.World
             var index = entranceIndex >= 0 ? entranceIndex : GetSafestInterceptorEntryIndex(Player.position);
             Interceptor.position = m_interceptorEntrances[index];
             Interceptor.gameObject.SetActive(true);
+            InterceptorPresentation?.PlayWake();
         }
+
+        public void SetInterceptorPresentationState(bool charging, bool dashing) =>
+            InterceptorPresentation?.SetThreatState(charging, dashing);
+
+        public void PlayInterceptorRecovery(bool hitCover, float duration) =>
+            InterceptorPresentation?.PlayRecovery(hitCover, duration);
+
+        public void PlayInterceptorHit(Vector3 sourcePosition) => InterceptorPresentation?.PlayHit(sourcePosition);
 
         public void DeploySuppressorReinforcement(int entranceIndex = -1)
         {
@@ -1510,6 +1528,13 @@ namespace DeadSignal.World
             Interceptor = m_scene.Interceptor;
             Interceptor.SetParent(m_root, true);
             InterceptorCore = Interceptor.Find("Interceptor Core");
+            InterceptorPresentation = m_root.gameObject.AddComponent<SecurityInterceptorPresentation>();
+            InterceptorPresentation.Configure(
+                Interceptor,
+                Interceptor.Find("Interceptor Chassis"),
+                Interceptor.Find("Interceptor Blade Left"),
+                Interceptor.Find("Interceptor Blade Right"),
+                InterceptorCore);
             HasSecurityInterceptorAssets = true;
             SecurityInterceptorPartCount = 4;
 

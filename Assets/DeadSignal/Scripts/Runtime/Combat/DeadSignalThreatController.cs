@@ -437,7 +437,7 @@ namespace DeadSignal.Combat
             m_swarmers.Reset();
             m_world.ResetWardenPresentation();
             m_world.ResetSapperPresentation();
-            m_world.PurgeInterceptor();
+            m_world.ResetInterceptorPresentation();
             m_world.PurgeSuppressor();
             m_world.SetReinforcementEntryWarning(SecurityReinforcement.None, -1, false, 0f);
         }
@@ -758,10 +758,12 @@ namespace DeadSignal.Combat
             if (!m_model.TowerOnline || m_interceptorHealth <= 0f)
             {
                 m_interceptorCuttingSapperFlank = false;
+                m_world.SetInterceptorPresentationState(false, false);
                 return;
             }
 
             m_interceptorHitCooldown = Mathf.Max(0f, m_interceptorHitCooldown - dt);
+            m_world.SetInterceptorPresentationState(IsInterceptorCharging, m_interceptorDashRemaining > 0f);
             var coreRotationSpeed = IsInterceptorRecovering ? 80f : 320f;
             m_world.InterceptorCore.Rotate(Vector3.up, coreRotationSpeed * dt, Space.Self);
             var wasCuttingSapperFlank = m_interceptorCuttingSapperFlank;
@@ -854,6 +856,7 @@ namespace DeadSignal.Combat
                 hitCover,
                 m_tuning.InterceptorDashRecoveryDuration,
                 m_tuning.InterceptorCrashRecoveryDuration);
+            m_world.PlayInterceptorRecovery(hitCover, m_interceptorRecoveryCountdown);
             m_showFeedback(hitCover
                 ? "INTERCEPTOR CRASHED — COUNTERATTACK WINDOW"
                 : "INTERCEPTOR RECOVERING — REPOSITION OR FIRE");
@@ -1549,6 +1552,7 @@ namespace DeadSignal.Combat
         private void _hitInterceptor()
         {
             m_interceptorHealth -= 1f;
+            m_world.PlayInterceptorHit(m_world.Player.position);
             m_combatFeedback.PlaySignalImpact(m_world.Interceptor.position + Vector3.up * 0.5f, m_interceptorHealth <= 0f);
             if (m_interceptorHealth > 0f)
             {

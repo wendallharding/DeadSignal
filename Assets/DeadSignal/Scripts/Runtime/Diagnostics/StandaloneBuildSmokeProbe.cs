@@ -380,9 +380,11 @@ namespace DeadSignal.Diagnostics
                                 Resources.Load<Texture2D>("VFX/WardenStrikeWarning") != null &&
                                 Resources.Load<WardenThreatTelegraphTuning>("Tuning/WardenThreatTelegraphTuning") != null &&
                                 game.HasSecurityInterceptorAssets &&
+                                game.HasSecurityInterceptorPresentation &&
                                 game.SecurityInterceptorPartCount == 4 &&
                                 game.AuthoredInterceptorEntranceCount == 9 &&
                                 Resources.Load<GameObject>("Actors/SecurityInterceptorAssembly") != null &&
+                                Resources.Load<Texture2D>("Actors/SecurityInterceptorAlbedo") != null &&
                                 game.HasSecuritySuppressorAssets &&
                                 game.SecuritySuppressorPartCount == 4 &&
                                 Resources.Load<GameObject>("Actors/SecuritySuppressorAssembly") != null &&
