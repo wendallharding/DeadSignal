@@ -76,6 +76,7 @@ namespace DeadSignal.Editor
             DeadSignalCoreProcessingReadabilitySetup.EnsureAssets();
             DeadSignalSecurityTrialReadabilitySetup.EnsureAssets();
             DeadSignalSecurityLockdownReadabilitySetup.EnsureAssets();
+            DeadSignalSecurityTrialCompositionSetup.EnsureAssets();
             DeadSignalMissionObjectiveSetup.CreateCompatibilityMissionObjectives();
             DeadSignalStationBackdropSetup.EnsureAssets();
             DeadSignalForegroundCutawaySetup.EnsureAssets();
@@ -240,6 +241,11 @@ namespace DeadSignal.Editor
             if (!DeadSignalActThreeCompositionSetup.HasAssets)
             {
                 throw new BuildFailedException("The authored Act III deep-core presentation composition is missing or incomplete.");
+            }
+
+            if (!DeadSignalSecurityTrialCompositionSetup.HasAssets)
+            {
+                throw new BuildFailedException("The authored Security Trial presentation composition is missing or incomplete.");
             }
 
             if (!DeadSignalProjectSetup.HasSignalRoutingAssets)
