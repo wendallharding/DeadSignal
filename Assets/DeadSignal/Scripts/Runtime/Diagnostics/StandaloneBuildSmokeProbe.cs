@@ -188,14 +188,29 @@ namespace DeadSignal.Diagnostics
                                                 game.CurrentCombatChamberState == CombatChamberState.Dormant &&
                                                 FindFirstObjectByType<AuthoredCombatChamber>() is
                                                 { HasCommitmentReadabilityAssets: true } chamber &&
+                                                chamber.HasLockdownReadabilityAssets &&
                                                 chamber.CommitmentPresentationState ==
                                                 TrialCommitmentPresentationState.Locked &&
+                                                chamber.LockdownPresentationState ==
+                                                LockdownChamberPresentationState.Dormant &&
+                                                chamber.CapacitorPresentationState ==
+                                                TrialCapacitorPresentationState.Locked &&
                                                 Resources.Load<Texture2D>(
                                                     "Environment/SecurityTrialCommitmentStatusPanel") != null &&
                                                 Resources.Load<Mesh>(
                                                     "Environment/SecurityTrialCommitmentStatusReadability") != null &&
                                                 Resources.Load<Material>(
-                                                    "Materials/SecurityTrialReadability/SecurityTrialCommitmentStatus") != null;
+                                                    "Materials/SecurityTrialReadability/SecurityTrialCommitmentStatus") != null &&
+                                                Resources.Load<Texture2D>(
+                                                    "Environment/SecurityTrialLockdownStatusAtlas") != null &&
+                                                Resources.Load<Mesh>(
+                                                    "Environment/SecurityTrialLockdownStatusReadability") != null &&
+                                                Resources.Load<Mesh>(
+                                                    "Environment/SecurityTrialDoorStatusReadability") != null &&
+                                                Resources.Load<Mesh>(
+                                                    "Environment/SecurityTrialCapacitorStatusReadability") != null &&
+                                                Resources.Load<Material>(
+                                                    "Materials/SecurityTrialReadability/SecurityTrialLockdownStatus") != null;
             var stationBackdropTextureReady =
                 Resources.Load<Texture2D>("Environment/StationUnderdeckAlbedo") != null;
             var stationBackdropMaterialReady = Resources.Load<Material>("Materials/StationUnderdeck") != null;
@@ -451,6 +466,16 @@ namespace DeadSignal.Diagnostics
                                     "Environment/SecurityTrialCommitmentStatusReadability") != null &&
                                 Resources.Load<Material>(
                                     "Materials/SecurityTrialReadability/SecurityTrialCommitmentStatus") != null &&
+                                Resources.Load<Texture2D>(
+                                    "Environment/SecurityTrialLockdownStatusAtlas") != null &&
+                                Resources.Load<Mesh>(
+                                    "Environment/SecurityTrialLockdownStatusReadability") != null &&
+                                Resources.Load<Mesh>(
+                                    "Environment/SecurityTrialDoorStatusReadability") != null &&
+                                Resources.Load<Mesh>(
+                                    "Environment/SecurityTrialCapacitorStatusReadability") != null &&
+                                Resources.Load<Material>(
+                                    "Materials/SecurityTrialReadability/SecurityTrialLockdownStatus") != null &&
                                 game.transform.Find(
                                     "Spine Induction Gallery Region/Flux Bypass Region/Flux Shunt Regulator") != null &&
                                 game.transform.Find(

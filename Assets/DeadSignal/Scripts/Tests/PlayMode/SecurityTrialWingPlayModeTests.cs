@@ -27,7 +27,10 @@ namespace DeadSignal.Tests
             Assert.That(game.HasAuthoredCombatChamber, Is.True);
             Assert.That(game.CurrentCombatChamberState, Is.EqualTo(CombatChamberState.Dormant));
             Assert.That(chamber.HasCommitmentReadabilityAssets, Is.True);
+            Assert.That(chamber.HasLockdownReadabilityAssets, Is.True);
             Assert.That(chamber.CommitmentPresentationState, Is.EqualTo(TrialCommitmentPresentationState.Locked));
+            Assert.That(chamber.LockdownPresentationState, Is.EqualTo(LockdownChamberPresentationState.Dormant));
+            Assert.That(chamber.CapacitorPresentationState, Is.EqualTo(TrialCapacitorPresentationState.Locked));
             Assert.That(wing.Find("Commitment Room"), Is.Not.Null);
             Assert.That(wing.Find("Lockdown Arena"), Is.Not.Null);
             Assert.That(wing.Find("Reward Vault"), Is.Not.Null);
@@ -46,7 +49,93 @@ namespace DeadSignal.Tests
             Assert.That(Resources.Load<Mesh>("Environment/SecurityTrialCommitmentStatusReadability"), Is.Not.Null);
             Assert.That(Resources.Load<Material>(
                 "Materials/SecurityTrialReadability/SecurityTrialCommitmentStatus"), Is.Not.Null);
+            Assert.That(Resources.Load<Texture2D>("Environment/SecurityTrialLockdownStatusAtlas"), Is.Not.Null);
+            Assert.That(Resources.Load<Mesh>("Environment/SecurityTrialLockdownStatusReadability"), Is.Not.Null);
+            Assert.That(Resources.Load<Mesh>("Environment/SecurityTrialDoorStatusReadability"), Is.Not.Null);
+            Assert.That(Resources.Load<Mesh>("Environment/SecurityTrialCapacitorStatusReadability"), Is.Not.Null);
+            Assert.That(Resources.Load<Material>(
+                "Materials/SecurityTrialReadability/SecurityTrialLockdownStatus"), Is.Not.Null);
             Assert.That(game.AuthoredMapObstacleCount, Is.EqualTo(138));
+        }
+
+        [UnityTest]
+        public IEnumerator LockdownAndVault_PresentLifecycleDoorsAndEmptyVaultAcrossReload()
+        {
+            yield return SceneManager.LoadSceneAsync("SampleScene");
+            yield return null;
+
+            var game = Object.FindFirstObjectByType<DeadSignalGame>();
+            var chamber = Object.FindFirstObjectByType<AuthoredCombatChamber>();
+            var chamberGlyph = chamber.transform.Find("Lockdown Arena/Lockdown Chamber Status");
+            var capacitorGlyph = chamber.transform.Find("Reward Vault/Capacitor Vault Status");
+            var entryDoor = chamber.transform.Find("Lockdown Entry Door");
+            var rewardDoor = chamber.transform.Find("Reward Vault Door");
+            var entrySlab = entryDoor.Find("Entry Door Slab").gameObject;
+            var rewardSlab = rewardDoor.Find("Reward Door Slab").gameObject;
+            var entryReadability = entryDoor.GetComponent<AuthoredRouteDoorReadability>();
+            var rewardReadability = rewardDoor.GetComponent<AuthoredRouteDoorReadability>();
+
+            Assert.That(chamberGlyph, Is.Not.Null);
+            Assert.That(capacitorGlyph, Is.Not.Null);
+            Assert.That(chamberGlyph.GetComponents<Collider>(), Is.Empty);
+            Assert.That(capacitorGlyph.GetComponents<Collider>(), Is.Empty);
+            Assert.That(entryDoor.Find("Entry Threshold Readability").GetComponents<Collider>(), Is.Empty);
+            Assert.That(rewardDoor.Find("Reward Threshold Readability").GetComponents<Collider>(), Is.Empty);
+            Assert.That(chamber.LockdownPresentationState, Is.EqualTo(LockdownChamberPresentationState.Dormant));
+            Assert.That(chamber.CapacitorPresentationState, Is.EqualTo(TrialCapacitorPresentationState.Locked));
+            Assert.That(entryReadability.PresentationState, Is.EqualTo(RouteDoorPresentationState.Locked));
+            Assert.That(rewardReadability.PresentationState, Is.EqualTo(RouteDoorPresentationState.Locked));
+            Assert.That(entrySlab.activeSelf && rewardSlab.activeSelf, Is.True);
+
+            game.DebugStabilizeCore();
+            Assert.That(chamber.LockdownPresentationState, Is.EqualTo(LockdownChamberPresentationState.Available));
+
+            game.DebugCommitSecurityTrial();
+            Assert.That(chamber.LockdownPresentationState, Is.EqualTo(LockdownChamberPresentationState.Armed));
+            Assert.That(entryReadability.PresentationState, Is.EqualTo(RouteDoorPresentationState.Open));
+            Assert.That(entrySlab.activeSelf, Is.False);
+            Assert.That(rewardSlab.activeSelf, Is.True);
+
+            Assert.That(chamber.TryBeginLockdown(
+                chamber.LockdownThreshold.TransformPoint(new Vector3(0f, 0f, 1f))), Is.True);
+            Assert.That(chamber.LockdownPresentationState,
+                Is.EqualTo(LockdownChamberPresentationState.LockedActive));
+            Assert.That(entryReadability.PresentationState, Is.EqualTo(RouteDoorPresentationState.Locked));
+            Assert.That(entrySlab.activeSelf, Is.True);
+            Assert.That(chamberGlyph.localEulerAngles.y, Is.EqualTo(78f).Within(0.2f));
+
+            Assert.That(chamber.AdvancePhase(), Is.True);
+            Assert.That(chamberGlyph.localEulerAngles.y, Is.EqualTo(156f).Within(0.2f));
+            Assert.That(chamber.AdvancePhase(), Is.True);
+            Assert.That(chamberGlyph.localEulerAngles.y, Is.EqualTo(234f).Within(0.2f));
+
+            chamber.Complete();
+            Assert.That(chamber.LockdownPresentationState, Is.EqualTo(LockdownChamberPresentationState.Cleared));
+            Assert.That(chamber.CapacitorPresentationState, Is.EqualTo(TrialCapacitorPresentationState.Available));
+            Assert.That(entryReadability.PresentationState, Is.EqualTo(RouteDoorPresentationState.Open));
+            Assert.That(rewardReadability.PresentationState, Is.EqualTo(RouteDoorPresentationState.Open));
+            Assert.That(entrySlab.activeSelf || rewardSlab.activeSelf, Is.False);
+            Assert.That(chamber.TryCollectReward(chamber.RewardPosition), Is.True);
+            Assert.That(chamber.CapacitorPresentationState,
+                Is.EqualTo(TrialCapacitorPresentationState.CollectedActive));
+
+            var collectionDeadline = Time.realtimeSinceStartup + 1f;
+            while (chamber.CapacitorPresentationState == TrialCapacitorPresentationState.CollectedActive &&
+                   Time.realtimeSinceStartup < collectionDeadline)
+            {
+                yield return null;
+            }
+            Assert.That(chamber.CapacitorPresentationState,
+                Is.EqualTo(TrialCapacitorPresentationState.EmptyVaultComplete));
+            Assert.That(capacitorGlyph.localEulerAngles.y, Is.EqualTo(120f).Within(0.5f));
+
+            yield return SceneManager.LoadSceneAsync("SampleScene");
+            yield return null;
+            chamber = Object.FindFirstObjectByType<AuthoredCombatChamber>();
+            Assert.That(chamber.LockdownPresentationState, Is.EqualTo(LockdownChamberPresentationState.Dormant));
+            Assert.That(chamber.CapacitorPresentationState, Is.EqualTo(TrialCapacitorPresentationState.Locked));
+            Assert.That(chamber.transform.Find("Lockdown Entry Door/Entry Door Slab").gameObject.activeSelf, Is.True);
+            Assert.That(chamber.transform.Find("Reward Vault Door/Reward Door Slab").gameObject.activeSelf, Is.True);
         }
 
         [UnityTest]
@@ -106,7 +195,7 @@ namespace DeadSignal.Tests
             var player = game.transform.Find("Maintenance Drone");
             var chamber = Object.FindFirstObjectByType<AuthoredCombatChamber>();
             var feedback = Object.FindFirstObjectByType<StationStateFeedbackController>();
-            var entryDoor = chamber.transform.Find("Lockdown Entry Door").gameObject;
+            var entryDoor = chamber.transform.Find("Lockdown Entry Door/Entry Door Slab").gameObject;
             var threshold = chamber.transform.Find("Lockdown Threshold");
 
             game.DebugCommitSecurityTrial();
@@ -161,8 +250,8 @@ namespace DeadSignal.Tests
             var player = game.transform.Find("Maintenance Drone");
             var chamber = Object.FindFirstObjectByType<AuthoredCombatChamber>();
             var feedback = Object.FindFirstObjectByType<StationStateFeedbackController>();
-            var entryDoor = chamber.transform.Find("Lockdown Entry Door").gameObject;
-            var rewardDoor = chamber.transform.Find("Reward Vault Door").gameObject;
+            var entryDoor = chamber.transform.Find("Lockdown Entry Door/Entry Door Slab").gameObject;
+            var rewardDoor = chamber.transform.Find("Reward Vault Door/Reward Door Slab").gameObject;
             var reward = chamber.transform.Find("Reward Vault/Trial Capacitor Reward").gameObject;
             var clearedSignal = chamber.transform.Find("Cleared Return Signal").gameObject;
             var threshold = chamber.transform.Find("Lockdown Threshold");
