@@ -25,6 +25,7 @@ namespace DeadSignal.World
         [SerializeField] private GameObject m_routedMarker;
         [SerializeField] private Renderer[] m_statusRenderers;
         [SerializeField] private Transform m_routingSelector;
+        [SerializeField] private AuthoredRelayTransferHeroFinish m_heroFinish;
 
         public Vector3 Position => m_routingAnchor != null ? m_routingAnchor.position : transform.position;
         public bool IsConfigured => m_routingAnchor != null && m_availableMarker != null && m_routedMarker != null;
@@ -78,6 +79,12 @@ namespace DeadSignal.World
             _applyPresentation(RelayForkPresentationState.Locked);
         }
 
+        public void ConfigureHeroFinish(AuthoredRelayTransferHeroFinish heroFinish)
+        {
+            m_heroFinish = heroFinish;
+            m_heroFinish?.ApplyRelayState(PresentationState);
+        }
+
         public void SetState(bool available, bool complete)
         {
             if (complete && !m_wasComplete)
@@ -121,6 +128,7 @@ namespace DeadSignal.World
 
             m_hasAppliedPresentation = true;
             PresentationState = state;
+            m_heroFinish?.ApplyRelayState(state);
             if (m_statusRenderers == null)
             {
                 return;

@@ -603,8 +603,15 @@ namespace DeadSignal.Diagnostics
                                 Resources.Load<Mesh>("Environment/RelayForkConsoleReadability") != null &&
                                 Resources.Load<Mesh>("Environment/RelayForkPanelReadability") != null &&
                                 Resources.Load<Mesh>("Environment/RelayForkSelectorReadability") != null &&
+                                Resources.Load<Texture2D>("Environment/RelayTransferHeroAtlas") != null &&
+                                Resources.Load<Mesh>("Environment/RelayForkHeroFinish") != null &&
+                                Resources.Load<Mesh>("Environment/TransferVaultHeroFinish") != null &&
                                 Resources.Load<Mesh>("Environment/RouteDoorThresholdReadability") != null &&
                                 Resources.Load<Material>("Materials/RelayForkStatus") != null &&
+                                Resources.Load<Material>("Materials/RelayTransferFinish/RelayTransferGraphite") != null &&
+                                Resources.Load<Material>("Materials/RelayTransferFinish/RelayTransferCeramic") != null &&
+                                Resources.Load<Material>("Materials/RelayTransferFinish/RelayTransferCopper") != null &&
+                                Resources.Load<Material>("Materials/RelayTransferFinish/RelayTransferDeck") != null &&
                                 Resources.Load<Material>("Materials/RouteDoorThresholdStatus") != null &&
                                 Resources.Load<GameObject>("Environment/SecurityBlastShield") != null &&
                                 Resources.Load<GameObject>("Environment/SecurityBayRouteMarkerModel") != null &&
