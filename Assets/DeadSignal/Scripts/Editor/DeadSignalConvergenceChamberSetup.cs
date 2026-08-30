@@ -89,6 +89,7 @@ namespace DeadSignal.Editor
             DeadSignalSecurityTrialSetup.EnsureAssets();
             DeadSignalMissionObjectiveSetup.CreateCompatibilityMissionObjectives();
             DeadSignalConvergenceReadabilitySetup.EnsureAssets();
+            DeadSignalBreakerReadabilitySetup.EnsureAssets();
         }
 
         private static void _ensureTuning()

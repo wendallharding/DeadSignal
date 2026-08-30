@@ -119,6 +119,13 @@ namespace DeadSignal.Diagnostics
                                                   "Tuning/ConvergenceCalibrationTuning") != null &&
                                               game != null && !game.IsConvergenceCalibrated;
             var breakerResetReady = breakerResetObjective != null && breakerResetObjective.IsConfigured &&
+                                    breakerResetObjective.HasReadabilityAssets &&
+                                    breakerResetObjective.PresentationState ==
+                                    BreakerResetPresentationState.DistributionLocked &&
+                                    Resources.Load<Texture2D>("Environment/BreakerDistributionStatusPanel") != null &&
+                                    Resources.Load<Mesh>("Environment/BreakerDistributionStatusReadability") != null &&
+                                    Resources.Load<Material>(
+                                        "Materials/ConvergenceBreakerGallery/BreakerDistributionStatus") != null &&
                                     game != null && !game.IsBreakerDistributionReset;
             var coreProcessingReady = furnaceForgeObjective != null && furnaceForgeObjective.IsConfigured &&
                                       quenchStabilizationObjective != null && quenchStabilizationObjective.IsConfigured &&
@@ -403,6 +410,10 @@ namespace DeadSignal.Diagnostics
                                 Resources.Load<Texture2D>("Environment/ConvergenceBreakerGalleryRouteDecal") != null &&
                                 Resources.Load<Material>(
                                     "Materials/ConvergenceBreakerGallery/ConvergenceBreakerGalleryRouteDecal") != null &&
+                                Resources.Load<Texture2D>("Environment/BreakerDistributionStatusPanel") != null &&
+                                Resources.Load<Mesh>("Environment/BreakerDistributionStatusReadability") != null &&
+                                Resources.Load<Material>(
+                                    "Materials/ConvergenceBreakerGallery/BreakerDistributionStatus") != null &&
                                 game.transform.Find(
                                     "Spine Induction Gallery Region/Flux Bypass Region/Flux Shunt Regulator") != null &&
                                 game.transform.Find(

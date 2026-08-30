@@ -67,6 +67,7 @@ namespace DeadSignal.Editor
             DeadSignalEasternCombatScenarioSetup.EnsureAssets();
             DeadSignalSecurityTrialSetup.EnsureAssets();
             DeadSignalConvergenceReadabilitySetup.EnsureAssets();
+            DeadSignalBreakerReadabilitySetup.EnsureAssets();
             DeadSignalMissionObjectiveSetup.CreateCompatibilityMissionObjectives();
             DeadSignalStationBackdropSetup.EnsureAssets();
             DeadSignalForegroundCutawaySetup.EnsureAssets();
@@ -272,6 +273,11 @@ namespace DeadSignal.Editor
             if (!DeadSignalConvergenceBreakerGallerySetup.HasAssets)
             {
                 throw new BuildFailedException("The scene-authored Convergence Breaker Gallery is missing or incomplete.");
+            }
+
+            if (!DeadSignalBreakerReadabilitySetup.HasAssets)
+            {
+                throw new BuildFailedException("The Breaker distribution readability is missing or incomplete.");
             }
 
             if (!DeadSignalFluxBypassSetup.HasAssets)

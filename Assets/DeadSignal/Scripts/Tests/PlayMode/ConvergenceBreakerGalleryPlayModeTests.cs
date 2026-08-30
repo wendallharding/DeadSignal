@@ -39,6 +39,16 @@ namespace DeadSignal.Tests
                 Assert.That(gallery.Find("Breaker Bank Assembly"), Is.Not.Null);
                 Assert.That(objective, Is.Not.Null);
                 Assert.That(objective.IsConfigured, Is.True);
+                Assert.That(objective.HasReadabilityAssets, Is.True);
+                var status = gallery.Find("Breaker Distribution Status");
+                Assert.That(status, Is.Not.Null);
+                Assert.That(status.GetComponent<Collider>(), Is.Null);
+                Assert.That(Resources.Load<Texture2D>("Environment/BreakerDistributionStatusPanel"), Is.Not.Null);
+                Assert.That(Resources.Load<Mesh>("Environment/BreakerDistributionStatusReadability"), Is.Not.Null);
+                Assert.That(Resources.Load<Material>(
+                    "Materials/ConvergenceBreakerGallery/BreakerDistributionStatus"), Is.Not.Null);
+                Assert.That(objective.PresentationState,
+                    Is.EqualTo(BreakerResetPresentationState.DistributionLocked));
                 Assert.That(gallery.Find("South Ceramic Breaker Shield"), Is.Not.Null);
                 Assert.That(gallery.Find("North Ceramic Breaker Shield"), Is.Not.Null);
                 Assert.That(territory.Source, Is.EqualTo(PoweredTerritorySource.SpineTower));
@@ -94,6 +104,8 @@ namespace DeadSignal.Tests
                 game.DebugCompleteConvergenceCalibration();
                 yield return null;
                 Assert.That(game.CurrentMissionObjectiveId, Is.EqualTo(MissionObjectiveId.BreakerReset));
+                Assert.That(objective.PresentationState, Is.EqualTo(BreakerResetPresentationState.ResetAvailable));
+                Assert.That(Quaternion.Angle(Quaternion.identity, status.localRotation), Is.LessThan(1f));
                 Assert.That(available.activeSelf, Is.True);
                 Assert.That(complete.activeSelf, Is.False);
 
@@ -101,12 +113,25 @@ namespace DeadSignal.Tests
                 yield return _interact(gamepad);
                 Assert.That(game.IsBreakerDistributionReset, Is.True);
                 Assert.That(game.CurrentMissionObjectiveId, Is.EqualTo(MissionObjectiveId.FurnaceForge));
+                Assert.That(objective.PresentationState, Is.EqualTo(BreakerResetPresentationState.ResetActive));
                 Assert.That(available.activeSelf, Is.False);
                 Assert.That(complete.activeSelf, Is.True);
+
+                yield return new WaitForSecondsRealtime(0.85f);
+                Assert.That(objective.PresentationState, Is.EqualTo(BreakerResetPresentationState.ResetComplete));
+                Assert.That(Quaternion.Angle(Quaternion.identity, status.localRotation), Is.InRange(105f, 115f));
 
                 yield return _interact(gamepad);
                 Assert.That(game.CurrentMissionObjectiveId, Is.EqualTo(MissionObjectiveId.FurnaceForge),
                     "Repeated reset interaction must remain idempotent.");
+
+                yield return SceneManager.LoadSceneAsync("SampleScene");
+                yield return null;
+                objective = Object.FindFirstObjectByType<AuthoredBreakerResetObjective>(FindObjectsInactive.Include);
+                status = objective.transform.Find("Breaker Distribution Status");
+                Assert.That(objective.PresentationState,
+                    Is.EqualTo(BreakerResetPresentationState.DistributionLocked));
+                Assert.That(Quaternion.Angle(Quaternion.identity, status.localRotation), Is.InRange(30f, 38f));
             }
             finally
             {
