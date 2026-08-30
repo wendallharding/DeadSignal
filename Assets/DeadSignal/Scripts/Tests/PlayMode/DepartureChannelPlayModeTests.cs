@@ -82,12 +82,19 @@ namespace DeadSignal.Tests
                 var player = game.transform.Find("Maintenance Drone");
                 var channel = GameObject.Find("Extraction Departure Channel").transform;
                 var shutter = channel.Find("Departure Cargo Shutter").gameObject;
+                var readability = channel.GetComponent<AuthoredDepartureChannelReadability>();
                 var returnSignal = channel.Find("Departure Cargo Return Signal").gameObject;
                 var surgeSignal = channel.Find("Departure Capacitor Surge Signal").gameObject;
 
                 Assert.That(channel.GetComponentsInChildren<AuthoredMapObstacle>().Length, Is.EqualTo(3));
                 Assert.That(channel.GetComponentsInChildren<Collider>().Length, Is.Zero);
                 Assert.That(shutter.activeSelf, Is.True);
+                Assert.That(readability, Is.Not.Null);
+                Assert.That(readability.IsConfigured, Is.True);
+                Assert.That(readability.PresentationState,
+                    Is.EqualTo(DepartureChannelPresentationState.DormantLocked));
+                Assert.That(channel.Find("Cargo Shutter Presentation"), Is.Null);
+                Assert.That(shutter.transform.Find("Cargo Shutter Presentation").GetComponent<Collider>(), Is.Null);
                 Assert.That(returnSignal.activeSelf, Is.False);
                 Assert.That(surgeSignal.activeSelf, Is.False);
                 Assert.That(Resources.Load<Texture2D>("Environment/DepartureCargoReturnDecal"), Is.Not.Null);
@@ -124,12 +131,19 @@ namespace DeadSignal.Tests
                 Assert.That(game.CurrentPoweredWithdrawalPhase, Is.EqualTo(PoweredWithdrawalPhase.DepartureSurge));
                 Assert.That(game.IsExtractionReady, Is.False,
                     "The Dock uplink should remain locked until the one-shot Departure surge is crossed.");
-                Assert.That(shutter.activeSelf, Is.False,
-                    "Completing the pursuit route should retract the cargo shutter for the final recovery beat.");
+                Assert.That(shutter.activeSelf, Is.True,
+                    "The authored shutter root should persist while gameplay authority opens the direct lane.");
+                Assert.That(readability.IsOpen, Is.True);
+                Assert.That(readability.PresentationState,
+                    Is.EqualTo(DepartureChannelPresentationState.ReleaseActive));
                 Assert.That(returnSignal.activeSelf, Is.True,
                     "The open channel should reveal its cyan direct-return cue.");
                 Assert.That(surgeSignal.activeSelf, Is.True,
                     "The open channel should reveal the one-shot capacitor surge cue.");
+                yield return new WaitForSecondsRealtime(0.8f);
+                Assert.That(readability.PresentationState,
+                    Is.EqualTo(DepartureChannelPresentationState.OpenSurgeAvailable));
+                Assert.That(shutter.transform.Find("Cargo Shutter Presentation").gameObject.activeSelf, Is.False);
                 yield return _crossFlank(gamepad, player, channel, 2.15f);
                 Assert.That(game.IsDepartureSurgeConsumed, Is.False,
                     "The protected flank should remain a valid return without consuming the direct-lane reserve.");
@@ -152,6 +166,8 @@ namespace DeadSignal.Tests
                     "Crossing the direct return should discharge the one-shot Signal reserve.");
                 Assert.That(surgeSignal.activeSelf, Is.False,
                     "The surge cue should switch off once its reserve is consumed.");
+                Assert.That(readability.PresentationState,
+                    Is.EqualTo(DepartureChannelPresentationState.OpenSurgeConsumed));
 
                 var signalAfterSurge = game.CurrentSignal;
                 player.position = surgeStart;
@@ -164,6 +180,28 @@ namespace DeadSignal.Tests
             {
                 InputSystem.RemoveDevice(gamepad);
             }
+        }
+
+        [UnityTest]
+        public IEnumerator Readability_ExposesAvailableStateAndReloadsLocked()
+        {
+            yield return SceneManager.LoadSceneAsync("SampleScene");
+            yield return null;
+
+            var channel = GameObject.Find("Extraction Departure Channel");
+            var readability = channel.GetComponent<AuthoredDepartureChannelReadability>();
+            readability.SetReleaseAvailable(true);
+            Assert.That(readability.PresentationState,
+                Is.EqualTo(DepartureChannelPresentationState.ReleaseAvailable));
+            Assert.That(channel.GetComponentsInChildren<Collider>(true).Length, Is.Zero);
+
+            yield return SceneManager.LoadSceneAsync("SampleScene");
+            yield return null;
+            readability = GameObject.Find("Extraction Departure Channel")
+                .GetComponent<AuthoredDepartureChannelReadability>();
+            Assert.That(readability.PresentationState,
+                Is.EqualTo(DepartureChannelPresentationState.DormantLocked));
+            Assert.That(readability.IsOpen, Is.False);
         }
 
         private static IEnumerator _crossFlank(

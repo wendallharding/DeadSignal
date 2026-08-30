@@ -3478,6 +3478,9 @@ namespace DeadSignal.Application
             _tickConvergenceCalibration(dt);
             _tickCombatChamber();
             _tickPoweredWithdrawal();
+            m_world.SetDepartureReleaseAvailable(
+                m_model.CurrentObjective.Id == MissionObjectiveId.PoweredWithdrawal &&
+                m_model.CurrentPoweredWithdrawalPhase == PoweredWithdrawalPhase.SapperCradle);
             m_world.TickTower(dt, m_model.TowerOnline);
             m_threats.Tick(dt, powered);
             _tryTriggerEmergencyCapacitor();

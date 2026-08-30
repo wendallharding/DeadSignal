@@ -634,14 +634,21 @@ namespace DeadSignal.World
                 return;
             }
 
-            m_departureReturnGate.SetActive(false);
-            if (m_departureReturnSignal != null)
+            if (m_departureChannelReadability != null)
             {
-                m_departureReturnSignal.SetActive(true);
+                m_departureChannelReadability.BeginRelease();
             }
-            if (m_departureSurgeSignal != null)
+            else
             {
-                m_departureSurgeSignal.SetActive(true);
+                m_departureReturnGate.SetActive(false);
+                if (m_departureReturnSignal != null)
+                {
+                    m_departureReturnSignal.SetActive(true);
+                }
+                if (m_departureSurgeSignal != null)
+                {
+                    m_departureSurgeSignal.SetActive(true);
+                }
             }
             m_departureReturnOpen = true;
             _rebuildNavMesh();
@@ -667,7 +674,13 @@ namespace DeadSignal.World
             {
                 m_departureSurgeSignal.SetActive(false);
             }
+            m_departureChannelReadability?.SetSurgeConsumed();
             return true;
+        }
+
+        public void SetDepartureReleaseAvailable(bool available)
+        {
+            m_departureChannelReadability?.SetReleaseAvailable(available);
         }
 
         public void ApplyHighContrast(bool enabled)
@@ -1226,11 +1239,16 @@ namespace DeadSignal.World
             m_departureReturnGate = m_departureChannel?.Find("Departure Cargo Shutter")?.gameObject;
             m_departureReturnSignal = m_departureChannel?.Find("Departure Cargo Return Signal")?.gameObject;
             m_departureSurgeSignal = m_departureChannel?.Find("Departure Capacitor Surge Signal")?.gameObject;
-            if (m_departureReturnSignal != null)
+            m_departureChannelReadability = m_departureChannel?.GetComponent<AuthoredDepartureChannelReadability>();
+            if (m_departureChannelReadability != null)
+            {
+                m_departureChannelReadability.ResetPresentation();
+            }
+            else if (m_departureReturnSignal != null)
             {
                 m_departureReturnSignal.SetActive(false);
             }
-            if (m_departureSurgeSignal != null)
+            if (m_departureChannelReadability == null && m_departureSurgeSignal != null)
             {
                 m_departureSurgeSignal.SetActive(false);
             }
@@ -2030,6 +2048,7 @@ namespace DeadSignal.World
         private GameObject m_departureReturnSignal;
         private Transform m_departureChannel;
         private GameObject m_departureSurgeSignal;
+        private AuthoredDepartureChannelReadability m_departureChannelReadability;
         private bool m_departureReturnOpen;
         private bool m_departureSurgeConsumed;
         private GameObject m_relayShortcutGate;

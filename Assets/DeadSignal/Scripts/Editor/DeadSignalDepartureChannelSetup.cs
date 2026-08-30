@@ -58,7 +58,8 @@ namespace DeadSignal.Editor
                        _hasOpeningPresentationScale(channel.transform.Find("South Departure Capacitor")) &&
                        channel.transform.Find("Departure Cargo Shutter") != null &&
                        channel.transform.Find("Departure Cargo Return Signal") != null &&
-                       channel.transform.Find("Departure Capacitor Surge Signal") != null;
+                       channel.transform.Find("Departure Capacitor Surge Signal") != null &&
+                       channel.GetComponent<AuthoredDepartureChannelReadability>()?.IsConfigured == true;
             }
         }
 
@@ -282,6 +283,7 @@ namespace DeadSignal.Editor
                 _addCargoShutter(channel.transform);
                 _addReturnSignal(channel.transform);
                 _addSurgeSignal(channel.transform);
+                _addReadability(channel);
                 PrefabUtility.SaveAsPrefabAsset(channel, CHANNEL_PREFAB_PATH);
             }
             finally
@@ -302,11 +304,37 @@ namespace DeadSignal.Editor
             var shutter = new GameObject("Departure Cargo Shutter");
             shutter.transform.SetParent(parent, false);
             shutter.AddComponent<AuthoredMapObstacle>().Configure(new Vector2(0.24f, 0.92f));
-            _addCube(shutter.transform, "Cargo Shutter Housing", Vector3.zero, new Vector3(0.48f, 1f, 1.84f), armor);
-            _addCube(shutter.transform, "North Cargo Lock", new Vector3(-0.25f, 0.08f, 0.59f),
+            var presentation = new GameObject("Cargo Shutter Presentation");
+            presentation.transform.SetParent(shutter.transform, false);
+            _addCube(presentation.transform, "Cargo Shutter Housing", Vector3.zero, new Vector3(0.48f, 1f, 1.84f), armor);
+            _addCube(presentation.transform, "North Cargo Lock", new Vector3(-0.25f, 0.08f, 0.59f),
                 new Vector3(0.04f, 0.58f, 0.34f), amber);
-            _addCube(shutter.transform, "South Cargo Lock", new Vector3(-0.25f, 0.08f, -0.59f),
+            _addCube(presentation.transform, "South Cargo Lock", new Vector3(-0.25f, 0.08f, -0.59f),
                 new Vector3(0.04f, 0.58f, 0.34f), amber);
+            _addCube(parent, "North Departure Open Threshold", new Vector3(0f, 0.04f, 0.98f),
+                new Vector3(0.65f, 0.08f, 0.08f), amber);
+            _addCube(parent, "South Departure Open Threshold", new Vector3(0f, 0.04f, -0.98f),
+                new Vector3(0.65f, 0.08f, 0.08f), amber);
+        }
+
+        private static void _addReadability(GameObject channel)
+        {
+            var shutter = channel.transform.Find("Departure Cargo Shutter");
+            var presentation = shutter.Find("Cargo Shutter Presentation");
+            var returnSignal = channel.transform.Find("Departure Cargo Return Signal").gameObject;
+            var surgeSignal = channel.transform.Find("Departure Capacitor Surge Signal").gameObject;
+            var lockRenderers = new[]
+            {
+                presentation.Find("North Cargo Lock").GetComponent<Renderer>(),
+                presentation.Find("South Cargo Lock").GetComponent<Renderer>()
+            };
+            var thresholdRenderers = new[]
+            {
+                channel.transform.Find("North Departure Open Threshold").GetComponent<Renderer>(),
+                channel.transform.Find("South Departure Open Threshold").GetComponent<Renderer>()
+            };
+            channel.AddComponent<AuthoredDepartureChannelReadability>().Configure(
+                presentation, returnSignal, surgeSignal, lockRenderers, thresholdRenderers);
         }
 
         private static void _addReturnSignal(Transform parent)
