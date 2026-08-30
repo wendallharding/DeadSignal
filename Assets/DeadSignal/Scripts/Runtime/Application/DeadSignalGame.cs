@@ -317,6 +317,7 @@ namespace DeadSignal.Application
         public bool HasPlayerSignalWake => m_world?.PlayerSignalWake?.HasTexture ?? false;
         public bool HasPlayerCombatPresentation => m_world?.PlayerCombatPresentation != null;
         public bool HasPlayerDronePresentation => m_world?.PlayerDronePresentation?.IsConfigured ?? false;
+        public bool HasSecurityWardenPresentation => m_world?.WardenPresentation?.IsConfigured ?? false;
         public bool HasForegroundOcclusion => m_world?.ForegroundOcclusion != null;
         public bool HasSignalBoltBulkheadImpact => m_combatFeedback?.HasEnvironmentImpactTexture ?? false;
         public bool HasSignalRecoveryBurst => m_combatFeedback?.HasSignalRecoveryTexture ?? false;

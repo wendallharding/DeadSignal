@@ -435,7 +435,7 @@ namespace DeadSignal.Combat
             }
             m_projectiles.Clear();
             m_swarmers.Reset();
-            m_world.PurgeWarden();
+            m_world.ResetWardenPresentation();
             m_world.PurgeSapper();
             m_world.PurgeInterceptor();
             m_world.PurgeSuppressor();
@@ -938,6 +938,7 @@ namespace DeadSignal.Combat
             if (!m_model.TowerOnline || m_wardenHealth <= 0f)
             {
                 m_wardenScreeningSapper = false;
+                m_world.SetWardenPresentationState(false, m_tuning.WardenAttackDistance);
                 return;
             }
 
@@ -957,6 +958,7 @@ namespace DeadSignal.Combat
             {
                 m_showFeedback("WARDEN SCREENING SAPPER — FLANK OR BREAK ARMOR");
             }
+            m_world.SetWardenPresentationState(m_wardenScreeningSapper, m_tuning.WardenAttackDistance);
 
             var playerDelta = m_world.Player.position - m_world.Warden.position;
             playerDelta.y = 0f;
@@ -999,6 +1001,7 @@ namespace DeadSignal.Combat
         private void _applyWardenHit()
         {
             m_wardenAttackCooldown = m_tuning.WardenAttackCooldown;
+            m_world.PlayWardenStrike();
             if (m_debugScenarioActive)
             {
                 m_debugScenarioAttackMask |= 1;
@@ -1494,6 +1497,7 @@ namespace DeadSignal.Combat
         private void _hitWarden()
         {
             m_wardenHealth -= 1f;
+            m_world.PlayWardenHit(m_world.Player.position);
             m_combatFeedback.PlaySignalImpact(m_world.Warden.position + Vector3.up * 0.65f, m_wardenHealth <= 0f);
             if (m_wardenHealth > 0f)
             {

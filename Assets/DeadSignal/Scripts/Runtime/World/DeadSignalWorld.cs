@@ -50,6 +50,7 @@ namespace DeadSignal.World
         public PlayerDronePresentation PlayerDronePresentation { get; private set; }
         public ForegroundOcclusionController ForegroundOcclusion { get; private set; }
         public Transform Warden { get; private set; }
+        public SecurityWardenPresentation WardenPresentation { get; private set; }
         public WardenThreatTelegraph WardenTelegraph { get; private set; }
         public Transform Sapper { get; private set; }
         public Transform SapperCore { get; private set; }
@@ -789,6 +790,13 @@ namespace DeadSignal.World
 
         public void PurgeWarden()
         {
+            WardenPresentation?.PlayPurge();
+            Warden.gameObject.SetActive(false);
+        }
+
+        public void ResetWardenPresentation()
+        {
+            WardenPresentation?.ResetPresentation();
             Warden.gameObject.SetActive(false);
         }
 
@@ -898,7 +906,15 @@ namespace DeadSignal.World
         {
             Warden.position = s_securityWardenSpawn;
             Warden.gameObject.SetActive(true);
+            WardenPresentation?.PlayWake();
         }
+
+        public void SetWardenPresentationState(bool screening, float attackDistance) =>
+            WardenPresentation?.SetThreatState(screening, attackDistance);
+
+        public void PlayWardenStrike() => WardenPresentation?.PlayStrike();
+
+        public void PlayWardenHit(Vector3 sourcePosition) => WardenPresentation?.PlayHit(sourcePosition);
 
         public void DeploySapperReinforcement(float pulseInterval)
         {
@@ -1451,6 +1467,13 @@ namespace DeadSignal.World
 
             Warden = m_scene.Warden;
             Warden.SetParent(m_root, true);
+            WardenPresentation = m_root.gameObject.AddComponent<SecurityWardenPresentation>();
+            WardenPresentation.Configure(
+                Warden,
+                Player,
+                Warden.Find("Warden Chassis"),
+                Warden.Find("Warden Eye"),
+                Warden.Find("Warden Crown"));
 
             Sapper = m_scene.Sapper;
             Sapper.SetParent(m_root, true);

@@ -1058,6 +1058,8 @@ namespace DeadSignal.Tests
                 "The player should own muzzle, recoil, and dash presentation.");
             Assert.That(game.HasPlayerDronePresentation, Is.True,
                 "The authored drone should own its hover, locomotion, damage, critical, and outcome motion grammar.");
+            Assert.That(game.HasSecurityWardenPresentation, Is.True,
+                "The authored Warden should own wake, pursuit, strike, armor, hit, and purge presentation.");
             Assert.That(game.HasForegroundOcclusion, Is.False,
                 "Foreground blockers should remain rendered while the cutaway system is disabled.");
             var securityWarden = game.transform.Find("Security Warden");
