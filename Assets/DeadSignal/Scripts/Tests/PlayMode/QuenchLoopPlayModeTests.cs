@@ -41,13 +41,24 @@ namespace DeadSignal.Tests
                 Assert.That(loop.Find("Quench Condenser Assembly"), Is.Not.Null);
                 Assert.That(stabilizationObjective, Is.Not.Null);
                 Assert.That(stabilizationObjective.IsConfigured, Is.True);
+                Assert.That(stabilizationObjective.HasReadabilityAssets, Is.True);
+                Assert.That(stabilizationObjective.PresentationState, Is.EqualTo(CoreProcessingPresentationState.Locked));
                 Assert.That(forgeObjective, Is.Not.Null);
                 Assert.That(forgeObjective.IsConfigured, Is.True);
+                Assert.That(forgeObjective.HasReadabilityAssets, Is.True);
+                Assert.That(forgeObjective.PresentationState, Is.EqualTo(CoreProcessingPresentationState.Locked));
+                Assert.That(loop.Find("Quench Stabilization Status").GetComponents<Collider>(), Is.Empty);
+                Assert.That(furnace.Find("Furnace Forge Status").GetComponents<Collider>(), Is.Empty);
                 Assert.That(loop.Find("South Quench Deflector"), Is.Not.Null);
                 Assert.That(loop.Find("North Quench Deflector"), Is.Not.Null);
                 Assert.That(loop.Find("Quench Loop Route Decal"), Is.Not.Null);
                 var shutter = loop.Find("Quench Pressure Shutter").gameObject;
                 var cacheReturnSignal = loop.Find("Quench Cache Return Signal").gameObject;
+                var shutterReadability = loop.GetComponent<AuthoredRouteDoorReadability>();
+                Assert.That(shutterReadability, Is.Not.Null);
+                Assert.That(shutterReadability.IsConfigured, Is.True);
+                Assert.That(shutterReadability.PresentationState, Is.EqualTo(RouteDoorPresentationState.Locked));
+                Assert.That(loop.Find("Quench Pressure Threshold").GetComponents<Collider>(), Is.Empty);
                 Assert.That(shutter.activeSelf, Is.True);
                 Assert.That(cacheReturnSignal.activeSelf, Is.False);
                 Assert.That(territory.Source, Is.EqualTo(PoweredTerritorySource.SpineTower));
@@ -58,6 +69,11 @@ namespace DeadSignal.Tests
                 Assert.That(Resources.Load<Material>("Materials/QuenchLoop/QuenchLoopRouteDecal"), Is.Not.Null);
                 Assert.That(Resources.Load<Texture2D>("Environment/QuenchCacheReturnDecal"), Is.Not.Null);
                 Assert.That(Resources.Load<Material>("Materials/QuenchLoop/QuenchCacheReturnDecal"), Is.Not.Null);
+                Assert.That(Resources.Load<Texture2D>("Environment/CoreProcessingStatusPanel"), Is.Not.Null);
+                Assert.That(Resources.Load<Mesh>("Environment/FurnaceForgeStatusReadability"), Is.Not.Null);
+                Assert.That(Resources.Load<Mesh>("Environment/QuenchStabilizationStatusReadability"), Is.Not.Null);
+                Assert.That(Resources.Load<Material>(
+                    "Materials/CoreProcessingReadability/CoreProcessingStatus"), Is.Not.Null);
                 Assert.That(game.AuthoredMapObstacleCount, Is.EqualTo(138));
                 Assert.That(game.AuthoredInterceptorEntranceCount, Is.EqualTo(9));
                 Assert.That(sceneReferences.ArenaHalfExtents, Is.EqualTo(new Vector2(57.5f, 81f)));
@@ -111,6 +127,7 @@ namespace DeadSignal.Tests
                 yield return null;
                 Assert.That(game.CurrentMissionObjectiveId, Is.EqualTo(MissionObjectiveId.FurnaceForge));
                 Assert.That(furnace.Find("Furnace Forge Available").gameObject.activeSelf, Is.True);
+                Assert.That(forgeObjective.PresentationState, Is.EqualTo(CoreProcessingPresentationState.Available));
 
                 player.position = game.FurnaceForgePosition;
                 yield return _interact(gamepad);
@@ -118,6 +135,12 @@ namespace DeadSignal.Tests
                 Assert.That(game.CurrentMissionObjectiveId, Is.EqualTo(MissionObjectiveId.QuenchStabilization));
                 Assert.That(furnace.Find("Furnace Forge Complete").gameObject.activeSelf, Is.True);
                 Assert.That(loop.Find("Quench Stabilization Available").gameObject.activeSelf, Is.True);
+                Assert.That(forgeObjective.PresentationState,
+                    Is.EqualTo(CoreProcessingPresentationState.ProcessingActive));
+                Assert.That(stabilizationObjective.PresentationState,
+                    Is.EqualTo(CoreProcessingPresentationState.Available));
+                yield return new WaitForSecondsRealtime(0.8f);
+                Assert.That(forgeObjective.PresentationState, Is.EqualTo(CoreProcessingPresentationState.Complete));
 
                 player.position = game.QuenchStabilizationPosition;
                 yield return _interact(gamepad);
@@ -131,6 +154,14 @@ namespace DeadSignal.Tests
                 Assert.That(game.IsOptionalSalvageSecured, Is.False,
                     "Required Quench processing must not collect or reward the optional greed cache.");
                 Assert.That(loop.Find("Quench Stabilization Complete").gameObject.activeSelf, Is.True);
+                Assert.That(stabilizationObjective.PresentationState,
+                    Is.EqualTo(CoreProcessingPresentationState.ProcessingActive));
+                Assert.That(shutterReadability.PresentationState, Is.EqualTo(RouteDoorPresentationState.Open));
+                Assert.That(loop.Find("Quench Pressure Threshold").gameObject.activeSelf, Is.True,
+                    "The released shortcut should retain its authored cyan threshold.");
+                yield return new WaitForSecondsRealtime(0.8f);
+                Assert.That(stabilizationObjective.PresentationState,
+                    Is.EqualTo(CoreProcessingPresentationState.Complete));
 
                 yield return _interact(gamepad);
                 Assert.That(game.CurrentMissionObjectiveId, Is.EqualTo(MissionObjectiveId.TrialCommitment),
@@ -139,6 +170,15 @@ namespace DeadSignal.Tests
                 yield return _move(gamepad, player, Vector2.up, () => player.position.z > 26.1f);
                 Assert.That(player.position.z, Is.GreaterThan(26.1f),
                     "The released shutter should open the direct Quench return for movement.");
+
+                yield return SceneManager.LoadSceneAsync("SampleScene");
+                yield return null;
+                var resetFurnace = Object.FindFirstObjectByType<AuthoredFurnaceForgeObjective>();
+                var resetQuench = Object.FindFirstObjectByType<AuthoredQuenchStabilizationObjective>();
+                Assert.That(resetFurnace.PresentationState, Is.EqualTo(CoreProcessingPresentationState.Locked));
+                Assert.That(resetQuench.PresentationState, Is.EqualTo(CoreProcessingPresentationState.Locked));
+                Assert.That(resetQuench.GetComponent<AuthoredRouteDoorReadability>().PresentationState,
+                    Is.EqualTo(RouteDoorPresentationState.Locked));
             }
             finally
             {

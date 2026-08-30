@@ -127,8 +127,22 @@ namespace DeadSignal.Diagnostics
                                     Resources.Load<Material>(
                                         "Materials/ConvergenceBreakerGallery/BreakerDistributionStatus") != null &&
                                     game != null && !game.IsBreakerDistributionReset;
+            var quenchDoorReadability = quenchStabilizationObjective != null
+                ? quenchStabilizationObjective.GetComponent<AuthoredRouteDoorReadability>()
+                : null;
             var coreProcessingReady = furnaceForgeObjective != null && furnaceForgeObjective.IsConfigured &&
+                                      furnaceForgeObjective.HasReadabilityAssets &&
+                                      furnaceForgeObjective.PresentationState == CoreProcessingPresentationState.Locked &&
                                       quenchStabilizationObjective != null && quenchStabilizationObjective.IsConfigured &&
+                                      quenchStabilizationObjective.HasReadabilityAssets &&
+                                      quenchStabilizationObjective.PresentationState ==
+                                      CoreProcessingPresentationState.Locked &&
+                                      quenchDoorReadability?.PresentationState == RouteDoorPresentationState.Locked &&
+                                      Resources.Load<Texture2D>("Environment/CoreProcessingStatusPanel") != null &&
+                                      Resources.Load<Mesh>("Environment/FurnaceForgeStatusReadability") != null &&
+                                      Resources.Load<Mesh>("Environment/QuenchStabilizationStatusReadability") != null &&
+                                      Resources.Load<Material>(
+                                          "Materials/CoreProcessingReadability/CoreProcessingStatus") != null &&
                                       game != null && !game.IsLatticeForged && !game.IsCoreStabilized;
             var weaponTextureReady = Resources.Load<Texture2D>("Environment/RelayFoundryWeaponCalibrationDecal") != null;
             var weaponMaterialReady =
@@ -414,6 +428,11 @@ namespace DeadSignal.Diagnostics
                                 Resources.Load<Mesh>("Environment/BreakerDistributionStatusReadability") != null &&
                                 Resources.Load<Material>(
                                     "Materials/ConvergenceBreakerGallery/BreakerDistributionStatus") != null &&
+                                Resources.Load<Texture2D>("Environment/CoreProcessingStatusPanel") != null &&
+                                Resources.Load<Mesh>("Environment/FurnaceForgeStatusReadability") != null &&
+                                Resources.Load<Mesh>("Environment/QuenchStabilizationStatusReadability") != null &&
+                                Resources.Load<Material>(
+                                    "Materials/CoreProcessingReadability/CoreProcessingStatus") != null &&
                                 game.transform.Find(
                                     "Spine Induction Gallery Region/Flux Bypass Region/Flux Shunt Regulator") != null &&
                                 game.transform.Find(

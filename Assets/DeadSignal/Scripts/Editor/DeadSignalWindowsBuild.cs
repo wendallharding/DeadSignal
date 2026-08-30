@@ -68,6 +68,7 @@ namespace DeadSignal.Editor
             DeadSignalSecurityTrialSetup.EnsureAssets();
             DeadSignalConvergenceReadabilitySetup.EnsureAssets();
             DeadSignalBreakerReadabilitySetup.EnsureAssets();
+            DeadSignalCoreProcessingReadabilitySetup.EnsureAssets();
             DeadSignalMissionObjectiveSetup.CreateCompatibilityMissionObjectives();
             DeadSignalStationBackdropSetup.EnsureAssets();
             DeadSignalForegroundCutawaySetup.EnsureAssets();
@@ -298,6 +299,11 @@ namespace DeadSignal.Editor
             if (!DeadSignalQuenchLoopSetup.HasAssets)
             {
                 throw new BuildFailedException("The scene-authored Quench Loop is missing or incomplete.");
+            }
+
+            if (!DeadSignalCoreProcessingReadabilitySetup.HasAssets)
+            {
+                throw new BuildFailedException("The core-processing readability is missing or incomplete.");
             }
 
             if (!DeadSignalEasternCombatScenarioSetup.HasAssets)

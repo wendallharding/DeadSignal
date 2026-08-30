@@ -606,10 +606,17 @@ namespace DeadSignal.World
                 return;
             }
 
-            m_quenchReturnGate.SetActive(false);
-            if (m_quenchReturnSignal != null)
+            if (m_quenchReturnReadability != null)
             {
-                m_quenchReturnSignal.SetActive(true);
+                m_quenchReturnReadability.SetOpen(true);
+            }
+            else
+            {
+                m_quenchReturnGate.SetActive(false);
+                if (m_quenchReturnSignal != null)
+                {
+                    m_quenchReturnSignal.SetActive(true);
+                }
             }
             m_quenchReturnOpen = true;
             _rebuildNavMesh();
@@ -1205,6 +1212,7 @@ namespace DeadSignal.World
                 "Spine Induction Gallery Region/Convergence Chamber Region/Arc Furnace Region/Quench Loop Region");
             m_quenchReturnGate = quenchLoop?.Find("Quench Pressure Shutter")?.gameObject;
             m_quenchReturnSignal = quenchLoop?.Find("Quench Cache Return Signal")?.gameObject;
+            m_quenchReturnReadability = quenchLoop?.GetComponent<AuthoredRouteDoorReadability>();
             if (m_quenchReturnSignal != null)
             {
                 m_quenchReturnSignal.SetActive(false);
@@ -2011,6 +2019,7 @@ namespace DeadSignal.World
         private bool m_spineReturnOpen;
         private GameObject m_quenchReturnGate;
         private GameObject m_quenchReturnSignal;
+        private AuthoredRouteDoorReadability m_quenchReturnReadability;
         private bool m_quenchReturnOpen;
         private GameObject m_departureReturnGate;
         private GameObject m_departureReturnSignal;
