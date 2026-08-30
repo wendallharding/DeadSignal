@@ -55,6 +55,7 @@ namespace DeadSignal.World
         public Transform Sapper { get; private set; }
         public Transform SapperCore { get; private set; }
         public Vector3 SapperCoreBaseScale { get; private set; }
+        public SignalSapperPresentation SapperPresentation { get; private set; }
         public Transform Interceptor { get; private set; }
         public Transform InterceptorCore { get; private set; }
         public Transform Suppressor { get; private set; }
@@ -802,6 +803,14 @@ namespace DeadSignal.World
 
         public void PurgeSapper()
         {
+            SapperPresentation?.PlayPurge();
+            Sapper.gameObject.SetActive(false);
+            SapperTelegraph.SetThreatState(false, false, 0f, 1f);
+        }
+
+        public void ResetSapperPresentation()
+        {
+            SapperPresentation?.ResetPresentation();
             Sapper.gameObject.SetActive(false);
             SapperTelegraph.SetThreatState(false, false, 0f, 1f);
         }
@@ -920,8 +929,17 @@ namespace DeadSignal.World
         {
             Sapper.position = s_signalSapperSpawn;
             Sapper.gameObject.SetActive(true);
+            SapperPresentation?.PlayWake();
             SapperTelegraph.SetThreatState(true, false, 0f, pulseInterval);
         }
+
+        public void SetSapperPresentationState(bool latched, float pulseSecondsRemaining, float pulseInterval) =>
+            SapperPresentation?.SetThreatState(latched, pulseSecondsRemaining, pulseInterval);
+
+        public void PlaySapperPulse() => SapperPresentation?.PlayPulse();
+
+        public void PlaySapperHit(Vector3 sourcePosition, bool interrupted) =>
+            SapperPresentation?.PlayHit(sourcePosition, interrupted);
 
         public GameObject CreateSignalBolt(Vector3 direction)
         {
@@ -1479,6 +1497,13 @@ namespace DeadSignal.World
             Sapper.SetParent(m_root, true);
             SapperCore = Sapper.Find("Sapper Drain Core");
             SapperCoreBaseScale = SapperCore.localScale;
+            SapperPresentation = m_root.gameObject.AddComponent<SignalSapperPresentation>();
+            SapperPresentation.Configure(
+                Sapper,
+                Sapper.Find("Sapper Chassis"),
+                Sapper.Find("Sapper Fork Left"),
+                Sapper.Find("Sapper Fork Right"),
+                SapperCore);
             HasSignalSapperAssets = m_palette.HasSapperTexture;
             SignalSapperPartCount = 4;
 

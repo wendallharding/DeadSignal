@@ -436,7 +436,7 @@ namespace DeadSignal.Combat
             m_projectiles.Clear();
             m_swarmers.Reset();
             m_world.ResetWardenPresentation();
-            m_world.PurgeSapper();
+            m_world.ResetSapperPresentation();
             m_world.PurgeInterceptor();
             m_world.PurgeSuppressor();
             m_world.SetReinforcementEntryWarning(SecurityReinforcement.None, -1, false, 0f);
@@ -1029,7 +1029,7 @@ namespace DeadSignal.Combat
             }
 
             m_world.SapperTelegraph.SetThreatState(true, m_sapperLatched, m_sapperPulseCooldown, m_tuning.SapperPulseInterval);
-            m_world.SapperCore.Rotate(Vector3.up, (m_sapperLatched ? 260f : 120f) * dt, Space.Self);
+            m_world.SetSapperPresentationState(m_sapperLatched, m_sapperPulseCooldown, m_tuning.SapperPulseInterval);
             if (!m_sapperLatched)
             {
                 var navigationTarget = m_world.GetNavMeshWaypoint(
@@ -1060,15 +1060,12 @@ namespace DeadSignal.Combat
                 m_sapperPulseCooldown = m_tuning.SapperFirstPulseDelay +
                                         (m_model.Salvage < 2 ? EARLY_SAPPER_GRACE_SECONDS : 0f);
                 m_world.SapperTelegraph.SetThreatState(true, true, m_sapperPulseCooldown, m_tuning.SapperPulseInterval);
+                m_world.SetSapperPresentationState(true, m_sapperPulseCooldown, m_tuning.SapperPulseInterval);
                 m_showFeedback("SAPPER LATCHED - PURGE IT");
             }
 
             m_sapperPulseCooldown = Mathf.Max(0f, m_sapperPulseCooldown - dt);
             m_world.SapperTelegraph.SetThreatState(true, true, m_sapperPulseCooldown, m_tuning.SapperPulseInterval);
-            var pulse = 1f + Mathf.Sin(Time.time * 10f) * 0.18f;
-            m_world.SapperCore.localScale = Vector3.Scale(
-                m_world.SapperCoreBaseScale,
-                new Vector3(pulse, 1f, pulse));
             if (m_sapperPulseCooldown > 0f)
             {
                 return;
@@ -1083,6 +1080,7 @@ namespace DeadSignal.Combat
             m_audio.Play(DeadSignalAudioCue.SapperPulse);
             m_world.SapperTelegraph.SetThreatState(true, true, m_sapperPulseCooldown, m_tuning.SapperPulseInterval);
             m_world.SapperTelegraph.NotifyPulse();
+            m_world.PlaySapperPulse();
             if (!_tryAbsorbThreatDamage("SAPPER PULSE"))
             {
                 m_model.TakeSapperPulse();
@@ -1520,7 +1518,9 @@ namespace DeadSignal.Combat
         private void _hitSapper()
         {
             m_sapperHealth -= 1f;
-            if (m_sapperHealth > 0f && m_sapperLatched)
+            var interrupted = m_sapperHealth > 0f && m_sapperLatched;
+            m_world.PlaySapperHit(m_world.Player.position, interrupted);
+            if (interrupted)
             {
                 m_sapperPulseCooldown = Mathf.Max(m_sapperPulseCooldown, SAPPER_HIT_INTERRUPT_SECONDS);
                 m_world.SapperTelegraph.SetThreatState(true, true, m_sapperPulseCooldown, m_tuning.SapperPulseInterval);
