@@ -10,8 +10,21 @@ namespace DeadSignal.World
         Cleared
     }
 
+    public enum TrialCommitmentPresentationState
+    {
+        Locked,
+        Available,
+        CommittedActive,
+        Complete
+    }
+
     public sealed class AuthoredCombatChamber : MonoBehaviour
     {
+        private const float COMMITMENT_TRANSITION_SECONDS = 0.75f;
+
+        private static readonly int s_baseColor = Shader.PropertyToID("_BaseColor");
+        private static readonly int s_emissionColor = Shader.PropertyToID("_EmissionColor");
+
         [SerializeField] private Transform m_commitmentSwitch;
         [SerializeField] private Transform m_lockdownThreshold;
         [SerializeField] private GameObject m_entryDoor;
@@ -22,6 +35,8 @@ namespace DeadSignal.World
         [SerializeField] private float m_interactionRadius = 1.8f;
         [SerializeField] private float m_lockdownTriggerDepth = 0.75f;
         [SerializeField] private float m_rewardSignal = 20f;
+        [SerializeField] private Renderer[] m_commitmentReadabilityRenderers;
+        [SerializeField] private Transform m_commitmentSelector;
 
         public CombatChamberState State { get; private set; }
         public int Phase { get; private set; }
@@ -34,9 +49,26 @@ namespace DeadSignal.World
         public AuthoredCombatScenario CombatScenario => m_combatScenario;
         public float RewardSignal => m_rewardSignal;
         public bool RewardAvailable => State == CombatChamberState.Cleared && m_reward != null && m_reward.activeSelf;
+        public bool HasCommitmentReadabilityAssets =>
+            m_commitmentReadabilityRenderers is { Length: > 0 } && m_commitmentSelector != null;
+        public TrialCommitmentPresentationState CommitmentPresentationState { get; private set; } =
+            TrialCommitmentPresentationState.Locked;
         public bool IsComplete => m_commitmentSwitch != null && m_lockdownThreshold != null && m_entryDoor != null &&
                                   m_rewardDoor != null && m_reward != null && m_clearedSignal != null &&
                                   m_combatScenario != null && m_combatScenario.IsComplete;
+
+        private void Update()
+        {
+            if (m_commitmentTransitionRemaining <= 0f)
+            {
+                return;
+            }
+
+            m_commitmentTransitionRemaining = Mathf.Max(
+                0f,
+                m_commitmentTransitionRemaining - Time.unscaledDeltaTime);
+            _refreshCommitmentPresentation();
+        }
 
         public void Configure(
             Transform commitmentSwitch,
@@ -63,6 +95,20 @@ namespace DeadSignal.World
             ResetState();
         }
 
+        public void ConfigureCommitmentReadability(Renderer[] readabilityRenderers, Transform selector)
+        {
+            m_commitmentReadabilityRenderers = readabilityRenderers;
+            m_commitmentSelector = selector;
+            m_hasAppliedCommitmentPresentation = false;
+            _refreshCommitmentPresentation();
+        }
+
+        public void SetCommitmentAvailable(bool available)
+        {
+            m_commitmentAvailable = available;
+            _refreshCommitmentPresentation();
+        }
+
         public bool CanInteract(Vector3 playerPosition)
         {
             return State == CombatChamberState.Dormant &&
@@ -77,7 +123,9 @@ namespace DeadSignal.World
             }
 
             State = CombatChamberState.Armed;
+            m_commitmentTransitionRemaining = COMMITMENT_TRANSITION_SECONDS;
             m_entryDoor.SetActive(false);
+            _refreshCommitmentPresentation();
             return true;
         }
 
@@ -97,6 +145,7 @@ namespace DeadSignal.World
             State = CombatChamberState.Lockdown;
             Phase = 1;
             m_entryDoor.SetActive(true);
+            _refreshCommitmentPresentation();
             return true;
         }
 
@@ -118,6 +167,7 @@ namespace DeadSignal.World
             m_entryDoor.SetActive(false);
             m_rewardDoor.SetActive(false);
             m_clearedSignal.SetActive(true);
+            _refreshCommitmentPresentation();
         }
 
         public bool TryCollectReward(Vector3 playerPosition)
@@ -135,15 +185,88 @@ namespace DeadSignal.World
         {
             State = CombatChamberState.Dormant;
             Phase = 0;
+            m_commitmentAvailable = false;
+            m_commitmentTransitionRemaining = 0f;
+            m_hasAppliedCommitmentPresentation = false;
             if (m_entryDoor != null) m_entryDoor.SetActive(true);
             if (m_rewardDoor != null) m_rewardDoor.SetActive(true);
             if (m_reward != null) m_reward.SetActive(true);
             if (m_clearedSignal != null) m_clearedSignal.SetActive(false);
+            _refreshCommitmentPresentation();
+        }
+
+        private void _refreshCommitmentPresentation()
+        {
+            var presentationState = State switch
+            {
+                CombatChamberState.Armed => TrialCommitmentPresentationState.CommittedActive,
+                CombatChamberState.Lockdown => TrialCommitmentPresentationState.CommittedActive,
+                CombatChamberState.Cleared => TrialCommitmentPresentationState.Complete,
+                _ => m_commitmentAvailable
+                    ? TrialCommitmentPresentationState.Available
+                    : TrialCommitmentPresentationState.Locked
+            };
+            if (!m_hasAppliedCommitmentPresentation || presentationState != CommitmentPresentationState)
+            {
+                m_hasAppliedCommitmentPresentation = true;
+                CommitmentPresentationState = presentationState;
+                var color = presentationState switch
+                {
+                    TrialCommitmentPresentationState.Locked => new Color(0.34f, 0.045f, 0.04f),
+                    TrialCommitmentPresentationState.Available => new Color(1f, 0.46f, 0.055f),
+                    TrialCommitmentPresentationState.CommittedActive => new Color(0.92f, 0.035f, 0.08f),
+                    _ => new Color(0.04f, 0.94f, 1f)
+                };
+                var emissionMultiplier = presentationState == TrialCommitmentPresentationState.Locked ? 0.16f : 1.15f;
+                _setCommitmentColors(color, emissionMultiplier);
+            }
+
+            if (m_commitmentSelector != null)
+            {
+                var targetAngle = presentationState switch
+                {
+                    TrialCommitmentPresentationState.Locked => -28f,
+                    TrialCommitmentPresentationState.Available => 0f,
+                    TrialCommitmentPresentationState.CommittedActive => Mathf.Lerp(
+                        0f,
+                        118f,
+                        1f - m_commitmentTransitionRemaining / COMMITMENT_TRANSITION_SECONDS),
+                    _ => 118f
+                };
+                m_commitmentSelector.localRotation = Quaternion.Euler(0f, targetAngle, 0f);
+            }
+        }
+
+        private void _setCommitmentColors(Color color, float emissionMultiplier)
+        {
+            if (m_commitmentReadabilityRenderers == null)
+            {
+                return;
+            }
+
+            var properties = new MaterialPropertyBlock();
+            foreach (var renderer in m_commitmentReadabilityRenderers)
+            {
+                if (renderer == null)
+                {
+                    continue;
+                }
+
+                renderer.GetPropertyBlock(properties);
+                properties.SetColor(s_baseColor, color);
+                properties.SetColor(s_emissionColor, color * emissionMultiplier);
+                renderer.SetPropertyBlock(properties);
+                properties.Clear();
+            }
         }
 
         private static float _flatDistance(Vector3 first, Vector3 second)
         {
             return Vector2.Distance(new Vector2(first.x, first.z), new Vector2(second.x, second.z));
         }
+
+        private bool m_commitmentAvailable;
+        private bool m_hasAppliedCommitmentPresentation;
+        private float m_commitmentTransitionRemaining;
     }
 }

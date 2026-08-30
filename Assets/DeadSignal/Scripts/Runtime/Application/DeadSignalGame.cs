@@ -977,6 +977,7 @@ namespace DeadSignal.Application
 
             m_world.UpdateCoreProcessingPresentation(m_model);
             m_world.OpenQuenchReturn();
+            m_world.UpdateSecurityTrialPresentation(m_model);
             m_stationStateFeedback.Play(m_world.QuenchStabilizationObjective.Position, StationStateFeedbackKind.Passage);
             _showFeedback("DEBUG — CORE STABILIZED  //  QUENCH RETURN OPEN");
         }
@@ -993,6 +994,7 @@ namespace DeadSignal.Application
             }
 
             m_world.RefreshNavigation();
+            m_world.UpdateSecurityTrialPresentation(m_model);
             _showFeedback("DEBUG — SECURITY TRIAL COMMITTED");
         }
 
@@ -1664,6 +1666,7 @@ namespace DeadSignal.Application
             m_world.UpdateConvergenceCalibrationPresentation(m_model);
             m_world.UpdateBreakerResetPresentation(m_model);
             m_world.UpdateCoreProcessingPresentation(m_model);
+            m_world.UpdateSecurityTrialPresentation(m_model);
             m_world.PlayerSignalWake.Tick(m_playerMovement.Velocity);
             m_world.TickGameplayAssists(dt, m_threats, aimDirection);
 
@@ -2114,6 +2117,7 @@ namespace DeadSignal.Application
                     if (m_model.TryCommitSecurityTrial() && m_combatChamber.TryArm(m_world.Player.position))
                     {
                         m_world.RefreshNavigation();
+                        m_world.UpdateSecurityTrialPresentation(m_model);
                         m_audio.Play(DeadSignalAudioCue.Shortcut);
                         _showFeedback("SECURITY TRIAL ARMED — CROSSING THE RED THRESHOLD SEALS THE ROOM");
                     }

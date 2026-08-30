@@ -91,6 +91,7 @@ namespace DeadSignal.Editor
             DeadSignalConvergenceReadabilitySetup.EnsureAssets();
             DeadSignalBreakerReadabilitySetup.EnsureAssets();
             DeadSignalCoreProcessingReadabilitySetup.EnsureAssets();
+            DeadSignalSecurityTrialReadabilitySetup.EnsureAssets();
         }
 
         private static void _ensureTuning()

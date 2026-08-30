@@ -184,6 +184,18 @@ namespace DeadSignal.Diagnostics
             var securityTrialPrefabReady =
                 Resources.Load<GameObject>("Environment/SecurityTrialWingRegion") != null;
             var securityTrialSceneReady = game != null && game.HasAuthoredCombatChamber;
+            var securityTrialReadabilityReady = game != null &&
+                                                game.CurrentCombatChamberState == CombatChamberState.Dormant &&
+                                                FindFirstObjectByType<AuthoredCombatChamber>() is
+                                                { HasCommitmentReadabilityAssets: true } chamber &&
+                                                chamber.CommitmentPresentationState ==
+                                                TrialCommitmentPresentationState.Locked &&
+                                                Resources.Load<Texture2D>(
+                                                    "Environment/SecurityTrialCommitmentStatusPanel") != null &&
+                                                Resources.Load<Mesh>(
+                                                    "Environment/SecurityTrialCommitmentStatusReadability") != null &&
+                                                Resources.Load<Material>(
+                                                    "Materials/SecurityTrialReadability/SecurityTrialCommitmentStatus") != null;
             var stationBackdropTextureReady =
                 Resources.Load<Texture2D>("Environment/StationUnderdeckAlbedo") != null;
             var stationBackdropMaterialReady = Resources.Load<Material>("Materials/StationUnderdeck") != null;
@@ -334,7 +346,7 @@ namespace DeadSignal.Diagnostics
                                 Resources.Load<Texture2D>("VFX/SuppressorFieldActive") != null &&
                                 Resources.Load<GameObject>("Environment/InterceptorEntryGate") != null &&
                                 game.AuthoredMapObstacleCount == EXPECTED_AUTHORED_OBSTACLE_COUNT &&
-                                securityTrialSceneReady && securityTrialPrefabReady &&
+                                securityTrialSceneReady && securityTrialPrefabReady && securityTrialReadabilityReady &&
                                 Resources.Load<GameObject>("Environment/CoolantManifoldAssembly") != null &&
                                 Resources.Load<GameObject>("Environment/TowerApproachJunction") != null &&
                                 Resources.Load<Texture2D>("Environment/CoolantManifoldAlbedo") != null &&
@@ -433,6 +445,12 @@ namespace DeadSignal.Diagnostics
                                 Resources.Load<Mesh>("Environment/QuenchStabilizationStatusReadability") != null &&
                                 Resources.Load<Material>(
                                     "Materials/CoreProcessingReadability/CoreProcessingStatus") != null &&
+                                Resources.Load<Texture2D>(
+                                    "Environment/SecurityTrialCommitmentStatusPanel") != null &&
+                                Resources.Load<Mesh>(
+                                    "Environment/SecurityTrialCommitmentStatusReadability") != null &&
+                                Resources.Load<Material>(
+                                    "Materials/SecurityTrialReadability/SecurityTrialCommitmentStatus") != null &&
                                 game.transform.Find(
                                     "Spine Induction Gallery Region/Flux Bypass Region/Flux Shunt Regulator") != null &&
                                 game.transform.Find(

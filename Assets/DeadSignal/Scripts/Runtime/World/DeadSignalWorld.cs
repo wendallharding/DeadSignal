@@ -485,6 +485,11 @@ namespace DeadSignal.World
                 model.CoreStabilized);
         }
 
+        public void UpdateSecurityTrialPresentation(RunModel model)
+        {
+            CombatChamber?.SetCommitmentAvailable(model.CurrentObjective.Id == MissionObjectiveId.TrialCommitment);
+        }
+
         public Vector3 GetObjectiveGuidanceWaypoint(RunModel model, float radius)
         {
             return GetNavigationWaypoint(Player.position, _currentObjectiveTarget(model), radius, model.ShortcutOpen);

@@ -69,6 +69,7 @@ namespace DeadSignal.Editor
             DeadSignalConvergenceReadabilitySetup.EnsureAssets();
             DeadSignalBreakerReadabilitySetup.EnsureAssets();
             DeadSignalCoreProcessingReadabilitySetup.EnsureAssets();
+            DeadSignalSecurityTrialReadabilitySetup.EnsureAssets();
             DeadSignalMissionObjectiveSetup.CreateCompatibilityMissionObjectives();
             DeadSignalStationBackdropSetup.EnsureAssets();
             DeadSignalForegroundCutawaySetup.EnsureAssets();
@@ -304,6 +305,11 @@ namespace DeadSignal.Editor
             if (!DeadSignalCoreProcessingReadabilitySetup.HasAssets)
             {
                 throw new BuildFailedException("The core-processing readability is missing or incomplete.");
+            }
+
+            if (!DeadSignalSecurityTrialReadabilitySetup.HasAssets)
+            {
+                throw new BuildFailedException("The Security Trial commitment readability is missing or incomplete.");
             }
 
             if (!DeadSignalEasternCombatScenarioSetup.HasAssets)

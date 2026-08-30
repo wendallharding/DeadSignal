@@ -26,6 +26,8 @@ namespace DeadSignal.Tests
 
             Assert.That(game.HasAuthoredCombatChamber, Is.True);
             Assert.That(game.CurrentCombatChamberState, Is.EqualTo(CombatChamberState.Dormant));
+            Assert.That(chamber.HasCommitmentReadabilityAssets, Is.True);
+            Assert.That(chamber.CommitmentPresentationState, Is.EqualTo(TrialCommitmentPresentationState.Locked));
             Assert.That(wing.Find("Commitment Room"), Is.Not.Null);
             Assert.That(wing.Find("Lockdown Arena"), Is.Not.Null);
             Assert.That(wing.Find("Reward Vault"), Is.Not.Null);
@@ -40,7 +42,58 @@ namespace DeadSignal.Tests
             Assert.That(wing.GetComponentsInChildren<AuthoredMapObstacle>().Length, Is.EqualTo(15));
             Assert.That(wing.GetComponentsInChildren<Collider>().Length, Is.Zero);
             Assert.That(Resources.Load<GameObject>("Environment/SecurityTrialWingRegion"), Is.Not.Null);
+            Assert.That(Resources.Load<Texture2D>("Environment/SecurityTrialCommitmentStatusPanel"), Is.Not.Null);
+            Assert.That(Resources.Load<Mesh>("Environment/SecurityTrialCommitmentStatusReadability"), Is.Not.Null);
+            Assert.That(Resources.Load<Material>(
+                "Materials/SecurityTrialReadability/SecurityTrialCommitmentStatus"), Is.Not.Null);
             Assert.That(game.AuthoredMapObstacleCount, Is.EqualTo(138));
+        }
+
+        [UnityTest]
+        public IEnumerator CommitmentBreaker_PresentsLifecycleAndResetsWithoutChangingWarningAuthority()
+        {
+            yield return SceneManager.LoadSceneAsync("SampleScene");
+            yield return null;
+
+            var game = Object.FindFirstObjectByType<DeadSignalGame>();
+            var chamber = Object.FindFirstObjectByType<AuthoredCombatChamber>();
+            var selector = chamber.CommitmentSwitch.Find("Commitment Status");
+            var warningLeft = chamber.transform.Find("Commitment Room/Trial Warning Left").gameObject;
+            var warningRight = chamber.transform.Find("Commitment Room/Trial Warning Right").gameObject;
+
+            Assert.That(selector, Is.Not.Null);
+            Assert.That(selector.GetComponents<Collider>(), Is.Empty);
+            Assert.That(chamber.CommitmentPresentationState, Is.EqualTo(TrialCommitmentPresentationState.Locked));
+            Assert.That(selector.localEulerAngles.y, Is.EqualTo(332f).Within(0.2f));
+            Assert.That(warningLeft.activeSelf && warningRight.activeSelf, Is.True);
+
+            game.DebugStabilizeCore();
+            Assert.That(chamber.CommitmentPresentationState, Is.EqualTo(TrialCommitmentPresentationState.Available));
+            Assert.That(selector.localEulerAngles.y, Is.EqualTo(0f).Within(0.2f));
+
+            game.DebugCommitSecurityTrial();
+            Assert.That(chamber.State, Is.EqualTo(CombatChamberState.Armed));
+            Assert.That(chamber.CommitmentPresentationState,
+                Is.EqualTo(TrialCommitmentPresentationState.CommittedActive));
+            var transitionDeadline = Time.realtimeSinceStartup + 1f;
+            while (Time.realtimeSinceStartup < transitionDeadline && selector.localEulerAngles.y < 117f)
+            {
+                yield return null;
+            }
+            Assert.That(selector.localEulerAngles.y, Is.EqualTo(118f).Within(1f));
+            Assert.That(warningLeft.activeSelf && warningRight.activeSelf, Is.True);
+
+            game.DebugCompleteSecurityTrial();
+            Assert.That(chamber.CommitmentPresentationState, Is.EqualTo(TrialCommitmentPresentationState.Complete));
+            Assert.That(selector.localEulerAngles.y, Is.EqualTo(118f).Within(0.2f));
+            Assert.That(warningLeft.activeSelf && warningRight.activeSelf, Is.True);
+
+            yield return SceneManager.LoadSceneAsync("SampleScene");
+            yield return null;
+            chamber = Object.FindFirstObjectByType<AuthoredCombatChamber>();
+            Assert.That(chamber.CommitmentPresentationState, Is.EqualTo(TrialCommitmentPresentationState.Locked));
+            Assert.That(chamber.CommitmentSwitch.Find("Commitment Status").localEulerAngles.y,
+                Is.EqualTo(332f).Within(0.2f));
         }
 
         [UnityTest]
