@@ -231,6 +231,10 @@ namespace DeadSignal.Diagnostics
                 Resources.Load<GameObject>("Environment/SecurityTrialComposition") != null;
             var securityTrialCompositionSceneReady =
                 FindFirstObjectByType<AuthoredSecurityTrialComposition>() is { IsConfigured: true };
+            var withdrawalDockCompositionPrefabReady =
+                Resources.Load<GameObject>("Environment/WithdrawalDockComposition") != null;
+            var withdrawalDockCompositionSceneReady =
+                FindFirstObjectByType<AuthoredWithdrawalDockComposition>() is { IsConfigured: true };
             var foregroundCutawayTextureReady =
                 Resources.Load<Texture2D>("VFX/ForegroundCutawayFootprint") != null;
             var foregroundCutawayMaterialReady =
@@ -273,6 +277,8 @@ namespace DeadSignal.Diagnostics
                       $"scene={actThreeCompositionSceneReady} prefab={actThreeCompositionPrefabReady}");
             Debug.Log($"[DEAD SIGNAL STANDALONE SMOKE] SECURITY TRIAL COMPOSITION | " +
                       $"scene={securityTrialCompositionSceneReady} prefab={securityTrialCompositionPrefabReady}");
+            Debug.Log($"[DEAD SIGNAL STANDALONE SMOKE] WITHDRAWAL AND DOCK COMPOSITION | " +
+                      $"scene={withdrawalDockCompositionSceneReady} prefab={withdrawalDockCompositionPrefabReady}");
             Debug.Log($"[DEAD SIGNAL STANDALONE SMOKE] FOREGROUND CUTAWAY | " +
                       $"runtimeEnabled={game?.HasForegroundOcclusion ?? false} texture={foregroundCutawayTextureReady} " +
                       $"material={foregroundCutawayMaterialReady} authoredTexture={authoredCutawayTextureReady} " +
@@ -561,6 +567,8 @@ namespace DeadSignal.Diagnostics
                                 actThreeCompositionSceneReady &&
                                 securityTrialCompositionPrefabReady &&
                                 securityTrialCompositionSceneReady &&
+                                withdrawalDockCompositionPrefabReady &&
+                                withdrawalDockCompositionSceneReady &&
                                 foregroundCutawayTextureReady &&
                                 foregroundCutawayMaterialReady &&
                                 authoredCutawayTextureReady &&

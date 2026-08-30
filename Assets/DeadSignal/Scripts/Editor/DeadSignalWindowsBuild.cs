@@ -248,6 +248,11 @@ namespace DeadSignal.Editor
                 throw new BuildFailedException("The authored Security Trial presentation composition is missing or incomplete.");
             }
 
+            if (!DeadSignalWithdrawalDockCompositionSetup.HasAssets)
+            {
+                throw new BuildFailedException("The authored withdrawal and Dock presentation composition is missing or incomplete.");
+            }
+
             if (!DeadSignalProjectSetup.HasSignalRoutingAssets)
             {
                 throw new BuildFailedException("The authored Signal-routing assets are missing.");
