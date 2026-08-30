@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using DeadSignal.Presentation;
 using DeadSignal.World;
 using UnityEngine;
 
@@ -112,6 +113,11 @@ namespace DeadSignal.Combat
                 }
 
                 agent.ContactCooldown = Mathf.Max(0f, agent.ContactCooldown - dt);
+                var playerDistance = DeadSignalWorld.FlatDistance(agent.Visual.position, m_world.Player.position);
+                agent.Presentation.SetPressure(1f - Mathf.InverseLerp(
+                    m_tuning.ContactDistance,
+                    m_tuning.ContactDistance * 2.4f,
+                    playerDistance));
                 var navigationTarget = m_world.GetNavMeshWaypoint(
                     agent.Visual,
                     m_world.Player.position,
@@ -130,13 +136,13 @@ namespace DeadSignal.Combat
                         shortcutOpen));
                 }
 
-                if (agent.ContactCooldown > 0f ||
-                    DeadSignalWorld.FlatDistance(agent.Visual.position, m_world.Player.position) > m_tuning.ContactDistance)
+                if (agent.ContactCooldown > 0f || playerDistance > m_tuning.ContactDistance)
                 {
                     continue;
                 }
 
                 agent.ContactCooldown = m_tuning.ContactCooldown;
+                agent.Presentation.PlayContact();
                 ContactCount++;
                 m_onContact(agent.Visual.position);
             }
@@ -171,7 +177,7 @@ namespace DeadSignal.Combat
             return agentId >= 0;
         }
 
-        public Vector3 Purge(int agentId)
+        public Vector3 Purge(int agentId, Vector3 sourcePosition)
         {
             var agent = m_agents.Find(candidate => candidate.Id == agentId);
             if (agent == null || !agent.IsActive)
@@ -181,7 +187,7 @@ namespace DeadSignal.Combat
 
             var position = agent.Visual.position;
             agent.IsActive = false;
-            agent.Visual.gameObject.SetActive(false);
+            agent.Presentation.PlayHitAndPurge(sourcePosition);
             ActiveCount--;
             PurgedCount++;
             m_onPurge(position);
@@ -195,7 +201,7 @@ namespace DeadSignal.Combat
                 var agent = m_agents[index];
                 if (agent.IsActive)
                 {
-                    Purge(agent.Id);
+                    Purge(agent.Id, agent.Visual.position - agent.Visual.forward);
                 }
             }
         }
@@ -259,7 +265,14 @@ namespace DeadSignal.Combat
                 visual.transform.SetParent(m_world.Player.parent, true);
                 visual.SetActive(false);
                 m_world.RebindRuntimeMaterials(visual.transform);
-                m_agents.Add(new Agent(m_agents.Count, visual.transform, isFirstWave));
+                var presentation = visual.GetComponent<SecuritySwarmerPresentation>();
+                presentation.Configure(
+                    visual.transform,
+                    visual.transform.Find("Swarmer Body"),
+                    visual.transform.Find("Swarmer Core"),
+                    visual.transform.Find("Swarmer Needle"),
+                    visual.transform.Find("Swarmer Tail"));
+                m_agents.Add(new Agent(m_agents.Count, visual.transform, presentation, isFirstWave));
             }
         }
 
@@ -294,6 +307,7 @@ namespace DeadSignal.Combat
 
                 agent.IsActive = true;
                 agent.Visual.gameObject.SetActive(true);
+                agent.Presentation.PlayWake();
                 ActiveCount++;
                 SpawnedCount++;
             }
@@ -304,15 +318,17 @@ namespace DeadSignal.Combat
 
         private sealed class Agent
         {
-            public Agent(int id, Transform visual, bool isFirstWave)
+            public Agent(int id, Transform visual, SecuritySwarmerPresentation presentation, bool isFirstWave)
             {
                 Id = id;
                 Visual = visual;
+                Presentation = presentation;
                 IsFirstWave = isFirstWave;
             }
 
             public int Id { get; }
             public Transform Visual { get; }
+            public SecuritySwarmerPresentation Presentation { get; }
             public bool IsFirstWave { get; }
             public bool IsActive { get; set; }
             public float ContactCooldown { get; set; }

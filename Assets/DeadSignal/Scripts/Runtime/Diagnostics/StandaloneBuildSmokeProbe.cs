@@ -172,6 +172,7 @@ namespace DeadSignal.Diagnostics
                 "Spine Induction Gallery Region/Convergence Chamber Region/" +
                 "Arc Furnace Region/Eastern Combat Scenario") != null;
             var swarmerPrefabReady = Resources.Load<GameObject>("Actors/SwarmerAssembly") != null;
+            var swarmerAlbedoReady = Resources.Load<Texture2D>("Actors/SecuritySwarmerAlbedo") != null;
             var swarmerTuningReady = Resources.Load<SwarmerPressureTuning>("Tuning/SwarmerPressureTuning") != null;
             var wardenBayPrefab = Resources.Load<GameObject>("Environment/WardenStagingBay");
             var sapperCradlePrefab = Resources.Load<GameObject>("Environment/SignalSapperCradle");
@@ -558,6 +559,7 @@ namespace DeadSignal.Diagnostics
                                 combatLabMaterialReady &&
                                 combatLabAnchorsReady &&
                                 swarmerPrefabReady &&
+                                swarmerAlbedoReady &&
                                 swarmerTuningReady &&
                                 withdrawalPursuitReady &&
                                 game.HasSwarmerAssets &&

@@ -1202,7 +1202,7 @@ namespace DeadSignal.Combat
                 }
                 else if (hitSwarmer)
                 {
-                    var hitPosition = m_swarmers.Purge(swarmerId) + Vector3.up * 0.3f;
+                    var hitPosition = m_swarmers.Purge(swarmerId, shot.Visual.transform.position) + Vector3.up * 0.3f;
                     m_combatFeedback.PlaySignalImpact(hitPosition, true);
                     m_audio.Play(DeadSignalAudioCue.SignalImpact);
                     shot.MarkSwarmerHit(swarmerId);
