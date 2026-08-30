@@ -35,6 +35,18 @@ namespace DeadSignal.Tests
 
                 Assert.That(objective, Is.Not.Null);
                 Assert.That(objective.IsConfigured, Is.True);
+                Assert.That(objective.HasReadabilityAssets, Is.True);
+                Assert.That(objective.PresentationState,
+                    Is.EqualTo(SpineCoreInstallationPresentationState.InstallationLocked));
+                var status = spine.Find("Spine Core Installation Status");
+                Assert.That(status, Is.Not.Null);
+                Assert.That(status.GetComponent<Collider>(), Is.Null,
+                    "The final-core status face must not change authored movement or projectile authority.");
+                Assert.That(Quaternion.Angle(status.localRotation, Quaternion.Euler(0f, -18f, 0f)),
+                    Is.LessThan(0.1f));
+                Assert.That(Resources.Load<Texture2D>("Environment/SpineCoreInstallationStatusPanel"), Is.Not.Null);
+                Assert.That(Resources.Load<Material>(
+                    "Materials/CapacitorSpine/SpineCoreInstallationStatus"), Is.Not.Null);
                 Assert.That(game.SpineCoreInstallationPosition, Is.EqualTo(game.SpineTowerInteractionPosition));
 
                 player.position = game.SpineTowerInteractionPosition;
@@ -48,6 +60,9 @@ namespace DeadSignal.Tests
                 yield return null;
                 Assert.That(availableMarker.activeSelf, Is.True);
                 Assert.That(installedMarker.activeSelf, Is.False);
+                Assert.That(objective.PresentationState,
+                    Is.EqualTo(SpineCoreInstallationPresentationState.CompletedCoreAvailable));
+                Assert.That(Quaternion.Angle(status.localRotation, Quaternion.identity), Is.LessThan(0.1f));
 
                 player.position = game.SpineCoreInstallationPosition;
                 yield return _interact(gamepad);
@@ -58,11 +73,20 @@ namespace DeadSignal.Tests
                 Assert.That(game.CurrentPoweredWithdrawalPhase, Is.EqualTo(PoweredWithdrawalPhase.RelayShortcut));
                 Assert.That(availableMarker.activeSelf, Is.False);
                 Assert.That(installedMarker.activeSelf, Is.True);
+                Assert.That(objective.PresentationState,
+                    Is.EqualTo(SpineCoreInstallationPresentationState.InstallationActive));
+                Assert.That(Quaternion.Angle(status.localRotation, Quaternion.identity), Is.InRange(0.1f, 119.9f));
                 Assert.That(game.CurrentSalvage, Is.EqualTo(RunModel.SalvageRequired));
                 Assert.That(scene.RelayShortcutGate.activeSelf, Is.False,
                     "Relay activation should leave its authored shortcut open for withdrawal.");
                 Assert.That(scene.RelaySignalRouting.activeSelf, Is.True,
                     "The first required return checkpoint should retain Relay's visible cyan routing.");
+
+                yield return new WaitForSecondsRealtime(0.8f);
+                Assert.That(objective.PresentationState,
+                    Is.EqualTo(SpineCoreInstallationPresentationState.FinalInstalled));
+                Assert.That(Quaternion.Angle(status.localRotation, Quaternion.Euler(0f, 120f, 0f)),
+                    Is.LessThan(0.1f));
 
                 yield return _interact(gamepad);
                 Assert.That(game.CurrentSalvage, Is.EqualTo(RunModel.SalvageRequired),
@@ -110,6 +134,37 @@ namespace DeadSignal.Tests
             {
                 InputSystem.RemoveDevice(gamepad);
             }
+        }
+
+        [UnityTest]
+        public IEnumerator CoreInstallationReadability_ReloadsToLockedState()
+        {
+            yield return SceneManager.LoadSceneAsync("SampleScene");
+            yield return null;
+
+            var game = Object.FindFirstObjectByType<DeadSignalGame>();
+            var objective = Object.FindFirstObjectByType<AuthoredSpineCoreInstallationObjective>();
+            Assert.That(game, Is.Not.Null);
+            Assert.That(objective, Is.Not.Null);
+
+            game.DebugRecoverStationCapacitor();
+            yield return null;
+            Assert.That(objective.PresentationState,
+                Is.EqualTo(SpineCoreInstallationPresentationState.CompletedCoreAvailable));
+
+            game.DebugInstallSpineCore();
+            yield return null;
+            Assert.That(objective.PresentationState,
+                Is.EqualTo(SpineCoreInstallationPresentationState.InstallationActive));
+            yield return new WaitForSecondsRealtime(0.8f);
+            Assert.That(objective.PresentationState,
+                Is.EqualTo(SpineCoreInstallationPresentationState.FinalInstalled));
+
+            yield return SceneManager.LoadSceneAsync("SampleScene");
+            yield return null;
+            objective = Object.FindFirstObjectByType<AuthoredSpineCoreInstallationObjective>();
+            Assert.That(objective.PresentationState,
+                Is.EqualTo(SpineCoreInstallationPresentationState.InstallationLocked));
         }
 
         [UnityTest]

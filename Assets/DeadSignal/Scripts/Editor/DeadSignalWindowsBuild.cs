@@ -57,6 +57,7 @@ namespace DeadSignal.Editor
             DeadSignalSpineDischargeTrenchSetup.EnsureAssets();
             DeadSignalSpineNetworkReadabilitySetup.EnsureAssets();
             DeadSignalSpineReturnReadabilitySetup.EnsureAssets();
+            DeadSignalSpineCoreReadabilitySetup.EnsureAssets();
             DeadSignalSpineInductionGallerySetup.EnsureAssets();
             DeadSignalConvergenceChamberSetup.EnsureAssets();
             DeadSignalConvergenceBreakerGallerySetup.EnsureAssets();
@@ -253,7 +254,7 @@ namespace DeadSignal.Editor
             }
 
             if (!DeadSignalSpineDischargeTrenchSetup.HasAssets || !DeadSignalSpineNetworkReadabilitySetup.HasAssets ||
-                !DeadSignalSpineReturnReadabilitySetup.HasAssets)
+                !DeadSignalSpineReturnReadabilitySetup.HasAssets || !DeadSignalSpineCoreReadabilitySetup.HasAssets)
             {
                 throw new BuildFailedException("The scene-authored Spine network readability is missing or incomplete.");
             }

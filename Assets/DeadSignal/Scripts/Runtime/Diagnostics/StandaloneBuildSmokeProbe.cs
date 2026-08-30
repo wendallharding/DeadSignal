@@ -99,6 +99,7 @@ namespace DeadSignal.Diagnostics
                                     game != null && !game.IsSpineBerthVented;
             var spineCoreInstallationReady = spineCoreInstallationObjective != null &&
                                              spineCoreInstallationObjective.IsConfigured &&
+                                             spineCoreInstallationObjective.HasReadabilityAssets &&
                                              game != null && !game.IsSpineCoreInstalled;
             var inductionLatticeReady = inductionLatticeObjective != null && inductionLatticeObjective.IsConfigured &&
                                         game != null && !game.IsInductionLatticeCharged;
