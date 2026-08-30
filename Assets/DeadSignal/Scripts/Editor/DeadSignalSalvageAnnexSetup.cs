@@ -278,13 +278,13 @@ namespace DeadSignal.Editor
                 var couplingSocket = _ensureAnchor(annex.transform, "Power Coupling Socket", new Vector3(0.15f, 0f, 0f));
                 var withdrawalAnchor = _ensureAnchor(annex.transform, "Cargo Withdrawal Anchor", new Vector3(-1.3f, 0f, 0f));
                 var commitmentMarker = _ensureMarker(annex.transform, "Cargo Commitment Marker", PrimitiveType.Cube,
-                    commitmentAnchor.localPosition + new Vector3(0f, 0.025f, 0f), new Vector3(0.1f, 0.025f, 2.2f),
+                    commitmentAnchor.localPosition + new Vector3(0f, 0.025f, 0f), new Vector3(0.1f, 0.025f, 1.45f),
                     HAZARD_MATERIAL_PATH);
                 var withdrawalMarker = _ensureMarker(annex.transform, "Cargo Withdrawal Marker", PrimitiveType.Cube,
-                    withdrawalAnchor.localPosition + new Vector3(0f, 0.025f, 0f), new Vector3(0.12f, 0.025f, 2.2f),
+                    withdrawalAnchor.localPosition + new Vector3(0f, 0.025f, 0f), new Vector3(0.12f, 0.025f, 1.45f),
                     CONDUIT_MATERIAL_PATH);
                 var securedMarker = _ensureMarker(annex.transform, "Power Coupling Secured Marker", PrimitiveType.Cylinder,
-                    couplingSocket.localPosition + new Vector3(0f, 0.025f, 0f), new Vector3(0.9f, 0.025f, 0.9f),
+                    couplingSocket.localPosition + new Vector3(0f, 0.025f, 0f), new Vector3(0.68f, 0.025f, 0.68f),
                     CONDUIT_MATERIAL_PATH);
                 var couplingBase = _ensureReadabilityPart(annex.transform, "Cargo Coupling Base",
                     couplingSocket.localPosition, COUPLING_BASE_MESH_PATH, ARMOR_MATERIAL_PATH);

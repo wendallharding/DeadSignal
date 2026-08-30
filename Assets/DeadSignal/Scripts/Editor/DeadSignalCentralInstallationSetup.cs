@@ -143,14 +143,14 @@ namespace DeadSignal.Editor
             ring.transform.localPosition = Vector3.zero;
             ring.transform.localRotation = Quaternion.identity;
             ring.transform.localScale = Vector3.one;
-            _ensureCube(ring.transform, "North Rail", new Vector3(0f, 0.08f, 1.1f),
-                new Vector3(2.4f, 0.08f, 0.12f), materialPath);
-            _ensureCube(ring.transform, "South Rail", new Vector3(0f, 0.08f, -1.1f),
-                new Vector3(2.4f, 0.08f, 0.12f), materialPath);
-            _ensureCube(ring.transform, "East Rail", new Vector3(1.1f, 0.08f, 0f),
-                new Vector3(0.12f, 0.08f, 2.4f), materialPath);
-            _ensureCube(ring.transform, "West Rail", new Vector3(-1.1f, 0.08f, 0f),
-                new Vector3(0.12f, 0.08f, 2.4f), materialPath);
+            _ensureCube(ring.transform, "North Rail", new Vector3(0f, 0.08f, 0.82f),
+                new Vector3(1.85f, 0.08f, 0.1f), materialPath);
+            _ensureCube(ring.transform, "South Rail", new Vector3(0f, 0.08f, -0.82f),
+                new Vector3(1.85f, 0.08f, 0.1f), materialPath);
+            _ensureCube(ring.transform, "East Rail", new Vector3(0.82f, 0.08f, 0f),
+                new Vector3(0.1f, 0.08f, 1.85f), materialPath);
+            _ensureCube(ring.transform, "West Rail", new Vector3(-0.82f, 0.08f, 0f),
+                new Vector3(0.1f, 0.08f, 1.85f), materialPath);
             return ring;
         }
 

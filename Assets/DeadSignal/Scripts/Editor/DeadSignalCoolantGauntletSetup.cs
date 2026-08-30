@@ -289,16 +289,16 @@ namespace DeadSignal.Editor
                 var sealSocket = _ensureAnchor(gauntlet.transform, "Coolant Seal Socket", new Vector3(0f, 0f, 2.65f));
                 var releaseAnchor = _ensureAnchor(gauntlet.transform, "Coolant Release Anchor", new Vector3(0f, 0f, -2.65f));
                 var firstBaffleMarker = _ensureMarker(gauntlet.transform, "First Baffle Route Marker", PrimitiveType.Cylinder,
-                    firstBaffleAnchor.localPosition + new Vector3(0f, 0.025f, 0f), new Vector3(0.7f, 0.025f, 0.7f),
+                    firstBaffleAnchor.localPosition + new Vector3(0f, 0.025f, 0f), new Vector3(0.48f, 0.025f, 0.48f),
                     AMBER_MATERIAL_PATH);
                 var secondBaffleMarker = _ensureMarker(gauntlet.transform, "Second Baffle Route Marker", PrimitiveType.Cylinder,
-                    secondBaffleAnchor.localPosition + new Vector3(0f, 0.025f, 0f), new Vector3(0.7f, 0.025f, 0.7f),
+                    secondBaffleAnchor.localPosition + new Vector3(0f, 0.025f, 0f), new Vector3(0.48f, 0.025f, 0.48f),
                     AMBER_MATERIAL_PATH);
                 var releaseMarker = _ensureMarker(gauntlet.transform, "Coolant Release Marker", PrimitiveType.Cube,
-                    releaseAnchor.localPosition + new Vector3(0f, 0.025f, 0f), new Vector3(3.6f, 0.025f, 0.12f),
+                    releaseAnchor.localPosition + new Vector3(0f, 0.025f, 0f), new Vector3(2.5f, 0.025f, 0.12f),
                     CYAN_MATERIAL_PATH);
                 var stableMarker = _ensureMarker(gauntlet.transform, "Coolant Line Stable Marker", PrimitiveType.Cylinder,
-                    sealSocket.localPosition + new Vector3(0f, 0.025f, 0f), new Vector3(0.95f, 0.025f, 0.95f),
+                    sealSocket.localPosition + new Vector3(0f, 0.025f, 0f), new Vector3(0.66f, 0.025f, 0.66f),
                     CYAN_MATERIAL_PATH);
                 _ensureReadabilityPart(gauntlet.transform, "Coolant Status Base",
                     sealSocket.localPosition, STATUS_BASE_MESH_PATH, ARMOR_MATERIAL_PATH);

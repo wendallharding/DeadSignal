@@ -217,6 +217,9 @@ namespace DeadSignal.Diagnostics
             var stationBackdropMaterialReady = Resources.Load<Material>("Materials/StationUnderdeck") != null;
             var stationBackdropPrefabReady = Resources.Load<GameObject>("Environment/StationUnderdeckBackdrop") != null;
             var stationBackdropSceneReady = FindFirstObjectByType<AuthoredStationBackdrop>() != null;
+            var actOneCompositionPrefabReady = Resources.Load<GameObject>("Environment/ActOneComposition") != null;
+            var actOneCompositionSceneReady =
+                FindFirstObjectByType<AuthoredActOneComposition>() is { IsConfigured: true };
             var foregroundCutawayTextureReady =
                 Resources.Load<Texture2D>("VFX/ForegroundCutawayFootprint") != null;
             var foregroundCutawayMaterialReady =
@@ -251,6 +254,8 @@ namespace DeadSignal.Diagnostics
             Debug.Log($"[DEAD SIGNAL STANDALONE SMOKE] STATION UNDERDECK | " +
                       $"scene={stationBackdropSceneReady} texture={stationBackdropTextureReady} " +
                       $"material={stationBackdropMaterialReady} prefab={stationBackdropPrefabReady}");
+            Debug.Log($"[DEAD SIGNAL STANDALONE SMOKE] ACT I COMPOSITION | " +
+                      $"scene={actOneCompositionSceneReady} prefab={actOneCompositionPrefabReady}");
             Debug.Log($"[DEAD SIGNAL STANDALONE SMOKE] FOREGROUND CUTAWAY | " +
                       $"runtimeEnabled={game?.HasForegroundOcclusion ?? false} texture={foregroundCutawayTextureReady} " +
                       $"material={foregroundCutawayMaterialReady} authoredTexture={authoredCutawayTextureReady} " +
@@ -533,6 +538,8 @@ namespace DeadSignal.Diagnostics
                                 stationBackdropMaterialReady &&
                                 stationBackdropPrefabReady &&
                                 stationBackdropSceneReady &&
+                                actOneCompositionPrefabReady &&
+                                actOneCompositionSceneReady &&
                                 foregroundCutawayTextureReady &&
                                 foregroundCutawayMaterialReady &&
                                 authoredCutawayTextureReady &&

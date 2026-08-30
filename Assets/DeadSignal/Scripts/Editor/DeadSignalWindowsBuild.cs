@@ -50,6 +50,7 @@ namespace DeadSignal.Editor
             DeadSignalCentralInstallationSetup.EnsureAssets();
             DeadSignalCentralReadabilitySetup.EnsureAssets();
             DeadSignalActOneRouteReadabilitySetup.EnsureAssets();
+            DeadSignalActOneCompositionSetup.EnsureAssets();
             DeadSignalRelayFoundrySetup.EnsureAssets();
             DeadSignalRelayCoolingGantrySetup.EnsureAssets();
             DeadSignalActTwoReadabilitySetup.EnsureAssets();
@@ -217,6 +218,11 @@ namespace DeadSignal.Editor
             if (!DeadSignalActOneRouteReadabilitySetup.HasAssets)
             {
                 throw new BuildFailedException("The authored Act I route-readability assets are missing.");
+            }
+
+            if (!DeadSignalActOneCompositionSetup.HasAssets)
+            {
+                throw new BuildFailedException("The authored Act I presentation composition is missing or incomplete.");
             }
 
             if (!DeadSignalActTwoReadabilitySetup.HasAssets || !DeadSignalActTwoCalibrationReadabilitySetup.HasAssets)

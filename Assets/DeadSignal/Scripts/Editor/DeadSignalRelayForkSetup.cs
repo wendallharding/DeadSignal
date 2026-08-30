@@ -207,9 +207,9 @@ namespace DeadSignal.Editor
             {
                 var anchor = _ensureAnchor(root.transform, "Relay Feed Routing Anchor", new Vector3(0f, 0f, 1.15f));
                 var available = _ensureMarker(root.transform, "Relay Routing Available", new Vector3(0f, 0.08f, 0.55f),
-                    new Vector3(2.6f, 0.08f, 0.18f), AMBER_MATERIAL_PATH);
+                    new Vector3(1.7f, 0.08f, 0.18f), AMBER_MATERIAL_PATH);
                 var routed = _ensureMarker(root.transform, "Relay Feeds Routed", new Vector3(0f, 0.09f, -0.05f),
-                    new Vector3(3.8f, 0.08f, 0.14f), CYAN_MATERIAL_PATH);
+                    new Vector3(2.4f, 0.08f, 0.14f), CYAN_MATERIAL_PATH);
                 var objective = root.GetComponent<AuthoredRelayForkObjective>() ?? root.AddComponent<AuthoredRelayForkObjective>();
                 objective.Configure(anchor, available, routed);
                 PrefabUtility.SaveAsPrefabAsset(root, FORK_PREFAB_PATH);

@@ -186,9 +186,9 @@ namespace DeadSignal.Editor
 
                 var anchor = _ensureAnchor(prefabRoot.transform, "Transfer Assembly Anchor", new Vector3(1.45f, 0f, 0f));
                 var available = _ensureMarker(prefabRoot.transform, "Transfer Assembly Available",
-                    new Vector3(0.65f, 0.08f, 0f), new Vector3(0.18f, 0.08f, 2.2f), AMBER_MATERIAL_PATH);
+                    new Vector3(0.65f, 0.08f, 0f), new Vector3(0.14f, 0.06f, 1.35f), AMBER_MATERIAL_PATH);
                 var assembled = _ensureMarker(prefabRoot.transform, "Central Payload Assembled",
-                    new Vector3(-0.45f, 0.12f, 0f), new Vector3(0.8f, 0.12f, 1.7f), CYAN_MATERIAL_PATH);
+                    new Vector3(-0.45f, 0.09f, 0f), new Vector3(0.52f, 0.08f, 1.1f), CYAN_MATERIAL_PATH);
                 var objective = prefabRoot.GetComponent<AuthoredTransferVaultObjective>() ??
                                 prefabRoot.AddComponent<AuthoredTransferVaultObjective>();
                 objective.Configure(anchor, available, assembled);
