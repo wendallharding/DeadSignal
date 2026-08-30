@@ -402,6 +402,8 @@ namespace DeadSignal.Diagnostics
                                 Resources.Load<GameObject>("Environment/SalvageAnnexBarrier") != null &&
                                 Resources.Load<GameObject>("Environment/SalvageAnnex") != null &&
                                 Resources.Load<Texture2D>("Environment/SalvageAnnexAlbedo") != null &&
+                                Resources.Load<Texture2D>("Environment/CargoAnnexHeroAtlas") != null &&
+                                Resources.Load<Mesh>("Environment/CargoAnnexHeroFinish") != null &&
                                 Resources.Load<GameObject>("Environment/EastSalvageVaultModel") != null &&
                                 Resources.Load<GameObject>("Environment/EastSalvageVault") != null &&
                                 Resources.Load<Texture2D>("Environment/EastSalvageVaultAlbedo") != null &&

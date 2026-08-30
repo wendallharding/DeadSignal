@@ -13,13 +13,20 @@ namespace DeadSignal.Editor
     {
         private const string TEXTURE_PATH = "Assets/DeadSignal/Resources/Environment/SalvageAnnexAlbedo.png";
         private const string STATUS_TEXTURE_PATH = "Assets/DeadSignal/Resources/Environment/CargoCouplingStatusPanel.png";
+        private const string HERO_TEXTURE_PATH = "Assets/DeadSignal/Resources/Environment/CargoAnnexHeroAtlas.png";
         private const string MODEL_PATH = "Assets/DeadSignal/Resources/Environment/SalvageAnnexBarrierModel.fbx";
         private const string COUPLING_BASE_MESH_PATH = "Assets/DeadSignal/Resources/Environment/CargoCouplingBaseReadability.asset";
         private const string COUPLING_ROTOR_MESH_PATH = "Assets/DeadSignal/Resources/Environment/CargoCouplingRotorReadability.asset";
+        private const string HERO_FINISH_MESH_PATH = "Assets/DeadSignal/Resources/Environment/CargoAnnexHeroFinish.asset";
         private const string ARMOR_MATERIAL_PATH = "Assets/DeadSignal/Resources/Materials/SalvageAnnexArmor.mat";
         private const string HAZARD_MATERIAL_PATH = "Assets/DeadSignal/Resources/Materials/SalvageAnnexHazard.mat";
         private const string CONDUIT_MATERIAL_PATH = "Assets/DeadSignal/Resources/Materials/SalvageAnnexConduit.mat";
         private const string STATUS_MATERIAL_PATH = "Assets/DeadSignal/Resources/Materials/CargoCouplingStatus.mat";
+        private const string HERO_MATERIAL_FOLDER = "Assets/DeadSignal/Resources/Materials/CargoAnnexFinish";
+        private const string HERO_GRAPHITE_MATERIAL_PATH = HERO_MATERIAL_FOLDER + "/CargoAnnexGraphite.mat";
+        private const string HERO_CERAMIC_MATERIAL_PATH = HERO_MATERIAL_FOLDER + "/CargoAnnexCeramic.mat";
+        private const string HERO_AMBER_MATERIAL_PATH = HERO_MATERIAL_FOLDER + "/CargoAnnexAmber.mat";
+        private const string HERO_DECK_MATERIAL_PATH = HERO_MATERIAL_FOLDER + "/CargoAnnexDeck.mat";
         private const string BARRIER_PREFAB_PATH = "Assets/DeadSignal/Resources/Environment/SalvageAnnexBarrier.prefab";
         private const string ANNEX_PREFAB_PATH = "Assets/DeadSignal/Resources/Environment/SalvageAnnex.prefab";
         private const string SCENE_PATH = "Assets/DeadSignal/Scenes/SampleScene.unity";
@@ -34,19 +41,26 @@ namespace DeadSignal.Editor
                 var annex = AssetDatabase.LoadAssetAtPath<GameObject>(ANNEX_PREFAB_PATH);
                 return AssetDatabase.LoadAssetAtPath<Texture2D>(TEXTURE_PATH) != null &&
                        AssetDatabase.LoadAssetAtPath<Texture2D>(STATUS_TEXTURE_PATH) != null &&
+                       AssetDatabase.LoadAssetAtPath<Texture2D>(HERO_TEXTURE_PATH) != null &&
                        AssetDatabase.LoadAssetAtPath<GameObject>(MODEL_PATH) != null &&
                        AssetDatabase.LoadAssetAtPath<Mesh>(COUPLING_BASE_MESH_PATH) != null &&
                        AssetDatabase.LoadAssetAtPath<Mesh>(COUPLING_ROTOR_MESH_PATH) != null &&
+                       AssetDatabase.LoadAssetAtPath<Mesh>(HERO_FINISH_MESH_PATH) != null &&
                        AssetDatabase.LoadAssetAtPath<Material>(ARMOR_MATERIAL_PATH) != null &&
                        AssetDatabase.LoadAssetAtPath<Material>(HAZARD_MATERIAL_PATH) != null &&
                        AssetDatabase.LoadAssetAtPath<Material>(CONDUIT_MATERIAL_PATH) != null &&
                        AssetDatabase.LoadAssetAtPath<Material>(STATUS_MATERIAL_PATH) != null &&
+                       AssetDatabase.LoadAssetAtPath<Material>(HERO_GRAPHITE_MATERIAL_PATH) != null &&
+                       AssetDatabase.LoadAssetAtPath<Material>(HERO_CERAMIC_MATERIAL_PATH) != null &&
+                       AssetDatabase.LoadAssetAtPath<Material>(HERO_AMBER_MATERIAL_PATH) != null &&
+                       AssetDatabase.LoadAssetAtPath<Material>(HERO_DECK_MATERIAL_PATH) != null &&
                        _hasValidBarrier(barrier) &&
                        annex != null &&
                        annex.GetComponentsInChildren<AuthoredMapObstacle>().Length == 3 &&
                        annex.TryGetComponent<AuthoredCargoAnnexObjective>(out var objective) &&
                        objective.IsConfigured &&
-                       objective.HasReadabilityAssets;
+                       objective.HasReadabilityAssets &&
+                       annex.GetComponentInChildren<AuthoredCargoAnnexHeroFinish>(true) != null;
             }
         }
 
@@ -54,7 +68,9 @@ namespace DeadSignal.Editor
         {
             _configureTextureImport();
             _configureStatusTextureImport();
+            _configureHeroTextureImport();
             _configureModelImport();
+            _ensureHeroMaterialFolder();
             _ensureMaterials();
             _ensureReadabilityMeshes();
             _ensureBarrierPrefab();
@@ -119,6 +135,32 @@ namespace DeadSignal.Editor
             importer.SaveAndReimport();
         }
 
+        private static void _configureHeroTextureImport()
+        {
+            var importer = AssetImporter.GetAtPath(HERO_TEXTURE_PATH) as TextureImporter;
+            if (importer == null)
+            {
+                throw new InvalidOperationException($"Could not find the Cargo Annex hero atlas at {HERO_TEXTURE_PATH}.");
+            }
+
+            importer.alphaIsTransparency = false;
+            importer.mipmapEnabled = true;
+            importer.maxTextureSize = 1024;
+            importer.wrapMode = TextureWrapMode.Clamp;
+            importer.filterMode = FilterMode.Trilinear;
+            importer.anisoLevel = 4;
+            importer.textureCompression = TextureImporterCompression.CompressedHQ;
+            importer.SaveAndReimport();
+        }
+
+        private static void _ensureHeroMaterialFolder()
+        {
+            if (!AssetDatabase.IsValidFolder(HERO_MATERIAL_FOLDER))
+            {
+                AssetDatabase.CreateFolder("Assets/DeadSignal/Resources/Materials", "CargoAnnexFinish");
+            }
+        }
+
         private static void _ensureMaterials()
         {
             var texture = AssetDatabase.LoadAssetAtPath<Texture2D>(TEXTURE_PATH);
@@ -154,6 +196,37 @@ namespace DeadSignal.Editor
             status.SetFloat("_Smoothness", 0.46f);
             status.EnableKeyword("_EMISSION");
             EditorUtility.SetDirty(status);
+
+            var heroTexture = AssetDatabase.LoadAssetAtPath<Texture2D>(HERO_TEXTURE_PATH);
+            _ensureHeroMaterial(HERO_GRAPHITE_MATERIAL_PATH, "Cargo Annex Graphite", heroTexture,
+                new Vector2(0f, 0.52f), 0.68f, 0.32f);
+            _ensureHeroMaterial(HERO_CERAMIC_MATERIAL_PATH, "Cargo Annex Ceramic", heroTexture,
+                new Vector2(0.52f, 0.52f), 0.2f, 0.26f);
+            _ensureHeroMaterial(HERO_AMBER_MATERIAL_PATH, "Cargo Annex Amber", heroTexture,
+                new Vector2(0f, 0f), 0.58f, 0.3f);
+            _ensureHeroMaterial(HERO_DECK_MATERIAL_PATH, "Cargo Annex Deck", heroTexture,
+                new Vector2(0.52f, 0f), 0.62f, 0.2f);
+        }
+
+        private static void _ensureHeroMaterial(
+            string path,
+            string materialName,
+            Texture texture,
+            Vector2 offset,
+            float metallic,
+            float smoothness)
+        {
+            var material = _loadOrCreateMaterial(path, materialName);
+            material.SetTexture("_BaseMap", texture);
+            material.SetTextureScale("_BaseMap", new Vector2(0.48f, 0.48f));
+            material.SetTextureOffset("_BaseMap", offset);
+            material.SetColor("_BaseColor", Color.white);
+            material.SetColor("_EmissionColor", Color.black);
+            material.SetFloat("_Metallic", metallic);
+            material.SetFloat("_Smoothness", smoothness);
+            material.DisableKeyword("_EMISSION");
+            material.enableInstancing = true;
+            EditorUtility.SetDirty(material);
         }
 
         private static void _ensureReadabilityMeshes()
@@ -177,6 +250,23 @@ namespace DeadSignal.Editor
                 rotorBuilder.AddBox(direction * 0.43f + Vector3.up * 0.24f, new Vector3(0.24f, 0.18f, 0.38f), angle);
             }
             _saveOrReplaceMesh(COUPLING_ROTOR_MESH_PATH, rotorBuilder.Build());
+
+            var finishBuilder = new MeshBuilder("CargoAnnexHeroFinish", 4);
+            finishBuilder.AddBox(new Vector3(-0.58f, 0.035f, 0f), new Vector3(1.7f, 0.04f, 1.14f), 0f, 3);
+            finishBuilder.AddBox(new Vector3(-0.58f, 0.075f, 0.61f), new Vector3(2.15f, 0.14f, 0.16f), 0f, 0);
+            finishBuilder.AddBox(new Vector3(-0.58f, 0.075f, -0.61f), new Vector3(2.15f, 0.14f, 0.16f), 0f, 0);
+            finishBuilder.AddBox(new Vector3(-1.55f, 0.09f, 0f), new Vector3(0.16f, 0.18f, 1.38f), 0f, 0);
+            for (var index = 0; index < 4; index++)
+            {
+                var angle = index * 90f;
+                var direction = Quaternion.Euler(0f, angle, 0f) * Vector3.forward;
+                finishBuilder.AddBox(new Vector3(0.15f, 0.13f, 0f) + direction * 0.82f,
+                    new Vector3(0.32f, 0.22f, 0.52f), angle, 1);
+            }
+            finishBuilder.AddBox(new Vector3(-0.58f, 0.105f, 0.49f), new Vector3(1.5f, 0.035f, 0.07f), 0f, 2);
+            finishBuilder.AddBox(new Vector3(-0.58f, 0.105f, -0.49f), new Vector3(1.5f, 0.035f, 0.07f), 0f, 2);
+            finishBuilder.AddBox(new Vector3(-1.28f, 0.115f, 0f), new Vector3(0.12f, 0.05f, 0.86f), 0f, 2);
+            _saveOrReplaceMesh(HERO_FINISH_MESH_PATH, finishBuilder.Build());
         }
 
         private static void _saveOrReplaceMesh(string path, Mesh generated)
@@ -287,9 +377,28 @@ namespace DeadSignal.Editor
                     couplingSocket.localPosition + new Vector3(0f, 0.025f, 0f), new Vector3(0.68f, 0.025f, 0.68f),
                     CONDUIT_MATERIAL_PATH);
                 var couplingBase = _ensureReadabilityPart(annex.transform, "Cargo Coupling Base",
-                    couplingSocket.localPosition, COUPLING_BASE_MESH_PATH, ARMOR_MATERIAL_PATH);
+                    couplingSocket.localPosition, COUPLING_BASE_MESH_PATH, HERO_GRAPHITE_MATERIAL_PATH);
                 var couplingRotor = _ensureReadabilityPart(annex.transform, "Cargo Coupling Rotor",
                     couplingSocket.localPosition, COUPLING_ROTOR_MESH_PATH, STATUS_MATERIAL_PATH);
+                var heroFinish = _ensureReadabilityPart(annex.transform, "Cargo Annex Hero Finish",
+                    Vector3.zero, HERO_FINISH_MESH_PATH, HERO_GRAPHITE_MATERIAL_PATH);
+                var heroRenderer = heroFinish.GetComponent<MeshRenderer>();
+                heroRenderer.sharedMaterials = new[]
+                {
+                    AssetDatabase.LoadAssetAtPath<Material>(HERO_GRAPHITE_MATERIAL_PATH),
+                    AssetDatabase.LoadAssetAtPath<Material>(HERO_CERAMIC_MATERIAL_PATH),
+                    AssetDatabase.LoadAssetAtPath<Material>(HERO_AMBER_MATERIAL_PATH),
+                    AssetDatabase.LoadAssetAtPath<Material>(HERO_DECK_MATERIAL_PATH)
+                };
+                var heroComponent = heroFinish.GetComponent<AuthoredCargoAnnexHeroFinish>() ??
+                                    heroFinish.gameObject.AddComponent<AuthoredCargoAnnexHeroFinish>();
+                heroComponent.Configure(
+                    heroRenderer,
+                    couplingBase.GetComponent<MeshRenderer>(),
+                    couplingRotor.GetComponent<MeshRenderer>(),
+                    annex.GetComponentsInChildren<AuthoredMapObstacle>(true)
+                        .SelectMany(obstacle => obstacle.GetComponentsInChildren<MeshRenderer>(true))
+                        .ToArray());
                 var objective = annex.GetComponent<AuthoredCargoAnnexObjective>();
                 if (objective == null)
                 {
@@ -456,12 +565,13 @@ namespace DeadSignal.Editor
 
         private sealed class MeshBuilder
         {
-            public MeshBuilder(string name)
+            public MeshBuilder(string name, int subMeshCount = 1)
             {
                 m_name = name;
+                m_triangles = Enumerable.Range(0, subMeshCount).Select(_ => new List<int>()).ToList();
             }
 
-            public void AddBox(Vector3 center, Vector3 size, float yaw)
+            public void AddBox(Vector3 center, Vector3 size, float yaw, int subMesh = 0)
             {
                 var half = size * 0.5f;
                 var rotation = Quaternion.Euler(0f, yaw, 0f);
@@ -484,7 +594,7 @@ namespace DeadSignal.Editor
                     Vector2.zero, Vector2.right, Vector2.one, Vector2.up,
                     Vector2.zero, Vector2.right, Vector2.one, Vector2.up
                 });
-                m_triangles.AddRange(new[]
+                m_triangles[subMesh].AddRange(new[]
                 {
                     start, start + 2, start + 1, start, start + 3, start + 2,
                     start + 4, start + 5, start + 6, start + 4, start + 6, start + 7,
@@ -495,7 +605,13 @@ namespace DeadSignal.Editor
                 });
             }
 
-            public void AddPrism(Vector3 center, int sides, float bottomRadius, float topRadius, float height)
+            public void AddPrism(
+                Vector3 center,
+                int sides,
+                float bottomRadius,
+                float topRadius,
+                float height,
+                int subMesh = 0)
             {
                 var start = m_vertices.Count;
                 var halfHeight = height * 0.5f;
@@ -518,7 +634,7 @@ namespace DeadSignal.Editor
                 for (var index = 0; index < sides; index++)
                 {
                     var next = (index + 1) % sides;
-                    m_triangles.AddRange(new[]
+                    m_triangles[subMesh].AddRange(new[]
                     {
                         start + index * 2, start + next * 2 + 1, start + next * 2,
                         start + index * 2, start + index * 2 + 1, start + next * 2 + 1,
@@ -533,7 +649,11 @@ namespace DeadSignal.Editor
                 var mesh = new Mesh { name = m_name };
                 mesh.SetVertices(m_vertices);
                 mesh.SetUVs(0, m_uvs);
-                mesh.SetTriangles(m_triangles, 0);
+                mesh.subMeshCount = m_triangles.Count;
+                for (var index = 0; index < m_triangles.Count; index++)
+                {
+                    mesh.SetTriangles(m_triangles[index], index);
+                }
                 mesh.RecalculateNormals();
                 mesh.RecalculateTangents();
                 mesh.RecalculateBounds();
@@ -543,7 +663,7 @@ namespace DeadSignal.Editor
             private readonly string m_name;
             private readonly List<Vector3> m_vertices = new();
             private readonly List<Vector2> m_uvs = new();
-            private readonly List<int> m_triangles = new();
+            private readonly List<List<int>> m_triangles;
         }
     }
 }

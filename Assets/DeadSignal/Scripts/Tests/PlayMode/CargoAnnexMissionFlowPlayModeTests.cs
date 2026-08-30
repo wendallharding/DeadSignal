@@ -1,4 +1,7 @@
+using System;
 using System.Collections;
+using System.IO;
+using System.Linq;
 using DeadSignal.Application;
 using DeadSignal.Missions;
 using DeadSignal.World;
@@ -6,6 +9,7 @@ using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
+using Object = UnityEngine.Object;
 
 namespace DeadSignal.Tests.PlayMode
 {
@@ -27,6 +31,18 @@ namespace DeadSignal.Tests.PlayMode
             Assert.That(objective.IsConfigured, Is.True);
             Assert.That(objective.HasReadabilityAssets, Is.True);
             Assert.That(objective.PresentationState, Is.EqualTo(CargoAnnexPresentationState.Locked));
+
+            var heroFinish = Object.FindFirstObjectByType<AuthoredCargoAnnexHeroFinish>(FindObjectsInactive.Include);
+            Assert.That(heroFinish, Is.Not.Null);
+            Assert.That(heroFinish.FinishRenderer.GetComponent<MeshFilter>().sharedMesh.name,
+                Is.EqualTo("CargoAnnexHeroFinish"));
+            Assert.That(heroFinish.FinishRenderer.sharedMaterials, Has.Length.EqualTo(4));
+            Assert.That(heroFinish.FinishRenderer.sharedMaterials.All(material =>
+                material.mainTexture != null && material.mainTexture.name == "CargoAnnexHeroAtlas"), Is.True);
+            Assert.That(heroFinish.BarrierRendererCount, Is.EqualTo(9));
+            Assert.That(heroFinish.GetComponentsInChildren<Collider>(true), Is.Empty,
+                "Cargo finish geometry must remain presentation-only and preserve the withdrawal lane.");
+            Assert.That(heroFinish.CouplingBaseRenderer.sharedMaterial.name, Is.EqualTo("CargoAnnexGraphite"));
 
             var couplingBase = objective.transform.Find("Cargo Coupling Base");
             var couplingRotor = objective.transform.Find("Cargo Coupling Rotor");
@@ -104,6 +120,47 @@ namespace DeadSignal.Tests.PlayMode
             objective = Object.FindFirstObjectByType<AuthoredCargoAnnexObjective>(FindObjectsInactive.Include);
             Assert.That(objective.PresentationState, Is.EqualTo(CargoAnnexPresentationState.Locked),
                 "A fresh run must restore the persistent dormant Cargo read.");
+
+            var capturePath = Environment.GetEnvironmentVariable("DEAD_SIGNAL_CARGO_HERO_CAPTURE");
+            if (!string.IsNullOrWhiteSpace(capturePath))
+            {
+                scene = Object.FindFirstObjectByType<DeadSignalSceneReferences>();
+                scene.Player.position = objective.WithdrawalPosition;
+                yield return null;
+                yield return new WaitForSecondsRealtime(0.6f);
+                _captureCamera(scene.PlayerCamera, capturePath);
+            }
+        }
+
+        private static void _captureCamera(Camera camera, string path)
+        {
+            Assert.That(camera, Is.Not.Null);
+            var directory = Path.GetDirectoryName(path);
+            if (!string.IsNullOrEmpty(directory))
+            {
+                Directory.CreateDirectory(directory);
+            }
+
+            var renderTexture = new RenderTexture(1600, 900, 24, RenderTextureFormat.ARGB32);
+            var texture = new Texture2D(1600, 900, TextureFormat.RGB24, false);
+            var previousTarget = camera.targetTexture;
+            var previousActive = RenderTexture.active;
+            try
+            {
+                camera.targetTexture = renderTexture;
+                camera.Render();
+                RenderTexture.active = renderTexture;
+                texture.ReadPixels(new Rect(0f, 0f, 1600f, 900f), 0, 0);
+                texture.Apply();
+                File.WriteAllBytes(path, texture.EncodeToPNG());
+            }
+            finally
+            {
+                camera.targetTexture = previousTarget;
+                RenderTexture.active = previousActive;
+                Object.DestroyImmediate(texture);
+                Object.DestroyImmediate(renderTexture);
+            }
         }
     }
 }

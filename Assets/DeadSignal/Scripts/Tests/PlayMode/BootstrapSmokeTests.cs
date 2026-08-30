@@ -1140,14 +1140,20 @@ namespace DeadSignal.Tests
             Assert.That(northCargoBarrier.localScale, Is.EqualTo(new Vector3(0.65f, 1f, 1f)),
                 "The annex north wall must preserve the widened west entrance shared with the Warden bay.");
             var annexTexture = Resources.Load<Texture2D>("Environment/SalvageAnnexAlbedo");
+            var cargoHeroTexture = Resources.Load<Texture2D>("Environment/CargoAnnexHeroAtlas");
             var annexArmor = Resources.Load<Material>("Materials/SalvageAnnexArmor");
             Assert.That(annexTexture, Is.Not.Null);
+            Assert.That(cargoHeroTexture, Is.Not.Null);
             Assert.That(annexArmor.mainTexture, Is.EqualTo(annexTexture),
                 "The annex armor should persistently map its original cargo-panel albedo.");
             Assert.That(
                 annexObstacles.SelectMany(obstacle => obstacle.GetComponentsInChildren<Renderer>())
                     .Count(renderer => renderer.sharedMaterial == annexArmor),
                 Is.EqualTo(3));
+            var cargoHero = salvageAnnex.GetComponentInChildren<AuthoredCargoAnnexHeroFinish>(true);
+            Assert.That(cargoHero, Is.Not.Null);
+            Assert.That(cargoHero.FinishRenderer.sharedMaterials, Has.Length.EqualTo(4));
+            Assert.That(cargoHero.FinishRenderer.GetComponentsInChildren<Collider>(true), Is.Empty);
             var eastVault = GameObject.Find("Optional East Salvage Vault");
             Assert.That(eastVault, Is.Not.Null,
                 "The fourth cache should occupy a scene-authored optional room beyond the original east boundary.");
