@@ -68,6 +68,7 @@ namespace DeadSignal.Editor
             DeadSignalDeepCoreReadabilitySetup.EnsureAssets();
             DeadSignalArcFurnaceSetup.EnsureAssets();
             DeadSignalQuenchLoopSetup.EnsureAssets();
+            DeadSignalActThreeCompositionSetup.EnsureAssets();
             DeadSignalEasternCombatScenarioSetup.EnsureAssets();
             DeadSignalSecurityTrialSetup.EnsureAssets();
             DeadSignalConvergenceReadabilitySetup.EnsureAssets();
@@ -234,6 +235,11 @@ namespace DeadSignal.Editor
             if (!DeadSignalActTwoCompositionSetup.HasAssets)
             {
                 throw new BuildFailedException("The authored Act II presentation composition is missing or incomplete.");
+            }
+
+            if (!DeadSignalActThreeCompositionSetup.HasAssets)
+            {
+                throw new BuildFailedException("The authored Act III deep-core presentation composition is missing or incomplete.");
             }
 
             if (!DeadSignalProjectSetup.HasSignalRoutingAssets)
