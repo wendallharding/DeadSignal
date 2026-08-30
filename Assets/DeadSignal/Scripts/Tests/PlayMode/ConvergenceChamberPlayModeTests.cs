@@ -181,6 +181,67 @@ namespace DeadSignal.Tests
             }
         }
 
+        [UnityTest]
+        public IEnumerator CalibrationPresentation_DistinguishesDormantLockedAvailableActiveCompleteAndReset()
+        {
+            yield return SceneManager.LoadSceneAsync("SampleScene");
+            yield return null;
+
+            var game = Object.FindFirstObjectByType<DeadSignalGame>();
+            var objective = Object.FindFirstObjectByType<AuthoredConvergenceCalibrationObjective>(
+                FindObjectsInactive.Include);
+            var selector = objective.transform.Find("Convergence Calibration Console/Convergence Calibration Status");
+            Assert.That(game, Is.Not.Null);
+            Assert.That(objective.HasReadabilityAssets, Is.True);
+            Assert.That(objective.PresentationState, Is.EqualTo(ConvergenceCalibrationPresentationState.Dormant));
+            Assert.That(selector, Is.Not.Null);
+            Assert.That(selector.GetComponent<Collider>(), Is.Null);
+            Assert.That(Resources.Load<Texture2D>("Environment/ConvergenceCalibrationStatusPanel"), Is.Not.Null);
+            Assert.That(Resources.Load<Mesh>("Environment/ConvergenceCalibrationStatusReadability"), Is.Not.Null);
+            Assert.That(Resources.Load<Material>(
+                "Materials/ConvergenceChamber/ConvergenceCalibrationStatus"), Is.Not.Null);
+
+            game.DebugActivateSpineTower();
+            yield return null;
+            Assert.That(objective.PresentationState,
+                Is.EqualTo(ConvergenceCalibrationPresentationState.PrerequisiteLocked));
+
+            game.DebugChargeInductionLattice();
+            yield return null;
+            Assert.That(objective.PresentationState,
+                Is.EqualTo(ConvergenceCalibrationPresentationState.PrerequisiteLocked));
+
+            game.DebugRouteFluxShunt();
+            yield return null;
+            Assert.That(objective.PresentationState, Is.EqualTo(ConvergenceCalibrationPresentationState.Available));
+
+            var player = game.transform.Find("Maintenance Drone");
+            player.position = game.ConvergenceCalibrationPosition;
+            game.DebugSetInvulnerable(true);
+            game.DebugBeginConvergenceCalibration();
+            yield return null;
+            Assert.That(objective.PresentationState, Is.EqualTo(ConvergenceCalibrationPresentationState.Active));
+            yield return new WaitForSecondsRealtime(0.85f);
+            Assert.That(Quaternion.Angle(Quaternion.identity, selector.localRotation), Is.InRange(65f, 80f));
+
+            var deadline = Time.time + 14f;
+            while (!game.IsConvergenceCalibrated && Time.time < deadline)
+            {
+                yield return null;
+            }
+
+            Assert.That(game.IsConvergenceCalibrated, Is.True);
+            Assert.That(objective.PresentationState, Is.EqualTo(ConvergenceCalibrationPresentationState.Complete));
+            Assert.That(Quaternion.Angle(Quaternion.identity, selector.localRotation), Is.InRange(115f, 125f));
+
+            yield return SceneManager.LoadSceneAsync("SampleScene");
+            yield return null;
+            objective = Object.FindFirstObjectByType<AuthoredConvergenceCalibrationObjective>(FindObjectsInactive.Include);
+            selector = objective.transform.Find("Convergence Calibration Console/Convergence Calibration Status");
+            Assert.That(objective.PresentationState, Is.EqualTo(ConvergenceCalibrationPresentationState.Dormant));
+            Assert.That(Quaternion.Angle(Quaternion.identity, selector.localRotation), Is.InRange(20f, 28f));
+        }
+
         private static IEnumerator _moveUp(Gamepad gamepad, Transform player, float targetZ)
         {
             var deadline = Time.time + 2f;

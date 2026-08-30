@@ -106,6 +106,15 @@ namespace DeadSignal.Diagnostics
                                  game != null && !game.IsFluxShuntRouted;
             var convergenceCalibrationReady = convergenceCalibrationObjective != null &&
                                               convergenceCalibrationObjective.IsConfigured &&
+                                              convergenceCalibrationObjective.HasReadabilityAssets &&
+                                              convergenceCalibrationObjective.PresentationState ==
+                                              ConvergenceCalibrationPresentationState.Dormant &&
+                                              Resources.Load<Texture2D>(
+                                                  "Environment/ConvergenceCalibrationStatusPanel") != null &&
+                                              Resources.Load<Mesh>(
+                                                  "Environment/ConvergenceCalibrationStatusReadability") != null &&
+                                              Resources.Load<Material>(
+                                                  "Materials/ConvergenceChamber/ConvergenceCalibrationStatus") != null &&
                                               Resources.Load<ConvergenceCalibrationTuning>(
                                                   "Tuning/ConvergenceCalibrationTuning") != null &&
                                               game != null && !game.IsConvergenceCalibrated;

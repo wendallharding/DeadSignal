@@ -462,6 +462,7 @@ namespace DeadSignal.World
         public void UpdateConvergenceCalibrationPresentation(RunModel model)
         {
             ConvergenceCalibrationObjective?.SetState(
+                model.DeepReturnNetworkPowered,
                 model.CurrentObjective.Id == MissionObjectiveId.ConvergenceCalibration,
                 model.ConvergenceCalibrationActive,
                 model.ConvergenceCalibrated);
