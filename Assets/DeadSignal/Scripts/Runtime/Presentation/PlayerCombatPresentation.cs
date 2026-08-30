@@ -19,6 +19,7 @@ namespace DeadSignal.Presentation
         private Transform m_muzzle;
         private Material m_energyMaterial;
         private IComfortSettings m_comfortSettings;
+        private PlayerDronePresentation m_dronePresentation;
         private float m_recoilRemaining;
         private Vector3 m_recoilDirection;
         private Vector3 m_turretRestPosition;
@@ -33,16 +34,22 @@ namespace DeadSignal.Presentation
             public float Age;
         }
 
-        internal void Configure(Transform turret, Transform muzzle, Material energyMaterial, IComfortSettings comfortSettings)
+        internal void Configure(
+            Transform turret,
+            Transform muzzle,
+            Material energyMaterial,
+            IComfortSettings comfortSettings,
+            PlayerDronePresentation dronePresentation)
         {
             m_turret = turret;
             m_muzzle = muzzle;
             m_energyMaterial = energyMaterial;
             m_comfortSettings = comfortSettings;
+            m_dronePresentation = dronePresentation;
             m_turretRestPosition = turret.localPosition;
         }
 
-        public void PlayShot(Vector3 direction)
+        public void PlayShot(Vector3 direction, bool evolved)
         {
             if (m_turret == null || m_muzzle == null)
             {
@@ -53,6 +60,7 @@ namespace DeadSignal.Presentation
             m_turretRestPosition = m_turret.localPosition;
             m_recoilDirection = direction.sqrMagnitude > 0.01f ? direction.normalized : m_turret.forward;
             m_recoilRemaining = RECOIL_DURATION;
+            m_dronePresentation?.PlayFire(evolved);
             _playMuzzleParticles(m_recoilDirection);
             if (!(m_comfortSettings?.ReducedFlashesEnabled ?? false))
             {
@@ -67,6 +75,8 @@ namespace DeadSignal.Presentation
             {
                 return;
             }
+
+            m_dronePresentation?.PlayDash();
 
             var root = new GameObject("Player Dash Afterimage");
             root.transform.SetParent(transform, true);

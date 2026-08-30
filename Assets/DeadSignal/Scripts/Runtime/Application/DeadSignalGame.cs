@@ -316,6 +316,7 @@ namespace DeadSignal.Application
         public bool HasPlayerMovementTuning => m_playerMovementTuning != null;
         public bool HasPlayerSignalWake => m_world?.PlayerSignalWake?.HasTexture ?? false;
         public bool HasPlayerCombatPresentation => m_world?.PlayerCombatPresentation != null;
+        public bool HasPlayerDronePresentation => m_world?.PlayerDronePresentation?.IsConfigured ?? false;
         public bool HasForegroundOcclusion => m_world?.ForegroundOcclusion != null;
         public bool HasSignalBoltBulkheadImpact => m_combatFeedback?.HasEnvironmentImpactTexture ?? false;
         public bool HasSignalRecoveryBurst => m_combatFeedback?.HasSignalRecoveryTexture ?? false;
@@ -1654,7 +1655,9 @@ namespace DeadSignal.Application
                 m_playerPresentationAcceleration,
                 m_playerMovement.Velocity,
                 aimDirection,
-                m_playerMovementTuning);
+                m_playerMovementTuning,
+                m_model.Signal / RunModel.MaximumSignal,
+                m_model.IsCriticalRecovery);
             var powered = _isPlayerPowered();
             m_world.TickEnvironmentPresentation(dt, m_model.TowerOnline, powered);
             m_world.UpdateCentralTransferPresentation(m_model);
@@ -3656,6 +3659,7 @@ namespace DeadSignal.Application
                     : m_world.Player.position;
                 m_extractionOutcomeFeedback.PlayOutcome(m_model.Outcome, position);
                 m_world.SetExtractionOutcomePresentation(m_model.Outcome, m_model.ExtractionUplinkComplete);
+                m_world.SetPlayerOutcome(m_model.Outcome);
             }
         }
     }

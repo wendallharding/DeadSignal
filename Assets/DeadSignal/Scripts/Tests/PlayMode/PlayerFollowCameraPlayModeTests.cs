@@ -6,7 +6,9 @@ using UnityEngine.InputSystem.LowLevel;
 using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
 using DeadSignal.Application;
+using DeadSignal.Diagnostics;
 using DeadSignal.Player;
+using DeadSignal.Presentation;
 
 namespace DeadSignal.Tests
 {
@@ -123,6 +125,56 @@ namespace DeadSignal.Tests
             Assert.That(viewportPosition.x, Is.InRange(0.08f, 0.92f),
                 "The drone must remain visible on the far side of the authored eastern room.");
             Assert.That(viewportPosition.y, Is.InRange(0.08f, 0.92f));
+        }
+
+        [UnityTest]
+        public IEnumerator DronePresentation_CommunicatesFireDamageCriticalRecoveryAndDefeat()
+        {
+            yield return SceneManager.LoadSceneAsync("SampleScene");
+            yield return null;
+
+            var game = Object.FindFirstObjectByType<DeadSignalGame>();
+            var player = game.transform.Find("Maintenance Drone");
+            var presentationRoot = player.Find("Drone Presentation");
+            var controller = player.GetComponent<PlayerDronePresentation>();
+            var tool = presentationRoot.Find("Drone Turret Facing/Drone Tool");
+            var restToolScale = tool.localScale;
+
+            Assert.That(game.HasPlayerDronePresentation, Is.True);
+            Assert.That(controller.IsConfigured, Is.True);
+
+            controller.PlayFire(true);
+            yield return null;
+            Assert.That(tool.localScale.magnitude, Is.GreaterThan(restToolScale.magnitude),
+                "Evolved fire should visibly emphasize the authored tool without moving the muzzle authority.");
+
+            controller.PlayDamage(player.position + Vector3.right);
+            yield return null;
+            Assert.That(controller.IsDamageReacting, Is.True,
+                "A resolved hostile hit should produce a bounded directional body reaction.");
+
+            game.DebugApplyScenario(DebugScenario.CriticalRecovery);
+            yield return null;
+            Assert.That(controller.IsCritical, Is.True,
+                "The drone should enter its urgent critical-Signal motion while deterministic recovery is active.");
+
+            game.DebugActivateTower();
+            yield return null;
+            Assert.That(controller.IsCritical, Is.False,
+                "Restoring Signal should settle the drone out of its critical presentation.");
+
+            game.DebugApplyScenario(DebugScenario.Failure);
+            yield return null;
+            Assert.That(controller.IsDefeated, Is.True);
+            Assert.That(presentationRoot.localPosition.y, Is.LessThan(-0.1f),
+                "Defeat should leave a readable static collapsed pose.");
+
+            yield return SceneManager.LoadSceneAsync("SampleScene");
+            yield return null;
+            controller = Object.FindFirstObjectByType<DeadSignalGame>()
+                .transform.Find("Maintenance Drone").GetComponent<PlayerDronePresentation>();
+            Assert.That(controller.IsDefeated, Is.False,
+                "A fresh run must reset every presentation-only state.");
         }
     }
 }

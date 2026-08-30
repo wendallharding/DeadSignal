@@ -506,9 +506,9 @@ namespace DeadSignal.Combat
             m_metrics.RecordShot();
             m_audio.Play(DeadSignalAudioCue.Fire);
             LastShotBlockedByEnvironment = false;
-            var shot = m_world.CreateSignalBolt(direction);
-            m_world.PlayPlayerShot(direction);
             var weaponOverclock = m_overclockChoice.SelectedWeapon;
+            var shot = m_world.CreateSignalBolt(direction);
+            m_world.PlayPlayerShot(direction, m_overclockChoice.IsWeaponEvolved);
             var threatHits = weaponOverclock == SignalWeaponOverclock.PiercingPulse
                 ? m_overclockChoice.IsWeaponEvolved
                     ? m_overclockTuning.EvolvedPiercingPulseThreatHits
@@ -643,6 +643,7 @@ namespace DeadSignal.Combat
                         m_model.TakeSuppressionPulse(m_tuning.SuppressorSignalDrain);
                         m_directionalDamageFeedback.Play(
                             m_world.Suppressor.position, m_world.Player.position, PlayerDamageFeedbackKind.Security);
+                        m_world.PlayPlayerDamage(m_world.Suppressor.position);
                         m_showFeedback($"SUPPRESSION FIELD  −{m_tuning.SuppressorSignalDrain:0} SIGNAL — BREAK OUT");
                     }
                 }
@@ -926,6 +927,7 @@ namespace DeadSignal.Combat
             m_metrics.RecordSecurityHit();
             m_directionalDamageFeedback.Play(
                 m_world.Interceptor.position, m_world.Player.position, PlayerDamageFeedbackKind.Security);
+            m_world.PlayPlayerDamage(m_world.Interceptor.position);
             m_combatFeedback.PlaySecurityImpact(m_world.Player.position + Vector3.up * 0.58f);
             m_audio.Play(DeadSignalAudioCue.SecurityImpact);
             m_showFeedback($"INTERCEPTOR IMPACT  −{RunModel.SecurityHitCost:0} SIGNAL");
@@ -1010,6 +1012,7 @@ namespace DeadSignal.Combat
             m_metrics.RecordSecurityHit();
             m_directionalDamageFeedback.Play(
                 m_world.Warden.position, m_world.Player.position, PlayerDamageFeedbackKind.Security);
+            m_world.PlayPlayerDamage(m_world.Warden.position);
             m_combatFeedback.PlaySecurityImpact(m_world.Player.position + Vector3.up * 0.58f);
             m_audio.Play(DeadSignalAudioCue.SecurityImpact);
             m_showFeedback("SECURITY IMPACT  −18 SIGNAL");
@@ -1083,6 +1086,7 @@ namespace DeadSignal.Combat
                 m_metrics.RecordSapperPulse();
                 m_directionalDamageFeedback.Play(
                     m_world.Sapper.position, m_world.Player.position, PlayerDamageFeedbackKind.Sapper);
+                m_world.PlayPlayerDamage(m_world.Sapper.position);
                 m_showFeedback($"SAPPER DRAIN  -{RunModel.SapperPulseCost:0} SIGNAL");
             }
         }
@@ -1666,6 +1670,7 @@ namespace DeadSignal.Combat
             m_model.TakeSuppressionPulse(m_swarmerTuning.ContactSignalDrain);
             m_metrics.RecordSwarmerContact();
             m_directionalDamageFeedback.Play(position, m_world.Player.position, PlayerDamageFeedbackKind.Security);
+            m_world.PlayPlayerDamage(position);
             m_showFeedback($"SWARMER IMPACT  −{m_swarmerTuning.ContactSignalDrain:0} SIGNAL");
         }
 

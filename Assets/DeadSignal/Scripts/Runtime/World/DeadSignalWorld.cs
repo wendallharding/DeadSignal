@@ -47,6 +47,7 @@ namespace DeadSignal.World
         public Transform PlayerTurret { get; private set; }
         public PlayerDroneSignalWake PlayerSignalWake { get; private set; }
         public PlayerCombatPresentation PlayerCombatPresentation { get; private set; }
+        public PlayerDronePresentation PlayerDronePresentation { get; private set; }
         public ForegroundOcclusionController ForegroundOcclusion { get; private set; }
         public Transform Warden { get; private set; }
         public WardenThreatTelegraph WardenTelegraph { get; private set; }
@@ -724,38 +725,13 @@ namespace DeadSignal.World
             Vector3 acceleration,
             Vector3 velocity,
             Vector3 aimDirection,
-            PlayerDroneMovementTuning tuning)
+            PlayerDroneMovementTuning tuning,
+            float signalRatio,
+            bool isCriticalRecovery)
         {
             PlayerCamera?.SetAimDirection(aimDirection);
-            var bodyForward = velocity.sqrMagnitude > 0.01f ? velocity.normalized : PlayerBody.forward;
-            bodyForward.y = 0f;
-            var bodyYaw = Quaternion.LookRotation(bodyForward, Vector3.up);
-            var localAcceleration = Quaternion.Inverse(bodyYaw) * acceleration;
-            var bankScale = tuning.MaximumBankDegrees / tuning.Acceleration;
-            var targetBank = Quaternion.Euler(
-                Mathf.Clamp(localAcceleration.z * bankScale, -tuning.MaximumBankDegrees, tuning.MaximumBankDegrees),
-                0f,
-                Mathf.Clamp(-localAcceleration.x * bankScale, -tuning.MaximumBankDegrees, tuning.MaximumBankDegrees));
-            var bodyTurnBlend = 1f - Mathf.Exp(-tuning.BodyTurnSharpness * dt);
-            var bankBlend = 1f - Mathf.Exp(-tuning.BankSharpness * dt);
-            var currentYaw = Quaternion.Euler(0f, PlayerBody.localEulerAngles.y, 0f);
-            var smoothedYaw = Quaternion.Slerp(currentYaw, bodyYaw, bodyTurnBlend);
-            var currentBank = Quaternion.Inverse(currentYaw) * PlayerBody.localRotation;
-            var smoothedBank = Quaternion.Slerp(currentBank, targetBank, bankBlend);
-            PlayerBody.localRotation = smoothedYaw * smoothedBank;
-
-            if (aimDirection.sqrMagnitude > 0.01f)
-            {
-                var turretTarget = Quaternion.LookRotation(aimDirection.normalized, Vector3.up);
-                var turretBlend = 1f - Mathf.Exp(-tuning.TurretTurnSharpness * dt);
-                PlayerTurret.rotation = Quaternion.Slerp(PlayerTurret.rotation, turretTarget, turretBlend);
-            }
-
-            PlayerTurret.localPosition = Vector3.up * tuning.TurretMountHeight;
-
-            PlayerPresentation.localPosition = Vector3.up *
-                                               (Mathf.Sin(Time.time * tuning.HoverFrequency * Mathf.PI * 2f) *
-                                                tuning.HoverAmplitude);
+            PlayerDronePresentation?.Tick(
+                dt, acceleration, velocity, aimDirection, tuning, signalRatio, isCriticalRecovery);
         }
 
         public void ConfigurePlayerSignalWake(PlayerDroneMovementTuning tuning)
@@ -973,10 +949,14 @@ namespace DeadSignal.World
             return bolt;
         }
 
-        public void PlayPlayerShot(Vector3 direction)
+        public void PlayPlayerShot(Vector3 direction, bool evolved)
         {
-            PlayerCombatPresentation?.PlayShot(direction);
+            PlayerCombatPresentation?.PlayShot(direction, evolved);
         }
+
+        public void PlayPlayerDamage(Vector3 sourcePosition) => PlayerDronePresentation?.PlayDamage(sourcePosition);
+
+        public void SetPlayerOutcome(RunOutcome outcome) => PlayerDronePresentation?.SetOutcome(outcome);
 
         public void PlayPlayerDash(Vector3 start, Vector3 end)
         {
@@ -1383,12 +1363,20 @@ namespace DeadSignal.World
 
         private void _configurePlayerCombatPresentation(IComfortSettings comfortSettings)
         {
+            PlayerDronePresentation = Player.gameObject.AddComponent<PlayerDronePresentation>();
+            PlayerDronePresentation.Configure(
+                PlayerPresentation,
+                PlayerBody,
+                PlayerTurret,
+                PlayerBody.Find("Drone Signal Ring"),
+                PlayerTurret.Find("Drone Tool"));
             PlayerCombatPresentation = Player.gameObject.AddComponent<PlayerCombatPresentation>();
             PlayerCombatPresentation.Configure(
                 PlayerTurret,
                 PlayerNose,
                 Resources.Load<Material>("Materials/SignalBoltTrail"),
-                comfortSettings);
+                comfortSettings,
+                PlayerDronePresentation);
         }
 
         private void _buildActors(IComfortSettings comfortSettings)
