@@ -220,6 +220,9 @@ namespace DeadSignal.Diagnostics
             var actOneCompositionPrefabReady = Resources.Load<GameObject>("Environment/ActOneComposition") != null;
             var actOneCompositionSceneReady =
                 FindFirstObjectByType<AuthoredActOneComposition>() is { IsConfigured: true };
+            var actTwoCompositionPrefabReady = Resources.Load<GameObject>("Environment/ActTwoComposition") != null;
+            var actTwoCompositionSceneReady =
+                FindFirstObjectByType<AuthoredActTwoComposition>() is { IsConfigured: true };
             var foregroundCutawayTextureReady =
                 Resources.Load<Texture2D>("VFX/ForegroundCutawayFootprint") != null;
             var foregroundCutawayMaterialReady =
@@ -256,6 +259,8 @@ namespace DeadSignal.Diagnostics
                       $"material={stationBackdropMaterialReady} prefab={stationBackdropPrefabReady}");
             Debug.Log($"[DEAD SIGNAL STANDALONE SMOKE] ACT I COMPOSITION | " +
                       $"scene={actOneCompositionSceneReady} prefab={actOneCompositionPrefabReady}");
+            Debug.Log($"[DEAD SIGNAL STANDALONE SMOKE] ACT II COMPOSITION | " +
+                      $"scene={actTwoCompositionSceneReady} prefab={actTwoCompositionPrefabReady}");
             Debug.Log($"[DEAD SIGNAL STANDALONE SMOKE] FOREGROUND CUTAWAY | " +
                       $"runtimeEnabled={game?.HasForegroundOcclusion ?? false} texture={foregroundCutawayTextureReady} " +
                       $"material={foregroundCutawayMaterialReady} authoredTexture={authoredCutawayTextureReady} " +
