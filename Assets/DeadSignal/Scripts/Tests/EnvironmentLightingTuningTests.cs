@@ -26,6 +26,14 @@ namespace DeadSignal.Tests
             Assert.That(tuning.MaximumPoweredRouteEmission, Is.LessThan(tuning.MaximumEmission));
             Assert.That(tuning.MaximumVisibleRealtimeLights, Is.EqualTo(5));
             Assert.That(tuning.MaximumShadowedRealtimeLights, Is.EqualTo(1));
+            var central = tuning.LandmarkLights.Single(profile => profile.RespondsToCentralPower);
+            Assert.That(central.Role, Is.EqualTo(EnvironmentLightRole.DominantTask));
+            Assert.That(central.GetColor(false), Is.Not.EqualTo(central.GetColor(true)));
+            Assert.That(central.GetIntensity(false), Is.LessThan(central.GetIntensity(true)));
+            Assert.That(tuning.CentralPoweredFixtureEmission, Is.GreaterThan(tuning.CentralDormantFixtureEmission));
+            Assert.That(tuning.OpeningFixtureEmission, Is.LessThan(tuning.CentralPoweredFixtureEmission));
+            Assert.That(tuning.OpeningTerritoryBase.a, Is.LessThan(0.2f));
+            Assert.That(tuning.OpeningTerritoryEdge.a, Is.LessThan(0.5f));
 
             var clamped = tuning.ClampEmission(new Color(6f, 2f, 1f));
             Assert.That(clamped.maxColorComponent, Is.EqualTo(tuning.MaximumEmission).Within(0.001f));

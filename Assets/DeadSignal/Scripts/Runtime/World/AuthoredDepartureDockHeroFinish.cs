@@ -14,17 +14,43 @@ namespace DeadSignal.World
     /// </summary>
     public sealed class AuthoredDepartureDockHeroFinish : MonoBehaviour
     {
+        private static readonly int s_emissionColor = Shader.PropertyToID("_EmissionColor");
+
         [SerializeField] private DepartureDockHeroOwner m_owner;
         [SerializeField] private MeshRenderer m_renderer;
 
         public DepartureDockHeroOwner Owner => m_owner;
         public MeshRenderer Renderer => m_renderer;
         public bool IsConfigured => m_renderer != null;
+        public Color PracticalEmission { get; private set; }
 
         public void Configure(DepartureDockHeroOwner owner, MeshRenderer renderer)
         {
             m_owner = owner;
             m_renderer = renderer;
+        }
+
+        public void SetPracticalLighting(Color color, float intensity)
+        {
+            PracticalEmission = color * Mathf.Max(0f, intensity);
+            _setMaterialEmission(2, PracticalEmission);
+            if (m_owner == DepartureDockHeroOwner.DepartureChannel)
+            {
+                _setMaterialEmission(3, new Color(1f, 0.38f, 0.04f) * intensity * 0.62f);
+            }
+        }
+
+        private void _setMaterialEmission(int materialIndex, Color emission)
+        {
+            if (m_renderer == null || materialIndex < 0 || materialIndex >= m_renderer.sharedMaterials.Length)
+            {
+                return;
+            }
+
+            var block = new MaterialPropertyBlock();
+            m_renderer.GetPropertyBlock(block, materialIndex);
+            block.SetColor(s_emissionColor, emission);
+            m_renderer.SetPropertyBlock(block, materialIndex);
         }
     }
 }

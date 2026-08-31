@@ -18,32 +18,47 @@ namespace DeadSignal.Presentation
         [SerializeField] private string m_name;
         [SerializeField] private EnvironmentLightRole m_role;
         [SerializeField] private Color m_color = Color.white;
+        [SerializeField] private Color m_poweredColor = Color.white;
         [SerializeField, Min(0.1f)] private float m_range = 5f;
         [SerializeField, Min(0f)] private float m_intensity = 1f;
         [SerializeField, Range(0f, 1f)] private float m_dormantIntensityMultiplier = 1f;
+        [SerializeField] private bool m_respondsToCentralPower;
 
         public string Name => m_name;
         public EnvironmentLightRole Role => m_role;
         public Color Color => m_color;
+        public Color PoweredColor => m_poweredColor;
         public float Range => m_range;
         public float Intensity => m_intensity;
         public float DormantIntensityMultiplier => m_dormantIntensityMultiplier;
+        public bool RespondsToCentralPower => m_respondsToCentralPower;
 
         public EnvironmentLightProfile(
             string name,
             EnvironmentLightRole role,
             Color color,
+            Color poweredColor,
             float range,
             float intensity,
-            float dormantIntensityMultiplier = 1f)
+            float dormantIntensityMultiplier = 1f,
+            bool respondsToCentralPower = false)
         {
             m_name = name;
             m_role = role;
             m_color = color;
+            m_poweredColor = poweredColor;
             m_range = range;
             m_intensity = intensity;
             m_dormantIntensityMultiplier = dormantIntensityMultiplier;
+            m_respondsToCentralPower = respondsToCentralPower;
         }
+
+        public Color GetColor(bool centralPowered) => m_respondsToCentralPower && centralPowered
+            ? m_poweredColor
+            : m_color;
+
+        public float GetIntensity(bool centralPowered) => m_intensity *
+            (m_respondsToCentralPower && !centralPowered ? m_dormantIntensityMultiplier : 1f);
 
         public void Validate()
         {
@@ -90,15 +105,20 @@ namespace DeadSignal.Presentation
         [Header("Practical-light roles")]
         [SerializeField] private List<EnvironmentLightProfile> m_landmarkLights = new()
         {
-            new EnvironmentLightProfile("Tower Signal Pool", EnvironmentLightRole.DominantTask,
-                new Color(0.05f, 0.75f, 1f), 7f, 1f, 0.35f),
-            new EnvironmentLightProfile("Extraction Guidance Pool", EnvironmentLightRole.Navigation,
-                new Color(0.08f, 0.9f, 1f), 6f, 1f),
+            new EnvironmentLightProfile("Central Coupling Task Pool", EnvironmentLightRole.DominantTask,
+                new Color(1f, 0.42f, 0.08f), new Color(0.14f, 0.72f, 0.9f), 7.8f, 1.25f, 0.48f, true),
+            new EnvironmentLightProfile("Dock Uplink Guidance Pool", EnvironmentLightRole.Navigation,
+                new Color(0.22f, 0.62f, 0.72f), new Color(0.22f, 0.62f, 0.72f), 5.4f, 0.82f),
             new EnvironmentLightProfile("Salvage Annex Worklight", EnvironmentLightRole.SecondaryTask,
-                new Color(1f, 0.48f, 0.08f), 5f, 1f),
+                new Color(1f, 0.48f, 0.08f), new Color(1f, 0.48f, 0.08f), 5f, 0.9f),
             new EnvironmentLightProfile("Security Bay Alarm", EnvironmentLightRole.Practical,
-                new Color(1f, 0.08f, 0.12f), 5f, 1f)
+                new Color(1f, 0.08f, 0.12f), new Color(1f, 0.08f, 0.12f), 5f, 0.9f)
         };
+        [SerializeField, Range(0f, 2f)] private float m_openingFixtureEmission = 0.28f;
+        [SerializeField, Range(0f, 2f)] private float m_centralDormantFixtureEmission = 0.18f;
+        [SerializeField, Range(0f, 2f)] private float m_centralPoweredFixtureEmission = 0.72f;
+        [SerializeField] private Color m_openingTerritoryBase = new(0.012f, 0.22f, 0.28f, 0.12f);
+        [SerializeField] private Color m_openingTerritoryEdge = new(0.08f, 0.72f, 0.82f, 0.42f);
         [SerializeField, Range(0f, 0.25f)] private float m_practicalPulseDepth = 0.12f;
         [SerializeField, Range(0f, 0.25f)] private float m_reducedFlashesPulseDepth = 0.035f;
         [SerializeField, Min(0f)] private float m_practicalPulseSpeed = 2.2f;
@@ -130,6 +150,11 @@ namespace DeadSignal.Presentation
         public float VignetteSmoothness => m_vignetteSmoothness;
         public float VignetteResponse => m_vignetteResponse;
         public IReadOnlyList<EnvironmentLightProfile> LandmarkLights => m_landmarkLights;
+        public float OpeningFixtureEmission => m_openingFixtureEmission;
+        public float CentralDormantFixtureEmission => m_centralDormantFixtureEmission;
+        public float CentralPoweredFixtureEmission => m_centralPoweredFixtureEmission;
+        public Color OpeningTerritoryBase => m_openingTerritoryBase;
+        public Color OpeningTerritoryEdge => m_openingTerritoryEdge;
         public float PracticalPulseDepth => m_practicalPulseDepth;
         public float ReducedFlashesPulseDepth => m_reducedFlashesPulseDepth;
         public float PracticalPulseSpeed => m_practicalPulseSpeed;
@@ -164,6 +189,10 @@ namespace DeadSignal.Presentation
             m_maximumVisibleRealtimeLights = Mathf.Clamp(m_maximumVisibleRealtimeLights, 1, 12);
             m_maximumShadowedRealtimeLights = Mathf.Clamp(
                 m_maximumShadowedRealtimeLights, 0, m_maximumVisibleRealtimeLights);
+            m_openingFixtureEmission = Mathf.Clamp(m_openingFixtureEmission, 0f, m_maximumEmission);
+            m_centralDormantFixtureEmission = Mathf.Clamp(m_centralDormantFixtureEmission, 0f, m_maximumEmission);
+            m_centralPoweredFixtureEmission = Mathf.Clamp(
+                m_centralPoweredFixtureEmission, m_centralDormantFixtureEmission, m_maximumEmission);
             m_landmarkLights ??= new List<EnvironmentLightProfile>();
             foreach (var profile in m_landmarkLights)
             {

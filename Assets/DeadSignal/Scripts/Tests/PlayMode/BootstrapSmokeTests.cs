@@ -1657,8 +1657,8 @@ namespace DeadSignal.Tests
                 "The powered territory should use its transparent radial presentation shader.");
             Assert.That(game.transform.Find("Dead Signal Global Grade"), Is.Not.Null,
                 "The runtime should compose its restrained global post-processing grade.");
-            Assert.That(game.transform.Find("Tower Signal Pool")?.GetComponent<Light>(), Is.Not.Null);
-            Assert.That(game.transform.Find("Extraction Guidance Pool")?.GetComponent<Light>(), Is.Not.Null);
+            Assert.That(game.transform.Find("Central Coupling Task Pool")?.GetComponent<Light>(), Is.Not.Null);
+            Assert.That(game.transform.Find("Dock Uplink Guidance Pool")?.GetComponent<Light>(), Is.Not.Null);
             Assert.That(game.transform.Find("Salvage Annex Worklight")?.GetComponent<Light>(), Is.Not.Null);
             Assert.That(game.transform.Find("Security Bay Alarm")?.GetComponent<Light>(), Is.Not.Null,
                 "Each major station zone should receive a distinct localized light pool.");

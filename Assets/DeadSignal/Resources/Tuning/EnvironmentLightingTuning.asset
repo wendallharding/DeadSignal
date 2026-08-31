@@ -33,30 +33,43 @@ MonoBehaviour:
   m_vignetteSmoothness: 0.48
   m_vignetteResponse: 0.15
   m_landmarkLights:
-  - m_name: Tower Signal Pool
+  - m_name: Central Coupling Task Pool
     m_role: 0
-    m_color: {r: 0.05, g: 0.75, b: 1, a: 1}
-    m_range: 7
-    m_intensity: 1
-    m_dormantIntensityMultiplier: 0.35
-  - m_name: Extraction Guidance Pool
+    m_color: {r: 1, g: 0.42, b: 0.08, a: 1}
+    m_poweredColor: {r: 0.14, g: 0.72, b: 0.9, a: 1}
+    m_range: 7.8
+    m_intensity: 1.25
+    m_dormantIntensityMultiplier: 0.48
+    m_respondsToCentralPower: 1
+  - m_name: Dock Uplink Guidance Pool
     m_role: 3
-    m_color: {r: 0.08, g: 0.9, b: 1, a: 1}
-    m_range: 6
-    m_intensity: 1
+    m_color: {r: 0.22, g: 0.62, b: 0.72, a: 1}
+    m_poweredColor: {r: 0.22, g: 0.62, b: 0.72, a: 1}
+    m_range: 5.4
+    m_intensity: 0.82
     m_dormantIntensityMultiplier: 1
+    m_respondsToCentralPower: 0
   - m_name: Salvage Annex Worklight
     m_role: 1
     m_color: {r: 1, g: 0.48, b: 0.08, a: 1}
+    m_poweredColor: {r: 1, g: 0.48, b: 0.08, a: 1}
     m_range: 5
-    m_intensity: 1
+    m_intensity: 0.9
     m_dormantIntensityMultiplier: 1
+    m_respondsToCentralPower: 0
   - m_name: Security Bay Alarm
     m_role: 2
     m_color: {r: 1, g: 0.08, b: 0.12, a: 1}
+    m_poweredColor: {r: 1, g: 0.08, b: 0.12, a: 1}
     m_range: 5
-    m_intensity: 1
+    m_intensity: 0.9
     m_dormantIntensityMultiplier: 1
+    m_respondsToCentralPower: 0
+  m_openingFixtureEmission: 0.28
+  m_centralDormantFixtureEmission: 0.18
+  m_centralPoweredFixtureEmission: 0.72
+  m_openingTerritoryBase: {r: 0.012, g: 0.22, b: 0.28, a: 0.12}
+  m_openingTerritoryEdge: {r: 0.08, g: 0.72, b: 0.82, a: 0.42}
   m_practicalPulseDepth: 0.12
   m_reducedFlashesPulseDepth: 0.035
   m_practicalPulseSpeed: 2.2

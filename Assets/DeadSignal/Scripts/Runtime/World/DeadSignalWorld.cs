@@ -65,6 +65,7 @@ namespace DeadSignal.World
         public SuppressorFieldTelegraph SuppressorFieldTelegraph { get; private set; }
         public Transform TowerCore { get; private set; }
         public AuthoredCentralTowerReadability CentralTowerReadability { get; private set; }
+        public AuthoredCentralHeroFinish CentralHeroFinish { get; private set; }
         public Transform RelayTowerCore { get; private set; }
         public Transform SpineTowerCore { get; private set; }
         public SignalSapperTelegraph SapperTelegraph { get; private set; }
@@ -173,6 +174,13 @@ namespace DeadSignal.World
 
             m_comfortSettings.ReducedFlashesChanged += _handleReducedFlashesChanged;
             m_palette = new DeadSignalPalette(comfortSettings.HighContrastEnabled, m_environmentLightingTuning);
+            m_openingPoweredTerritoryMaterial = new Material(m_palette.PoweredTerritory)
+            {
+                name = "Opening Powered Territory",
+                hideFlags = HideFlags.DontSave
+            };
+            m_openingPoweredTerritoryMaterial.SetColor("_BaseColor", m_environmentLightingTuning.OpeningTerritoryBase);
+            m_openingPoweredTerritoryMaterial.SetColor("_EdgeColor", m_environmentLightingTuning.OpeningTerritoryEdge);
             m_signalBoltPrefab = Resources.Load<GameObject>(SIGNAL_BOLT_PREFAB_RESOURCE);
             m_signalBoltTuning = Resources.Load<SignalBoltPresentationTuning>("Tuning/SignalBoltPresentationTuning");
             HasSignalBoltAssets = m_signalBoltPrefab != null &&
@@ -421,6 +429,7 @@ namespace DeadSignal.World
             CentralInstallationObjective?.SetState(
                 model.CurrentObjective.Id == MissionObjectiveId.CentralInstallation,
                 model.CentralPayloadSecured);
+            _applyCentralLightingState(model.TowerOnline);
         }
 
         public void CompleteCentralInstallation()
@@ -598,7 +607,7 @@ namespace DeadSignal.World
 
         public void ActivateTower(float sapperPulseInterval)
         {
-            m_towerTerritory.GetComponent<Renderer>().sharedMaterial = m_palette.PoweredTerritory;
+            m_towerTerritory.GetComponent<Renderer>().sharedMaterial = m_openingPoweredTerritoryMaterial;
             foreach (var marker in m_towerTerritoryMarkers)
             {
                 marker.GetComponent<Renderer>().sharedMaterial = m_palette.Cyan;
@@ -779,6 +788,10 @@ namespace DeadSignal.World
         {
             m_comfortSettings.ReducedFlashesChanged -= _handleReducedFlashesChanged;
             m_navMeshPlanner?.Dispose();
+            if (m_openingPoweredTerritoryMaterial != null)
+            {
+                Object.Destroy(m_openingPoweredTerritoryMaterial);
+            }
             m_palette.Dispose();
         }
 
@@ -1069,6 +1082,10 @@ namespace DeadSignal.World
             {
                 m_palette.PoweredTerritory.SetFloat("_Pulse", m_boundaryPulse);
             }
+            if (m_openingPoweredTerritoryMaterial != null)
+            {
+                m_openingPoweredTerritoryMaterial.SetFloat("_Pulse", m_boundaryPulse);
+            }
 
             for (var index = 0; index < m_environmentAnimators.Count; index++)
             {
@@ -1098,14 +1115,14 @@ namespace DeadSignal.World
             {
                 var light = m_landmarkLights[index];
                 var profile = m_environmentLightingTuning.LandmarkLights[index];
-                var stateMultiplier = index == 0 && !towerOnline ? profile.DormantIntensityMultiplier : 1f;
                 var pulseDepth = m_comfortSettings.ReducedFlashesEnabled
                     ? m_environmentLightingTuning.ReducedFlashesPulseDepth
                     : m_environmentLightingTuning.PracticalPulseDepth;
                 var pulse = 1f - pulseDepth +
                             Mathf.Sin(m_environmentTime * m_environmentLightingTuning.PracticalPulseSpeed + index) *
                             pulseDepth;
-                light.intensity = profile.Intensity * stateMultiplier * pulse;
+                light.color = profile.GetColor(towerOnline);
+                light.intensity = profile.GetIntensity(towerOnline) * pulse;
             }
 
             if (m_deadZoneVignette != null)
@@ -1250,7 +1267,8 @@ namespace DeadSignal.World
         {
             _bindAuthoredEnvironment();
 
-            _createTerritory("Dock Power Territory", ExtractionPosition, STARTING_POWER_RADIUS, m_palette.PoweredTerritory);
+            _createTerritory("Dock Power Territory", ExtractionPosition, STARTING_POWER_RADIUS,
+                m_openingPoweredTerritoryMaterial);
             _createTerritoryMarkers("Dock Power Boundary", ExtractionPosition, STARTING_POWER_RADIUS, m_palette.Cyan, null);
             m_towerTerritory = _createTerritory("Tower Power Territory", TowerPosition, TOWER_POWER_RADIUS, m_palette.Dark);
             _createTerritoryMarkers("Tower Power Boundary", TowerPosition, TOWER_POWER_RADIUS, m_palette.Dark,
@@ -1316,6 +1334,7 @@ namespace DeadSignal.World
             var tower = m_scene.SignalTower.transform;
             TowerCore = tower.Find("Tower Core");
             CentralTowerReadability = tower.GetComponent<AuthoredCentralTowerReadability>();
+            CentralHeroFinish = tower.GetComponentInChildren<AuthoredCentralHeroFinish>(true);
             m_environmentAnimators.Add(TowerCore);
             SignalTowerPartCount = 3;
             HasSignalTowerAssets = m_palette.HasTowerTexture;
@@ -1357,6 +1376,16 @@ namespace DeadSignal.World
                 m_quenchReturnSignal.SetActive(false);
             }
             m_departureChannel = GameObject.Find("Extraction Departure Channel")?.transform;
+            var channelHeroFinish = m_departureChannel?.GetComponent<AuthoredDepartureDockHeroFinish>();
+            var dockHeroFinish = extraction.GetComponent<AuthoredDepartureDockHeroFinish>();
+            if (channelHeroFinish != null)
+            {
+                m_departureDockHeroFinishes.Add(channelHeroFinish);
+            }
+            if (dockHeroFinish != null)
+            {
+                m_departureDockHeroFinishes.Add(dockHeroFinish);
+            }
             m_departureReturnGate = m_departureChannel?.Find("Departure Cargo Shutter")?.gameObject;
             m_departureReturnSignal = m_departureChannel?.Find("Departure Cargo Return Signal")?.gameObject;
             m_departureSurgeSignal = m_departureChannel?.Find("Departure Capacitor Surge Signal")?.gameObject;
@@ -1379,6 +1408,8 @@ namespace DeadSignal.World
                 StationMachinePartCount += 2;
             }
             HasStationMachineAssets = StationMachineInstanceCount == 6 && m_palette.HasStationMachineTexture;
+            _applyOpeningLightingState();
+            _applyCentralLightingState(false);
 
             var shortcut = m_scene.ShortcutGate.transform;
             foreach (var renderer in shortcut.GetComponentsInChildren<Renderer>())
@@ -1872,11 +1903,35 @@ namespace DeadSignal.World
             root.transform.position = position;
             var light = root.AddComponent<Light>();
             light.type = LightType.Point;
-            light.color = profile.Color;
+            light.color = profile.GetColor(false);
             light.range = profile.Range;
-            light.intensity = profile.Intensity;
+            light.intensity = profile.GetIntensity(false);
             light.shadows = LightShadows.None;
             m_landmarkLights.Add(light);
+        }
+
+        private void _applyOpeningLightingState()
+        {
+            var profile = m_environmentLightingTuning.LandmarkLights[1];
+            foreach (var finish in m_departureDockHeroFinishes)
+            {
+                finish.SetPracticalLighting(profile.Color, m_environmentLightingTuning.OpeningFixtureEmission);
+            }
+        }
+
+        private void _applyCentralLightingState(bool powered)
+        {
+            if (CentralHeroFinish == null)
+            {
+                return;
+            }
+
+            var profile = m_environmentLightingTuning.LandmarkLights[0];
+            CentralHeroFinish.SetPracticalLighting(
+                profile.GetColor(powered),
+                powered
+                    ? m_environmentLightingTuning.CentralPoweredFixtureEmission
+                    : m_environmentLightingTuning.CentralDormantFixtureEmission);
         }
 
         private void _buildEnvironmentalDressing()
@@ -2182,6 +2237,7 @@ namespace DeadSignal.World
         private readonly DeadSignalPalette m_palette;
         private readonly IComfortSettings m_comfortSettings;
         private readonly EnvironmentLightingTuning m_environmentLightingTuning;
+        private readonly Material m_openingPoweredTerritoryMaterial;
         private readonly GameObject m_signalBoltPrefab;
         private readonly SignalBoltPresentationTuning m_signalBoltTuning;
         private readonly List<AuthoredMapObstacle> m_authoredMapObstacles = new();
@@ -2196,6 +2252,7 @@ namespace DeadSignal.World
         private readonly List<GameObject> m_spineTerritoryMarkers = new();
         private readonly List<Transform> m_environmentAnimators = new();
         private readonly List<Light> m_landmarkLights = new();
+        private readonly List<AuthoredDepartureDockHeroFinish> m_departureDockHeroFinishes = new();
         private readonly List<Vector3> m_machineSockets = new();
         private readonly List<Vector3> m_interceptorEntrances = new();
         private int m_deepRouteEntranceIndex = -1;
