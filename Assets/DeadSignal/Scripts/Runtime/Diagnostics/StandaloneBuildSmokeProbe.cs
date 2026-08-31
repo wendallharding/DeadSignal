@@ -499,6 +499,13 @@ namespace DeadSignal.Diagnostics
                                     "Spine Induction Gallery Region/Convergence Chamber Region/" +
                                     "Convergence Breaker Gallery Region/Breaker Gallery Reinforcement Gate") != null &&
                                 Resources.Load<GameObject>("Environment/ConvergenceBreakerGalleryRegion") != null &&
+                                Resources.Load<Texture2D>("Environment/ConvergenceBreakerHeroAtlas") != null &&
+                                Resources.Load<Mesh>("Environment/ConvergenceChamberHeroFinish") != null &&
+                                Resources.Load<Mesh>("Environment/BreakerGalleryHeroFinish") != null &&
+                                game.transform.Find(
+                                    "Spine Induction Gallery Region/Convergence Chamber Region/Convergence Chamber Hero Finish") != null &&
+                                game.transform.Find(
+                                    "Spine Induction Gallery Region/Convergence Chamber Region/Convergence Breaker Gallery Region/Breaker Gallery Hero Finish") != null &&
                                 Resources.Load<Texture2D>("Environment/ConvergenceBreakerGalleryRouteDecal") != null &&
                                 Resources.Load<Material>(
                                     "Materials/ConvergenceBreakerGallery/ConvergenceBreakerGalleryRouteDecal") != null &&

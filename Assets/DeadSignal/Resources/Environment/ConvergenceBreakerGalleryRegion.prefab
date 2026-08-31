@@ -225,7 +225,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e5c2114ec9f7be54889bb05839f089fe, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: DeadSignal.Runtime::DeadSignal.World.AuthoredMapObstacle
   m_localHalfSize: {x: 0.5, y: 0.5}
 --- !u!1 &1591063098180768034
@@ -361,7 +361,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6d447004bbf136e418d9e28c907bbda0, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: DeadSignal.Runtime::DeadSignal.World.AuthoredInterceptorEntrance
   m_priority: 16
 --- !u!1 &2637713935683236029
@@ -431,7 +431,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: d85eab2abe9601a4e96a656f2675f35b, type: 2}
+  - {fileID: 2100000, guid: 5850e02a1720f874ea2e5c62eb5974e0, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -465,7 +465,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e5c2114ec9f7be54889bb05839f089fe, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: DeadSignal.Runtime::DeadSignal.World.AuthoredMapObstacle
   m_localHalfSize: {x: 0.5, y: 0.5}
 --- !u!1 &2759782443978994978
@@ -569,7 +569,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e5c2114ec9f7be54889bb05839f089fe, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: DeadSignal.Runtime::DeadSignal.World.AuthoredMapObstacle
   m_localHalfSize: {x: 0.5, y: 0.5}
 --- !u!1 &2850136008949596297
@@ -943,6 +943,7 @@ GameObject:
   - component: {fileID: 6850440785263549511}
   - component: {fileID: 9005372765267704742}
   - component: {fileID: 7170741415462586606}
+  - component: {fileID: 1830720235289007403}
   m_Layer: 0
   m_Name: ConvergenceBreakerGalleryRegion
   m_TagString: Untagged
@@ -979,6 +980,7 @@ Transform:
   - {fileID: 7544503194702868897}
   - {fileID: 395728480431090852}
   - {fileID: 8603224245893874299}
+  - {fileID: 4406839989239089948}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &9005372765267704742
@@ -991,7 +993,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c374d0fdc44df7d4b9dfd276d38178f6, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: DeadSignal.Runtime::DeadSignal.World.AuthoredBreakerResetObjective
   m_resetAnchor: {fileID: 940290788423722339}
   m_availableMarker: {fileID: 748470945858333784}
@@ -1009,11 +1011,24 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 2b319828419d9e045b8343a8b4d68ae7, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: DeadSignal.Runtime::DeadSignal.World.AuthoredPoweredTerritory
   m_source: 2
   m_halfExtents: {x: 3.15, y: 3.65}
   m_signalRouting: {fileID: 712046020731004288}
+--- !u!114 &1830720235289007403
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4710558057452829574}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7a33fd4933aae914b91e3eaa72fe6789, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: DeadSignal.Runtime::DeadSignal.World.AuthoredConvergenceBreakerHeroFinish
+  m_finishRenderer: {fileID: 7663898756740454636}
 --- !u!1 &5316697000754342466
 GameObject:
   m_ObjectHideFlags: 0
@@ -1115,9 +1130,102 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e5c2114ec9f7be54889bb05839f089fe, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: DeadSignal.Runtime::DeadSignal.World.AuthoredMapObstacle
   m_localHalfSize: {x: 0.5, y: 0.5}
+--- !u!1 &5645748436564950406
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 4406839989239089948}
+  - component: {fileID: 3394991937842028742}
+  - component: {fileID: 7663898756740454636}
+  m_Layer: 0
+  m_Name: Breaker Gallery Hero Finish
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &4406839989239089948
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5645748436564950406}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 6850440785263549511}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!33 &3394991937842028742
+MeshFilter:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5645748436564950406}
+  m_Mesh: {fileID: 4300000, guid: 09c29804e92b8dc48932be506e4a0732, type: 2}
+--- !u!23 &7663898756740454636
+MeshRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5645748436564950406}
+  m_Enabled: 1
+  m_CastShadows: 1
+  m_ReceiveShadows: 1
+  m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
+  m_MotionVectors: 1
+  m_LightProbeUsage: 1
+  m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
+  m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
+  m_ForceMeshLod: -1
+  m_MeshLodSelectionBias: 0
+  m_RenderingLayerMask: 1
+  m_RendererPriority: 0
+  m_Materials:
+  - {fileID: 2100000, guid: 289f4c8b3a040c34b9e082edb05eb09e, type: 2}
+  - {fileID: 2100000, guid: 5850e02a1720f874ea2e5c62eb5974e0, type: 2}
+  - {fileID: 2100000, guid: 326be0922c3a54a48a508f5e05591617, type: 2}
+  - {fileID: 2100000, guid: f300bfbcc18c8d840a36ef99a4369f30, type: 2}
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
+  m_StaticBatchRoot: {fileID: 0}
+  m_ProbeAnchor: {fileID: 0}
+  m_LightProbeVolumeOverride: {fileID: 0}
+  m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
+  m_PreserveUVs: 0
+  m_IgnoreNormalsForChartDetection: 0
+  m_ImportantGI: 0
+  m_StitchLightmapSeams: 1
+  m_SelectedEditorRenderState: 3
+  m_MinimumChartSize: 4
+  m_AutoUVMaxDistance: 0.5
+  m_AutoUVMaxAngle: 89
+  m_LightmapParameters: {fileID: 0}
+  m_GlobalIlluminationMeshLod: 0
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 0
+  m_MaskInteraction: 0
+  m_AdditionalVertexStreams: {fileID: 0}
 --- !u!1 &5851996350663622918
 GameObject:
   m_ObjectHideFlags: 0
@@ -1185,7 +1293,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: d85eab2abe9601a4e96a656f2675f35b, type: 2}
+  - {fileID: 2100000, guid: 5850e02a1720f874ea2e5c62eb5974e0, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -1219,7 +1327,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e5c2114ec9f7be54889bb05839f089fe, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: DeadSignal.Runtime::DeadSignal.World.AuthoredMapObstacle
   m_localHalfSize: {x: 0.5, y: 0.5}
 --- !u!1 &6012092154011225399
@@ -1499,7 +1607,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: d40ca945977bd91459a913e77c18a22b, type: 2}
+  - {fileID: 2100000, guid: f300bfbcc18c8d840a36ef99a4369f30, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -1624,7 +1732,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e5c2114ec9f7be54889bb05839f089fe, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: DeadSignal.Runtime::DeadSignal.World.AuthoredMapObstacle
   m_localHalfSize: {x: 0.5, y: 0.5}
 --- !u!1 &9049791050227230192
@@ -1728,7 +1836,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e5c2114ec9f7be54889bb05839f089fe, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: DeadSignal.Runtime::DeadSignal.World.AuthoredMapObstacle
   m_localHalfSize: {x: 0.5, y: 0.5}
 --- !u!1001 &8666824539168432802
@@ -1739,10 +1847,38 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 6850440785263549511}
     m_Modifications:
+    - target: {fileID: 2406818943941507889, guid: 5b81162dd943d1f4ebd888695b831d68, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 289f4c8b3a040c34b9e082edb05eb09e, type: 2}
     - target: {fileID: 2729410161843838508, guid: 5b81162dd943d1f4ebd888695b831d68, type: 3}
       propertyPath: m_Name
       value: Breaker Bank Assembly
       objectReference: {fileID: 0}
+    - target: {fileID: 2854923272532640664, guid: 5b81162dd943d1f4ebd888695b831d68, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 289f4c8b3a040c34b9e082edb05eb09e, type: 2}
+    - target: {fileID: 3222970372465621578, guid: 5b81162dd943d1f4ebd888695b831d68, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 5850e02a1720f874ea2e5c62eb5974e0, type: 2}
+    - target: {fileID: 3516120203119699781, guid: 5b81162dd943d1f4ebd888695b831d68, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 326be0922c3a54a48a508f5e05591617, type: 2}
+    - target: {fileID: 4820717904666900307, guid: 5b81162dd943d1f4ebd888695b831d68, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 5850e02a1720f874ea2e5c62eb5974e0, type: 2}
+    - target: {fileID: 4911817601655536617, guid: 5b81162dd943d1f4ebd888695b831d68, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 5850e02a1720f874ea2e5c62eb5974e0, type: 2}
+    - target: {fileID: 5687181585099867427, guid: 5b81162dd943d1f4ebd888695b831d68, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 326be0922c3a54a48a508f5e05591617, type: 2}
     - target: {fileID: 5737331712820007818, guid: 5b81162dd943d1f4ebd888695b831d68, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0.4
@@ -1783,6 +1919,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 6557743531003949944, guid: 5b81162dd943d1f4ebd888695b831d68, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 5850e02a1720f874ea2e5c62eb5974e0, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []

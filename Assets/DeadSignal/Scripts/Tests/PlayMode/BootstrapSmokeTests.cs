@@ -87,6 +87,9 @@ namespace DeadSignal.Tests
                 Assert.That(Resources.Load<Texture2D>("Environment/InductionFluxHeroAtlas"), Is.Not.Null);
                 Assert.That(Resources.Load<Mesh>("Environment/InductionGalleryHeroFinish"), Is.Not.Null);
                 Assert.That(Resources.Load<Mesh>("Environment/FluxBypassHeroFinish"), Is.Not.Null);
+                Assert.That(Resources.Load<Texture2D>("Environment/ConvergenceBreakerHeroAtlas"), Is.Not.Null);
+                Assert.That(Resources.Load<Mesh>("Environment/ConvergenceChamberHeroFinish"), Is.Not.Null);
+                Assert.That(Resources.Load<Mesh>("Environment/BreakerGalleryHeroFinish"), Is.Not.Null);
                 Assert.That(foundry.Find("Foundry Route Split Decal"), Is.Not.Null,
                     "The region junction should carry its authored protected-versus-exposed route marking.");
                 Assert.That(foundry.Find("Relay Weapon Calibration Decal"), Is.Not.Null,
