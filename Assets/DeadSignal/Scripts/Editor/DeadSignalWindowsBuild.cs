@@ -58,6 +58,7 @@ namespace DeadSignal.Editor
             DeadSignalActTwoCompositionSetup.EnsureAssets();
             DeadSignalActTwoCalibrationReadabilitySetup.EnsureAssets();
             DeadSignalRelayFoundryHeroSetup.EnsureAssets();
+            DeadSignalCoolingGantryHeroSetup.EnsureAssets();
             DeadSignalCapacitorSpineSetup.EnsureAssets();
             DeadSignalSpineDischargeTrenchSetup.EnsureAssets();
             DeadSignalSpineNetworkReadabilitySetup.EnsureAssets();
@@ -288,6 +289,11 @@ namespace DeadSignal.Editor
             if (!DeadSignalRelayCoolingGantrySetup.HasAssets)
             {
                 throw new BuildFailedException("The scene-authored Relay Cooling Gantry is missing or incomplete.");
+            }
+
+            if (!DeadSignalCoolingGantryHeroSetup.HasAssets)
+            {
+                throw new BuildFailedException("The Cooling Gantry hero-finish assets are missing or incomplete.");
             }
 
             if (!DeadSignalCapacitorSpineSetup.HasAssets)

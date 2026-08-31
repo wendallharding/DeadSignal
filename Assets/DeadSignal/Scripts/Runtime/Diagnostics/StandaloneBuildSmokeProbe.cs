@@ -430,6 +430,10 @@ namespace DeadSignal.Diagnostics
                                     "Cooling Gantry Relay Payload Socket") != null &&
                                 Resources.Load<GameObject>("Environment/RelayCoolingGantryRegion") != null &&
                                 Resources.Load<GameObject>("Environment/RelayHeatExchanger") != null &&
+                                Resources.Load<Texture2D>("Environment/CoolingGantryHeroAtlas") != null &&
+                                Resources.Load<Mesh>("Environment/CoolingGantryHeroFinish") != null &&
+                                game.transform.Find(
+                                    "Relay Foundry Region/Relay Cooling Gantry Region/Cooling Gantry Hero Finish") != null &&
                                 Resources.Load<Texture2D>("Environment/RelayCoolingGantryRouteDecal") != null &&
                                 Resources.Load<Material>(
                                     "Materials/RelayCoolingGantry/RelayCoolingGantryRouteDecal") != null &&
