@@ -83,6 +83,7 @@ namespace DeadSignal.Editor
             DeadSignalCoreProcessingReadabilitySetup.EnsureAssets();
             DeadSignalSecurityTrialReadabilitySetup.EnsureAssets();
             DeadSignalSecurityLockdownReadabilitySetup.EnsureAssets();
+            DeadSignalSecurityTrialHeroSetup.EnsureAssets();
             DeadSignalSecurityTrialCompositionSetup.EnsureAssets();
             DeadSignalMissionObjectiveSetup.CreateCompatibilityMissionObjectives();
             DeadSignalStationBackdropSetup.EnsureAssets();
@@ -389,6 +390,11 @@ namespace DeadSignal.Editor
             if (!DeadSignalSecurityLockdownReadabilitySetup.HasAssets)
             {
                 throw new BuildFailedException("The Security Trial lockdown readability is missing or incomplete.");
+            }
+
+            if (!DeadSignalSecurityTrialHeroSetup.HasAssets)
+            {
+                throw new BuildFailedException("The Security Trial hero-finish assets are missing or incomplete.");
             }
 
             if (!DeadSignalEasternCombatScenarioSetup.HasAssets)

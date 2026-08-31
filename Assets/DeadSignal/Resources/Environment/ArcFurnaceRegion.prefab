@@ -1450,9 +1450,9 @@ Transform:
   - {fileID: 4429913294812922026}
   - {fileID: 8438167268751987666}
   - {fileID: 9177753891548231584}
-  - {fileID: 2282501979647086422}
   - {fileID: 3553318202544980460}
   - {fileID: 4787035163200697614}
+  - {fileID: 1096824669408689116}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &783738408059688023
@@ -2644,7 +2644,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: DeadSignal.Runtime::DeadSignal.World.AuthoredMapObstacle
   m_localHalfSize: {x: 0.5, y: 0.5}
---- !u!1001 &131926043116447598
+--- !u!1001 &1243298359428830180
 PrefabInstance:
   m_ObjectHideFlags: 0
   serializedVersion: 2
@@ -2701,10 +2701,10 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 97bb54ee7ce253043964edb74d51c79a, type: 3}
---- !u!4 &2282501979647086422 stripped
+--- !u!4 &1096824669408689116 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 2195963849539692600, guid: 97bb54ee7ce253043964edb74d51c79a, type: 3}
-  m_PrefabInstance: {fileID: 131926043116447598}
+  m_PrefabInstance: {fileID: 1243298359428830180}
   m_PrefabAsset: {fileID: 0}
 --- !u!1001 &7360662645597816473
 PrefabInstance:

@@ -531,6 +531,10 @@ namespace DeadSignal.Diagnostics
                                     "Environment/SecurityTrialCommitmentStatusPanel") != null &&
                                 Resources.Load<Mesh>(
                                     "Environment/SecurityTrialCommitmentStatusReadability") != null &&
+                                Resources.Load<Texture2D>("Environment/SecurityTrialHeroAtlas") != null &&
+                                Resources.Load<Mesh>("Environment/SecurityTrialCommitmentHeroFinish") != null &&
+                                Resources.Load<Mesh>("Environment/SecurityTrialLockdownHeroFinish") != null &&
+                                Resources.Load<Mesh>("Environment/SecurityTrialVaultHeroFinish") != null &&
                                 Resources.Load<Material>(
                                     "Materials/SecurityTrialReadability/SecurityTrialCommitmentStatus") != null &&
                                 Resources.Load<Texture2D>(
