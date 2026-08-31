@@ -13,10 +13,10 @@ namespace DeadSignal.Tests
             var tuning = Resources.Load<EnvironmentLightingTuning>("Tuning/EnvironmentLightingTuning");
 
             Assert.That(tuning, Is.Not.Null);
-            Assert.That(tuning.LandmarkLights, Has.Count.EqualTo(20));
+            Assert.That(tuning.LandmarkLights, Has.Count.EqualTo(24));
             Assert.That(tuning.LandmarkLights.Select(profile => profile.Name), Is.Unique);
             Assert.That(tuning.LandmarkLights.Count(profile => profile.Role == EnvironmentLightRole.DominantTask),
-                Is.EqualTo(7));
+                Is.EqualTo(8));
             Assert.That(tuning.LandmarkLights, Has.Some.Property("Role").EqualTo(EnvironmentLightRole.SecondaryTask));
             Assert.That(tuning.LandmarkLights, Has.Some.Property("Role").EqualTo(EnvironmentLightRole.Practical));
             Assert.That(tuning.LandmarkLights, Has.Some.Property("Role").EqualTo(EnvironmentLightRole.Navigation));
@@ -98,6 +98,20 @@ namespace DeadSignal.Tests
             Assert.That(lockdownProjector.CookieResource,
                 Is.EqualTo("Environment/SecurityTrialContainmentCookie"));
             Assert.That(Resources.Load<Texture2D>(lockdownProjector.CookieResource), Is.Not.Null);
+            var withdrawalProfiles = tuning.LandmarkLights.Where(profile =>
+                profile.PowerSource is >= EnvironmentLightPowerSource.WithdrawalWardenBay and
+                    <= EnvironmentLightPowerSource.ExtractionUplink).ToArray();
+            Assert.That(withdrawalProfiles, Has.Length.EqualTo(4));
+            Assert.That(withdrawalProfiles.Select(profile => profile.PowerSource), Is.Unique);
+            Assert.That(withdrawalProfiles.Count(profile => profile.LightType == LightType.Spot), Is.EqualTo(3));
+            Assert.That(withdrawalProfiles.Count(profile => profile.LightType == LightType.Point), Is.EqualTo(1));
+            Assert.That(withdrawalProfiles.All(profile => profile.GetIntensity(false) < profile.GetIntensity(true)),
+                Is.True);
+            Assert.That(withdrawalProfiles.All(profile => profile.GetColor(false) != profile.GetColor(true)), Is.True);
+            var uplinkProjector = withdrawalProfiles.Single(profile =>
+                profile.PowerSource == EnvironmentLightPowerSource.ExtractionUplink);
+            Assert.That(uplinkProjector.CookieResource, Is.EqualTo("Environment/ExtractionUplinkLockOnCookie"));
+            Assert.That(Resources.Load<Texture2D>(uplinkProjector.CookieResource), Is.Not.Null);
             Assert.That(tuning.CentralPoweredFixtureEmission, Is.GreaterThan(tuning.CentralDormantFixtureEmission));
             Assert.That(tuning.OpeningFixtureEmission, Is.LessThan(tuning.CentralPoweredFixtureEmission));
             Assert.That(tuning.OpeningTerritoryBase.a, Is.LessThan(0.2f));

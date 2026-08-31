@@ -16,6 +16,8 @@ namespace DeadSignal.Editor
             "Assets/DeadSignal/Resources/Environment/DeepCoreCalibrationApertureCookie.png";
         private const string SECURITY_TRIAL_COOKIE_PATH =
             "Assets/DeadSignal/Resources/Environment/SecurityTrialContainmentCookie.png";
+        private const string EXTRACTION_UPLINK_COOKIE_PATH =
+            "Assets/DeadSignal/Resources/Environment/ExtractionUplinkLockOnCookie.png";
 
         [MenuItem("Tools/DEAD SIGNAL/Configure Environment Lighting Tuning")]
         public static void Configure()
@@ -31,8 +33,10 @@ namespace DeadSignal.Editor
             _configureCookie(SPINE_COOKIE_PATH);
             _configureCookie(DEEP_CORE_COOKIE_PATH);
             _configureCookie(SECURITY_TRIAL_COOKIE_PATH);
+            _configureCookie(EXTRACTION_UPLINK_COOKIE_PATH);
             tuning.ConfigureDeepCoreProfiles();
             tuning.ConfigureSecurityTrialProfiles();
+            tuning.ConfigureWithdrawalProfiles();
 
             EditorUtility.SetDirty(tuning);
             AssetDatabase.SaveAssets();

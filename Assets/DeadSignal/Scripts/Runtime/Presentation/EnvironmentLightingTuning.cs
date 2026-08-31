@@ -33,7 +33,11 @@ namespace DeadSignal.Presentation
         SecurityCommitment,
         SecurityLockdown,
         SecurityClear,
-        SecurityCapacitor
+        SecurityCapacitor,
+        WithdrawalWardenBay,
+        WithdrawalSapperCradle,
+        DepartureSurge,
+        ExtractionUplink
     }
 
     [Serializable]
@@ -294,6 +298,30 @@ namespace DeadSignal.Presentation
                 EnvironmentLightRole.Practical,
                 new Color(0.16f, 0.07f, 0.1f), new Color(0.82f, 0.76f, 0.48f), 6.6f, 1.52f, 0.2f,
                 EnvironmentLightPowerSource.SecurityCapacitor, LightType.Spot, 58f));
+        }
+
+        public void ConfigureWithdrawalProfiles()
+        {
+            m_landmarkLights ??= new List<EnvironmentLightProfile>();
+            m_landmarkLights.RemoveAll(profile =>
+                profile != null && profile.PowerSource >= EnvironmentLightPowerSource.WithdrawalWardenBay);
+            m_landmarkLights.Add(new EnvironmentLightProfile("Warden Bay Pursuit Worklight",
+                EnvironmentLightRole.SecondaryTask,
+                new Color(0.16f, 0.055f, 0.035f), new Color(0.96f, 0.42f, 0.11f), 7.2f, 1.52f, 0.24f,
+                EnvironmentLightPowerSource.WithdrawalWardenBay, LightType.Spot, 58f));
+            m_landmarkLights.Add(new EnvironmentLightProfile("Sapper Cradle Countertrace Pool",
+                EnvironmentLightRole.Practical,
+                new Color(0.12f, 0.04f, 0.09f), new Color(0.84f, 0.12f, 0.62f), 6.8f, 1.46f, 0.22f,
+                EnvironmentLightPowerSource.WithdrawalSapperCradle));
+            m_landmarkLights.Add(new EnvironmentLightProfile("Departure Surge Return Projector",
+                EnvironmentLightRole.Navigation,
+                new Color(0.12f, 0.055f, 0.025f), new Color(0.18f, 0.76f, 0.84f), 7.6f, 1.58f, 0.2f,
+                EnvironmentLightPowerSource.DepartureSurge, LightType.Spot, 64f));
+            m_landmarkLights.Add(new EnvironmentLightProfile("Extraction Uplink Lock-On Projector",
+                EnvironmentLightRole.DominantTask,
+                new Color(0.055f, 0.11f, 0.13f), new Color(0.28f, 0.88f, 0.94f), 8.4f, 1.7f, 0.18f,
+                EnvironmentLightPowerSource.ExtractionUplink, LightType.Spot, 72f,
+                "Environment/ExtractionUplinkLockOnCookie"));
         }
 
         private void OnValidate()

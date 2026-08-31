@@ -558,11 +558,14 @@ namespace DeadSignal.World
                 uplink.IsComplete,
                 uplink.Mode,
                 model.Outcome);
+            m_currentPoweredWithdrawalPhase = model.CurrentPoweredWithdrawalPhase;
+            _applyWithdrawalLightingState();
         }
 
         public void SetExtractionOutcomePresentation(RunOutcome outcome, bool extractionComplete)
         {
             ExtractionDockReadability?.SetOutcome(outcome, extractionComplete);
+            _applyWithdrawalLightingState();
         }
 
         public Vector3 GetObjectiveGuidanceWaypoint(RunModel model, float radius)
@@ -1932,6 +1935,34 @@ namespace DeadSignal.World
             var furnace = Object.FindFirstObjectByType<AuthoredFurnaceForgeObjective>(FindObjectsInactive.Include);
             var quench = Object.FindFirstObjectByType<AuthoredQuenchStabilizationObjective>(FindObjectsInactive.Include);
             var securityTrial = Object.FindFirstObjectByType<AuthoredCombatChamber>(FindObjectsInactive.Include);
+            AuthoredWithdrawalPursuitLandmark wardenBay = null;
+            AuthoredWithdrawalPursuitLandmark sapperCradle = null;
+            foreach (var landmark in Object.FindObjectsByType<AuthoredWithdrawalPursuitLandmark>(
+                         FindObjectsInactive.Include, FindObjectsSortMode.None))
+            {
+                if (landmark.Phase == PoweredWithdrawalPhase.WardenBay)
+                {
+                    wardenBay = landmark;
+                }
+                else if (landmark.Phase == PoweredWithdrawalPhase.SapperCradle)
+                {
+                    sapperCradle = landmark;
+                }
+            }
+            AuthoredDepartureDockHeroFinish departureFinish = null;
+            AuthoredDepartureDockHeroFinish dockFinish = null;
+            foreach (var finish in Object.FindObjectsByType<AuthoredDepartureDockHeroFinish>(
+                         FindObjectsInactive.Include, FindObjectsSortMode.None))
+            {
+                if (finish.Owner == DepartureDockHeroOwner.DepartureChannel)
+                {
+                    departureFinish = finish;
+                }
+                else if (finish.Owner == DepartureDockHeroOwner.ExtractionDock)
+                {
+                    dockFinish = finish;
+                }
+            }
             AuthoredSpineHeroFinish spineFinish = null;
             AuthoredSpineHeroFinish trenchFinish = null;
             AuthoredSpineVentingObjective venting = null;
@@ -1951,10 +1982,11 @@ namespace DeadSignal.World
             if (cargo == null || coolant == null || relay == null || transfer == null ||
                 foundryFinish == null || gantryFinish == null || spineFinish == null || trenchFinish == null ||
                 venting == null || induction == null || flux == null || convergence == null || breaker == null ||
-                furnace == null || quench == null || securityTrial == null)
+                furnace == null || quench == null || securityTrial == null || wardenBay == null ||
+                sapperCradle == null || departureFinish == null || dockFinish == null)
             {
                 throw new MissingReferenceException(
-                    "Authored objectives and Relay/Spine hero finishes are required by the environment lighting profiles.");
+                    "Authored objectives and room hero finishes are required by the environment lighting profiles.");
             }
 
             m_relayFoundryHeroFinish = foundryFinish;
@@ -1983,7 +2015,11 @@ namespace DeadSignal.World
                 securityTrial.CommitmentSwitch.position + Vector3.up * 3.2f - Vector3.forward * 0.6f,
                 securityTrial.ArenaPosition + Vector3.up * 5.4f,
                 securityTrial.ArenaPosition + Vector3.up * 3.8f,
-                securityTrial.RewardPosition + Vector3.up * 3.6f - Vector3.forward * 0.5f
+                securityTrial.RewardPosition + Vector3.up * 3.6f - Vector3.forward * 0.5f,
+                wardenBay.Position + Vector3.up * 3.4f - Vector3.forward * 0.8f,
+                sapperCradle.Position + Vector3.up * 3.2f + Vector3.right * 0.6f,
+                departureFinish.Renderer.bounds.center + Vector3.up * 3.8f - Vector3.right * 0.7f,
+                dockFinish.Renderer.bounds.center + Vector3.up * 4.4f
             };
             var targets = new[]
             {
@@ -2006,7 +2042,11 @@ namespace DeadSignal.World
                 securityTrial.CommitmentSwitch.position,
                 securityTrial.ArenaPosition,
                 securityTrial.ArenaPosition,
-                securityTrial.RewardPosition
+                securityTrial.RewardPosition,
+                wardenBay.Position,
+                sapperCradle.Position,
+                departureFinish.Renderer.bounds.center,
+                dockFinish.Renderer.bounds.center
             };
             if (m_environmentLightingTuning.LandmarkLights.Count != positions.Length)
             {
@@ -2109,6 +2149,20 @@ namespace DeadSignal.World
                     CombatChamber?.CapacitorPresentationState is TrialCapacitorPresentationState.Available or
                         TrialCapacitorPresentationState.CollectedActive or
                         TrialCapacitorPresentationState.EmptyVaultComplete,
+                EnvironmentLightPowerSource.WithdrawalWardenBay =>
+                    m_currentPoweredWithdrawalPhase >= PoweredWithdrawalPhase.WardenBay,
+                EnvironmentLightPowerSource.WithdrawalSapperCradle =>
+                    m_currentPoweredWithdrawalPhase >= PoweredWithdrawalPhase.SapperCradle,
+                EnvironmentLightPowerSource.DepartureSurge =>
+                    m_departureChannelReadability?.PresentationState is
+                        DepartureChannelPresentationState.ReleaseAvailable or
+                        DepartureChannelPresentationState.ReleaseActive or
+                        DepartureChannelPresentationState.OpenSurgeAvailable or
+                        DepartureChannelPresentationState.OpenSurgeConsumed,
+                EnvironmentLightPowerSource.ExtractionUplink =>
+                    ExtractionDockReadability?.PresentationState is ExtractionDockPresentationState.Available or
+                        ExtractionDockPresentationState.ActiveProgress or ExtractionDockPresentationState.Complete or
+                        ExtractionDockPresentationState.Victory,
                 _ => false
             };
         }
@@ -2209,6 +2263,19 @@ namespace DeadSignal.World
             foreach (var finish in m_departureDockHeroFinishes)
             {
                 finish.SetPracticalLighting(profile.Color, m_environmentLightingTuning.OpeningFixtureEmission);
+            }
+        }
+
+        private void _applyWithdrawalLightingState()
+        {
+            foreach (var finish in m_departureDockHeroFinishes)
+            {
+                var powerSource = finish.Owner == DepartureDockHeroOwner.DepartureChannel
+                    ? EnvironmentLightPowerSource.DepartureSurge
+                    : EnvironmentLightPowerSource.ExtractionUplink;
+                var profile = _getLightProfile(powerSource);
+                var powered = _isLandmarkPowered(powerSource, false);
+                finish.SetPracticalLighting(profile.GetColor(powered), profile.GetIntensity(powered) * 0.36f);
             }
         }
 
@@ -2608,6 +2675,7 @@ namespace DeadSignal.World
         private AuthoredCoolingGantryHeroFinish m_coolingGantryHeroFinish;
         private AuthoredSpineHeroFinish m_spineHeroFinish;
         private AuthoredSpineHeroFinish m_dischargeTrenchHeroFinish;
+        private PoweredWithdrawalPhase m_currentPoweredWithdrawalPhase;
         private float m_environmentTime;
         private float m_boundaryPulse;
         private float m_collisionPulse;

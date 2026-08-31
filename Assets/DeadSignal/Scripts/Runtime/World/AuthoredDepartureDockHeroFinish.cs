@@ -32,7 +32,14 @@ namespace DeadSignal.World
 
         public void SetPracticalLighting(Color color, float intensity)
         {
-            PracticalEmission = color * Mathf.Max(0f, intensity);
+            var emission = color * Mathf.Max(0f, intensity);
+            if (m_hasAppliedPracticalLighting && PracticalEmission == emission)
+            {
+                return;
+            }
+
+            PracticalEmission = emission;
+            m_hasAppliedPracticalLighting = true;
             _setMaterialEmission(2, PracticalEmission);
             if (m_owner == DepartureDockHeroOwner.DepartureChannel)
             {
@@ -52,5 +59,7 @@ namespace DeadSignal.World
             block.SetColor(s_emissionColor, emission);
             m_renderer.SetPropertyBlock(block, materialIndex);
         }
+
+        private bool m_hasAppliedPracticalLighting;
     }
 }

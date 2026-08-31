@@ -253,6 +253,50 @@ MonoBehaviour:
     m_lightType: 0
     m_spotAngle: 58
     m_cookieResource:
+  - m_name: Warden Bay Pursuit Worklight
+    m_role: 1
+    m_color: {r: 0.16, g: 0.055, b: 0.035, a: 1}
+    m_poweredColor: {r: 0.96, g: 0.42, b: 0.11, a: 1}
+    m_range: 7.2
+    m_intensity: 1.52
+    m_dormantIntensityMultiplier: 0.24
+    m_powerSource: 20
+    m_lightType: 0
+    m_spotAngle: 58
+    m_cookieResource:
+  - m_name: Sapper Cradle Countertrace Pool
+    m_role: 2
+    m_color: {r: 0.12, g: 0.04, b: 0.09, a: 1}
+    m_poweredColor: {r: 0.84, g: 0.12, b: 0.62, a: 1}
+    m_range: 6.8
+    m_intensity: 1.46
+    m_dormantIntensityMultiplier: 0.22
+    m_powerSource: 21
+    m_lightType: 2
+    m_spotAngle: 60
+    m_cookieResource:
+  - m_name: Departure Surge Return Projector
+    m_role: 3
+    m_color: {r: 0.12, g: 0.055, b: 0.025, a: 1}
+    m_poweredColor: {r: 0.18, g: 0.76, b: 0.84, a: 1}
+    m_range: 7.6
+    m_intensity: 1.58
+    m_dormantIntensityMultiplier: 0.2
+    m_powerSource: 22
+    m_lightType: 0
+    m_spotAngle: 64
+    m_cookieResource:
+  - m_name: Extraction Uplink Lock-On Projector
+    m_role: 0
+    m_color: {r: 0.055, g: 0.11, b: 0.13, a: 1}
+    m_poweredColor: {r: 0.28, g: 0.88, b: 0.94, a: 1}
+    m_range: 8.4
+    m_intensity: 1.7
+    m_dormantIntensityMultiplier: 0.18
+    m_powerSource: 23
+    m_lightType: 0
+    m_spotAngle: 72
+    m_cookieResource: Environment/ExtractionUplinkLockOnCookie
   m_openingFixtureEmission: 0.28
   m_centralDormantFixtureEmission: 0.18
   m_centralPoweredFixtureEmission: 0.72
