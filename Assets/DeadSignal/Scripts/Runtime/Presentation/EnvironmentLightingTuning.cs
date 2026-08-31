@@ -21,7 +21,9 @@ namespace DeadSignal.Presentation
         RelayFeeds,
         TransferAssembly,
         RelayTower,
-        RelayPayload
+        RelayPayload,
+        SpineVenting,
+        SpineTower
     }
 
     [Serializable]
@@ -156,7 +158,14 @@ namespace DeadSignal.Presentation
                 "Environment/RelayFoundryInductionCookie"),
             new EnvironmentLightProfile("Cooling Gantry Stabilization Pool", EnvironmentLightRole.SecondaryTask,
                 new Color(0.12f, 0.28f, 0.34f), new Color(0.42f, 0.82f, 0.88f), 7.2f, 1.55f, 0.3f,
-                EnvironmentLightPowerSource.RelayPayload)
+                EnvironmentLightPowerSource.RelayPayload),
+            new EnvironmentLightProfile("Discharge Pressure Warning Pool", EnvironmentLightRole.SecondaryTask,
+                new Color(0.48f, 0.055f, 0.035f), new Color(0.94f, 0.54f, 0.12f), 6.8f, 1.62f, 0.32f,
+                EnvironmentLightPowerSource.SpineVenting),
+            new EnvironmentLightProfile("Spine Transfer-Bank Projector", EnvironmentLightRole.DominantTask,
+                new Color(0.32f, 0.075f, 0.055f), new Color(0.2f, 0.78f, 0.9f), 8.6f, 1.74f, 0.3f,
+                EnvironmentLightPowerSource.SpineTower, LightType.Spot, 68f,
+                "Environment/SpineHighVoltageLaneCookie")
         };
         [SerializeField, Range(0f, 2f)] private float m_openingFixtureEmission = 0.28f;
         [SerializeField, Range(0f, 2f)] private float m_centralDormantFixtureEmission = 0.18f;
@@ -165,6 +174,8 @@ namespace DeadSignal.Presentation
         [SerializeField] private Color m_openingTerritoryEdge = new(0.08f, 0.72f, 0.82f, 0.42f);
         [SerializeField] private Color m_relayTerritoryBase = new(0.012f, 0.2f, 0.26f, 0.1f);
         [SerializeField] private Color m_relayTerritoryEdge = new(0.08f, 0.68f, 0.78f, 0.34f);
+        [SerializeField] private Color m_spineTerritoryBase = new(0.012f, 0.18f, 0.24f, 0.08f);
+        [SerializeField] private Color m_spineTerritoryEdge = new(0.08f, 0.64f, 0.76f, 0.3f);
         [SerializeField, Range(0f, 0.25f)] private float m_practicalPulseDepth = 0.12f;
         [SerializeField, Range(0f, 0.25f)] private float m_reducedFlashesPulseDepth = 0.035f;
         [SerializeField, Min(0f)] private float m_practicalPulseSpeed = 2.2f;
@@ -203,6 +214,8 @@ namespace DeadSignal.Presentation
         public Color OpeningTerritoryEdge => m_openingTerritoryEdge;
         public Color RelayTerritoryBase => m_relayTerritoryBase;
         public Color RelayTerritoryEdge => m_relayTerritoryEdge;
+        public Color SpineTerritoryBase => m_spineTerritoryBase;
+        public Color SpineTerritoryEdge => m_spineTerritoryEdge;
         public float PracticalPulseDepth => m_practicalPulseDepth;
         public float ReducedFlashesPulseDepth => m_reducedFlashesPulseDepth;
         public float PracticalPulseSpeed => m_practicalPulseSpeed;

@@ -13,10 +13,10 @@ namespace DeadSignal.Tests
             var tuning = Resources.Load<EnvironmentLightingTuning>("Tuning/EnvironmentLightingTuning");
 
             Assert.That(tuning, Is.Not.Null);
-            Assert.That(tuning.LandmarkLights, Has.Count.EqualTo(8));
+            Assert.That(tuning.LandmarkLights, Has.Count.EqualTo(10));
             Assert.That(tuning.LandmarkLights.Select(profile => profile.Name), Is.Unique);
             Assert.That(tuning.LandmarkLights.Count(profile => profile.Role == EnvironmentLightRole.DominantTask),
-                Is.EqualTo(3));
+                Is.EqualTo(4));
             Assert.That(tuning.LandmarkLights, Has.Some.Property("Role").EqualTo(EnvironmentLightRole.SecondaryTask));
             Assert.That(tuning.LandmarkLights, Has.Some.Property("Role").EqualTo(EnvironmentLightRole.Practical));
             Assert.That(tuning.LandmarkLights, Has.Some.Property("Role").EqualTo(EnvironmentLightRole.Navigation));
@@ -53,12 +53,26 @@ namespace DeadSignal.Tests
                 profile.PowerSource == EnvironmentLightPowerSource.RelayTower);
             Assert.That(foundry.CookieResource, Is.EqualTo("Environment/RelayFoundryInductionCookie"));
             Assert.That(Resources.Load<Texture2D>(foundry.CookieResource), Is.Not.Null);
+            var spineRegionProfiles = tuning.LandmarkLights.Where(profile =>
+                profile.PowerSource is EnvironmentLightPowerSource.SpineVenting or
+                    EnvironmentLightPowerSource.SpineTower).ToArray();
+            Assert.That(spineRegionProfiles, Has.Length.EqualTo(2));
+            Assert.That(spineRegionProfiles.Select(profile => profile.LightType), Is.Unique);
+            Assert.That(spineRegionProfiles.All(profile => profile.GetIntensity(false) < profile.GetIntensity(true)),
+                Is.True);
+            Assert.That(spineRegionProfiles.All(profile => profile.GetColor(false) != profile.GetColor(true)), Is.True);
+            var spineProjector = spineRegionProfiles.Single(profile =>
+                profile.PowerSource == EnvironmentLightPowerSource.SpineTower);
+            Assert.That(spineProjector.CookieResource, Is.EqualTo("Environment/SpineHighVoltageLaneCookie"));
+            Assert.That(Resources.Load<Texture2D>(spineProjector.CookieResource), Is.Not.Null);
             Assert.That(tuning.CentralPoweredFixtureEmission, Is.GreaterThan(tuning.CentralDormantFixtureEmission));
             Assert.That(tuning.OpeningFixtureEmission, Is.LessThan(tuning.CentralPoweredFixtureEmission));
             Assert.That(tuning.OpeningTerritoryBase.a, Is.LessThan(0.2f));
             Assert.That(tuning.OpeningTerritoryEdge.a, Is.LessThan(0.5f));
             Assert.That(tuning.RelayTerritoryBase.a, Is.LessThan(tuning.OpeningTerritoryBase.a));
             Assert.That(tuning.RelayTerritoryEdge.a, Is.LessThan(tuning.OpeningTerritoryEdge.a));
+            Assert.That(tuning.SpineTerritoryBase.a, Is.LessThan(tuning.RelayTerritoryBase.a));
+            Assert.That(tuning.SpineTerritoryEdge.a, Is.LessThan(tuning.RelayTerritoryEdge.a));
 
             var clamped = tuning.ClampEmission(new Color(6f, 2f, 1f));
             Assert.That(clamped.maxColorComponent, Is.EqualTo(tuning.MaximumEmission).Within(0.001f));

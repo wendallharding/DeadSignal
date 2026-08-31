@@ -188,6 +188,13 @@ namespace DeadSignal.World
             };
             m_relayPoweredTerritoryMaterial.SetColor("_BaseColor", m_environmentLightingTuning.RelayTerritoryBase);
             m_relayPoweredTerritoryMaterial.SetColor("_EdgeColor", m_environmentLightingTuning.RelayTerritoryEdge);
+            m_spinePoweredTerritoryMaterial = new Material(m_palette.PoweredTerritory)
+            {
+                name = "Spine Powered Territory",
+                hideFlags = HideFlags.DontSave
+            };
+            m_spinePoweredTerritoryMaterial.SetColor("_BaseColor", m_environmentLightingTuning.SpineTerritoryBase);
+            m_spinePoweredTerritoryMaterial.SetColor("_EdgeColor", m_environmentLightingTuning.SpineTerritoryEdge);
             m_signalBoltPrefab = Resources.Load<GameObject>(SIGNAL_BOLT_PREFAB_RESOURCE);
             m_signalBoltTuning = Resources.Load<SignalBoltPresentationTuning>("Tuning/SignalBoltPresentationTuning");
             HasSignalBoltAssets = m_signalBoltPrefab != null &&
@@ -469,6 +476,7 @@ namespace DeadSignal.World
             SpineTowerReadability?.SetState(
                 model.CurrentObjective.Id == MissionObjectiveId.SpineTower,
                 model.SpineTowerOnline);
+            _applySpineRegionLightingState(model.SpineBerthVented, model.SpineTowerOnline);
         }
 
         public void UpdateSpineCoreInstallationPresentation(RunModel model)
@@ -645,7 +653,7 @@ namespace DeadSignal.World
 
         public void CompleteSpineRelayInstallation()
         {
-            m_spineTerritory.GetComponent<Renderer>().sharedMaterial = m_palette.PoweredTerritory;
+            m_spineTerritory.GetComponent<Renderer>().sharedMaterial = m_spinePoweredTerritoryMaterial;
             foreach (var marker in m_spineTerritoryMarkers)
             {
                 marker.GetComponent<Renderer>().sharedMaterial = m_palette.Cyan;
@@ -803,6 +811,10 @@ namespace DeadSignal.World
             if (m_relayPoweredTerritoryMaterial != null)
             {
                 Object.Destroy(m_relayPoweredTerritoryMaterial);
+            }
+            if (m_spinePoweredTerritoryMaterial != null)
+            {
+                Object.Destroy(m_spinePoweredTerritoryMaterial);
             }
             m_palette.Dispose();
         }
@@ -1101,6 +1113,10 @@ namespace DeadSignal.World
             if (m_relayPoweredTerritoryMaterial != null)
             {
                 m_relayPoweredTerritoryMaterial.SetFloat("_Pulse", m_boundaryPulse);
+            }
+            if (m_spinePoweredTerritoryMaterial != null)
+            {
+                m_spinePoweredTerritoryMaterial.SetFloat("_Pulse", m_boundaryPulse);
             }
 
             for (var index = 0; index < m_environmentAnimators.Count; index++)
@@ -1902,15 +1918,34 @@ namespace DeadSignal.World
             var transfer = Object.FindFirstObjectByType<AuthoredTransferVaultObjective>(FindObjectsInactive.Include);
             var foundryFinish = Object.FindFirstObjectByType<AuthoredRelayFoundryHeroFinish>(FindObjectsInactive.Include);
             var gantryFinish = Object.FindFirstObjectByType<AuthoredCoolingGantryHeroFinish>(FindObjectsInactive.Include);
+            AuthoredSpineHeroFinish spineFinish = null;
+            AuthoredSpineHeroFinish trenchFinish = null;
+            AuthoredSpineVentingObjective venting = null;
+            foreach (var finish in Object.FindObjectsByType<AuthoredSpineHeroFinish>(
+                         FindObjectsInactive.Include, FindObjectsSortMode.None))
+            {
+                if (finish.TryGetComponent(out AuthoredSpineVentingObjective finishVenting))
+                {
+                    trenchFinish = finish;
+                    venting = finishVenting;
+                }
+                else
+                {
+                    spineFinish = finish;
+                }
+            }
             if (cargo == null || coolant == null || relay == null || transfer == null ||
-                foundryFinish == null || gantryFinish == null)
+                foundryFinish == null || gantryFinish == null || spineFinish == null || trenchFinish == null ||
+                venting == null)
             {
                 throw new MissingReferenceException(
-                    "Act I objectives and Relay-region hero finishes are required by the authored lighting profiles.");
+                    "Act I objectives and Relay/Spine hero finishes are required by the authored lighting profiles.");
             }
 
             m_relayFoundryHeroFinish = foundryFinish;
             m_coolingGantryHeroFinish = gantryFinish;
+            m_spineHeroFinish = spineFinish;
+            m_dischargeTrenchHeroFinish = trenchFinish;
 
             var positions = new[]
             {
@@ -1921,7 +1956,9 @@ namespace DeadSignal.World
                 relay.Position + Vector3.up * 3.4f - Vector3.right * 1.4f,
                 transfer.Position + Vector3.up * 3.1f,
                 RelayTowerPosition + Vector3.up * 4.2f - Vector3.left * 0.8f,
-                gantryFinish.FinishRenderer.bounds.center + Vector3.up * 3.6f + Vector3.forward * 0.8f
+                gantryFinish.FinishRenderer.bounds.center + Vector3.up * 3.6f + Vector3.forward * 0.8f,
+                venting.Position + Vector3.up * 3.2f + Vector3.forward * 0.6f,
+                spineFinish.FinishRenderer.bounds.center + Vector3.up * 4.2f - Vector3.right * 0.8f
             };
             var targets = new[]
             {
@@ -1932,7 +1969,9 @@ namespace DeadSignal.World
                 relay.Position,
                 transfer.Position,
                 RelayTowerPosition,
-                gantryFinish.FinishRenderer.bounds.center
+                gantryFinish.FinishRenderer.bounds.center,
+                venting.Position,
+                spineFinish.FinishRenderer.bounds.center
             };
             if (m_environmentLightingTuning.LandmarkLights.Count != positions.Length)
             {
@@ -1997,6 +2036,12 @@ namespace DeadSignal.World
                 EnvironmentLightPowerSource.RelayPayload =>
                     RelayNetworkReadability?.GantryState is CoolingGantryPresentationState.Active or
                         CoolingGantryPresentationState.Stabilized,
+                EnvironmentLightPowerSource.SpineVenting =>
+                    SpineVentingObjective?.PresentationState is SpineBerthPresentationState.VentingActive or
+                        SpineBerthPresentationState.Vented,
+                EnvironmentLightPowerSource.SpineTower =>
+                    SpineTowerReadability?.PresentationState is SpineTowerPresentationState.Activating or
+                        SpineTowerPresentationState.Powered,
                 _ => false
             };
         }
@@ -2076,6 +2121,25 @@ namespace DeadSignal.World
                 m_coolingGantryHeroFinish.SetPracticalLighting(
                     gantryProfile.GetColor(payloadStabilized),
                     gantryProfile.GetIntensity(payloadStabilized) * 0.38f);
+            }
+        }
+
+        private void _applySpineRegionLightingState(bool berthVented, bool towerPowered)
+        {
+            if (m_dischargeTrenchHeroFinish != null)
+            {
+                var trenchProfile = _getLightProfile(EnvironmentLightPowerSource.SpineVenting);
+                m_dischargeTrenchHeroFinish.SetPracticalLighting(
+                    trenchProfile.GetColor(berthVented),
+                    trenchProfile.GetIntensity(berthVented) * 0.34f);
+            }
+
+            if (m_spineHeroFinish != null)
+            {
+                var spineProfile = _getLightProfile(EnvironmentLightPowerSource.SpineTower);
+                m_spineHeroFinish.SetPracticalLighting(
+                    spineProfile.GetColor(towerPowered),
+                    spineProfile.GetIntensity(towerPowered) * 0.38f);
             }
         }
 
@@ -2397,6 +2461,7 @@ namespace DeadSignal.World
         private readonly EnvironmentLightingTuning m_environmentLightingTuning;
         private readonly Material m_openingPoweredTerritoryMaterial;
         private readonly Material m_relayPoweredTerritoryMaterial;
+        private readonly Material m_spinePoweredTerritoryMaterial;
         private readonly GameObject m_signalBoltPrefab;
         private readonly SignalBoltPresentationTuning m_signalBoltTuning;
         private readonly List<AuthoredMapObstacle> m_authoredMapObstacles = new();
@@ -2419,6 +2484,8 @@ namespace DeadSignal.World
         private Bloom m_bloom;
         private AuthoredRelayFoundryHeroFinish m_relayFoundryHeroFinish;
         private AuthoredCoolingGantryHeroFinish m_coolingGantryHeroFinish;
+        private AuthoredSpineHeroFinish m_spineHeroFinish;
+        private AuthoredSpineHeroFinish m_dischargeTrenchHeroFinish;
         private float m_environmentTime;
         private float m_boundaryPulse;
         private float m_collisionPulse;

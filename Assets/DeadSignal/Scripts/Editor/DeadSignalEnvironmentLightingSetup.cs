@@ -10,6 +10,8 @@ namespace DeadSignal.Editor
         private const string ASSET_PATH = "Assets/DeadSignal/Resources/Tuning/EnvironmentLightingTuning.asset";
         private const string FOUNDRY_COOKIE_PATH =
             "Assets/DeadSignal/Resources/Environment/RelayFoundryInductionCookie.png";
+        private const string SPINE_COOKIE_PATH =
+            "Assets/DeadSignal/Resources/Environment/SpineHighVoltageLaneCookie.png";
 
         [MenuItem("Tools/DEAD SIGNAL/Configure Environment Lighting Tuning")]
         public static void Configure()
@@ -21,10 +23,21 @@ namespace DeadSignal.Editor
                 AssetDatabase.CreateAsset(tuning, ASSET_PATH);
             }
 
-            var cookieImporter = AssetImporter.GetAtPath(FOUNDRY_COOKIE_PATH) as TextureImporter;
+            _configureCookie(FOUNDRY_COOKIE_PATH);
+            _configureCookie(SPINE_COOKIE_PATH);
+
+            EditorUtility.SetDirty(tuning);
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
+            Debug.Log($"DEAD SIGNAL environment lighting tuning is configured at {ASSET_PATH}.");
+        }
+
+        private static void _configureCookie(string path)
+        {
+            var cookieImporter = AssetImporter.GetAtPath(path) as TextureImporter;
             if (cookieImporter == null)
             {
-                throw new InvalidOperationException($"Could not find the Foundry light cookie at {FOUNDRY_COOKIE_PATH}.");
+                throw new InvalidOperationException($"Could not find the environment light cookie at {path}.");
             }
 
             cookieImporter.textureType = TextureImporterType.Default;
@@ -35,11 +48,6 @@ namespace DeadSignal.Editor
             cookieImporter.wrapMode = TextureWrapMode.Clamp;
             cookieImporter.textureCompression = TextureImporterCompression.CompressedHQ;
             cookieImporter.SaveAndReimport();
-
-            EditorUtility.SetDirty(tuning);
-            AssetDatabase.SaveAssets();
-            AssetDatabase.Refresh();
-            Debug.Log($"DEAD SIGNAL environment lighting tuning is configured at {ASSET_PATH}.");
         }
     }
 }
