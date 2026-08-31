@@ -534,6 +534,13 @@ namespace DeadSignal.Diagnostics
                                 Resources.Load<GameObject>("Environment/FluxBypassRegion") != null &&
                                 Resources.Load<Texture2D>("Environment/FluxBypassRouteDecal") != null &&
                                 Resources.Load<Material>("Materials/FluxBypass/FluxBypassRouteDecal") != null &&
+                                Resources.Load<Texture2D>("Environment/InductionFluxHeroAtlas") != null &&
+                                Resources.Load<Mesh>("Environment/InductionGalleryHeroFinish") != null &&
+                                Resources.Load<Mesh>("Environment/FluxBypassHeroFinish") != null &&
+                                game.transform.Find(
+                                    "Spine Induction Gallery Region/Induction Gallery Hero Finish") != null &&
+                                game.transform.Find(
+                                    "Spine Induction Gallery Region/Flux Bypass Region/Flux Bypass Hero Finish") != null &&
                                 game.transform.Find(
                                     "Spine Induction Gallery Region/Flux Bypass Region/Flux Shunt Route Status") != null &&
                                 Resources.Load<Mesh>("Environment/FluxShuntGlyphReadability") != null &&
