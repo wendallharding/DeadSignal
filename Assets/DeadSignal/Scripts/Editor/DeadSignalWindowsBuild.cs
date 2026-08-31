@@ -74,6 +74,7 @@ namespace DeadSignal.Editor
             DeadSignalDeepCoreReadabilitySetup.EnsureAssets();
             DeadSignalArcFurnaceSetup.EnsureAssets();
             DeadSignalQuenchLoopSetup.EnsureAssets();
+            DeadSignalFurnaceQuenchHeroSetup.EnsureAssets();
             DeadSignalActThreeCompositionSetup.EnsureAssets();
             DeadSignalEasternCombatScenarioSetup.EnsureAssets();
             DeadSignalSecurityTrialSetup.EnsureAssets();
@@ -368,6 +369,11 @@ namespace DeadSignal.Editor
             if (!DeadSignalQuenchLoopSetup.HasAssets)
             {
                 throw new BuildFailedException("The scene-authored Quench Loop is missing or incomplete.");
+            }
+
+            if (!DeadSignalFurnaceQuenchHeroSetup.HasAssets)
+            {
+                throw new BuildFailedException("The Arc Furnace and Quench hero-finish assets are missing or incomplete.");
             }
 
             if (!DeadSignalCoreProcessingReadabilitySetup.HasAssets)

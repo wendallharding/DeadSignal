@@ -516,6 +516,15 @@ namespace DeadSignal.Diagnostics
                                 Resources.Load<Texture2D>("Environment/CoreProcessingStatusPanel") != null &&
                                 Resources.Load<Mesh>("Environment/FurnaceForgeStatusReadability") != null &&
                                 Resources.Load<Mesh>("Environment/QuenchStabilizationStatusReadability") != null &&
+                                Resources.Load<Texture2D>("Environment/FurnaceQuenchHeroAtlas") != null &&
+                                Resources.Load<Mesh>("Environment/ArcFurnaceHeroFinish") != null &&
+                                Resources.Load<Mesh>("Environment/QuenchLoopHeroFinish") != null &&
+                                game.transform.Find(
+                                    "Spine Induction Gallery Region/Convergence Chamber Region/" +
+                                    "Arc Furnace Region/Arc Furnace Hero Finish") != null &&
+                                game.transform.Find(
+                                    "Spine Induction Gallery Region/Convergence Chamber Region/" +
+                                    "Arc Furnace Region/Quench Loop Region/Quench Loop Hero Finish") != null &&
                                 Resources.Load<Material>(
                                     "Materials/CoreProcessingReadability/CoreProcessingStatus") != null &&
                                 Resources.Load<Texture2D>(

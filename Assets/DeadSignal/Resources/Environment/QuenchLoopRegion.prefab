@@ -191,7 +191,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e5c2114ec9f7be54889bb05839f089fe, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: DeadSignal.Runtime::DeadSignal.World.AuthoredMapObstacle
   m_localHalfSize: {x: 0.5, y: 0.5}
 --- !u!1 &1121786899239220634
@@ -260,7 +260,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: d40ca945977bd91459a913e77c18a22b, type: 2}
+  - {fileID: 2100000, guid: 3f995d51ad359cd42a6954e0cddc05a1, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -385,7 +385,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: b75efb78baa672d4a93a959f831e30b9, type: 2}
+  - {fileID: 2100000, guid: 1ea34b5caf80a284e817e0fcaa97ce69, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -419,9 +419,102 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e5c2114ec9f7be54889bb05839f089fe, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: DeadSignal.Runtime::DeadSignal.World.AuthoredMapObstacle
   m_localHalfSize: {x: 0.5, y: 0.5}
+--- !u!1 &1365432375120324232
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 8448929317784096177}
+  - component: {fileID: 4322462792188539347}
+  - component: {fileID: 7173892257765284666}
+  m_Layer: 0
+  m_Name: Quench Loop Hero Finish
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &8448929317784096177
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1365432375120324232}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 8624994862542081041}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!33 &4322462792188539347
+MeshFilter:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1365432375120324232}
+  m_Mesh: {fileID: 4300000, guid: 16d32f5f92cf838449eae3339c9ae5bd, type: 2}
+--- !u!23 &7173892257765284666
+MeshRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1365432375120324232}
+  m_Enabled: 1
+  m_CastShadows: 1
+  m_ReceiveShadows: 1
+  m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
+  m_MotionVectors: 1
+  m_LightProbeUsage: 1
+  m_ReflectionProbeUsage: 1
+  m_RayTracingMode: 2
+  m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
+  m_ForceMeshLod: -1
+  m_MeshLodSelectionBias: 0
+  m_RenderingLayerMask: 1
+  m_RendererPriority: 0
+  m_Materials:
+  - {fileID: 2100000, guid: 59b279f197a352b4db1601bd24cceb3a, type: 2}
+  - {fileID: 2100000, guid: 1ea34b5caf80a284e817e0fcaa97ce69, type: 2}
+  - {fileID: 2100000, guid: c8233ebc5803e704b886e71427197bf2, type: 2}
+  - {fileID: 2100000, guid: 3f995d51ad359cd42a6954e0cddc05a1, type: 2}
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
+  m_StaticBatchRoot: {fileID: 0}
+  m_ProbeAnchor: {fileID: 0}
+  m_LightProbeVolumeOverride: {fileID: 0}
+  m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
+  m_PreserveUVs: 0
+  m_IgnoreNormalsForChartDetection: 0
+  m_ImportantGI: 0
+  m_StitchLightmapSeams: 1
+  m_SelectedEditorRenderState: 3
+  m_MinimumChartSize: 4
+  m_AutoUVMaxDistance: 0.5
+  m_AutoUVMaxAngle: 89
+  m_LightmapParameters: {fileID: 0}
+  m_GlobalIlluminationMeshLod: 0
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 0
+  m_MaskInteraction: 0
+  m_AdditionalVertexStreams: {fileID: 0}
 --- !u!1 &1630706462267682649
 GameObject:
   m_ObjectHideFlags: 0
@@ -793,7 +886,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e5c2114ec9f7be54889bb05839f089fe, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: DeadSignal.Runtime::DeadSignal.World.AuthoredMapObstacle
   m_localHalfSize: {x: 0.5, y: 0.5}
 --- !u!1 &3446533985884138733
@@ -987,7 +1080,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e5c2114ec9f7be54889bb05839f089fe, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: DeadSignal.Runtime::DeadSignal.World.AuthoredMapObstacle
   m_localHalfSize: {x: 0.5, y: 0.5}
 --- !u!1 &4535478358122624760
@@ -1358,7 +1451,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: b75efb78baa672d4a93a959f831e30b9, type: 2}
+  - {fileID: 2100000, guid: 1ea34b5caf80a284e817e0fcaa97ce69, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -1392,7 +1485,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e5c2114ec9f7be54889bb05839f089fe, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: DeadSignal.Runtime::DeadSignal.World.AuthoredMapObstacle
   m_localHalfSize: {x: 0.5, y: 0.5}
 --- !u!1 &6857281530388780067
@@ -1586,7 +1679,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e5c2114ec9f7be54889bb05839f089fe, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: DeadSignal.Runtime::DeadSignal.World.AuthoredMapObstacle
   m_localHalfSize: {x: 0.5, y: 0.5}
 --- !u!1 &7255847987094108837
@@ -1690,7 +1783,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e5c2114ec9f7be54889bb05839f089fe, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: DeadSignal.Runtime::DeadSignal.World.AuthoredMapObstacle
   m_localHalfSize: {x: 0.5, y: 0.5}
 --- !u!1 &7373957678314258823
@@ -1705,6 +1798,7 @@ GameObject:
   - component: {fileID: 6740084847326004554}
   - component: {fileID: 1227202323661258268}
   - component: {fileID: 6669961016539249685}
+  - component: {fileID: 1172305849051641653}
   m_Layer: 0
   m_Name: QuenchLoopRegion
   m_TagString: Untagged
@@ -1744,6 +1838,7 @@ Transform:
   - {fileID: 7750304014626888141}
   - {fileID: 2912987872168027333}
   - {fileID: 5097378657153172134}
+  - {fileID: 8448929317784096177}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &6740084847326004554
@@ -1756,7 +1851,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 4f6d485a29665594ca81a18edbf87a43, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: DeadSignal.Runtime::DeadSignal.World.AuthoredQuenchStabilizationObjective
   m_stabilizationAnchor: {fileID: 5832866404827562323}
   m_availableMarker: {fileID: 1971483272718273219}
@@ -1774,7 +1869,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 2b319828419d9e045b8343a8b4d68ae7, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: DeadSignal.Runtime::DeadSignal.World.AuthoredPoweredTerritory
   m_source: 2
   m_halfExtents: {x: 3.15, y: 4.15}
@@ -1789,11 +1884,24 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 08188ffbe83027d40bab6a161cf471fd, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: DeadSignal.Runtime::DeadSignal.World.AuthoredRouteDoorReadability
   m_blockingSlab: {fileID: 406276655787111201}
   m_openMarker: {fileID: 2302150973626878787}
   m_thresholdRenderer: {fileID: 2730396769302865805}
+--- !u!114 &1172305849051641653
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7373957678314258823}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cdfc52f9254a26c4f861407752c9ad62, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: DeadSignal.Runtime::DeadSignal.World.AuthoredFurnaceQuenchHeroFinish
+  m_finishRenderer: {fileID: 7173892257765284666}
 --- !u!1 &7693145496579735512
 GameObject:
   m_ObjectHideFlags: 0
@@ -1895,7 +2003,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e5c2114ec9f7be54889bb05839f089fe, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: DeadSignal.Runtime::DeadSignal.World.AuthoredMapObstacle
   m_localHalfSize: {x: 0.5, y: 0.5}
 --- !u!1 &8224956155079213674
@@ -1999,7 +2107,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e5c2114ec9f7be54889bb05839f089fe, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: DeadSignal.Runtime::DeadSignal.World.AuthoredMapObstacle
   m_localHalfSize: {x: 0.5, y: 0.5}
 --- !u!1001 &8339934470318353577
@@ -2010,6 +2118,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 8624994862542081041}
     m_Modifications:
+    - target: {fileID: 1435605799791902210, guid: 23a6b0eda3412a746aa8fe0fcf6cc01a, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: c8233ebc5803e704b886e71427197bf2, type: 2}
     - target: {fileID: 1473446805392602283, guid: 23a6b0eda3412a746aa8fe0fcf6cc01a, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
@@ -2050,10 +2162,30 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 2983538604371096708, guid: 23a6b0eda3412a746aa8fe0fcf6cc01a, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 59b279f197a352b4db1601bd24cceb3a, type: 2}
     - target: {fileID: 3948976738201243231, guid: 23a6b0eda3412a746aa8fe0fcf6cc01a, type: 3}
       propertyPath: m_Name
       value: Quench Condenser Assembly
       objectReference: {fileID: 0}
+    - target: {fileID: 4698570950648507340, guid: 23a6b0eda3412a746aa8fe0fcf6cc01a, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: c8233ebc5803e704b886e71427197bf2, type: 2}
+    - target: {fileID: 4735906186657822457, guid: 23a6b0eda3412a746aa8fe0fcf6cc01a, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 59b279f197a352b4db1601bd24cceb3a, type: 2}
+    - target: {fileID: 4752524019119080566, guid: 23a6b0eda3412a746aa8fe0fcf6cc01a, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: c8233ebc5803e704b886e71427197bf2, type: 2}
+    - target: {fileID: 6186142863171364890, guid: 23a6b0eda3412a746aa8fe0fcf6cc01a, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 1ea34b5caf80a284e817e0fcaa97ce69, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
