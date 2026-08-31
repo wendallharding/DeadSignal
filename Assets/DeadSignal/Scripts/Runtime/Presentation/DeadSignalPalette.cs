@@ -42,8 +42,9 @@ namespace DeadSignal.Presentation
         public bool HasWardenTexture { get; }
         public bool HasSapperTexture { get; }
 
-        public DeadSignalPalette(bool highContrastEnabled)
+        public DeadSignalPalette(bool highContrastEnabled, EnvironmentLightingTuning lightingTuning)
         {
+            m_lightingTuning = lightingTuning;
             Cyan = _loadMaterial("SignalCyan");
             CyanDim = _loadMaterial("PoweredDeck");
             Amber = _loadMaterial("SalvageAmber");
@@ -211,7 +212,7 @@ namespace DeadSignal.Presentation
             return runtimeMaterial;
         }
 
-        private static void _setMaterial(Material material, Color baseColor, Color emission)
+        private void _setMaterial(Material material, Color baseColor, Color emission)
         {
             material.color = baseColor;
             if (material.HasProperty("_BaseColor"))
@@ -222,10 +223,13 @@ namespace DeadSignal.Presentation
             if (material.HasProperty("_EmissionColor"))
             {
                 material.EnableKeyword("_EMISSION");
-                material.SetColor("_EmissionColor", emission);
+                material.SetColor("_EmissionColor", m_lightingTuning == null
+                    ? emission
+                    : m_lightingTuning.ClampEmission(emission));
             }
         }
 
+        private readonly EnvironmentLightingTuning m_lightingTuning;
         private readonly List<Material> m_runtimeMaterials = new List<Material>();
         private readonly Dictionary<string, Material> m_runtimeMaterialsByName = new Dictionary<string, Material>();
     }

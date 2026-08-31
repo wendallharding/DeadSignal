@@ -274,6 +274,7 @@ namespace DeadSignal.Application
         public int AuthoredMapObstacleCount => m_world?.AuthoredMapObstacleCount ?? 0;
         public int AuthoredSalvageSocketCount => m_world?.AuthoredSalvageSocketCount ?? 0;
         public bool HasPlayerCameraTuning => m_world?.HasPlayerCameraTuning ?? false;
+        public bool HasEnvironmentLightingTuning => m_world?.HasEnvironmentLightingTuning ?? false;
         public bool IsPlayerCameraFollowing => m_world?.PlayerCamera?.IsConfigured ?? false;
         public float LowSignalWarningIntensity => m_lowSignalWarning?.CurrentIntensity ?? 0f;
         public float DirectionalDamageFeedbackAlpha =>

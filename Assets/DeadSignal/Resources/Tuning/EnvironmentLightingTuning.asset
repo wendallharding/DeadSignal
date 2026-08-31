@@ -1,0 +1,66 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d5825754f5a02f545906723599814bed, type: 3}
+  m_Name: EnvironmentLightingTuning
+  m_EditorClassIdentifier: DeadSignal.Runtime::DeadSignal.Presentation.EnvironmentLightingTuning
+  m_keyLightColor: {r: 0.38, g: 0.52, b: 0.65, a: 1}
+  m_keyLightIntensity: 1.35
+  m_keyLightShadows: 2
+  m_ambientFloor: {r: 0.045, g: 0.055, b: 0.07, a: 1}
+  m_highContrastAmbientFloor: {r: 0.075, g: 0.085, b: 0.1, a: 1}
+  m_cameraBackground: {r: 0.002, g: 0.004, b: 0.008, a: 1}
+  m_fogEnabled: 0
+  m_fogColor: {r: 0.012, g: 0.018, b: 0.028, a: 1}
+  m_fogDensity: 0.012
+  m_bloomIntensity: 0.28
+  m_bloomThreshold: 1.15
+  m_bloomScatter: 0.5
+  m_reducedFlashesBloomIntensity: 0.16
+  m_postExposure: 0.08
+  m_contrast: 8
+  m_saturation: -5
+  m_poweredVignette: 0.14
+  m_deadZoneVignette: 0.22
+  m_vignetteSmoothness: 0.48
+  m_vignetteResponse: 0.15
+  m_landmarkLights:
+  - m_name: Tower Signal Pool
+    m_role: 0
+    m_color: {r: 0.05, g: 0.75, b: 1, a: 1}
+    m_range: 7
+    m_intensity: 1
+    m_dormantIntensityMultiplier: 0.35
+  - m_name: Extraction Guidance Pool
+    m_role: 3
+    m_color: {r: 0.08, g: 0.9, b: 1, a: 1}
+    m_range: 6
+    m_intensity: 1
+    m_dormantIntensityMultiplier: 1
+  - m_name: Salvage Annex Worklight
+    m_role: 1
+    m_color: {r: 1, g: 0.48, b: 0.08, a: 1}
+    m_range: 5
+    m_intensity: 1
+    m_dormantIntensityMultiplier: 1
+  - m_name: Security Bay Alarm
+    m_role: 2
+    m_color: {r: 1, g: 0.08, b: 0.12, a: 1}
+    m_range: 5
+    m_intensity: 1
+    m_dormantIntensityMultiplier: 1
+  m_practicalPulseDepth: 0.12
+  m_reducedFlashesPulseDepth: 0.035
+  m_practicalPulseSpeed: 2.2
+  m_maximumEmission: 3.2
+  m_maximumPoweredRouteEmission: 0.8
+  m_maximumVisibleRealtimeLights: 5
+  m_maximumShadowedRealtimeLights: 1

@@ -144,6 +144,7 @@ namespace DeadSignal.World
         public int AuthoredMapObstacleCount { get; private set; }
         public int AuthoredSalvageSocketCount { get; private set; }
         public bool HasPlayerCameraTuning { get; private set; }
+        public bool HasEnvironmentLightingTuning => m_environmentLightingTuning != null;
         public PlayerFollowCamera PlayerCamera { get; private set; }
         public bool LastMovementBlocked { get; private set; }
         public bool HasRuntimeNavMesh => m_navMeshPlanner?.IsReady ?? false;
@@ -162,7 +163,16 @@ namespace DeadSignal.World
                     "Run Tools/DEAD SIGNAL/Migrate Runtime World To Scene.");
             }
 
-            m_palette = new DeadSignalPalette(comfortSettings.HighContrastEnabled);
+            m_comfortSettings = comfortSettings;
+            m_environmentLightingTuning = Resources.Load<EnvironmentLightingTuning>(ENVIRONMENT_LIGHTING_TUNING_RESOURCE);
+            if (m_environmentLightingTuning == null)
+            {
+                throw new MissingReferenceException(
+                    $"Authored environment lighting tuning is missing: Resources/{ENVIRONMENT_LIGHTING_TUNING_RESOURCE}.");
+            }
+
+            m_comfortSettings.ReducedFlashesChanged += _handleReducedFlashesChanged;
+            m_palette = new DeadSignalPalette(comfortSettings.HighContrastEnabled, m_environmentLightingTuning);
             m_signalBoltPrefab = Resources.Load<GameObject>(SIGNAL_BOLT_PREFAB_RESOURCE);
             m_signalBoltTuning = Resources.Load<SignalBoltPresentationTuning>("Tuning/SignalBoltPresentationTuning");
             HasSignalBoltAssets = m_signalBoltPrefab != null &&
@@ -720,8 +730,10 @@ namespace DeadSignal.World
         public void ApplyHighContrast(bool enabled)
         {
             m_palette.ApplyHighContrast(enabled);
-            Camera.backgroundColor = enabled ? Color.black : new Color(0.002f, 0.004f, 0.008f);
-            RenderSettings.ambientLight = enabled ? new Color(0.075f, 0.085f, 0.1f) : new Color(0.045f, 0.055f, 0.07f);
+            Camera.backgroundColor = enabled ? Color.black : m_environmentLightingTuning.CameraBackground;
+            RenderSettings.ambientLight = enabled
+                ? m_environmentLightingTuning.HighContrastAmbientFloor
+                : m_environmentLightingTuning.AmbientFloor;
         }
 
         public void TickPlayerPresentation(
@@ -765,8 +777,19 @@ namespace DeadSignal.World
 
         public void Dispose()
         {
+            m_comfortSettings.ReducedFlashesChanged -= _handleReducedFlashesChanged;
             m_navMeshPlanner?.Dispose();
             m_palette.Dispose();
+        }
+
+        private void _handleReducedFlashesChanged(bool enabled)
+        {
+            if (m_bloom != null)
+            {
+                m_bloom.intensity.value = enabled
+                    ? m_environmentLightingTuning.ReducedFlashesBloomIntensity
+                    : m_environmentLightingTuning.BloomIntensity;
+            }
         }
 
         private void _rebuildNavMesh()
@@ -1074,14 +1097,23 @@ namespace DeadSignal.World
             for (var index = 0; index < m_landmarkLights.Count; index++)
             {
                 var light = m_landmarkLights[index];
-                var baseIntensity = index == 0 && !towerOnline ? 0.35f : 1f;
-                light.intensity = baseIntensity * (0.88f + Mathf.Sin(m_environmentTime * 2.2f + index) * 0.12f);
+                var profile = m_environmentLightingTuning.LandmarkLights[index];
+                var stateMultiplier = index == 0 && !towerOnline ? profile.DormantIntensityMultiplier : 1f;
+                var pulseDepth = m_comfortSettings.ReducedFlashesEnabled
+                    ? m_environmentLightingTuning.ReducedFlashesPulseDepth
+                    : m_environmentLightingTuning.PracticalPulseDepth;
+                var pulse = 1f - pulseDepth +
+                            Mathf.Sin(m_environmentTime * m_environmentLightingTuning.PracticalPulseSpeed + index) *
+                            pulseDepth;
+                light.intensity = profile.Intensity * stateMultiplier * pulse;
             }
 
             if (m_deadZoneVignette != null)
             {
                 m_deadZoneVignette.intensity.value = Mathf.MoveTowards(
-                    m_deadZoneVignette.intensity.value, powered ? 0.14f : 0.22f, dt * 0.15f);
+                    m_deadZoneVignette.intensity.value,
+                    powered ? m_environmentLightingTuning.PoweredVignette : m_environmentLightingTuning.DeadZoneVignette,
+                    dt * m_environmentLightingTuning.VignetteResponse);
             }
         }
 
@@ -1180,9 +1212,20 @@ namespace DeadSignal.World
             Camera.enabled = true;
             m_scene.KeyLight.gameObject.SetActive(true);
             m_scene.KeyLight.enabled = true;
+            m_scene.KeyLight.color = m_environmentLightingTuning.KeyLightColor;
+            m_scene.KeyLight.intensity = m_environmentLightingTuning.KeyLightIntensity;
+            m_scene.KeyLight.shadows = m_environmentLightingTuning.KeyLightShadows;
             _buildPostProcessing(Camera.gameObject);
             RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Flat;
-            RenderSettings.ambientLight = new Color(0.045f, 0.055f, 0.07f);
+            RenderSettings.ambientLight = m_comfortSettings.HighContrastEnabled
+                ? m_environmentLightingTuning.HighContrastAmbientFloor
+                : m_environmentLightingTuning.AmbientFloor;
+            RenderSettings.fog = m_environmentLightingTuning.FogEnabled;
+            RenderSettings.fogColor = m_environmentLightingTuning.FogColor;
+            RenderSettings.fogDensity = m_environmentLightingTuning.FogDensity;
+            Camera.backgroundColor = m_comfortSettings.HighContrastEnabled
+                ? Color.black
+                : m_environmentLightingTuning.CameraBackground;
         }
 
         private void _configurePlayerCamera()
@@ -1803,23 +1846,35 @@ namespace DeadSignal.World
 
         private void _buildLocalizedLighting()
         {
-            _createLandmarkLight("Tower Signal Pool", TowerPosition + Vector3.up * 3.2f, new Color(0.05f, 0.75f, 1f), 7f, 1.2f);
-            _createLandmarkLight("Extraction Guidance Pool", ExtractionPosition + Vector3.up * 3f,
-                new Color(0.08f, 0.9f, 1f), 6f, 1.05f);
-            _createLandmarkLight("Salvage Annex Worklight", new Vector3(8.8f, 3f, 5.8f), new Color(1f, 0.48f, 0.08f), 5f, 0.75f);
-            _createLandmarkLight("Security Bay Alarm", new Vector3(8.5f, 3f, -5.5f), new Color(1f, 0.08f, 0.12f), 5f, 0.65f);
+            var positions = new[]
+            {
+                TowerPosition + Vector3.up * 3.2f,
+                ExtractionPosition + Vector3.up * 3f,
+                new Vector3(8.8f, 3f, 5.8f),
+                new Vector3(8.5f, 3f, -5.5f)
+            };
+            if (m_environmentLightingTuning.LandmarkLights.Count != positions.Length)
+            {
+                throw new MissingReferenceException(
+                    $"Environment lighting tuning must define {positions.Length} practical-light owners.");
+            }
+
+            for (var index = 0; index < positions.Length; index++)
+            {
+                _createLandmarkLight(m_environmentLightingTuning.LandmarkLights[index], positions[index]);
+            }
         }
 
-        private void _createLandmarkLight(string objectName, Vector3 position, Color color, float range, float intensity)
+        private void _createLandmarkLight(EnvironmentLightProfile profile, Vector3 position)
         {
-            var root = new GameObject(objectName);
+            var root = new GameObject(profile.Name);
             root.transform.SetParent(m_root, false);
             root.transform.position = position;
             var light = root.AddComponent<Light>();
             light.type = LightType.Point;
-            light.color = color;
-            light.range = range;
-            light.intensity = intensity;
+            light.color = profile.Color;
+            light.range = profile.Range;
+            light.intensity = profile.Intensity;
             light.shadows = LightShadows.None;
             m_landmarkLights.Add(light);
         }
@@ -1852,17 +1907,19 @@ namespace DeadSignal.World
             volume.isGlobal = true;
             volume.priority = 10f;
             volume.profile = ScriptableObject.CreateInstance<VolumeProfile>();
-            var bloom = volume.profile.Add<Bloom>();
-            bloom.intensity.Override(0.28f);
-            bloom.threshold.Override(1.15f);
-            bloom.scatter.Override(0.5f);
+            m_bloom = volume.profile.Add<Bloom>();
+            m_bloom.intensity.Override(m_comfortSettings.ReducedFlashesEnabled
+                ? m_environmentLightingTuning.ReducedFlashesBloomIntensity
+                : m_environmentLightingTuning.BloomIntensity);
+            m_bloom.threshold.Override(m_environmentLightingTuning.BloomThreshold);
+            m_bloom.scatter.Override(m_environmentLightingTuning.BloomScatter);
             m_deadZoneVignette = volume.profile.Add<Vignette>();
-            m_deadZoneVignette.intensity.Override(0.14f);
-            m_deadZoneVignette.smoothness.Override(0.48f);
+            m_deadZoneVignette.intensity.Override(m_environmentLightingTuning.PoweredVignette);
+            m_deadZoneVignette.smoothness.Override(m_environmentLightingTuning.VignetteSmoothness);
             var color = volume.profile.Add<ColorAdjustments>();
-            color.postExposure.Override(0.08f);
-            color.contrast.Override(8f);
-            color.saturation.Override(-5f);
+            color.postExposure.Override(m_environmentLightingTuning.PostExposure);
+            color.contrast.Override(m_environmentLightingTuning.Contrast);
+            color.saturation.Override(m_environmentLightingTuning.Saturation);
         }
 
         private void _buildGameplayAssists()
@@ -2109,6 +2166,7 @@ namespace DeadSignal.World
         private const string SALVAGE_CACHE_PREFAB_RESOURCE = "Environment/SalvageCacheAssembly";
         private const string SIGNAL_BOLT_PREFAB_RESOURCE = "Projectiles/SignalBoltAssembly";
         private const string PLAYER_CAMERA_TUNING_RESOURCE = "Tuning/PlayerCameraTuning";
+        private const string ENVIRONMENT_LIGHTING_TUNING_RESOURCE = "Tuning/EnvironmentLightingTuning";
         private const float SPINE_TOWER_INTERACTION_RADIUS = 1.6f;
         private const float TOWER_BLOCKER_HALF_SIZE = 0.62f;
         private const float NAVIGATION_CLEARANCE = 0.08f;
@@ -2122,6 +2180,8 @@ namespace DeadSignal.World
         private readonly Transform m_root;
         private readonly DeadSignalSceneReferences m_scene;
         private readonly DeadSignalPalette m_palette;
+        private readonly IComfortSettings m_comfortSettings;
+        private readonly EnvironmentLightingTuning m_environmentLightingTuning;
         private readonly GameObject m_signalBoltPrefab;
         private readonly SignalBoltPresentationTuning m_signalBoltTuning;
         private readonly List<AuthoredMapObstacle> m_authoredMapObstacles = new();
@@ -2140,6 +2200,7 @@ namespace DeadSignal.World
         private readonly List<Vector3> m_interceptorEntrances = new();
         private int m_deepRouteEntranceIndex = -1;
         private Vignette m_deadZoneVignette;
+        private Bloom m_bloom;
         private float m_environmentTime;
         private float m_boundaryPulse;
         private float m_collisionPulse;
