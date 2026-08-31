@@ -1115,15 +1115,17 @@ namespace DeadSignal.World
             {
                 var light = m_landmarkLights[index];
                 var profile = m_environmentLightingTuning.LandmarkLights[index];
+                var poweredState = _isLandmarkPowered(profile.PowerSource, towerOnline);
                 var pulseDepth = m_comfortSettings.ReducedFlashesEnabled
                     ? m_environmentLightingTuning.ReducedFlashesPulseDepth
                     : m_environmentLightingTuning.PracticalPulseDepth;
                 var pulse = 1f - pulseDepth +
                             Mathf.Sin(m_environmentTime * m_environmentLightingTuning.PracticalPulseSpeed + index) *
                             pulseDepth;
-                light.color = profile.GetColor(towerOnline);
-                light.intensity = profile.GetIntensity(towerOnline) * pulse;
+                light.color = profile.GetColor(poweredState);
+                light.intensity = profile.GetIntensity(poweredState) * pulse;
             }
+            _selectVisibleLandmarkLights();
 
             if (m_deadZoneVignette != null)
             {
@@ -1877,12 +1879,32 @@ namespace DeadSignal.World
 
         private void _buildLocalizedLighting()
         {
+            var cargo = Object.FindFirstObjectByType<AuthoredCargoAnnexObjective>(FindObjectsInactive.Include);
+            var coolant = Object.FindFirstObjectByType<AuthoredCoolantReclamationObjective>(FindObjectsInactive.Include);
+            var relay = Object.FindFirstObjectByType<AuthoredRelayForkObjective>(FindObjectsInactive.Include);
+            var transfer = Object.FindFirstObjectByType<AuthoredTransferVaultObjective>(FindObjectsInactive.Include);
+            if (cargo == null || coolant == null || relay == null || transfer == null)
+            {
+                throw new MissingReferenceException("Act I branch objectives are required by the authored lighting profiles.");
+            }
+
             var positions = new[]
             {
                 TowerPosition + Vector3.up * 3.2f,
                 ExtractionPosition + Vector3.up * 3f,
-                new Vector3(8.8f, 3f, 5.8f),
-                new Vector3(8.5f, 3f, -5.5f)
+                cargo.CouplingPosition + Vector3.up * 3.4f - Vector3.forward * 1.2f,
+                Vector3.Lerp(coolant.FirstBafflePosition, coolant.SecondBafflePosition, 0.5f) + Vector3.up * 3.2f,
+                relay.Position + Vector3.up * 3.4f - Vector3.right * 1.4f,
+                transfer.Position + Vector3.up * 3.1f
+            };
+            var targets = new[]
+            {
+                TowerPosition,
+                ExtractionPosition,
+                cargo.CouplingPosition,
+                coolant.SealPosition,
+                relay.Position,
+                transfer.Position
             };
             if (m_environmentLightingTuning.LandmarkLights.Count != positions.Length)
             {
@@ -1892,22 +1914,83 @@ namespace DeadSignal.World
 
             for (var index = 0; index < positions.Length; index++)
             {
-                _createLandmarkLight(m_environmentLightingTuning.LandmarkLights[index], positions[index]);
+                _createLandmarkLight(m_environmentLightingTuning.LandmarkLights[index], positions[index], targets[index]);
             }
+
+            _selectVisibleLandmarkLights();
         }
 
-        private void _createLandmarkLight(EnvironmentLightProfile profile, Vector3 position)
+        private void _createLandmarkLight(EnvironmentLightProfile profile, Vector3 position, Vector3 target)
         {
             var root = new GameObject(profile.Name);
             root.transform.SetParent(m_root, false);
             root.transform.position = position;
             var light = root.AddComponent<Light>();
-            light.type = LightType.Point;
+            light.type = profile.LightType;
+            light.spotAngle = profile.SpotAngle;
             light.color = profile.GetColor(false);
             light.range = profile.Range;
             light.intensity = profile.GetIntensity(false);
             light.shadows = LightShadows.None;
+            if (light.type == LightType.Spot)
+            {
+                root.transform.rotation = Quaternion.LookRotation((target - position).normalized, Vector3.up);
+            }
             m_landmarkLights.Add(light);
+        }
+
+        private bool _isLandmarkPowered(EnvironmentLightPowerSource powerSource, bool towerOnline)
+        {
+            return powerSource switch
+            {
+                EnvironmentLightPowerSource.CentralTower => towerOnline,
+                EnvironmentLightPowerSource.CargoCoupling =>
+                    CargoAnnexObjective?.PresentationState == CargoAnnexPresentationState.Secured,
+                EnvironmentLightPowerSource.CoolantSeal =>
+                    CoolantReclamationObjective?.PresentationState == CoolantReclamationPresentationState.Stable,
+                EnvironmentLightPowerSource.RelayFeeds =>
+                    RelayForkObjective?.PresentationState is RelayForkPresentationState.Routing or
+                        RelayForkPresentationState.Routed,
+                EnvironmentLightPowerSource.TransferAssembly =>
+                    TransferVaultObjective?.PresentationState is TransferVaultPresentationState.Processing or
+                        TransferVaultPresentationState.Assembled,
+                _ => false
+            };
+        }
+
+        private void _selectVisibleLandmarkLights()
+        {
+            const int PERMANENT_LIGHT_COUNT = 2;
+            var localBudget = Mathf.Max(0,
+                m_environmentLightingTuning.MaximumVisibleRealtimeLights - PERMANENT_LIGHT_COUNT - 1);
+            var nearest = -1;
+            var secondNearest = -1;
+            var nearestDistance = float.PositiveInfinity;
+            var secondNearestDistance = float.PositiveInfinity;
+            var playerPosition = Player != null ? Player.position : TowerPosition;
+            for (var index = PERMANENT_LIGHT_COUNT; index < m_landmarkLights.Count; index++)
+            {
+                var distance = (m_landmarkLights[index].transform.position - playerPosition).sqrMagnitude;
+                if (distance < nearestDistance)
+                {
+                    secondNearest = nearest;
+                    secondNearestDistance = nearestDistance;
+                    nearest = index;
+                    nearestDistance = distance;
+                }
+                else if (distance < secondNearestDistance)
+                {
+                    secondNearest = index;
+                    secondNearestDistance = distance;
+                }
+            }
+
+            for (var index = 0; index < m_landmarkLights.Count; index++)
+            {
+                m_landmarkLights[index].enabled = index < PERMANENT_LIGHT_COUNT ||
+                                                  localBudget > 0 && index == nearest ||
+                                                  localBudget > 1 && index == secondNearest;
+            }
         }
 
         private void _applyOpeningLightingState()

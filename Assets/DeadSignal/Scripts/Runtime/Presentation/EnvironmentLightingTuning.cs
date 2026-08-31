@@ -12,6 +12,16 @@ namespace DeadSignal.Presentation
         Navigation
     }
 
+    public enum EnvironmentLightPowerSource
+    {
+        None,
+        CentralTower,
+        CargoCoupling,
+        CoolantSeal,
+        RelayFeeds,
+        TransferAssembly
+    }
+
     [Serializable]
     public sealed class EnvironmentLightProfile
     {
@@ -22,7 +32,9 @@ namespace DeadSignal.Presentation
         [SerializeField, Min(0.1f)] private float m_range = 5f;
         [SerializeField, Min(0f)] private float m_intensity = 1f;
         [SerializeField, Range(0f, 1f)] private float m_dormantIntensityMultiplier = 1f;
-        [SerializeField] private bool m_respondsToCentralPower;
+        [SerializeField] private EnvironmentLightPowerSource m_powerSource;
+        [SerializeField] private LightType m_lightType = LightType.Point;
+        [SerializeField, Range(1f, 179f)] private float m_spotAngle = 60f;
 
         public string Name => m_name;
         public EnvironmentLightRole Role => m_role;
@@ -31,7 +43,10 @@ namespace DeadSignal.Presentation
         public float Range => m_range;
         public float Intensity => m_intensity;
         public float DormantIntensityMultiplier => m_dormantIntensityMultiplier;
-        public bool RespondsToCentralPower => m_respondsToCentralPower;
+        public EnvironmentLightPowerSource PowerSource => m_powerSource;
+        public LightType LightType => m_lightType;
+        public float SpotAngle => m_spotAngle;
+        public bool RespondsToCentralPower => m_powerSource == EnvironmentLightPowerSource.CentralTower;
 
         public EnvironmentLightProfile(
             string name,
@@ -41,7 +56,9 @@ namespace DeadSignal.Presentation
             float range,
             float intensity,
             float dormantIntensityMultiplier = 1f,
-            bool respondsToCentralPower = false)
+            EnvironmentLightPowerSource powerSource = EnvironmentLightPowerSource.None,
+            LightType lightType = LightType.Point,
+            float spotAngle = 60f)
         {
             m_name = name;
             m_role = role;
@@ -50,15 +67,17 @@ namespace DeadSignal.Presentation
             m_range = range;
             m_intensity = intensity;
             m_dormantIntensityMultiplier = dormantIntensityMultiplier;
-            m_respondsToCentralPower = respondsToCentralPower;
+            m_powerSource = powerSource;
+            m_lightType = lightType;
+            m_spotAngle = spotAngle;
         }
 
-        public Color GetColor(bool centralPowered) => m_respondsToCentralPower && centralPowered
+        public Color GetColor(bool powered) => m_powerSource != EnvironmentLightPowerSource.None && powered
             ? m_poweredColor
             : m_color;
 
-        public float GetIntensity(bool centralPowered) => m_intensity *
-            (m_respondsToCentralPower && !centralPowered ? m_dormantIntensityMultiplier : 1f);
+        public float GetIntensity(bool powered) => m_intensity *
+            (m_powerSource != EnvironmentLightPowerSource.None && !powered ? m_dormantIntensityMultiplier : 1f);
 
         public void Validate()
         {
@@ -66,6 +85,8 @@ namespace DeadSignal.Presentation
             m_range = Mathf.Max(0.1f, m_range);
             m_intensity = Mathf.Max(0f, m_intensity);
             m_dormantIntensityMultiplier = Mathf.Clamp01(m_dormantIntensityMultiplier);
+            m_lightType = m_lightType == LightType.Spot ? LightType.Spot : LightType.Point;
+            m_spotAngle = Mathf.Clamp(m_spotAngle, 1f, 179f);
         }
     }
 
@@ -106,13 +127,22 @@ namespace DeadSignal.Presentation
         [SerializeField] private List<EnvironmentLightProfile> m_landmarkLights = new()
         {
             new EnvironmentLightProfile("Central Coupling Task Pool", EnvironmentLightRole.DominantTask,
-                new Color(1f, 0.42f, 0.08f), new Color(0.14f, 0.72f, 0.9f), 7.8f, 1.25f, 0.48f, true),
+                new Color(1f, 0.42f, 0.08f), new Color(0.14f, 0.72f, 0.9f), 7.8f, 1.25f, 0.48f,
+                EnvironmentLightPowerSource.CentralTower),
             new EnvironmentLightProfile("Dock Uplink Guidance Pool", EnvironmentLightRole.Navigation,
                 new Color(0.22f, 0.62f, 0.72f), new Color(0.22f, 0.62f, 0.72f), 5.4f, 0.82f),
-            new EnvironmentLightProfile("Salvage Annex Worklight", EnvironmentLightRole.SecondaryTask,
-                new Color(1f, 0.48f, 0.08f), new Color(1f, 0.48f, 0.08f), 5f, 0.9f),
-            new EnvironmentLightProfile("Security Bay Alarm", EnvironmentLightRole.Practical,
-                new Color(1f, 0.08f, 0.12f), new Color(1f, 0.08f, 0.12f), 5f, 0.9f)
+            new EnvironmentLightProfile("Cargo Retrieval Worklight", EnvironmentLightRole.SecondaryTask,
+                new Color(0.58f, 0.26f, 0.08f), new Color(1f, 0.72f, 0.34f), 6f, 1.7f, 0.48f,
+                EnvironmentLightPowerSource.CargoCoupling, LightType.Spot, 66f),
+            new EnvironmentLightProfile("Coolant Threading Pool", EnvironmentLightRole.SecondaryTask,
+                new Color(0.18f, 0.38f, 0.42f), new Color(0.48f, 0.86f, 0.84f), 6.5f, 1.45f, 0.42f,
+                EnvironmentLightPowerSource.CoolantSeal),
+            new EnvironmentLightProfile("Relay Routing Projector", EnvironmentLightRole.DominantTask,
+                new Color(0.55f, 0.25f, 0.06f), new Color(0.32f, 0.72f, 0.78f), 5.8f, 1.65f, 0.38f,
+                EnvironmentLightPowerSource.RelayFeeds, LightType.Spot, 52f),
+            new EnvironmentLightProfile("Transfer Assembly Pool", EnvironmentLightRole.Practical,
+                new Color(0.48f, 0.36f, 0.24f), new Color(0.76f, 0.88f, 0.82f), 5.8f, 1.5f, 0.36f,
+                EnvironmentLightPowerSource.TransferAssembly)
         };
         [SerializeField, Range(0f, 2f)] private float m_openingFixtureEmission = 0.28f;
         [SerializeField, Range(0f, 2f)] private float m_centralDormantFixtureEmission = 0.18f;

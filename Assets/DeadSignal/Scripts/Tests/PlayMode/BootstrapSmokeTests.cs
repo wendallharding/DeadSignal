@@ -1659,9 +1659,11 @@ namespace DeadSignal.Tests
                 "The runtime should compose its restrained global post-processing grade.");
             Assert.That(game.transform.Find("Central Coupling Task Pool")?.GetComponent<Light>(), Is.Not.Null);
             Assert.That(game.transform.Find("Dock Uplink Guidance Pool")?.GetComponent<Light>(), Is.Not.Null);
-            Assert.That(game.transform.Find("Salvage Annex Worklight")?.GetComponent<Light>(), Is.Not.Null);
-            Assert.That(game.transform.Find("Security Bay Alarm")?.GetComponent<Light>(), Is.Not.Null,
-                "Each major station zone should receive a distinct localized light pool.");
+            Assert.That(game.transform.Find("Cargo Retrieval Worklight")?.GetComponent<Light>(), Is.Not.Null);
+            Assert.That(game.transform.Find("Coolant Threading Pool")?.GetComponent<Light>(), Is.Not.Null);
+            Assert.That(game.transform.Find("Relay Routing Projector")?.GetComponent<Light>(), Is.Not.Null);
+            Assert.That(game.transform.Find("Transfer Assembly Pool")?.GetComponent<Light>(), Is.Not.Null,
+                "Each Act I verb should receive a distinct localized light pool.");
             Assert.That(game.transform.Find("Objective Route Pulse"), Is.Null,
                 "The world-spanning objective line should be replaced by edge indicators.");
             Assert.That(game.transform.Find("Projected Aim Guide")?.GetComponent<LineRenderer>(), Is.Not.Null);
