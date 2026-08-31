@@ -13,10 +13,10 @@ namespace DeadSignal.Tests
             var tuning = Resources.Load<EnvironmentLightingTuning>("Tuning/EnvironmentLightingTuning");
 
             Assert.That(tuning, Is.Not.Null);
-            Assert.That(tuning.LandmarkLights, Has.Count.EqualTo(16));
+            Assert.That(tuning.LandmarkLights, Has.Count.EqualTo(20));
             Assert.That(tuning.LandmarkLights.Select(profile => profile.Name), Is.Unique);
             Assert.That(tuning.LandmarkLights.Count(profile => profile.Role == EnvironmentLightRole.DominantTask),
-                Is.EqualTo(6));
+                Is.EqualTo(7));
             Assert.That(tuning.LandmarkLights, Has.Some.Property("Role").EqualTo(EnvironmentLightRole.SecondaryTask));
             Assert.That(tuning.LandmarkLights, Has.Some.Property("Role").EqualTo(EnvironmentLightRole.Practical));
             Assert.That(tuning.LandmarkLights, Has.Some.Property("Role").EqualTo(EnvironmentLightRole.Navigation));
@@ -84,6 +84,20 @@ namespace DeadSignal.Tests
             Assert.That(convergenceProjector.CookieResource,
                 Is.EqualTo("Environment/DeepCoreCalibrationApertureCookie"));
             Assert.That(Resources.Load<Texture2D>(convergenceProjector.CookieResource), Is.Not.Null);
+            var securityProfiles = tuning.LandmarkLights.Where(profile =>
+                profile.PowerSource is >= EnvironmentLightPowerSource.SecurityCommitment and
+                    <= EnvironmentLightPowerSource.SecurityCapacitor).ToArray();
+            Assert.That(securityProfiles, Has.Length.EqualTo(4));
+            Assert.That(securityProfiles.Select(profile => profile.PowerSource), Is.Unique);
+            Assert.That(securityProfiles.Count(profile => profile.LightType == LightType.Spot), Is.EqualTo(2));
+            Assert.That(securityProfiles.Count(profile => profile.LightType == LightType.Point), Is.EqualTo(2));
+            Assert.That(securityProfiles.All(profile => profile.GetIntensity(false) < profile.GetIntensity(true)),
+                Is.True);
+            var lockdownProjector = securityProfiles.Single(profile =>
+                profile.PowerSource == EnvironmentLightPowerSource.SecurityLockdown);
+            Assert.That(lockdownProjector.CookieResource,
+                Is.EqualTo("Environment/SecurityTrialContainmentCookie"));
+            Assert.That(Resources.Load<Texture2D>(lockdownProjector.CookieResource), Is.Not.Null);
             Assert.That(tuning.CentralPoweredFixtureEmission, Is.GreaterThan(tuning.CentralDormantFixtureEmission));
             Assert.That(tuning.OpeningFixtureEmission, Is.LessThan(tuning.CentralPoweredFixtureEmission));
             Assert.That(tuning.OpeningTerritoryBase.a, Is.LessThan(0.2f));

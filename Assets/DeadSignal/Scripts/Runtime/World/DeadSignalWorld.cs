@@ -534,6 +534,7 @@ namespace DeadSignal.World
         public void UpdateSecurityTrialPresentation(RunModel model)
         {
             CombatChamber?.SetCommitmentAvailable(model.CurrentObjective.Id == MissionObjectiveId.TrialCommitment);
+            _applySecurityTrialLightingState();
         }
 
         public void UpdateExtractionPresentation(RunModel model, ExtractionUplink uplink)
@@ -1160,7 +1161,7 @@ namespace DeadSignal.World
                             Mathf.Sin(m_environmentTime * m_environmentLightingTuning.PracticalPulseSpeed + index) *
                             pulseDepth;
                 light.color = profile.GetColor(poweredState);
-                light.intensity = profile.GetIntensity(poweredState) * pulse;
+                light.intensity = _getLandmarkIntensity(profile, poweredState) * pulse;
             }
             _selectVisibleLandmarkLights();
 
@@ -1930,6 +1931,7 @@ namespace DeadSignal.World
             var breaker = Object.FindFirstObjectByType<AuthoredBreakerResetObjective>(FindObjectsInactive.Include);
             var furnace = Object.FindFirstObjectByType<AuthoredFurnaceForgeObjective>(FindObjectsInactive.Include);
             var quench = Object.FindFirstObjectByType<AuthoredQuenchStabilizationObjective>(FindObjectsInactive.Include);
+            var securityTrial = Object.FindFirstObjectByType<AuthoredCombatChamber>(FindObjectsInactive.Include);
             AuthoredSpineHeroFinish spineFinish = null;
             AuthoredSpineHeroFinish trenchFinish = null;
             AuthoredSpineVentingObjective venting = null;
@@ -1949,7 +1951,7 @@ namespace DeadSignal.World
             if (cargo == null || coolant == null || relay == null || transfer == null ||
                 foundryFinish == null || gantryFinish == null || spineFinish == null || trenchFinish == null ||
                 venting == null || induction == null || flux == null || convergence == null || breaker == null ||
-                furnace == null || quench == null)
+                furnace == null || quench == null || securityTrial == null)
             {
                 throw new MissingReferenceException(
                     "Authored objectives and Relay/Spine hero finishes are required by the environment lighting profiles.");
@@ -1977,7 +1979,11 @@ namespace DeadSignal.World
                 convergence.Position + Vector3.up * 4.1f,
                 breaker.Position + Vector3.up * 3.3f + Vector3.right * 0.8f,
                 furnace.Position + Vector3.up * 4f,
-                quench.Position + Vector3.up * 3.5f + Vector3.forward * 0.7f
+                quench.Position + Vector3.up * 3.5f + Vector3.forward * 0.7f,
+                securityTrial.CommitmentSwitch.position + Vector3.up * 3.2f - Vector3.forward * 0.6f,
+                securityTrial.ArenaPosition + Vector3.up * 5.4f,
+                securityTrial.ArenaPosition + Vector3.up * 3.8f,
+                securityTrial.RewardPosition + Vector3.up * 3.6f - Vector3.forward * 0.5f
             };
             var targets = new[]
             {
@@ -1996,7 +2002,11 @@ namespace DeadSignal.World
                 convergence.Position,
                 breaker.Position,
                 furnace.Position,
-                quench.Position
+                quench.Position,
+                securityTrial.CommitmentSwitch.position,
+                securityTrial.ArenaPosition,
+                securityTrial.ArenaPosition,
+                securityTrial.RewardPosition
             };
             if (m_environmentLightingTuning.LandmarkLights.Count != positions.Length)
             {
@@ -2087,6 +2097,18 @@ namespace DeadSignal.World
                     QuenchStabilizationObjective?.PresentationState is
                         CoreProcessingPresentationState.ProcessingActive or
                         CoreProcessingPresentationState.Complete,
+                EnvironmentLightPowerSource.SecurityCommitment =>
+                    CombatChamber?.CommitmentPresentationState is TrialCommitmentPresentationState.Available or
+                        TrialCommitmentPresentationState.CommittedActive,
+                EnvironmentLightPowerSource.SecurityLockdown =>
+                    CombatChamber?.LockdownPresentationState is LockdownChamberPresentationState.Armed or
+                        LockdownChamberPresentationState.LockedActive,
+                EnvironmentLightPowerSource.SecurityClear =>
+                    CombatChamber?.LockdownPresentationState == LockdownChamberPresentationState.Cleared,
+                EnvironmentLightPowerSource.SecurityCapacitor =>
+                    CombatChamber?.CapacitorPresentationState is TrialCapacitorPresentationState.Available or
+                        TrialCapacitorPresentationState.CollectedActive or
+                        TrialCapacitorPresentationState.EmptyVaultComplete,
                 _ => false
             };
         }
@@ -2101,7 +2123,8 @@ namespace DeadSignal.World
             for (var index = 0; index < m_landmarkLights.Count; index++)
             {
                 var profile = m_environmentLightingTuning.LandmarkLights[index];
-                if (profile.PowerSource < EnvironmentLightPowerSource.InductionLattice)
+                if (profile.PowerSource < EnvironmentLightPowerSource.InductionLattice ||
+                    profile.PowerSource > EnvironmentLightPowerSource.QuenchStabilization)
                 {
                     continue;
                 }
@@ -2110,6 +2133,39 @@ namespace DeadSignal.World
                 m_landmarkLights[index].color = profile.GetColor(powered);
                 m_landmarkLights[index].intensity = profile.GetIntensity(powered);
             }
+        }
+
+        private void _applySecurityTrialLightingState()
+        {
+            if (m_landmarkLights.Count != m_environmentLightingTuning.LandmarkLights.Count)
+            {
+                return;
+            }
+
+            for (var index = 0; index < m_landmarkLights.Count; index++)
+            {
+                var profile = m_environmentLightingTuning.LandmarkLights[index];
+                if (profile.PowerSource < EnvironmentLightPowerSource.SecurityCommitment)
+                {
+                    continue;
+                }
+
+                var powered = _isLandmarkPowered(profile.PowerSource, false);
+                m_landmarkLights[index].color = profile.GetColor(powered);
+                m_landmarkLights[index].intensity = _getLandmarkIntensity(profile, powered);
+            }
+        }
+
+        private float _getLandmarkIntensity(EnvironmentLightProfile profile, bool powered)
+        {
+            var intensity = profile.GetIntensity(powered);
+            if (powered && profile.PowerSource == EnvironmentLightPowerSource.SecurityLockdown &&
+                CombatChamber?.State == CombatChamberState.Lockdown)
+            {
+                intensity *= Mathf.Lerp(0.86f, 1.08f, (Mathf.Clamp(CombatChamber.Phase, 1, 3) - 1f) / 2f);
+            }
+
+            return intensity;
         }
 
         private void _selectVisibleLandmarkLights()

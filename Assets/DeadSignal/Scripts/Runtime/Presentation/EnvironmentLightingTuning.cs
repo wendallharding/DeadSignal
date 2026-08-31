@@ -29,7 +29,11 @@ namespace DeadSignal.Presentation
         ConvergenceCalibration,
         BreakerDistribution,
         FurnaceForge,
-        QuenchStabilization
+        QuenchStabilization,
+        SecurityCommitment,
+        SecurityLockdown,
+        SecurityClear,
+        SecurityCapacitor
     }
 
     [Serializable]
@@ -266,6 +270,30 @@ namespace DeadSignal.Presentation
                 EnvironmentLightRole.SecondaryTask,
                 new Color(0.08f, 0.16f, 0.2f), new Color(0.28f, 0.74f, 0.82f), 7.4f, 1.58f, 0.28f,
                 EnvironmentLightPowerSource.QuenchStabilization));
+        }
+
+        public void ConfigureSecurityTrialProfiles()
+        {
+            m_landmarkLights ??= new List<EnvironmentLightProfile>();
+            m_landmarkLights.RemoveAll(profile =>
+                profile != null && profile.PowerSource >= EnvironmentLightPowerSource.SecurityCommitment);
+            m_landmarkLights.Add(new EnvironmentLightProfile("Trial Commitment Warning Pool",
+                EnvironmentLightRole.SecondaryTask,
+                new Color(0.3f, 0.035f, 0.025f), new Color(1f, 0.42f, 0.055f), 6.4f, 1.5f, 0.24f,
+                EnvironmentLightPowerSource.SecurityCommitment));
+            m_landmarkLights.Add(new EnvironmentLightProfile("Lockdown Containment Projector",
+                EnvironmentLightRole.DominantTask,
+                new Color(0.22f, 0.025f, 0.04f), new Color(0.92f, 0.035f, 0.08f), 9.2f, 1.62f, 0.18f,
+                EnvironmentLightPowerSource.SecurityLockdown, LightType.Spot, 78f,
+                "Environment/SecurityTrialContainmentCookie"));
+            m_landmarkLights.Add(new EnvironmentLightProfile("Lockdown Clear Recovery Pool",
+                EnvironmentLightRole.Navigation,
+                new Color(0.055f, 0.11f, 0.13f), new Color(0.18f, 0.78f, 0.86f), 8.4f, 1.38f, 0.12f,
+                EnvironmentLightPowerSource.SecurityClear));
+            m_landmarkLights.Add(new EnvironmentLightProfile("Capacitor Vault Recovery Pool",
+                EnvironmentLightRole.Practical,
+                new Color(0.16f, 0.07f, 0.1f), new Color(0.82f, 0.76f, 0.48f), 6.6f, 1.52f, 0.2f,
+                EnvironmentLightPowerSource.SecurityCapacitor, LightType.Spot, 58f));
         }
 
         private void OnValidate()

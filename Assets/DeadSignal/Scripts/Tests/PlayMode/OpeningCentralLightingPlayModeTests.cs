@@ -29,7 +29,8 @@ namespace DeadSignal.Tests.PlayMode
             var dockFinishes = Object.FindObjectsByType<AuthoredDepartureDockHeroFinish>(
                 FindObjectsInactive.Include, FindObjectsSortMode.None);
             var centralProfile = tuning.LandmarkLights.Single(profile => profile.RespondsToCentralPower);
-            var openingProfile = tuning.LandmarkLights.Single(profile => profile.Role == EnvironmentLightRole.Navigation);
+            var openingProfile = tuning.LandmarkLights.Single(profile =>
+                profile.Name == "Dock Uplink Guidance Pool");
             var centralLight = GameObject.Find(centralProfile.Name).GetComponent<Light>();
             var openingLight = GameObject.Find(openingProfile.Name).GetComponent<Light>();
             var channel = GameObject.Find("Extraction Departure Channel");
