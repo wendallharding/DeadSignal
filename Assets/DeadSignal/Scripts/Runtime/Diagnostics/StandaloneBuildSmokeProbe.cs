@@ -618,9 +618,15 @@ namespace DeadSignal.Diagnostics
                                 Resources.Load<GameObject>("Environment/SecurityBayRouteMarker") != null &&
                                 Resources.Load<GameObject>("Environment/WardenStagingBay") != null &&
                                 Resources.Load<Texture2D>("Environment/WardenBayAlbedo") != null &&
+                                Resources.Load<Mesh>("Environment/WardenBayHeroFinish") != null &&
                                 Resources.Load<GameObject>("Environment/SapperSiphonPylon") != null &&
                                 Resources.Load<GameObject>("Environment/SignalSapperCradle") != null &&
                                 Resources.Load<Texture2D>("Environment/SapperCradleAlbedo") != null &&
+                                Resources.Load<Mesh>("Environment/SapperCradleHeroFinish") != null &&
+                                Resources.Load<Material>(
+                                    "Materials/WithdrawalLandmarkFinish/WardenContainmentArmor") != null &&
+                                Resources.Load<Material>(
+                                    "Materials/WithdrawalLandmarkFinish/SapperCradleConduit") != null &&
                                 Resources.Load<GameObject>("Actors/SignalSapperAssembly") != null &&
                                 Resources.Load<GameObject>("Actors/SignalSapperModel") != null &&
                                 Resources.Load<Texture2D>("Actors/SignalSapperArmorAlbedo") != null &&

@@ -45,6 +45,7 @@ namespace DeadSignal.Editor
             DeadSignalRelayForkSetup.EnsureAssets();
             DeadSignalWardenBaySetup.EnsureAssets();
             DeadSignalSapperCradleSetup.EnsureAssets();
+            DeadSignalWithdrawalLandmarkHeroSetup.EnsureAssets();
             DeadSignalCameraSetup.EnsureAssets();
             DeadSignalEastVaultSetup.EnsureAssets();
             DeadSignalCentralInstallationSetup.EnsureAssets();
@@ -427,6 +428,11 @@ namespace DeadSignal.Editor
             if (!DeadSignalSapperCradleSetup.HasAssets)
             {
                 throw new BuildFailedException("The scene-authored Signal Sapper service-cradle assets are missing.");
+            }
+
+            if (!DeadSignalWithdrawalLandmarkHeroSetup.HasAssets)
+            {
+                throw new BuildFailedException("The withdrawal-landmark hero-finish assets are missing.");
             }
 
             if (!DeadSignalCameraSetup.HasAssets)

@@ -1177,7 +1177,9 @@ namespace DeadSignal.Tests
             var eastVaultMeshes = eastVault.GetComponentsInChildren<MeshFilter>()
                 .Select(filter => filter.sharedMesh)
                 .ToArray();
-            Assert.That(eastVaultMeshes.Length, Is.EqualTo(12));
+            Assert.That(eastVaultMeshes.Length, Is.EqualTo(13));
+            Assert.That(eastVaultMeshes.Any(mesh => mesh.name == "TransferVaultHeroFinish"), Is.True,
+                "The transfer vault should retain its collider-free P05 hero finish.");
             Assert.That(eastVaultMeshes.Any(mesh => mesh.name == "TransferVaultAssemblerReadability"), Is.True,
                 "The transfer-vault assembler should use its purpose-built machinery mesh.");
             Assert.That(eastVaultMeshes.Any(mesh => mesh.name == "RouteDoorThresholdReadability"), Is.True,
