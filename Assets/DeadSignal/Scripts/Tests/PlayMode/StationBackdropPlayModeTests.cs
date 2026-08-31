@@ -1,10 +1,15 @@
+using System;
 using System.Collections;
+using System.IO;
+using DeadSignal.Application;
+using DeadSignal.Diagnostics;
 using DeadSignal.Presentation;
 using DeadSignal.World;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
+using Object = UnityEngine.Object;
 
 namespace DeadSignal.Tests
 {
@@ -28,6 +33,18 @@ namespace DeadSignal.Tests
                 Is.GreaterThanOrEqualTo((references.ArenaHalfExtents.y + cameraSafetyMargin) * 2f));
             Assert.That(backdrop.GetComponentInChildren<Collider>(), Is.Null,
                 "The visual underdeck must not create movement, projectile, or NavMesh collision.");
+            Assert.That(backdrop.StructureRenderers, Has.Length.EqualTo(1));
+            var structureRenderer = backdrop.StructureRenderers[0];
+            Assert.That(structureRenderer, Is.Not.Null);
+            Assert.That(structureRenderer.name, Is.EqualTo("Modular Underdeck Ribs"));
+            Assert.That(structureRenderer.GetComponent<MeshFilter>().sharedMesh.vertexCount,
+                Is.GreaterThanOrEqualTo(500));
+            Assert.That(structureRenderer.GetComponent<Collider>(), Is.Null,
+                "The modular ribs are presentation only and must not become traversable or projectile-authoritative.");
+            Assert.That(structureRenderer.bounds.min.x, Is.LessThanOrEqualTo(-backdrop.Coverage.x * 0.45f));
+            Assert.That(structureRenderer.bounds.max.x, Is.GreaterThanOrEqualTo(backdrop.Coverage.x * 0.45f));
+            Assert.That(structureRenderer.bounds.min.z, Is.LessThanOrEqualTo(-backdrop.Coverage.y * 0.45f));
+            Assert.That(structureRenderer.bounds.max.z, Is.GreaterThanOrEqualTo(backdrop.Coverage.y * 0.45f));
 
             var renderer = backdrop.GetComponentInChildren<Renderer>();
             Assert.That(renderer, Is.Not.Null);
@@ -40,6 +57,52 @@ namespace DeadSignal.Tests
                 Is.LessThanOrEqualTo(-references.ArenaHalfExtents.y - cameraSafetyMargin));
             Assert.That(renderer.bounds.max.z,
                 Is.GreaterThanOrEqualTo(references.ArenaHalfExtents.y + cameraSafetyMargin));
+
+            var game = Object.FindFirstObjectByType<DeadSignalGame>();
+            Assert.That(game.AuthoredMapObstacleCount, Is.EqualTo(138));
+            game.DebugTeleport(DebugLocation.CentralTower);
+            yield return new WaitForSecondsRealtime(0.5f);
+            _captureIfRequested(references.PlayerCamera, "P24-Central-Underdeck-1600x900.png", 1600, 900);
+            game.DebugTeleport(DebugLocation.SpineTower);
+            yield return new WaitForSecondsRealtime(0.5f);
+            _captureIfRequested(references.PlayerCamera, "P24-Spine-Underdeck-1280x720.png", 1280, 720);
+            game.DebugTeleport(DebugLocation.FarEast);
+            yield return new WaitForSecondsRealtime(0.5f);
+            _captureIfRequested(references.PlayerCamera, "P24-Deep-Core-Underdeck-1600x900.png", 1600, 900);
+            game.DebugTeleport(DebugLocation.Extraction);
+            yield return new WaitForSecondsRealtime(0.5f);
+            _captureIfRequested(references.PlayerCamera, "P24-Dock-Underdeck-1600x900.png", 1600, 900);
+        }
+
+        private static void _captureIfRequested(Camera camera, string fileName, int width, int height)
+        {
+            var captureDirectory = Environment.GetEnvironmentVariable("DEAD_SIGNAL_P24_CAPTURE_DIR");
+            if (string.IsNullOrWhiteSpace(captureDirectory))
+            {
+                return;
+            }
+
+            Directory.CreateDirectory(captureDirectory);
+            var renderTexture = new RenderTexture(width, height, 24, RenderTextureFormat.ARGB32);
+            var texture = new Texture2D(width, height, TextureFormat.RGB24, false);
+            var previousTarget = camera.targetTexture;
+            var previousActive = RenderTexture.active;
+            try
+            {
+                camera.targetTexture = renderTexture;
+                camera.Render();
+                RenderTexture.active = renderTexture;
+                texture.ReadPixels(new Rect(0f, 0f, width, height), 0, 0);
+                texture.Apply();
+                File.WriteAllBytes(Path.Combine(captureDirectory, fileName), texture.EncodeToPNG());
+            }
+            finally
+            {
+                camera.targetTexture = previousTarget;
+                RenderTexture.active = previousActive;
+                Object.DestroyImmediate(texture);
+                Object.DestroyImmediate(renderTexture);
+            }
         }
 
         [UnityTest]

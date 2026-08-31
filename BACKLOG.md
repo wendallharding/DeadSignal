@@ -166,7 +166,7 @@ Execute this queue in order after the machinery/door, room-composition, and acto
 
 ##### Modular station detail and world cohesion
 
-- [ ] **Presentation Run P24 — Underdeck and void treatment:** extend the authored non-traversable underdeck/backdrop language beneath every required gameplay-camera view that still exposes accidental pure-black void, using bounded modular structure without adding playable floor or changing world bounds
+- [x] **Presentation Run P24 — Underdeck and void treatment:** extend the authored non-traversable underdeck/backdrop language beneath every required gameplay-camera view that still exposes accidental pure-black void, using bounded modular structure without adding playable floor or changing world bounds
 - [ ] **Presentation Run P25 — Wall and parapet kit:** create or refine reusable authored wall faces, corner caps, parapets, supports, backs, and end pieces that eliminate abrupt primitive cutoffs while preserving foreground cutaway ownership and collision footprints
 - [ ] **Presentation Run P26 — Stateful door-frame kit:** refine reusable frames, tracks, pistons, seals, warning lamps, retracted-panel pockets, and open-threshold treatment for progression doors without changing their blocker objects, NavMesh authority, or open conditions
 - [ ] **Presentation Run P27 — Navigation-signage kit:** establish restrained text-free station-sector symbols, hazard bands, directional chevrons, room identifiers, and powered-return decals that support learned routes without duplicating the HUD or creating false objectives
