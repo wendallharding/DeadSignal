@@ -89,6 +89,7 @@ namespace DeadSignal.Editor
             DeadSignalMissionObjectiveSetup.CreateCompatibilityMissionObjectives();
             DeadSignalStationBackdropSetup.EnsureAssets();
             DeadSignalStationWallKitSetup.EnsureAssets();
+            DeadSignalStatefulDoorFrameSetup.EnsureAssets();
             DeadSignalForegroundCutawaySetup.EnsureAssets();
             DeadSignalSignalSpineSetup.EnsureAssets();
             DeadSignalBoundaryThresholdSetup.EnsureAssets();
@@ -417,6 +418,11 @@ namespace DeadSignal.Editor
             if (!DeadSignalStationWallKitSetup.HasAssets)
             {
                 throw new BuildFailedException("The scene-authored station wall and parapet kit is missing or incomplete.");
+            }
+
+            if (!DeadSignalStatefulDoorFrameSetup.HasAssets)
+            {
+                throw new BuildFailedException("The reusable stateful progression-door frame kit is missing or incomplete.");
             }
 
             if (!DeadSignalForegroundCutawaySetup.HasAssets)

@@ -19,8 +19,10 @@ namespace DeadSignal.World
         [SerializeField] private GameObject m_blockingSlab;
         [SerializeField] private GameObject m_openMarker;
         [SerializeField] private Renderer m_thresholdRenderer;
+        [SerializeField] private AuthoredStatefulDoorFrame m_frameKit;
 
         public bool IsConfigured => m_blockingSlab != null && m_openMarker != null && m_thresholdRenderer != null;
+        public AuthoredStatefulDoorFrame FrameKit => m_frameKit;
         public RouteDoorPresentationState PresentationState { get; private set; } = RouteDoorPresentationState.Locked;
 
         private void Awake()
@@ -35,6 +37,12 @@ namespace DeadSignal.World
             m_thresholdRenderer = thresholdRenderer;
             m_hasAppliedPresentation = false;
             SetOpen(false);
+        }
+
+        public void ConfigureFrameKit(AuthoredStatefulDoorFrame frameKit)
+        {
+            m_frameKit = frameKit;
+            m_frameKit?.SetOpen(PresentationState == RouteDoorPresentationState.Open);
         }
 
         public void SetOpen(bool open)
@@ -57,6 +65,7 @@ namespace DeadSignal.World
 
             m_hasAppliedPresentation = true;
             PresentationState = state;
+            m_frameKit?.SetOpen(open);
             if (m_thresholdRenderer == null)
             {
                 return;

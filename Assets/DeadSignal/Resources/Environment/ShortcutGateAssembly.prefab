@@ -120,7 +120,8 @@ Transform:
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 3982983985932366294}
   m_Father: {fileID: 3324386432926746391}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!33 &4110392777622733119
@@ -324,6 +325,7 @@ MonoBehaviour:
   m_blockingSlab: {fileID: 3437512040238533951}
   m_openMarker: {fileID: 3014445147042336975}
   m_thresholdRenderer: {fileID: 6178872399844943613}
+  m_frameKit: {fileID: 6298618232530882030}
 --- !u!1 &3340189686321233672
 GameObject:
   m_ObjectHideFlags: 0
@@ -684,3 +686,76 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!1001 &2878180722159347051
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 2940031747465905450}
+    m_Modifications:
+    - target: {fileID: 1204498268126319805, guid: 1bcd993097e3064429b1f3f4afe48076, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1204498268126319805, guid: 1bcd993097e3064429b1f3f4afe48076, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1204498268126319805, guid: 1bcd993097e3064429b1f3f4afe48076, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1204498268126319805, guid: 1bcd993097e3064429b1f3f4afe48076, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1204498268126319805, guid: 1bcd993097e3064429b1f3f4afe48076, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1204498268126319805, guid: 1bcd993097e3064429b1f3f4afe48076, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1204498268126319805, guid: 1bcd993097e3064429b1f3f4afe48076, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1204498268126319805, guid: 1bcd993097e3064429b1f3f4afe48076, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1204498268126319805, guid: 1bcd993097e3064429b1f3f4afe48076, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1204498268126319805, guid: 1bcd993097e3064429b1f3f4afe48076, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3803574074508323738, guid: 1bcd993097e3064429b1f3f4afe48076, type: 3}
+      propertyPath: m_Name
+      value: Stateful Door Frame Kit
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 1bcd993097e3064429b1f3f4afe48076, type: 3}
+--- !u!4 &3982983985932366294 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 1204498268126319805, guid: 1bcd993097e3064429b1f3f4afe48076, type: 3}
+  m_PrefabInstance: {fileID: 2878180722159347051}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &6298618232530882030 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 8113364433002178693, guid: 1bcd993097e3064429b1f3f4afe48076, type: 3}
+  m_PrefabInstance: {fileID: 2878180722159347051}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 748e3ede7a275134f986ef509bd97ca6, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: DeadSignal.Runtime::DeadSignal.World.AuthoredStatefulDoorFrame
