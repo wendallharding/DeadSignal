@@ -88,6 +88,7 @@ namespace DeadSignal.Editor
             DeadSignalDepartureDockHeroSetup.EnsureAssets();
             DeadSignalMissionObjectiveSetup.CreateCompatibilityMissionObjectives();
             DeadSignalStationBackdropSetup.EnsureAssets();
+            DeadSignalStationWallKitSetup.EnsureAssets();
             DeadSignalForegroundCutawaySetup.EnsureAssets();
             DeadSignalSignalSpineSetup.EnsureAssets();
             DeadSignalBoundaryThresholdSetup.EnsureAssets();
@@ -411,6 +412,11 @@ namespace DeadSignal.Editor
             if (!DeadSignalStationBackdropSetup.HasAssets)
             {
                 throw new BuildFailedException("The scene-authored station underdeck backdrop is missing or incomplete.");
+            }
+
+            if (!DeadSignalStationWallKitSetup.HasAssets)
+            {
+                throw new BuildFailedException("The scene-authored station wall and parapet kit is missing or incomplete.");
             }
 
             if (!DeadSignalForegroundCutawaySetup.HasAssets)
