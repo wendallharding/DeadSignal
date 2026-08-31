@@ -57,6 +57,7 @@ namespace DeadSignal.Editor
             DeadSignalActTwoReadabilitySetup.EnsureAssets();
             DeadSignalActTwoCompositionSetup.EnsureAssets();
             DeadSignalActTwoCalibrationReadabilitySetup.EnsureAssets();
+            DeadSignalRelayFoundryHeroSetup.EnsureAssets();
             DeadSignalCapacitorSpineSetup.EnsureAssets();
             DeadSignalSpineDischargeTrenchSetup.EnsureAssets();
             DeadSignalSpineNetworkReadabilitySetup.EnsureAssets();
@@ -277,6 +278,11 @@ namespace DeadSignal.Editor
             if (!DeadSignalRelayFoundrySetup.HasAssets)
             {
                 throw new BuildFailedException("The scene-authored Relay Foundry region is missing or incomplete.");
+            }
+
+            if (!DeadSignalRelayFoundryHeroSetup.HasAssets)
+            {
+                throw new BuildFailedException("The Relay Foundry hero-finish assets are missing or incomplete.");
             }
 
             if (!DeadSignalRelayCoolingGantrySetup.HasAssets)

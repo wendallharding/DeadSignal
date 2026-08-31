@@ -71,6 +71,11 @@ namespace DeadSignal.Tests
                 var foundry = game.transform.Find("Relay Foundry Region");
                 Assert.That(foundry, Is.Not.Null);
                 Assert.That(foundry.Find("Relay Induction Turbine"), Is.Not.Null);
+                Assert.That(foundry.Find("Relay Foundry Hero Structure"), Is.Not.Null);
+                Assert.That(foundry.Find("Relay Foundry Hero Power"), Is.Not.Null);
+                Assert.That(foundry.GetComponent<AuthoredRelayFoundryHeroFinish>(), Is.Not.Null);
+                Assert.That(Resources.Load<Mesh>("Environment/RelayFoundryHeroStructure"), Is.Not.Null);
+                Assert.That(Resources.Load<Mesh>("Environment/RelayFoundryHeroPower"), Is.Not.Null);
                 Assert.That(foundry.Find("Foundry Route Split Decal"), Is.Not.Null,
                     "The region junction should carry its authored protected-versus-exposed route marking.");
                 Assert.That(foundry.Find("Relay Weapon Calibration Decal"), Is.Not.Null,

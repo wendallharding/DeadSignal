@@ -108,7 +108,13 @@ namespace DeadSignal.Editor
                     throw new InvalidOperationException("The Relay Foundry is missing its tower core or heat exchanger.");
                 }
 
-                var relayRenderers = new[] { relayCore.GetComponent<Renderer>(), relayPanel };
+                var heroPower = root.transform.Find("Relay Foundry Hero Power")?.GetComponent<Renderer>();
+                var turbineRotor = root.transform.Find("Relay Induction Turbine")
+                    ?.GetComponentsInChildren<Renderer>(true)
+                    .FirstOrDefault(renderer => renderer.name.Contains("Rotor", StringComparison.OrdinalIgnoreCase));
+                var relayRenderers = new[] { relayCore.GetComponent<Renderer>(), relayPanel, heroPower, turbineRotor }
+                    .Where(renderer => renderer != null)
+                    .ToArray();
                 var gantryRenderers = exchanger.GetComponentsInChildren<Renderer>(true)
                     .Where(renderer => renderer.name.Contains("coolant coil", StringComparison.OrdinalIgnoreCase))
                     .Append(gantryPanel)

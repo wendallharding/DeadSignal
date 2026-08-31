@@ -412,6 +412,10 @@ namespace DeadSignal.Diagnostics
                                 Resources.Load<GameObject>("Environment/RelayFoundryRegion") != null &&
                                 Resources.Load<GameObject>("Environment/RelayFoundryTurbineModel") != null &&
                                 Resources.Load<Texture2D>("Environment/RelayFoundryTurbineAlbedo") != null &&
+                                Resources.Load<Mesh>("Environment/RelayFoundryHeroStructure") != null &&
+                                Resources.Load<Mesh>("Environment/RelayFoundryHeroPower") != null &&
+                                game.transform.Find("Relay Foundry Region/Relay Foundry Hero Structure") != null &&
+                                game.transform.Find("Relay Foundry Region/Relay Foundry Hero Power") != null &&
                                 Resources.Load<Texture2D>("Environment/RelayFoundryRouteDecal") != null &&
                                 game.transform.Find(
                                     "Relay Foundry Region/Relay Cooling Gantry Region/Relay Heat Exchanger") != null &&
