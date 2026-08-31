@@ -181,6 +181,13 @@ namespace DeadSignal.World
             };
             m_openingPoweredTerritoryMaterial.SetColor("_BaseColor", m_environmentLightingTuning.OpeningTerritoryBase);
             m_openingPoweredTerritoryMaterial.SetColor("_EdgeColor", m_environmentLightingTuning.OpeningTerritoryEdge);
+            m_relayPoweredTerritoryMaterial = new Material(m_palette.PoweredTerritory)
+            {
+                name = "Relay Powered Territory",
+                hideFlags = HideFlags.DontSave
+            };
+            m_relayPoweredTerritoryMaterial.SetColor("_BaseColor", m_environmentLightingTuning.RelayTerritoryBase);
+            m_relayPoweredTerritoryMaterial.SetColor("_EdgeColor", m_environmentLightingTuning.RelayTerritoryEdge);
             m_signalBoltPrefab = Resources.Load<GameObject>(SIGNAL_BOLT_PREFAB_RESOURCE);
             m_signalBoltTuning = Resources.Load<SignalBoltPresentationTuning>("Tuning/SignalBoltPresentationTuning");
             HasSignalBoltAssets = m_signalBoltPrefab != null &&
@@ -451,6 +458,7 @@ namespace DeadSignal.World
                 model.RelayTowerOnline,
                 model.CurrentObjective.Id == MissionObjectiveId.RelayPayload,
                 model.RelayPayloadStabilized);
+            _applyRelayRegionLightingState(model.RelayTowerOnline, model.RelayPayloadStabilized);
         }
 
         public void UpdateSpineVentingPresentation(RunModel model)
@@ -622,7 +630,7 @@ namespace DeadSignal.World
 
         public void ActivateRelayTower()
         {
-            m_relayTerritory.GetComponent<Renderer>().sharedMaterial = m_palette.PoweredTerritory;
+            m_relayTerritory.GetComponent<Renderer>().sharedMaterial = m_relayPoweredTerritoryMaterial;
             foreach (var marker in m_relayTerritoryMarkers)
             {
                 marker.GetComponent<Renderer>().sharedMaterial = m_palette.Cyan;
@@ -791,6 +799,10 @@ namespace DeadSignal.World
             if (m_openingPoweredTerritoryMaterial != null)
             {
                 Object.Destroy(m_openingPoweredTerritoryMaterial);
+            }
+            if (m_relayPoweredTerritoryMaterial != null)
+            {
+                Object.Destroy(m_relayPoweredTerritoryMaterial);
             }
             m_palette.Dispose();
         }
@@ -1085,6 +1097,10 @@ namespace DeadSignal.World
             if (m_openingPoweredTerritoryMaterial != null)
             {
                 m_openingPoweredTerritoryMaterial.SetFloat("_Pulse", m_boundaryPulse);
+            }
+            if (m_relayPoweredTerritoryMaterial != null)
+            {
+                m_relayPoweredTerritoryMaterial.SetFloat("_Pulse", m_boundaryPulse);
             }
 
             for (var index = 0; index < m_environmentAnimators.Count; index++)
@@ -1412,6 +1428,7 @@ namespace DeadSignal.World
             HasStationMachineAssets = StationMachineInstanceCount == 6 && m_palette.HasStationMachineTexture;
             _applyOpeningLightingState();
             _applyCentralLightingState(false);
+            _applyRelayRegionLightingState(false, false);
 
             var shortcut = m_scene.ShortcutGate.transform;
             foreach (var renderer in shortcut.GetComponentsInChildren<Renderer>())
@@ -1883,10 +1900,17 @@ namespace DeadSignal.World
             var coolant = Object.FindFirstObjectByType<AuthoredCoolantReclamationObjective>(FindObjectsInactive.Include);
             var relay = Object.FindFirstObjectByType<AuthoredRelayForkObjective>(FindObjectsInactive.Include);
             var transfer = Object.FindFirstObjectByType<AuthoredTransferVaultObjective>(FindObjectsInactive.Include);
-            if (cargo == null || coolant == null || relay == null || transfer == null)
+            var foundryFinish = Object.FindFirstObjectByType<AuthoredRelayFoundryHeroFinish>(FindObjectsInactive.Include);
+            var gantryFinish = Object.FindFirstObjectByType<AuthoredCoolingGantryHeroFinish>(FindObjectsInactive.Include);
+            if (cargo == null || coolant == null || relay == null || transfer == null ||
+                foundryFinish == null || gantryFinish == null)
             {
-                throw new MissingReferenceException("Act I branch objectives are required by the authored lighting profiles.");
+                throw new MissingReferenceException(
+                    "Act I objectives and Relay-region hero finishes are required by the authored lighting profiles.");
             }
+
+            m_relayFoundryHeroFinish = foundryFinish;
+            m_coolingGantryHeroFinish = gantryFinish;
 
             var positions = new[]
             {
@@ -1895,7 +1919,9 @@ namespace DeadSignal.World
                 cargo.CouplingPosition + Vector3.up * 3.4f - Vector3.forward * 1.2f,
                 Vector3.Lerp(coolant.FirstBafflePosition, coolant.SecondBafflePosition, 0.5f) + Vector3.up * 3.2f,
                 relay.Position + Vector3.up * 3.4f - Vector3.right * 1.4f,
-                transfer.Position + Vector3.up * 3.1f
+                transfer.Position + Vector3.up * 3.1f,
+                RelayTowerPosition + Vector3.up * 4.2f - Vector3.left * 0.8f,
+                gantryFinish.FinishRenderer.bounds.center + Vector3.up * 3.6f + Vector3.forward * 0.8f
             };
             var targets = new[]
             {
@@ -1904,7 +1930,9 @@ namespace DeadSignal.World
                 cargo.CouplingPosition,
                 coolant.SealPosition,
                 relay.Position,
-                transfer.Position
+                transfer.Position,
+                RelayTowerPosition,
+                gantryFinish.FinishRenderer.bounds.center
             };
             if (m_environmentLightingTuning.LandmarkLights.Count != positions.Length)
             {
@@ -1932,6 +1960,15 @@ namespace DeadSignal.World
             light.range = profile.Range;
             light.intensity = profile.GetIntensity(false);
             light.shadows = LightShadows.None;
+            if (!string.IsNullOrWhiteSpace(profile.CookieResource))
+            {
+                light.cookie = Resources.Load<Texture2D>(profile.CookieResource);
+                if (light.cookie == null)
+                {
+                    throw new MissingReferenceException(
+                        $"Environment light cookie is missing: Resources/{profile.CookieResource}.");
+                }
+            }
             if (light.type == LightType.Spot)
             {
                 root.transform.rotation = Quaternion.LookRotation((target - position).normalized, Vector3.up);
@@ -1954,6 +1991,12 @@ namespace DeadSignal.World
                 EnvironmentLightPowerSource.TransferAssembly =>
                     TransferVaultObjective?.PresentationState is TransferVaultPresentationState.Processing or
                         TransferVaultPresentationState.Assembled,
+                EnvironmentLightPowerSource.RelayTower =>
+                    RelayNetworkReadability?.RelayState is RelayTowerPresentationState.Activating or
+                        RelayTowerPresentationState.Powered,
+                EnvironmentLightPowerSource.RelayPayload =>
+                    RelayNetworkReadability?.GantryState is CoolingGantryPresentationState.Active or
+                        CoolingGantryPresentationState.Stabilized,
                 _ => false
             };
         }
@@ -2015,6 +2058,38 @@ namespace DeadSignal.World
                 powered
                     ? m_environmentLightingTuning.CentralPoweredFixtureEmission
                     : m_environmentLightingTuning.CentralDormantFixtureEmission);
+        }
+
+        private void _applyRelayRegionLightingState(bool relayPowered, bool payloadStabilized)
+        {
+            if (m_relayFoundryHeroFinish != null)
+            {
+                var foundryProfile = _getLightProfile(EnvironmentLightPowerSource.RelayTower);
+                m_relayFoundryHeroFinish.SetPracticalLighting(
+                    foundryProfile.GetColor(relayPowered),
+                    foundryProfile.GetIntensity(relayPowered) * 0.42f);
+            }
+
+            if (m_coolingGantryHeroFinish != null)
+            {
+                var gantryProfile = _getLightProfile(EnvironmentLightPowerSource.RelayPayload);
+                m_coolingGantryHeroFinish.SetPracticalLighting(
+                    gantryProfile.GetColor(payloadStabilized),
+                    gantryProfile.GetIntensity(payloadStabilized) * 0.38f);
+            }
+        }
+
+        private EnvironmentLightProfile _getLightProfile(EnvironmentLightPowerSource powerSource)
+        {
+            foreach (var profile in m_environmentLightingTuning.LandmarkLights)
+            {
+                if (profile.PowerSource == powerSource)
+                {
+                    return profile;
+                }
+            }
+
+            throw new MissingReferenceException($"Environment lighting profile is missing for {powerSource}.");
         }
 
         private void _buildEnvironmentalDressing()
@@ -2321,6 +2396,7 @@ namespace DeadSignal.World
         private readonly IComfortSettings m_comfortSettings;
         private readonly EnvironmentLightingTuning m_environmentLightingTuning;
         private readonly Material m_openingPoweredTerritoryMaterial;
+        private readonly Material m_relayPoweredTerritoryMaterial;
         private readonly GameObject m_signalBoltPrefab;
         private readonly SignalBoltPresentationTuning m_signalBoltTuning;
         private readonly List<AuthoredMapObstacle> m_authoredMapObstacles = new();
@@ -2341,6 +2417,8 @@ namespace DeadSignal.World
         private int m_deepRouteEntranceIndex = -1;
         private Vignette m_deadZoneVignette;
         private Bloom m_bloom;
+        private AuthoredRelayFoundryHeroFinish m_relayFoundryHeroFinish;
+        private AuthoredCoolingGantryHeroFinish m_coolingGantryHeroFinish;
         private float m_environmentTime;
         private float m_boundaryPulse;
         private float m_collisionPulse;

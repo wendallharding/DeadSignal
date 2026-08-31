@@ -1664,6 +1664,9 @@ namespace DeadSignal.Tests
             Assert.That(game.transform.Find("Relay Routing Projector")?.GetComponent<Light>(), Is.Not.Null);
             Assert.That(game.transform.Find("Transfer Assembly Pool")?.GetComponent<Light>(), Is.Not.Null,
                 "Each Act I verb should receive a distinct localized light pool.");
+            Assert.That(game.transform.Find("Foundry Induction Turbine Projector")?.GetComponent<Light>(), Is.Not.Null);
+            Assert.That(game.transform.Find("Cooling Gantry Stabilization Pool")?.GetComponent<Light>(), Is.Not.Null,
+                "Relay processing and stabilization should receive distinct localized light pools.");
             Assert.That(game.transform.Find("Objective Route Pulse"), Is.Null,
                 "The world-spanning objective line should be replaced by edge indicators.");
             Assert.That(game.transform.Find("Projected Aim Guide")?.GetComponent<LineRenderer>(), Is.Not.Null);

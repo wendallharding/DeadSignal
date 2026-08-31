@@ -43,6 +43,7 @@ MonoBehaviour:
     m_powerSource: 1
     m_lightType: 2
     m_spotAngle: 60
+    m_cookieResource:
   - m_name: Dock Uplink Guidance Pool
     m_role: 3
     m_color: {r: 0.22, g: 0.62, b: 0.72, a: 1}
@@ -53,6 +54,7 @@ MonoBehaviour:
     m_powerSource: 0
     m_lightType: 2
     m_spotAngle: 60
+    m_cookieResource:
   - m_name: Cargo Retrieval Worklight
     m_role: 1
     m_color: {r: 0.58, g: 0.26, b: 0.08, a: 1}
@@ -63,6 +65,7 @@ MonoBehaviour:
     m_powerSource: 2
     m_lightType: 0
     m_spotAngle: 66
+    m_cookieResource:
   - m_name: Coolant Threading Pool
     m_role: 1
     m_color: {r: 0.18, g: 0.38, b: 0.42, a: 1}
@@ -73,6 +76,7 @@ MonoBehaviour:
     m_powerSource: 3
     m_lightType: 2
     m_spotAngle: 60
+    m_cookieResource:
   - m_name: Relay Routing Projector
     m_role: 0
     m_color: {r: 0.55, g: 0.25, b: 0.06, a: 1}
@@ -83,6 +87,7 @@ MonoBehaviour:
     m_powerSource: 4
     m_lightType: 0
     m_spotAngle: 52
+    m_cookieResource:
   - m_name: Transfer Assembly Pool
     m_role: 2
     m_color: {r: 0.48, g: 0.36, b: 0.24, a: 1}
@@ -93,11 +98,36 @@ MonoBehaviour:
     m_powerSource: 5
     m_lightType: 2
     m_spotAngle: 60
+    m_cookieResource:
+  - m_name: Foundry Induction Turbine Projector
+    m_role: 0
+    m_color: {r: 0.48, g: 0.22, b: 0.055, a: 1}
+    m_poweredColor: {r: 1, g: 0.58, b: 0.16, a: 1}
+    m_range: 8.4
+    m_intensity: 1.8
+    m_dormantIntensityMultiplier: 0.32
+    m_powerSource: 6
+    m_lightType: 0
+    m_spotAngle: 72
+    m_cookieResource: Environment/RelayFoundryInductionCookie
+  - m_name: Cooling Gantry Stabilization Pool
+    m_role: 1
+    m_color: {r: 0.12, g: 0.28, b: 0.34, a: 1}
+    m_poweredColor: {r: 0.42, g: 0.82, b: 0.88, a: 1}
+    m_range: 7.2
+    m_intensity: 1.55
+    m_dormantIntensityMultiplier: 0.3
+    m_powerSource: 7
+    m_lightType: 2
+    m_spotAngle: 60
+    m_cookieResource:
   m_openingFixtureEmission: 0.28
   m_centralDormantFixtureEmission: 0.18
   m_centralPoweredFixtureEmission: 0.72
   m_openingTerritoryBase: {r: 0.012, g: 0.22, b: 0.28, a: 0.12}
   m_openingTerritoryEdge: {r: 0.08, g: 0.72, b: 0.82, a: 0.42}
+  m_relayTerritoryBase: {r: 0.012, g: 0.2, b: 0.26, a: 0.1}
+  m_relayTerritoryEdge: {r: 0.08, g: 0.68, b: 0.78, a: 0.34}
   m_practicalPulseDepth: 0.12
   m_reducedFlashesPulseDepth: 0.035
   m_practicalPulseSpeed: 2.2

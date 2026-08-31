@@ -19,7 +19,9 @@ namespace DeadSignal.Presentation
         CargoCoupling,
         CoolantSeal,
         RelayFeeds,
-        TransferAssembly
+        TransferAssembly,
+        RelayTower,
+        RelayPayload
     }
 
     [Serializable]
@@ -35,6 +37,7 @@ namespace DeadSignal.Presentation
         [SerializeField] private EnvironmentLightPowerSource m_powerSource;
         [SerializeField] private LightType m_lightType = LightType.Point;
         [SerializeField, Range(1f, 179f)] private float m_spotAngle = 60f;
+        [SerializeField] private string m_cookieResource;
 
         public string Name => m_name;
         public EnvironmentLightRole Role => m_role;
@@ -46,6 +49,7 @@ namespace DeadSignal.Presentation
         public EnvironmentLightPowerSource PowerSource => m_powerSource;
         public LightType LightType => m_lightType;
         public float SpotAngle => m_spotAngle;
+        public string CookieResource => m_cookieResource;
         public bool RespondsToCentralPower => m_powerSource == EnvironmentLightPowerSource.CentralTower;
 
         public EnvironmentLightProfile(
@@ -58,7 +62,8 @@ namespace DeadSignal.Presentation
             float dormantIntensityMultiplier = 1f,
             EnvironmentLightPowerSource powerSource = EnvironmentLightPowerSource.None,
             LightType lightType = LightType.Point,
-            float spotAngle = 60f)
+            float spotAngle = 60f,
+            string cookieResource = null)
         {
             m_name = name;
             m_role = role;
@@ -70,6 +75,7 @@ namespace DeadSignal.Presentation
             m_powerSource = powerSource;
             m_lightType = lightType;
             m_spotAngle = spotAngle;
+            m_cookieResource = cookieResource;
         }
 
         public Color GetColor(bool powered) => m_powerSource != EnvironmentLightPowerSource.None && powered
@@ -87,6 +93,7 @@ namespace DeadSignal.Presentation
             m_dormantIntensityMultiplier = Mathf.Clamp01(m_dormantIntensityMultiplier);
             m_lightType = m_lightType == LightType.Spot ? LightType.Spot : LightType.Point;
             m_spotAngle = Mathf.Clamp(m_spotAngle, 1f, 179f);
+            m_cookieResource = string.IsNullOrWhiteSpace(m_cookieResource) ? null : m_cookieResource.Trim();
         }
     }
 
@@ -142,13 +149,22 @@ namespace DeadSignal.Presentation
                 EnvironmentLightPowerSource.RelayFeeds, LightType.Spot, 52f),
             new EnvironmentLightProfile("Transfer Assembly Pool", EnvironmentLightRole.Practical,
                 new Color(0.48f, 0.36f, 0.24f), new Color(0.76f, 0.88f, 0.82f), 5.8f, 1.5f, 0.36f,
-                EnvironmentLightPowerSource.TransferAssembly)
+                EnvironmentLightPowerSource.TransferAssembly),
+            new EnvironmentLightProfile("Foundry Induction Turbine Projector", EnvironmentLightRole.DominantTask,
+                new Color(0.48f, 0.22f, 0.055f), new Color(1f, 0.58f, 0.16f), 8.4f, 1.8f, 0.32f,
+                EnvironmentLightPowerSource.RelayTower, LightType.Spot, 72f,
+                "Environment/RelayFoundryInductionCookie"),
+            new EnvironmentLightProfile("Cooling Gantry Stabilization Pool", EnvironmentLightRole.SecondaryTask,
+                new Color(0.12f, 0.28f, 0.34f), new Color(0.42f, 0.82f, 0.88f), 7.2f, 1.55f, 0.3f,
+                EnvironmentLightPowerSource.RelayPayload)
         };
         [SerializeField, Range(0f, 2f)] private float m_openingFixtureEmission = 0.28f;
         [SerializeField, Range(0f, 2f)] private float m_centralDormantFixtureEmission = 0.18f;
         [SerializeField, Range(0f, 2f)] private float m_centralPoweredFixtureEmission = 0.72f;
         [SerializeField] private Color m_openingTerritoryBase = new(0.012f, 0.22f, 0.28f, 0.12f);
         [SerializeField] private Color m_openingTerritoryEdge = new(0.08f, 0.72f, 0.82f, 0.42f);
+        [SerializeField] private Color m_relayTerritoryBase = new(0.012f, 0.2f, 0.26f, 0.1f);
+        [SerializeField] private Color m_relayTerritoryEdge = new(0.08f, 0.68f, 0.78f, 0.34f);
         [SerializeField, Range(0f, 0.25f)] private float m_practicalPulseDepth = 0.12f;
         [SerializeField, Range(0f, 0.25f)] private float m_reducedFlashesPulseDepth = 0.035f;
         [SerializeField, Min(0f)] private float m_practicalPulseSpeed = 2.2f;
@@ -185,6 +201,8 @@ namespace DeadSignal.Presentation
         public float CentralPoweredFixtureEmission => m_centralPoweredFixtureEmission;
         public Color OpeningTerritoryBase => m_openingTerritoryBase;
         public Color OpeningTerritoryEdge => m_openingTerritoryEdge;
+        public Color RelayTerritoryBase => m_relayTerritoryBase;
+        public Color RelayTerritoryEdge => m_relayTerritoryEdge;
         public float PracticalPulseDepth => m_practicalPulseDepth;
         public float ReducedFlashesPulseDepth => m_reducedFlashesPulseDepth;
         public float PracticalPulseSpeed => m_practicalPulseSpeed;

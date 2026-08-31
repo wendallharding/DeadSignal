@@ -13,10 +13,10 @@ namespace DeadSignal.Tests
             var tuning = Resources.Load<EnvironmentLightingTuning>("Tuning/EnvironmentLightingTuning");
 
             Assert.That(tuning, Is.Not.Null);
-            Assert.That(tuning.LandmarkLights, Has.Count.EqualTo(6));
+            Assert.That(tuning.LandmarkLights, Has.Count.EqualTo(8));
             Assert.That(tuning.LandmarkLights.Select(profile => profile.Name), Is.Unique);
             Assert.That(tuning.LandmarkLights.Count(profile => profile.Role == EnvironmentLightRole.DominantTask),
-                Is.EqualTo(2));
+                Is.EqualTo(3));
             Assert.That(tuning.LandmarkLights, Has.Some.Property("Role").EqualTo(EnvironmentLightRole.SecondaryTask));
             Assert.That(tuning.LandmarkLights, Has.Some.Property("Role").EqualTo(EnvironmentLightRole.Practical));
             Assert.That(tuning.LandmarkLights, Has.Some.Property("Role").EqualTo(EnvironmentLightRole.Navigation));
@@ -41,10 +41,24 @@ namespace DeadSignal.Tests
             Assert.That(branchProfiles.Count(profile => profile.LightType == LightType.Point), Is.EqualTo(2));
             Assert.That(branchProfiles.All(profile => profile.GetIntensity(false) < profile.GetIntensity(true)), Is.True);
             Assert.That(branchProfiles.All(profile => profile.GetColor(false) != profile.GetColor(true)), Is.True);
+            var relayRegionProfiles = tuning.LandmarkLights.Where(profile =>
+                profile.PowerSource is EnvironmentLightPowerSource.RelayTower or
+                    EnvironmentLightPowerSource.RelayPayload).ToArray();
+            Assert.That(relayRegionProfiles, Has.Length.EqualTo(2));
+            Assert.That(relayRegionProfiles.Select(profile => profile.LightType), Is.Unique);
+            Assert.That(relayRegionProfiles.Select(profile => profile.Color.maxColorComponent), Is.Unique);
+            Assert.That(relayRegionProfiles.All(profile => profile.GetIntensity(false) < profile.GetIntensity(true)),
+                Is.True);
+            var foundry = relayRegionProfiles.Single(profile =>
+                profile.PowerSource == EnvironmentLightPowerSource.RelayTower);
+            Assert.That(foundry.CookieResource, Is.EqualTo("Environment/RelayFoundryInductionCookie"));
+            Assert.That(Resources.Load<Texture2D>(foundry.CookieResource), Is.Not.Null);
             Assert.That(tuning.CentralPoweredFixtureEmission, Is.GreaterThan(tuning.CentralDormantFixtureEmission));
             Assert.That(tuning.OpeningFixtureEmission, Is.LessThan(tuning.CentralPoweredFixtureEmission));
             Assert.That(tuning.OpeningTerritoryBase.a, Is.LessThan(0.2f));
             Assert.That(tuning.OpeningTerritoryEdge.a, Is.LessThan(0.5f));
+            Assert.That(tuning.RelayTerritoryBase.a, Is.LessThan(tuning.OpeningTerritoryBase.a));
+            Assert.That(tuning.RelayTerritoryEdge.a, Is.LessThan(tuning.OpeningTerritoryEdge.a));
 
             var clamped = tuning.ClampEmission(new Color(6f, 2f, 1f));
             Assert.That(clamped.maxColorComponent, Is.EqualTo(tuning.MaximumEmission).Within(0.001f));
