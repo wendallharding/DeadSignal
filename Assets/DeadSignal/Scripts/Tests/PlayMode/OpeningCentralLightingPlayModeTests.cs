@@ -34,6 +34,17 @@ namespace DeadSignal.Tests.PlayMode
             var centralLight = GameObject.Find(centralProfile.Name).GetComponent<Light>();
             var openingLight = GameObject.Find(openingProfile.Name).GetComponent<Light>();
             var channel = GameObject.Find("Extraction Departure Channel");
+            var initialReducedFlashes = game.IsReducedFlashesEnabled;
+            var initialHighContrast = game.IsHighContrastEnabled;
+            if (initialReducedFlashes)
+            {
+                game.DebugToggleReducedFlashes();
+            }
+            if (initialHighContrast)
+            {
+                game.DebugToggleHighContrast();
+            }
+            yield return null;
 
             Assert.That(game, Is.Not.Null);
             Assert.That(scene, Is.Not.Null);
@@ -67,23 +78,21 @@ namespace DeadSignal.Tests.PlayMode
                            tuning.CentralPoweredFixtureEmission).Within(0.001f));
             _captureIfRequested(scene.PlayerCamera, "P16-Central-Powered-1600x900.png", 1600, 900);
 
-            var initialReducedFlashes = game.IsReducedFlashesEnabled;
-            var initialHighContrast = game.IsHighContrastEnabled;
-            if (!initialReducedFlashes)
+            if (!game.IsReducedFlashesEnabled)
             {
                 game.DebugToggleReducedFlashes();
             }
-            if (!initialHighContrast)
+            if (!game.IsHighContrastEnabled)
             {
                 game.DebugToggleHighContrast();
             }
             yield return null;
             _captureIfRequested(scene.PlayerCamera, "P16-Central-Accessible-1600x900.png", 1600, 900);
-            if (!initialHighContrast)
+            if (game.IsHighContrastEnabled != initialHighContrast)
             {
                 game.DebugToggleHighContrast();
             }
-            if (!initialReducedFlashes)
+            if (game.IsReducedFlashesEnabled != initialReducedFlashes)
             {
                 game.DebugToggleReducedFlashes();
             }

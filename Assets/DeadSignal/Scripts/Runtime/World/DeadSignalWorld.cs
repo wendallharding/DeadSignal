@@ -559,7 +559,14 @@ namespace DeadSignal.World
                 uplink.Mode,
                 model.Outcome);
             m_currentPoweredWithdrawalPhase = model.CurrentPoweredWithdrawalPhase;
-            _applyWithdrawalLightingState();
+            if (!model.SpineCoreInstalled)
+            {
+                _applyOpeningLightingState();
+            }
+            else
+            {
+                _applyWithdrawalLightingState();
+            }
         }
 
         public void SetExtractionOutcomePresentation(RunOutcome outcome, bool extractionComplete)
@@ -1275,11 +1282,19 @@ namespace DeadSignal.World
             m_scene.KeyLight.color = m_environmentLightingTuning.KeyLightColor;
             m_scene.KeyLight.intensity = m_environmentLightingTuning.KeyLightIntensity;
             m_scene.KeyLight.shadows = m_environmentLightingTuning.KeyLightShadows;
+            m_scene.KeyLight.shadowStrength = m_environmentLightingTuning.KeyLightShadowStrength;
+            m_scene.KeyLight.shadowBias = m_environmentLightingTuning.KeyLightShadowBias;
+            m_scene.KeyLight.shadowNormalBias = m_environmentLightingTuning.KeyLightShadowNormalBias;
+            m_scene.KeyLight.shadowNearPlane = m_environmentLightingTuning.KeyLightShadowNearPlane;
             _buildPostProcessing(Camera.gameObject);
             RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Flat;
             RenderSettings.ambientLight = m_comfortSettings.HighContrastEnabled
                 ? m_environmentLightingTuning.HighContrastAmbientFloor
                 : m_environmentLightingTuning.AmbientFloor;
+            RenderSettings.ambientIntensity = m_environmentLightingTuning.AmbientIntensity;
+            RenderSettings.defaultReflectionMode = DefaultReflectionMode.Skybox;
+            RenderSettings.reflectionIntensity = m_environmentLightingTuning.ReflectionIntensity;
+            RenderSettings.reflectionBounces = m_environmentLightingTuning.ReflectionBounces;
             RenderSettings.fog = m_environmentLightingTuning.FogEnabled;
             RenderSettings.fogColor = m_environmentLightingTuning.FogColor;
             RenderSettings.fogDensity = m_environmentLightingTuning.FogDensity;

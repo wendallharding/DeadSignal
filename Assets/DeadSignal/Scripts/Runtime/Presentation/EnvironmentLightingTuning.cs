@@ -126,7 +126,16 @@ namespace DeadSignal.Presentation
         [SerializeField] private LightShadows m_keyLightShadows = LightShadows.Soft;
         [SerializeField] private Color m_ambientFloor = new(0.045f, 0.055f, 0.07f, 1f);
         [SerializeField] private Color m_highContrastAmbientFloor = new(0.075f, 0.085f, 0.1f, 1f);
+        [SerializeField, Range(0f, 2f)] private float m_ambientIntensity = 1f;
+        [SerializeField, Range(0f, 1f)] private float m_reflectionIntensity = 0.55f;
+        [SerializeField, Range(1, 2)] private int m_reflectionBounces = 1;
         [SerializeField] private Color m_cameraBackground = new(0.002f, 0.004f, 0.008f, 1f);
+
+        [Header("Key-light shadows")]
+        [SerializeField, Range(0f, 1f)] private float m_keyLightShadowStrength = 0.82f;
+        [SerializeField, Range(0f, 2f)] private float m_keyLightShadowBias = 0.08f;
+        [SerializeField, Range(0f, 3f)] private float m_keyLightShadowNormalBias = 0.45f;
+        [SerializeField, Range(0.01f, 10f)] private float m_keyLightShadowNearPlane = 0.2f;
 
         [Header("Atmosphere")]
         [SerializeField] private bool m_fogEnabled;
@@ -205,7 +214,14 @@ namespace DeadSignal.Presentation
         public LightShadows KeyLightShadows => m_keyLightShadows;
         public Color AmbientFloor => m_ambientFloor;
         public Color HighContrastAmbientFloor => m_highContrastAmbientFloor;
+        public float AmbientIntensity => m_ambientIntensity;
+        public float ReflectionIntensity => m_reflectionIntensity;
+        public int ReflectionBounces => m_reflectionBounces;
         public Color CameraBackground => m_cameraBackground;
+        public float KeyLightShadowStrength => m_keyLightShadowStrength;
+        public float KeyLightShadowBias => m_keyLightShadowBias;
+        public float KeyLightShadowNormalBias => m_keyLightShadowNormalBias;
+        public float KeyLightShadowNearPlane => m_keyLightShadowNearPlane;
         public bool FogEnabled => m_fogEnabled;
         public Color FogColor => m_fogColor;
         public float FogDensity => m_fogDensity;
@@ -327,6 +343,13 @@ namespace DeadSignal.Presentation
         private void OnValidate()
         {
             m_keyLightIntensity = Mathf.Max(0f, m_keyLightIntensity);
+            m_ambientIntensity = Mathf.Clamp(m_ambientIntensity, 0f, 2f);
+            m_reflectionIntensity = Mathf.Clamp01(m_reflectionIntensity);
+            m_reflectionBounces = Mathf.Clamp(m_reflectionBounces, 1, 2);
+            m_keyLightShadowStrength = Mathf.Clamp01(m_keyLightShadowStrength);
+            m_keyLightShadowBias = Mathf.Clamp(m_keyLightShadowBias, 0f, 2f);
+            m_keyLightShadowNormalBias = Mathf.Clamp(m_keyLightShadowNormalBias, 0f, 3f);
+            m_keyLightShadowNearPlane = Mathf.Clamp(m_keyLightShadowNearPlane, 0.01f, 10f);
             m_fogDensity = Mathf.Clamp(m_fogDensity, 0f, 0.1f);
             m_bloomIntensity = Mathf.Max(0f, m_bloomIntensity);
             m_bloomThreshold = Mathf.Max(0f, m_bloomThreshold);

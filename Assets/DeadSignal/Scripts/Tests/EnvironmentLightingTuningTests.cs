@@ -23,6 +23,13 @@ namespace DeadSignal.Tests
             Assert.That(tuning.ReducedFlashesBloomIntensity, Is.LessThanOrEqualTo(tuning.BloomIntensity));
             Assert.That(tuning.ReducedFlashesPulseDepth, Is.LessThan(tuning.PracticalPulseDepth));
             Assert.That(tuning.DeadZoneVignette, Is.GreaterThanOrEqualTo(tuning.PoweredVignette));
+            Assert.That(tuning.AmbientIntensity, Is.InRange(0.8f, 1.2f));
+            Assert.That(tuning.ReflectionIntensity, Is.InRange(0.35f, 0.7f));
+            Assert.That(tuning.ReflectionBounces, Is.EqualTo(1));
+            Assert.That(tuning.KeyLightShadowStrength, Is.InRange(0.7f, 0.9f));
+            Assert.That(tuning.KeyLightShadowBias, Is.InRange(0.05f, 0.15f));
+            Assert.That(tuning.KeyLightShadowNormalBias, Is.InRange(0.3f, 0.7f));
+            Assert.That(tuning.KeyLightShadowNearPlane, Is.InRange(0.1f, 0.4f));
             Assert.That(tuning.MaximumPoweredRouteEmission, Is.LessThan(tuning.MaximumEmission));
             Assert.That(tuning.MaximumVisibleRealtimeLights, Is.EqualTo(5));
             Assert.That(tuning.MaximumShadowedRealtimeLights, Is.EqualTo(1));
