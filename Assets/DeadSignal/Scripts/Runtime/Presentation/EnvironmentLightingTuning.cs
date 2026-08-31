@@ -23,7 +23,13 @@ namespace DeadSignal.Presentation
         RelayTower,
         RelayPayload,
         SpineVenting,
-        SpineTower
+        SpineTower,
+        InductionLattice,
+        FluxShunt,
+        ConvergenceCalibration,
+        BreakerDistribution,
+        FurnaceForge,
+        QuenchStabilization
     }
 
     [Serializable]
@@ -228,6 +234,38 @@ namespace DeadSignal.Presentation
         {
             var peak = emission.maxColorComponent;
             return peak > m_maximumEmission && peak > 0f ? emission * (m_maximumEmission / peak) : emission;
+        }
+
+        public void ConfigureDeepCoreProfiles()
+        {
+            m_landmarkLights ??= new List<EnvironmentLightProfile>();
+            m_landmarkLights.RemoveAll(profile =>
+                profile != null && profile.PowerSource >= EnvironmentLightPowerSource.InductionLattice);
+            m_landmarkLights.Add(new EnvironmentLightProfile("Induction Lattice Charge Pool",
+                EnvironmentLightRole.SecondaryTask,
+                new Color(0.16f, 0.19f, 0.22f), new Color(0.72f, 0.55f, 0.2f), 6.4f, 1.3f, 0.26f,
+                EnvironmentLightPowerSource.InductionLattice));
+            m_landmarkLights.Add(new EnvironmentLightProfile("Flux Bypass Reroute Projector",
+                EnvironmentLightRole.Practical,
+                new Color(0.18f, 0.16f, 0.14f), new Color(0.76f, 0.48f, 0.14f), 6.8f, 1.42f, 0.24f,
+                EnvironmentLightPowerSource.FluxShunt, LightType.Spot, 48f));
+            m_landmarkLights.Add(new EnvironmentLightProfile("Convergence Calibration Aperture",
+                EnvironmentLightRole.DominantTask,
+                new Color(0.28f, 0.09f, 0.055f), new Color(0.94f, 0.46f, 0.14f), 8.2f, 1.7f, 0.28f,
+                EnvironmentLightPowerSource.ConvergenceCalibration, LightType.Spot, 70f,
+                "Environment/DeepCoreCalibrationApertureCookie"));
+            m_landmarkLights.Add(new EnvironmentLightProfile("Breaker Distribution Worklights",
+                EnvironmentLightRole.Navigation,
+                new Color(0.22f, 0.18f, 0.13f), new Color(0.62f, 0.76f, 0.66f), 7.1f, 1.46f, 0.26f,
+                EnvironmentLightPowerSource.BreakerDistribution));
+            m_landmarkLights.Add(new EnvironmentLightProfile("Arc Furnace Forge Pool",
+                EnvironmentLightRole.DominantTask,
+                new Color(0.34f, 0.065f, 0.025f), new Color(1f, 0.34f, 0.075f), 7.8f, 1.76f, 0.3f,
+                EnvironmentLightPowerSource.FurnaceForge, LightType.Spot, 74f));
+            m_landmarkLights.Add(new EnvironmentLightProfile("Quench Condenser Pool",
+                EnvironmentLightRole.SecondaryTask,
+                new Color(0.08f, 0.16f, 0.2f), new Color(0.28f, 0.74f, 0.82f), 7.4f, 1.58f, 0.28f,
+                EnvironmentLightPowerSource.QuenchStabilization));
         }
 
         private void OnValidate()

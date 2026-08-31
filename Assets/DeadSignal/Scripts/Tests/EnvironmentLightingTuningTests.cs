@@ -13,10 +13,10 @@ namespace DeadSignal.Tests
             var tuning = Resources.Load<EnvironmentLightingTuning>("Tuning/EnvironmentLightingTuning");
 
             Assert.That(tuning, Is.Not.Null);
-            Assert.That(tuning.LandmarkLights, Has.Count.EqualTo(10));
+            Assert.That(tuning.LandmarkLights, Has.Count.EqualTo(16));
             Assert.That(tuning.LandmarkLights.Select(profile => profile.Name), Is.Unique);
             Assert.That(tuning.LandmarkLights.Count(profile => profile.Role == EnvironmentLightRole.DominantTask),
-                Is.EqualTo(4));
+                Is.EqualTo(6));
             Assert.That(tuning.LandmarkLights, Has.Some.Property("Role").EqualTo(EnvironmentLightRole.SecondaryTask));
             Assert.That(tuning.LandmarkLights, Has.Some.Property("Role").EqualTo(EnvironmentLightRole.Practical));
             Assert.That(tuning.LandmarkLights, Has.Some.Property("Role").EqualTo(EnvironmentLightRole.Navigation));
@@ -65,6 +65,25 @@ namespace DeadSignal.Tests
                 profile.PowerSource == EnvironmentLightPowerSource.SpineTower);
             Assert.That(spineProjector.CookieResource, Is.EqualTo("Environment/SpineHighVoltageLaneCookie"));
             Assert.That(Resources.Load<Texture2D>(spineProjector.CookieResource), Is.Not.Null);
+            var deepCoreProfiles = tuning.LandmarkLights.Where(profile =>
+                profile.PowerSource is EnvironmentLightPowerSource.InductionLattice or
+                    EnvironmentLightPowerSource.FluxShunt or
+                    EnvironmentLightPowerSource.ConvergenceCalibration or
+                    EnvironmentLightPowerSource.BreakerDistribution or
+                    EnvironmentLightPowerSource.FurnaceForge or
+                    EnvironmentLightPowerSource.QuenchStabilization).ToArray();
+            Assert.That(deepCoreProfiles, Has.Length.EqualTo(6));
+            Assert.That(deepCoreProfiles.Select(profile => profile.PowerSource), Is.Unique);
+            Assert.That(deepCoreProfiles.Count(profile => profile.LightType == LightType.Spot), Is.EqualTo(3));
+            Assert.That(deepCoreProfiles.Count(profile => profile.LightType == LightType.Point), Is.EqualTo(3));
+            Assert.That(deepCoreProfiles.All(profile => profile.GetIntensity(false) < profile.GetIntensity(true)),
+                Is.True);
+            Assert.That(deepCoreProfiles.All(profile => profile.GetColor(false) != profile.GetColor(true)), Is.True);
+            var convergenceProjector = deepCoreProfiles.Single(profile =>
+                profile.PowerSource == EnvironmentLightPowerSource.ConvergenceCalibration);
+            Assert.That(convergenceProjector.CookieResource,
+                Is.EqualTo("Environment/DeepCoreCalibrationApertureCookie"));
+            Assert.That(Resources.Load<Texture2D>(convergenceProjector.CookieResource), Is.Not.Null);
             Assert.That(tuning.CentralPoweredFixtureEmission, Is.GreaterThan(tuning.CentralDormantFixtureEmission));
             Assert.That(tuning.OpeningFixtureEmission, Is.LessThan(tuning.CentralPoweredFixtureEmission));
             Assert.That(tuning.OpeningTerritoryBase.a, Is.LessThan(0.2f));

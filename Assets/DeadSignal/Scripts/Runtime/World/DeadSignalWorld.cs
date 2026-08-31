@@ -491,6 +491,7 @@ namespace DeadSignal.World
             InductionLatticeObjective?.SetState(
                 model.CurrentObjective.Id == MissionObjectiveId.InductionLattice,
                 model.InductionLatticeCharged);
+            _applyDeepCoreLightingState();
         }
 
         public void UpdateFluxShuntPresentation(RunModel model)
@@ -498,6 +499,7 @@ namespace DeadSignal.World
             FluxShuntObjective?.SetState(
                 model.CurrentObjective.Id == MissionObjectiveId.FluxShunt,
                 model.FluxShuntRouted);
+            _applyDeepCoreLightingState();
         }
 
         public void UpdateConvergenceCalibrationPresentation(RunModel model)
@@ -507,6 +509,7 @@ namespace DeadSignal.World
                 model.CurrentObjective.Id == MissionObjectiveId.ConvergenceCalibration,
                 model.ConvergenceCalibrationActive,
                 model.ConvergenceCalibrated);
+            _applyDeepCoreLightingState();
         }
 
         public void UpdateBreakerResetPresentation(RunModel model)
@@ -514,6 +517,7 @@ namespace DeadSignal.World
             BreakerResetObjective?.SetState(
                 model.CurrentObjective.Id == MissionObjectiveId.BreakerReset,
                 model.BreakerDistributionReset);
+            _applyDeepCoreLightingState();
         }
 
         public void UpdateCoreProcessingPresentation(RunModel model)
@@ -524,6 +528,7 @@ namespace DeadSignal.World
             QuenchStabilizationObjective?.SetState(
                 model.CurrentObjective.Id == MissionObjectiveId.QuenchStabilization,
                 model.CoreStabilized);
+            _applyDeepCoreLightingState();
         }
 
         public void UpdateSecurityTrialPresentation(RunModel model)
@@ -1918,6 +1923,13 @@ namespace DeadSignal.World
             var transfer = Object.FindFirstObjectByType<AuthoredTransferVaultObjective>(FindObjectsInactive.Include);
             var foundryFinish = Object.FindFirstObjectByType<AuthoredRelayFoundryHeroFinish>(FindObjectsInactive.Include);
             var gantryFinish = Object.FindFirstObjectByType<AuthoredCoolingGantryHeroFinish>(FindObjectsInactive.Include);
+            var induction = Object.FindFirstObjectByType<AuthoredInductionLatticeObjective>(FindObjectsInactive.Include);
+            var flux = Object.FindFirstObjectByType<AuthoredFluxShuntObjective>(FindObjectsInactive.Include);
+            var convergence = Object.FindFirstObjectByType<AuthoredConvergenceCalibrationObjective>(
+                FindObjectsInactive.Include);
+            var breaker = Object.FindFirstObjectByType<AuthoredBreakerResetObjective>(FindObjectsInactive.Include);
+            var furnace = Object.FindFirstObjectByType<AuthoredFurnaceForgeObjective>(FindObjectsInactive.Include);
+            var quench = Object.FindFirstObjectByType<AuthoredQuenchStabilizationObjective>(FindObjectsInactive.Include);
             AuthoredSpineHeroFinish spineFinish = null;
             AuthoredSpineHeroFinish trenchFinish = null;
             AuthoredSpineVentingObjective venting = null;
@@ -1936,10 +1948,11 @@ namespace DeadSignal.World
             }
             if (cargo == null || coolant == null || relay == null || transfer == null ||
                 foundryFinish == null || gantryFinish == null || spineFinish == null || trenchFinish == null ||
-                venting == null)
+                venting == null || induction == null || flux == null || convergence == null || breaker == null ||
+                furnace == null || quench == null)
             {
                 throw new MissingReferenceException(
-                    "Act I objectives and Relay/Spine hero finishes are required by the authored lighting profiles.");
+                    "Authored objectives and Relay/Spine hero finishes are required by the environment lighting profiles.");
             }
 
             m_relayFoundryHeroFinish = foundryFinish;
@@ -1958,7 +1971,13 @@ namespace DeadSignal.World
                 RelayTowerPosition + Vector3.up * 4.2f - Vector3.left * 0.8f,
                 gantryFinish.FinishRenderer.bounds.center + Vector3.up * 3.6f + Vector3.forward * 0.8f,
                 venting.Position + Vector3.up * 3.2f + Vector3.forward * 0.6f,
-                spineFinish.FinishRenderer.bounds.center + Vector3.up * 4.2f - Vector3.right * 0.8f
+                spineFinish.FinishRenderer.bounds.center + Vector3.up * 4.2f - Vector3.right * 0.8f,
+                induction.Position + Vector3.up * 3.2f,
+                flux.Position + Vector3.up * 3.4f - Vector3.forward * 0.8f,
+                convergence.Position + Vector3.up * 4.1f,
+                breaker.Position + Vector3.up * 3.3f + Vector3.right * 0.8f,
+                furnace.Position + Vector3.up * 4f,
+                quench.Position + Vector3.up * 3.5f + Vector3.forward * 0.7f
             };
             var targets = new[]
             {
@@ -1971,7 +1990,13 @@ namespace DeadSignal.World
                 RelayTowerPosition,
                 gantryFinish.FinishRenderer.bounds.center,
                 venting.Position,
-                spineFinish.FinishRenderer.bounds.center
+                spineFinish.FinishRenderer.bounds.center,
+                induction.Position,
+                flux.Position,
+                convergence.Position,
+                breaker.Position,
+                furnace.Position,
+                quench.Position
             };
             if (m_environmentLightingTuning.LandmarkLights.Count != positions.Length)
             {
@@ -2042,8 +2067,49 @@ namespace DeadSignal.World
                 EnvironmentLightPowerSource.SpineTower =>
                     SpineTowerReadability?.PresentationState is SpineTowerPresentationState.Activating or
                         SpineTowerPresentationState.Powered,
+                EnvironmentLightPowerSource.InductionLattice =>
+                    InductionLatticeObjective?.PresentationState is InductionLatticePresentationState.Charging or
+                        InductionLatticePresentationState.Charged,
+                EnvironmentLightPowerSource.FluxShunt =>
+                    FluxShuntObjective?.PresentationState is FluxShuntPresentationState.Routing or
+                        FluxShuntPresentationState.Routed,
+                EnvironmentLightPowerSource.ConvergenceCalibration =>
+                    ConvergenceCalibrationObjective?.PresentationState is
+                        ConvergenceCalibrationPresentationState.Active or
+                        ConvergenceCalibrationPresentationState.Complete,
+                EnvironmentLightPowerSource.BreakerDistribution =>
+                    BreakerResetObjective?.PresentationState is BreakerResetPresentationState.ResetActive or
+                        BreakerResetPresentationState.ResetComplete,
+                EnvironmentLightPowerSource.FurnaceForge =>
+                    FurnaceForgeObjective?.PresentationState is CoreProcessingPresentationState.ProcessingActive or
+                        CoreProcessingPresentationState.Complete,
+                EnvironmentLightPowerSource.QuenchStabilization =>
+                    QuenchStabilizationObjective?.PresentationState is
+                        CoreProcessingPresentationState.ProcessingActive or
+                        CoreProcessingPresentationState.Complete,
                 _ => false
             };
+        }
+
+        private void _applyDeepCoreLightingState()
+        {
+            if (m_landmarkLights.Count != m_environmentLightingTuning.LandmarkLights.Count)
+            {
+                return;
+            }
+
+            for (var index = 0; index < m_landmarkLights.Count; index++)
+            {
+                var profile = m_environmentLightingTuning.LandmarkLights[index];
+                if (profile.PowerSource < EnvironmentLightPowerSource.InductionLattice)
+                {
+                    continue;
+                }
+
+                var powered = _isLandmarkPowered(profile.PowerSource, false);
+                m_landmarkLights[index].color = profile.GetColor(powered);
+                m_landmarkLights[index].intensity = profile.GetIntensity(powered);
+            }
         }
 
         private void _selectVisibleLandmarkLights()
