@@ -460,6 +460,13 @@ namespace DeadSignal.Diagnostics
                                 Resources.Load<Texture2D>("Environment/SpineDischargeTrenchRouteDecal") != null &&
                                 Resources.Load<Material>(
                                     "Materials/SpineDischargeTrench/SpineDischargeTrenchRouteDecal") != null &&
+                                Resources.Load<Texture2D>("Environment/SpineHeroAtlas") != null &&
+                                Resources.Load<Mesh>("Environment/CapacitorSpineHeroFinish") != null &&
+                                Resources.Load<Mesh>("Environment/DischargeTrenchHeroFinish") != null &&
+                                game.transform.Find("Capacitor Spine Region/Capacitor Spine Hero Finish") != null &&
+                                game.transform.Find(
+                                    "Capacitor Spine Region/Spine Discharge Trench Region/" +
+                                    "Discharge Trench Hero Finish") != null &&
                                 game.transform.Find("Spine Induction Gallery Region/Induction Coil") != null &&
                                 game.transform.Find("Spine Induction Gallery Region/Induction Gallery Signal Lines") != null &&
                                 game.transform.Find("Spine Induction Gallery Region/Induction Gallery Route Decal") != null &&

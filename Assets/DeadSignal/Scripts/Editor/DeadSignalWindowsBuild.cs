@@ -64,6 +64,7 @@ namespace DeadSignal.Editor
             DeadSignalSpineNetworkReadabilitySetup.EnsureAssets();
             DeadSignalSpineReturnReadabilitySetup.EnsureAssets();
             DeadSignalSpineCoreReadabilitySetup.EnsureAssets();
+            DeadSignalSpineHeroSetup.EnsureAssets();
             DeadSignalSpineInductionGallerySetup.EnsureAssets();
             DeadSignalConvergenceChamberSetup.EnsureAssets();
             DeadSignalConvergenceBreakerGallerySetup.EnsureAssets();
@@ -305,6 +306,11 @@ namespace DeadSignal.Editor
                 !DeadSignalSpineReturnReadabilitySetup.HasAssets || !DeadSignalSpineCoreReadabilitySetup.HasAssets)
             {
                 throw new BuildFailedException("The scene-authored Spine network readability is missing or incomplete.");
+            }
+
+            if (!DeadSignalSpineHeroSetup.HasAssets)
+            {
+                throw new BuildFailedException("The Capacitor Spine hero-finish assets are missing or incomplete.");
             }
 
             if (!DeadSignalSpineInductionGallerySetup.HasAssets)
