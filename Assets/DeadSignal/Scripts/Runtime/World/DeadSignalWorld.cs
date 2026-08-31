@@ -1268,7 +1268,7 @@ namespace DeadSignal.World
             ExtractionPadPartCount = extraction.GetComponentsInChildren<Renderer>().Length;
             HasExtractionPadAssets = m_palette.HasExtractionTexture &&
                                      ExtractionDockReadability is { IsConfigured: true, HasStatusTexture: true } &&
-                                     ExtractionPadPartCount == 5;
+                                     ExtractionPadPartCount == 6;
 
             var tower = m_scene.SignalTower.transform;
             TowerCore = tower.Find("Tower Core");

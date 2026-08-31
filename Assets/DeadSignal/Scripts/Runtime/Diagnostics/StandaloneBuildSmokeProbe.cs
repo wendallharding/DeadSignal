@@ -535,6 +535,9 @@ namespace DeadSignal.Diagnostics
                                 Resources.Load<Mesh>("Environment/SecurityTrialCommitmentHeroFinish") != null &&
                                 Resources.Load<Mesh>("Environment/SecurityTrialLockdownHeroFinish") != null &&
                                 Resources.Load<Mesh>("Environment/SecurityTrialVaultHeroFinish") != null &&
+                                Resources.Load<Texture2D>("Environment/DepartureDockHeroAtlas") != null &&
+                                Resources.Load<Mesh>("Environment/DepartureChannelHeroFinish") != null &&
+                                Resources.Load<Mesh>("Environment/ExtractionDockHeroFinish") != null &&
                                 Resources.Load<Material>(
                                     "Materials/SecurityTrialReadability/SecurityTrialCommitmentStatus") != null &&
                                 Resources.Load<Texture2D>(

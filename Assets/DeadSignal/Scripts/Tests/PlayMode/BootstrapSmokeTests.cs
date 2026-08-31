@@ -97,6 +97,9 @@ namespace DeadSignal.Tests
                 Assert.That(Resources.Load<Mesh>("Environment/SecurityTrialCommitmentHeroFinish"), Is.Not.Null);
                 Assert.That(Resources.Load<Mesh>("Environment/SecurityTrialLockdownHeroFinish"), Is.Not.Null);
                 Assert.That(Resources.Load<Mesh>("Environment/SecurityTrialVaultHeroFinish"), Is.Not.Null);
+                Assert.That(Resources.Load<Texture2D>("Environment/DepartureDockHeroAtlas"), Is.Not.Null);
+                Assert.That(Resources.Load<Mesh>("Environment/DepartureChannelHeroFinish"), Is.Not.Null);
+                Assert.That(Resources.Load<Mesh>("Environment/ExtractionDockHeroFinish"), Is.Not.Null);
                 Assert.That(foundry.Find("Foundry Route Split Decal"), Is.Not.Null,
                     "The region junction should carry its authored protected-versus-exposed route marking.");
                 Assert.That(foundry.Find("Relay Weapon Calibration Decal"), Is.Not.Null,
@@ -1539,8 +1542,8 @@ namespace DeadSignal.Tests
             Assert.That(extractionPad, Is.Not.Null, "The start and finish objective should load from the authored extraction-pad prefab.");
             Assert.That(game.HasExtractionPadAssets, Is.True,
                 "The extraction-pad prefab and original docking texture should load from Resources.");
-            Assert.That(game.ExtractionPadPartCount, Is.EqualTo(5));
-            Assert.That(extractionPad.GetComponentsInChildren<Renderer>().Length, Is.EqualTo(5));
+            Assert.That(game.ExtractionPadPartCount, Is.EqualTo(6));
+            Assert.That(extractionPad.GetComponentsInChildren<Renderer>().Length, Is.EqualTo(6));
             Assert.That(extractionPad.GetComponentsInChildren<Collider>().Length, Is.Zero,
                 "The authored extraction pad should remain presentation-only so existing interaction rules stay authoritative.");
             Assert.That(extractionPad.Find("Extraction Plinth").GetComponent<Renderer>().sharedMaterial.mainTexture, Is.Not.Null,

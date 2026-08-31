@@ -85,6 +85,7 @@ namespace DeadSignal.Editor
             DeadSignalSecurityLockdownReadabilitySetup.EnsureAssets();
             DeadSignalSecurityTrialHeroSetup.EnsureAssets();
             DeadSignalSecurityTrialCompositionSetup.EnsureAssets();
+            DeadSignalDepartureDockHeroSetup.EnsureAssets();
             DeadSignalMissionObjectiveSetup.CreateCompatibilityMissionObjectives();
             DeadSignalStationBackdropSetup.EnsureAssets();
             DeadSignalForegroundCutawaySetup.EnsureAssets();
@@ -395,6 +396,11 @@ namespace DeadSignal.Editor
             if (!DeadSignalSecurityTrialHeroSetup.HasAssets)
             {
                 throw new BuildFailedException("The Security Trial hero-finish assets are missing or incomplete.");
+            }
+
+            if (!DeadSignalDepartureDockHeroSetup.HasAssets)
+            {
+                throw new BuildFailedException("The Departure Channel and Extraction Dock hero-finish assets are missing.");
             }
 
             if (!DeadSignalEasternCombatScenarioSetup.HasAssets)

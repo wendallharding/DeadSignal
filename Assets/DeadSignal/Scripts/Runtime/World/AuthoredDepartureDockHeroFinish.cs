@@ -1,0 +1,30 @@
+using UnityEngine;
+
+namespace DeadSignal.World
+{
+    public enum DepartureDockHeroOwner
+    {
+        DepartureChannel,
+        ExtractionDock
+    }
+
+    /// <summary>
+    /// Records collider-free presentation geometry for the opening/finale landmark pair. Departure routing,
+    /// surge, uplink, collision, and outcome systems retain all gameplay authority.
+    /// </summary>
+    public sealed class AuthoredDepartureDockHeroFinish : MonoBehaviour
+    {
+        [SerializeField] private DepartureDockHeroOwner m_owner;
+        [SerializeField] private MeshRenderer m_renderer;
+
+        public DepartureDockHeroOwner Owner => m_owner;
+        public MeshRenderer Renderer => m_renderer;
+        public bool IsConfigured => m_renderer != null;
+
+        public void Configure(DepartureDockHeroOwner owner, MeshRenderer renderer)
+        {
+            m_owner = owner;
+            m_renderer = renderer;
+        }
+    }
+}
