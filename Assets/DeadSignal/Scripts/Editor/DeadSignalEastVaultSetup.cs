@@ -262,6 +262,17 @@ namespace DeadSignal.Editor
 
                 _ensureDoorwaySegment(bulkheads, "East Bulkhead North", 5.425f, material);
                 _ensureDoorwaySegment(bulkheads, "East Bulkhead South", -5.425f, material);
+                foreach (Transform bulkhead in bulkheads)
+                {
+                    var obstacle = bulkhead.GetComponent<AuthoredMapObstacle>();
+                    if (obstacle == null)
+                    {
+                        obstacle = bulkhead.gameObject.AddComponent<AuthoredMapObstacle>();
+                    }
+
+                    obstacle.Configure(Vector2.one * 0.5f);
+                }
+
                 PrefabUtility.SaveAsPrefabAsset(shellRoot, SHELL_PREFAB_PATH);
             }
             finally
@@ -445,7 +456,8 @@ namespace DeadSignal.Editor
             return bulkheads != null &&
                    bulkheads.Find("East Bulkhead") == null &&
                    bulkheads.Find("East Bulkhead North")?.GetComponent<AuthoredMapObstacle>() != null &&
-                   bulkheads.Find("East Bulkhead South")?.GetComponent<AuthoredMapObstacle>() != null;
+                   bulkheads.Find("East Bulkhead South")?.GetComponent<AuthoredMapObstacle>() != null &&
+                   bulkheads.GetComponentsInChildren<AuthoredMapObstacle>().Length == 5;
         }
     }
 }

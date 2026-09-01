@@ -468,8 +468,8 @@ namespace DeadSignal.Editor
                     var next = (index + 1) % sides;
                     m_triangles[subMesh].AddRange(new[]
                     {
-                        start + index * 2, start + next * 2 + 1, start + next * 2,
-                        start + index * 2, start + index * 2 + 1, start + next * 2 + 1,
+                        start + index * 2, start + next * 2, start + next * 2 + 1,
+                        start + index * 2, start + next * 2 + 1, start + index * 2 + 1,
                         bottomCenter, start + next * 2, start + index * 2,
                         topCenter, start + index * 2 + 1, start + next * 2 + 1
                     });

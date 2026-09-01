@@ -42,6 +42,7 @@ GameObject:
   - component: {fileID: 2303571125395538401}
   - component: {fileID: 6820444692024990464}
   - component: {fileID: 496416602965080625}
+  - component: {fileID: 786426510277214005}
   m_Layer: 0
   m_Name: South Bulkhead
   m_TagString: Untagged
@@ -121,6 +122,19 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!114 &786426510277214005
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1261980155711248539}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e5c2114ec9f7be54889bb05839f089fe, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: DeadSignal.Runtime::DeadSignal.World.AuthoredMapObstacle
+  m_localHalfSize: {x: 0.5, y: 0.5}
 --- !u!1 &2140267837405293845
 GameObject:
   m_ObjectHideFlags: 0
@@ -298,6 +312,7 @@ GameObject:
   - component: {fileID: 8525900400669902389}
   - component: {fileID: 3814718005451800680}
   - component: {fileID: 8584085826349914027}
+  - component: {fileID: 4862707192861139208}
   m_Layer: 0
   m_Name: North Bulkhead
   m_TagString: Untagged
@@ -377,6 +392,19 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!114 &4862707192861139208
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3198573029048237841}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e5c2114ec9f7be54889bb05839f089fe, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: DeadSignal.Runtime::DeadSignal.World.AuthoredMapObstacle
+  m_localHalfSize: {x: 0.5, y: 0.5}
 --- !u!1 &4308132234720562775
 GameObject:
   m_ObjectHideFlags: 0
@@ -452,6 +480,7 @@ GameObject:
   - component: {fileID: 3605098022749385463}
   - component: {fileID: 5811091622300891029}
   - component: {fileID: 5618431432927496668}
+  - component: {fileID: 1049413060654109349}
   m_Layer: 0
   m_Name: West Bulkhead
   m_TagString: Untagged
@@ -531,6 +560,19 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!114 &1049413060654109349
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6251711726578144216}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e5c2114ec9f7be54889bb05839f089fe, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: DeadSignal.Runtime::DeadSignal.World.AuthoredMapObstacle
+  m_localHalfSize: {x: 0.5, y: 0.5}
 --- !u!1 &8592145558473368160
 GameObject:
   m_ObjectHideFlags: 0

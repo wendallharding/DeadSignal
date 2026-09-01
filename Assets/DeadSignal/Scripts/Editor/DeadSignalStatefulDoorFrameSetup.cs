@@ -218,7 +218,11 @@ namespace DeadSignal.Editor
                     instance.name = KIT_NAME;
                     instance.transform.localPosition = Vector3.zero;
                     instance.transform.localRotation = Quaternion.identity;
-                    instance.transform.localScale = Vector3.one;
+                    var inheritedScale = threshold.transform.lossyScale;
+                    instance.transform.localScale = new Vector3(
+                        1f / inheritedScale.x,
+                        1f / inheritedScale.y,
+                        1f / inheritedScale.z);
                     readability.ConfigureFrameKit(instance.GetComponent<AuthoredStatefulDoorFrame>());
                 }
 

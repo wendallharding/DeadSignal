@@ -1,4 +1,5 @@
 using System;
+using DeadSignal.World;
 using UnityEditor;
 using UnityEngine;
 
@@ -214,6 +215,33 @@ namespace DeadSignal.Editor
 
                 PrefabUtility.SaveAsPrefabAsset(shell, MAINTENANCE_ROOM_SHELL_PREFAB_PATH);
                 UnityEngine.Object.DestroyImmediate(shell);
+            }
+
+            var shellRoot = PrefabUtility.LoadPrefabContents(MAINTENANCE_ROOM_SHELL_PREFAB_PATH);
+            try
+            {
+                var bulkheads = shellRoot.transform.Find("Bulkheads");
+                if (bulkheads == null)
+                {
+                    throw new InvalidOperationException("The maintenance room shell has no Bulkheads root.");
+                }
+
+                foreach (Transform bulkhead in bulkheads)
+                {
+                    var obstacle = bulkhead.GetComponent<AuthoredMapObstacle>();
+                    if (obstacle == null)
+                    {
+                        obstacle = bulkhead.gameObject.AddComponent<AuthoredMapObstacle>();
+                    }
+
+                    obstacle.Configure(Vector2.one * 0.5f);
+                }
+
+                PrefabUtility.SaveAsPrefabAsset(shellRoot, MAINTENANCE_ROOM_SHELL_PREFAB_PATH);
+            }
+            finally
+            {
+                PrefabUtility.UnloadPrefabContents(shellRoot);
             }
 
             AssetDatabase.SaveAssets();

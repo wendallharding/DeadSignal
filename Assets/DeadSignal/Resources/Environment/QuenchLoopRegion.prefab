@@ -191,7 +191,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e5c2114ec9f7be54889bb05839f089fe, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: DeadSignal.Runtime::DeadSignal.World.AuthoredMapObstacle
   m_localHalfSize: {x: 0.5, y: 0.5}
 --- !u!1 &1121786899239220634
@@ -920,7 +920,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1.42}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 8769942884663239893}
+  - {fileID: 6117919455786500191}
   m_Father: {fileID: 8624994862542081041}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!33 &4213644478516581618
@@ -1890,7 +1890,7 @@ MonoBehaviour:
   m_blockingSlab: {fileID: 406276655787111201}
   m_openMarker: {fileID: 2302150973626878787}
   m_thresholdRenderer: {fileID: 2730396769302865805}
-  m_frameKit: {fileID: 1844876790272432365}
+  m_frameKit: {fileID: 3803428873019276391}
 --- !u!114 &1172305849051641653
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2112,7 +2112,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: DeadSignal.Runtime::DeadSignal.World.AuthoredMapObstacle
   m_localHalfSize: {x: 0.5, y: 0.5}
---- !u!1001 &7566650308620660840
+--- !u!1001 &4922447173375038690
 PrefabInstance:
   m_ObjectHideFlags: 0
   serializedVersion: 2
@@ -2120,6 +2120,14 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 5097378657153172134}
     m_Modifications:
+    - target: {fileID: 1204498268126319805, guid: 1bcd993097e3064429b1f3f4afe48076, type: 3}
+      propertyPath: m_LocalScale.x
+      value: 0.99999976
+      objectReference: {fileID: 0}
+    - target: {fileID: 1204498268126319805, guid: 1bcd993097e3064429b1f3f4afe48076, type: 3}
+      propertyPath: m_LocalScale.z
+      value: 0.70422524
+      objectReference: {fileID: 0}
     - target: {fileID: 1204498268126319805, guid: 1bcd993097e3064429b1f3f4afe48076, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
@@ -2169,10 +2177,10 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 1bcd993097e3064429b1f3f4afe48076, type: 3}
---- !u!114 &1844876790272432365 stripped
+--- !u!114 &3803428873019276391 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 8113364433002178693, guid: 1bcd993097e3064429b1f3f4afe48076, type: 3}
-  m_PrefabInstance: {fileID: 7566650308620660840}
+  m_PrefabInstance: {fileID: 4922447173375038690}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 0}
   m_Enabled: 1
@@ -2180,10 +2188,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 748e3ede7a275134f986ef509bd97ca6, type: 3}
   m_Name:
   m_EditorClassIdentifier: DeadSignal.Runtime::DeadSignal.World.AuthoredStatefulDoorFrame
---- !u!4 &8769942884663239893 stripped
+--- !u!4 &6117919455786500191 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 1204498268126319805, guid: 1bcd993097e3064429b1f3f4afe48076, type: 3}
-  m_PrefabInstance: {fileID: 7566650308620660840}
+  m_PrefabInstance: {fileID: 4922447173375038690}
   m_PrefabAsset: {fileID: 0}
 --- !u!1001 &8339934470318353577
 PrefabInstance:

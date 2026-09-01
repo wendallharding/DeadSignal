@@ -93,6 +93,7 @@ namespace DeadSignal.Editor
             DeadSignalStationNavigationSignageSetup.EnsureAssets();
             DeadSignalStationServiceNetworkSetup.EnsureAssets();
             DeadSignalStationFloorFinishSetup.EnsureAssets();
+            DeadSignalStationFunctionalPropSetup.EnsureAssets();
             DeadSignalForegroundCutawaySetup.EnsureAssets();
             DeadSignalSignalSpineSetup.EnsureAssets();
             DeadSignalBoundaryThresholdSetup.EnsureAssets();
@@ -441,6 +442,11 @@ namespace DeadSignal.Editor
             if (!DeadSignalStationFloorFinishSetup.HasAssets)
             {
                 throw new BuildFailedException("The authored station floor finish is missing or incomplete.");
+            }
+
+            if (!DeadSignalStationFunctionalPropSetup.HasAssets)
+            {
+                throw new BuildFailedException("The authored station functional-prop kit is missing or incomplete.");
             }
 
             if (!DeadSignalForegroundCutawaySetup.HasAssets)

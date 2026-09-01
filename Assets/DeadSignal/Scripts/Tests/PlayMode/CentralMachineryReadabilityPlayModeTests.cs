@@ -49,10 +49,15 @@ namespace DeadSignal.Tests.PlayMode
                 _captureCamera(Object.FindFirstObjectByType<DeadSignalSceneReferences>().PlayerCamera, capturePath);
             }
 
+            var towerColumn = tower.transform.Find("Tower Column");
             var towerCore = tower.transform.Find("Tower Core");
             var assembler = transfer.transform.Find("Transfer Assembler Rotor");
+            _assertPrismFacesPointOutward(towerColumn.GetComponent<MeshFilter>().sharedMesh,
+                new Vector3(0f, 0.78f, 0f), 8);
             Assert.That(towerCore.GetComponent<MeshFilter>().sharedMesh.name,
                 Is.EqualTo("CentralTowerCoreReadability"));
+            _assertPrismFacesPointOutward(towerCore.GetComponent<MeshFilter>().sharedMesh,
+                new Vector3(0f, 1.55f, 0f), 12);
             Assert.That(towerCore.GetComponent<Renderer>().sharedMaterial.mainTexture.name,
                 Is.EqualTo("CentralMachineryStatusPanel"));
             Assert.That(assembler.GetComponent<MeshFilter>().sharedMesh.name,
@@ -126,6 +131,23 @@ namespace DeadSignal.Tests.PlayMode
                 RenderTexture.active = previousActive;
                 Object.DestroyImmediate(texture);
                 Object.DestroyImmediate(renderTexture);
+            }
+        }
+
+        private static void _assertPrismFacesPointOutward(Mesh mesh, Vector3 center, int sides)
+        {
+            var vertices = mesh.vertices;
+            var triangles = mesh.triangles;
+            var prismIndexCount = sides * 4 * 3;
+            for (var index = 0; index < prismIndexCount; index += 3)
+            {
+                var a = vertices[triangles[index]];
+                var b = vertices[triangles[index + 1]];
+                var c = vertices[triangles[index + 2]];
+                var normal = Vector3.Cross(b - a, c - a);
+                var faceCenter = (a + b + c) / 3f;
+                Assert.That(Vector3.Dot(normal, faceCenter - center), Is.GreaterThan(0f),
+                    $"Prism triangle {index / 3} must face away from the mesh center.");
             }
         }
     }

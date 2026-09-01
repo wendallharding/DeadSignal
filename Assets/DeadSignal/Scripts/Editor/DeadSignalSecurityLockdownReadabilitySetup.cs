@@ -280,6 +280,7 @@ namespace DeadSignal.Editor
                 material,
                 new Vector3(0f, -0.08f, slab.transform.localPosition.z),
                 new Vector3(2.35f, 1f, 1.55f));
+            threshold.localRotation = Quaternion.Euler(0f, 90f, 0f);
             var openMarker = door.Find(prefix + " Door Open");
             if (openMarker == null)
             {

@@ -875,6 +875,51 @@ namespace DeadSignal.Tests
         }
 
         [UnityTest]
+        public IEnumerator SalvageLocator_PulsePreservesThinProfile()
+        {
+            yield return SceneManager.LoadSceneAsync("SampleScene");
+            yield return null;
+
+            var game = Object.FindFirstObjectByType<DeadSignalGame>();
+            var salvageLocators = game.transform.Cast<Transform>()
+                .Where(child => child.name == "Salvage Cache")
+                .Select(cache => cache.Find("Salvage Locator"))
+                .ToArray();
+
+            Assert.That(salvageLocators, Is.Not.Empty);
+            Assert.That(salvageLocators.All(locator => Mathf.Approximately(locator.localScale.y, 0.025f)), Is.True,
+                "Salvage locator pulses must remain thin instead of expanding through the cache geometry.");
+        }
+
+        [UnityTest]
+        public IEnumerator MaintenanceRoomShell_ExteriorBulkheadsHaveAuthoredCollision()
+        {
+            yield return SceneManager.LoadSceneAsync("SampleScene");
+            yield return null;
+
+            var game = Object.FindFirstObjectByType<DeadSignalGame>();
+            var bulkheads = game.transform.Find("Maintenance Room Shell/Bulkheads");
+            string[] solidWallNames =
+            {
+                "North Bulkhead",
+                "South Bulkhead",
+                "West Bulkhead",
+                "East Bulkhead North",
+                "East Bulkhead South"
+            };
+
+            foreach (var wallName in solidWallNames)
+            {
+                var wall = bulkheads.Find(wallName);
+                Assert.That(wall, Is.Not.Null, $"The room shell is missing {wallName}.");
+                var obstacle = wall.GetComponent<AuthoredMapObstacle>();
+                Assert.That(obstacle, Is.Not.Null, $"{wallName} must participate in authored movement collision.");
+                Assert.That(obstacle.OverlapsCircle(wall.position, 0.54f), Is.True,
+                    $"{wallName}'s blocker must cover its visible center.");
+            }
+        }
+
+        [UnityTest]
         public IEnumerator SignalBolt_AuthoredCoverBlocksClosedGateButOpenDoorwayStaysClear()
         {
             yield return SceneManager.LoadSceneAsync("SampleScene");
@@ -1594,8 +1639,8 @@ namespace DeadSignal.Tests
                 "The former solid east wall must not visually seal the optional room route.");
             Assert.That(roomShell.Find("Bulkheads/East Bulkhead North"), Is.Not.Null);
             Assert.That(roomShell.Find("Bulkheads/East Bulkhead South"), Is.Not.Null);
-            Assert.That(roomShell.GetComponentsInChildren<AuthoredMapObstacle>().Length, Is.EqualTo(2),
-                "The widened arena must not allow movement through either visible side of the east doorway.");
+            Assert.That(roomShell.GetComponentsInChildren<AuthoredMapObstacle>().Length, Is.EqualTo(5),
+                "Every solid exterior bulkhead must block movement while preserving the east doorway.");
             Assert.That(roomShell.Find("Bulkheads").GetChild(0).GetComponent<Renderer>().sharedMaterial.mainTexture, Is.Not.Null,
                 "Every authored bulkhead should render the original wall texture.");
             var stationMachines = game.transform.Find("Station Machines");

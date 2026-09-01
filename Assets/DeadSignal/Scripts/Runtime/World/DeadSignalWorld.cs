@@ -1212,7 +1212,8 @@ namespace DeadSignal.World
                 {
                     var distance = FlatDistance(Player.position, cache.transform.position);
                     var proximity = 1f - Mathf.Clamp01((distance - 0.85f) / 3f);
-                    locator.localScale = Vector3.one * Mathf.Lerp(1.35f, 1.65f, proximity);
+                    var radius = Mathf.Lerp(1.35f, 1.65f, proximity);
+                    locator.localScale = new Vector3(radius, SALVAGE_LOCATOR_HEIGHT, radius);
                     locator.Rotate(Vector3.up, dt * Mathf.Lerp(45f, 130f, proximity), Space.Self);
                 }
 
@@ -1803,7 +1804,7 @@ namespace DeadSignal.World
             }
 
             _createPrimitive("Salvage Locator", PrimitiveType.Cylinder, new Vector3(0f, 0.08f, 0f),
-                new Vector3(1.35f, 0.025f, 1.35f), m_palette.Amber, root.transform);
+                new Vector3(1.35f, SALVAGE_LOCATOR_HEIGHT, 1.35f), m_palette.Amber, root.transform);
             _createPrimitive("Salvage Beacon", PrimitiveType.Cube, new Vector3(0f, 1.35f, 0f),
                 new Vector3(0.1f, 1.3f, 0.1f), m_palette.Amber, root.transform);
 
@@ -2733,6 +2734,7 @@ namespace DeadSignal.World
         private const string SIGNAL_BOLT_PREFAB_RESOURCE = "Projectiles/SignalBoltAssembly";
         private const string PLAYER_CAMERA_TUNING_RESOURCE = "Tuning/PlayerCameraTuning";
         private const string ENVIRONMENT_LIGHTING_TUNING_RESOURCE = "Tuning/EnvironmentLightingTuning";
+        private const float SALVAGE_LOCATOR_HEIGHT = 0.025f;
         private const float SPINE_TOWER_INTERACTION_RADIUS = 1.6f;
         private const float TOWER_BLOCKER_HALF_SIZE = 0.62f;
         private const float NAVIGATION_CLEARANCE = 0.08f;
