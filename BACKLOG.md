@@ -177,7 +177,7 @@ Treat lighting as the primary room-composition layer in these runs. Preserve con
 - [x] **Presentation Run P28 — Cable, conduit, and pipe integration:** add bounded authored cable trays, power buses, coolant pipes, junctions, and termination details where major machines currently appear unconnected to the station; keep them collider-free unless an existing authored obstacle owns the footprint
 - [x] **Presentation Run P29 — Floor finish and wear:** refine floor panels, seams, thresholds, scorch/wear, maintenance markings, and local decals by room function while preserving objective icons, projectile contrast, hazard boundaries, and collision-authoritative geometry
 - [x] **Presentation Run P30 — Functional prop kit:** create a small reusable set of release-quality crates, tool carts, service canisters, cable reels, guard rails, and maintenance fixtures; place them only where they strengthen scale and composition without narrowing routes, adding cover authority, or implying pickups
-- [ ] **Presentation Run P31 — Station depth and parallax:** refine distant superstructure, underdeck layers, shafts, machinery silhouettes, and bounded parallax cues visible beyond room edges so the station feels spatially continuous without distracting motion or fake traversable surfaces
+- [x] **Presentation Run P31 — Station depth and parallax:** refine distant superstructure, underdeck layers, shafts, machinery silhouettes, and bounded parallax cues visible beyond room edges so the station feels spatially continuous without distracting motion or fake traversable surfaces
 
 ##### HUD, menus, prompts, and outcome presentation
 
