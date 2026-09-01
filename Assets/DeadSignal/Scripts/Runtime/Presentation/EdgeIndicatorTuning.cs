@@ -8,10 +8,10 @@ namespace DeadSignal.Presentation
         [SerializeField] private Vector2 m_viewportMargin = new(0.08f, 0.11f);
         [SerializeField] private Vector2 m_visibleInset = new(0.12f, 0.15f);
         [SerializeField] private Vector2 m_objectiveSize = new(500f, 94f);
-        [SerializeField] private Vector2 m_threatSize = new(126f, 34f);
+        [SerializeField] private Vector2 m_threatSize = new(176f, 54f);
         [SerializeField] private float m_objectiveTransitionSpeed = 12f;
         [SerializeField] private float m_objectiveRevealSpeed = 9f;
-        [SerializeField] private float m_separation = 42f;
+        [SerializeField] private float m_separation = 64f;
         [SerializeField] private float m_imminentPulseSpeed = 8f;
         [SerializeField] private int m_maximumThreatIndicators = 3;
 

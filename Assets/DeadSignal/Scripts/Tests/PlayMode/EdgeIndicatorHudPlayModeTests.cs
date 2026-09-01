@@ -106,6 +106,44 @@ namespace DeadSignal.Tests
                 .ToArray();
             Assert.That(activeIndicators, Does.Contain("SAPPER"),
                 "The latched Sapper should outrank lower urgency off-screen roles.");
+            var sapperIndicator = Object.FindObjectsByType<Transform>(FindObjectsSortMode.None)
+                .First(transform => transform.name.StartsWith("Enemy Edge Indicator") &&
+                                    transform.gameObject.activeInHierarchy &&
+                                    transform.Find("Label").GetComponent<Text>().text == "SAPPER");
+            Assert.That(sapperIndicator.Find("State").GetComponent<Text>().text, Is.Not.Empty,
+                "A specialist edge card should disclose its current attack state without color alone.");
+            Assert.That(sapperIndicator.Find("Health").GetComponent<Text>().text, Does.Match("^[0-9]+/[0-9]+$"));
+            Assert.That(sapperIndicator.Find("Health Track/Health Fill").GetComponent<Image>().fillAmount,
+                Is.InRange(0.01f, 1f));
+        }
+
+        [UnityTest]
+        public IEnumerator ThreatInstrument_ShowsPriorityHealthAttackStateAndPurgeConfirmation()
+        {
+            yield return SceneManager.LoadSceneAsync("SampleScene");
+            yield return null;
+
+            var game = Object.FindFirstObjectByType<DeadSignalGame>();
+            game.DebugActivateTower();
+            game.DebugSpawnThreat(SecurityReinforcement.Sapper);
+            game.DebugSetThreatsFrozen(true);
+            yield return _waitFrames(3);
+
+            var instrument = Object.FindFirstObjectByType<ThreatHudInstrument>(FindObjectsInactive.Include);
+            Assert.That(instrument, Is.Not.Null);
+            Assert.That(instrument.IsConfigured, Is.True);
+            Assert.That(instrument.HeaderLabel, Does.Contain("ALERT"));
+            Assert.That(instrument.RoleLabel, Does.Contain("SAPPER"));
+            Assert.That(instrument.StateLabel, Is.Not.Empty);
+            Assert.That(instrument.HealthLabel, Does.Match("^HP [0-9]+/[0-9]+$"));
+            Assert.That(instrument.HealthRatio, Is.InRange(0.01f, 1f));
+            Assert.That(instrument.FooterLabel, Does.Contain("SIGNAL"));
+
+            game.DebugPurgeThreat(SecurityReinforcement.Sapper);
+            yield return null;
+            Assert.That(instrument.RoleLabel, Does.Contain("SAPPER PURGED"));
+            Assert.That(instrument.StateLabel, Does.Contain("THREAT REMOVED"));
+            Assert.That(instrument.FooterLabel, Does.Contain("RECLAIM CONFIRMED"));
         }
 
         [UnityTest]
@@ -174,6 +212,46 @@ namespace DeadSignal.Tests
             Assert.That(game.CurrentObjectiveBeaconPhase, Is.EqualTo(ObjectiveBeaconPhase.Extraction));
             _captureHud(new Vector2Int(3440, 1440),
                 Path.Combine(captureDirectory, "P34-Objective-Extraction-3440x1440.png"));
+        }
+
+        [UnityTest]
+        public IEnumerator ThreatHud_CapturesPriorityAndOffscreenStatesAtTargetAspectsWhenRequested()
+        {
+            var captureDirectory = System.Environment.GetEnvironmentVariable("DEAD_SIGNAL_P36_CAPTURE_DIR");
+            if (string.IsNullOrWhiteSpace(captureDirectory))
+            {
+                Assert.Pass("P36 capture directory was not requested.");
+            }
+
+            Directory.CreateDirectory(captureDirectory);
+            yield return SceneManager.LoadSceneAsync("SampleScene");
+            yield return null;
+
+            var game = Object.FindFirstObjectByType<DeadSignalGame>();
+            game.DebugActivateTower();
+            game.DebugSpawnThreat(SecurityReinforcement.Sapper);
+            game.DebugSetThreatsFrozen(true);
+            yield return _waitFrames(4);
+            _captureHud(new Vector2Int(1600, 900),
+                Path.Combine(captureDirectory, "P36-Threat-Priority-1600x900.png"));
+
+            game.DebugSpawnThreat(SecurityReinforcement.Warden);
+            game.DebugSpawnThreat(SecurityReinforcement.Interceptor);
+            game.DebugSpawnThreat(SecurityReinforcement.Suppressor);
+            var offscreenPosition = game.CurrentObjectiveBeaconTarget;
+            game.transform.Find("Security Warden").position = offscreenPosition + Vector3.left * 2f;
+            game.transform.Find("Signal Sapper").position = offscreenPosition + Vector3.right * 2f;
+            game.transform.Find("Security Interceptor").position = offscreenPosition + Vector3.forward * 2f;
+            game.transform.Find("Security Suppressor").position = offscreenPosition + Vector3.back * 2f;
+            yield return _waitFrames(4);
+            _captureHud(new Vector2Int(1280, 720),
+                Path.Combine(captureDirectory, "P36-Threat-Edges-1280x720.png"));
+
+            game.DebugToggleReducedFlashes();
+            game.DebugForceThreatAttack(SecurityReinforcement.Interceptor);
+            yield return _waitFrames(3);
+            _captureHud(new Vector2Int(3440, 1440),
+                Path.Combine(captureDirectory, "P36-Threat-Reduced-Flashes-3440x1440.png"));
         }
 
         private static IEnumerator _waitFrames(int count)

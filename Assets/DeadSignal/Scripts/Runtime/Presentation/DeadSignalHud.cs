@@ -104,6 +104,7 @@ namespace DeadSignal.Presentation
         private IDeadSignalInput m_input;
         private SignalHudTuning m_signalHudTuning;
         private SignalReserveInstrument m_signalInstrument;
+        private ThreatHudInstrument m_threatInstrument;
         private ObjectiveBeaconHud m_objectiveBeacon;
         private InteractionPromptHud m_interactionPrompt;
         private RectTransform m_contextPromptRect;
@@ -169,6 +170,7 @@ namespace DeadSignal.Presentation
             m_overclockChoice = overclockChoice;
             m_signalHudTuning = Resources.Load<SignalHudTuning>("Tuning/SignalHudTuning");
             m_signalInstrument = m_signalFill.GetComponentInParent<SignalReserveInstrument>();
+            m_threatInstrument = m_threatText.GetComponentInChildren<ThreatHudInstrument>(true);
             m_objectiveBeacon = GetComponent<ObjectiveBeaconHud>();
             m_interactionPrompt = m_contextPrompt.GetComponent<InteractionPromptHud>();
             m_contextPromptRect = m_contextPrompt.transform as RectTransform;
@@ -359,7 +361,19 @@ namespace DeadSignal.Presentation
                   $"{m_salvage.OptionalCacheDistance:0}m\n" +
                   $"GREED +{m_salvage.OptionalCacheSignalReward:0} SIGNAL — {_optionalGreedCountertrace()}"
                 : $"PHASE {guidance.Phase}/3  //  {guidance.Title}\n{guidance.Action}\n{guidance.Advisory}";
-            m_threatText.text = _threatStatus();
+            if (m_threatInstrument != null)
+            {
+                m_threatInstrument.Apply(
+                    m_model,
+                    m_threats,
+                    m_extractionUplink.IsActive,
+                    m_comfortSettings.ReducedFlashesEnabled,
+                    Time.unscaledDeltaTime);
+            }
+            else
+            {
+                m_threatText.text = _threatStatus();
+            }
             m_controlLegendText.text = _activeControlLegend();
             var prompt = _contextPrompt();
             if (m_interactionPrompt != null)

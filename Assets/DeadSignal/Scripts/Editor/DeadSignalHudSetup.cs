@@ -23,6 +23,7 @@ namespace DeadSignal.Editor
             _hasCompositionPrefab() &&
             _hasSignalInstrumentPrefab() &&
             _hasObjectiveCardPrefab() &&
+            _hasThreatInstrumentPrefab() &&
             _hasInteractionPromptPrefab();
 
         public static void EnsureAssets()
@@ -70,6 +71,7 @@ namespace DeadSignal.Editor
             _ensureCompositionPrefab();
             _ensureSignalInstrumentPrefab();
             _ensureObjectiveCardPrefab();
+            _ensureThreatInstrumentPrefab();
             _ensureInteractionPromptPrefab();
 
             AssetDatabase.SaveAssets();
@@ -109,6 +111,13 @@ namespace DeadSignal.Editor
             var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(HUD_PREFAB_PATH);
             var prompt = prefab == null ? null : prefab.GetComponentInChildren<InteractionPromptHud>(true);
             return prompt != null && prompt.IsConfigured;
+        }
+
+        private static bool _hasThreatInstrumentPrefab()
+        {
+            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(HUD_PREFAB_PATH);
+            var instrument = prefab == null ? null : prefab.GetComponentInChildren<ThreatHudInstrument>(true);
+            return instrument != null && instrument.IsConfigured;
         }
 
         private static void _ensureCompositionPrefab()
@@ -407,6 +416,91 @@ namespace DeadSignal.Editor
                     secondaryGlyph,
                     secondaryAction,
                     canvasGroup);
+
+                PrefabUtility.SaveAsPrefabAsset(root, HUD_PREFAB_PATH);
+            }
+            finally
+            {
+                PrefabUtility.UnloadPrefabContents(root);
+            }
+        }
+
+        private static void _ensureThreatInstrumentPrefab()
+        {
+            var root = PrefabUtility.LoadPrefabContents(HUD_PREFAB_PATH);
+            try
+            {
+                var frame = root.transform.Find("Run HUD/Composition Frame") as RectTransform;
+                var panel = frame == null ? null : frame.Find("Threat") as RectTransform;
+                panel ??= root.transform.Find("Run HUD/Composition Frame/Objective Status/Threat") as RectTransform;
+                if (panel == null)
+                {
+                    throw new InvalidOperationException("The authored HUD prefab is missing its Threat panel.");
+                }
+
+                panel.SetParent(frame, false);
+                _setRect(panel, new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(0f, 1f),
+                    new Vector2(18f, -174f), new Vector2(356f, 88f));
+                var legacyText = panel.GetComponent<Text>();
+                legacyText.enabled = false;
+
+                var background = _ensureImage("Threat Panel", panel, new Color(0.018f, 0.028f, 0.04f, 0.94f));
+                _stretch(background.rectTransform, 0f);
+                background.color = new Color(0.018f, 0.028f, 0.04f, 0.94f);
+                background.raycastTarget = false;
+
+                var canvasGroup = background.GetComponent<CanvasGroup>();
+                if (canvasGroup == null)
+                {
+                    canvasGroup = background.gameObject.AddComponent<CanvasGroup>();
+                }
+                canvasGroup.blocksRaycasts = false;
+                canvasGroup.interactable = false;
+
+                var accent = _ensureImage("Threat Accent", background.transform, new Color(1f, 0.25f, 0.18f, 1f));
+                _setRect(accent.rectTransform, new Vector2(0f, 0f), new Vector2(0f, 1f),
+                    new Vector2(0f, 0.5f), Vector2.zero, new Vector2(4f, 0f));
+
+                var header = _ensureText("Threat Header", background.transform);
+                _styleText(header, 10, FontStyle.Bold, TextAnchor.UpperLeft, new Color(0.58f, 0.7f, 0.74f, 1f));
+                _setRect(header.rectTransform, new Vector2(0f, 1f), new Vector2(1f, 1f),
+                    new Vector2(0.5f, 1f), new Vector2(12f, -6f), new Vector2(-24f, 15f));
+
+                var role = _ensureText("Threat Role", background.transform);
+                _styleText(role, 14, FontStyle.Bold, TextAnchor.UpperLeft, Color.white);
+                _setRect(role.rectTransform, new Vector2(0f, 1f), new Vector2(1f, 1f),
+                    new Vector2(0.5f, 1f), new Vector2(12f, -23f), new Vector2(-154f, 20f));
+
+                var state = _ensureText("Threat State", background.transform);
+                _styleText(state, 11, FontStyle.Bold, TextAnchor.UpperRight, new Color(1f, 0.4f, 0.32f, 1f));
+                _setRect(state.rectTransform, new Vector2(1f, 1f), new Vector2(1f, 1f),
+                    new Vector2(1f, 1f), new Vector2(-10f, -24f), new Vector2(144f, 18f));
+
+                var healthTrack = _ensureImage("Threat Health Track", background.transform, new Color(0.13f, 0.07f, 0.08f, 1f));
+                _setRect(healthTrack.rectTransform, new Vector2(0f, 0f), new Vector2(1f, 0f),
+                    new Vector2(0.5f, 0f), new Vector2(12f, 29f), new Vector2(-90f, 5f));
+                var healthFill = _ensureImage("Fill", healthTrack.transform, new Color(1f, 0.25f, 0.18f, 1f));
+                _stretch(healthFill.rectTransform, 0f);
+                healthFill.type = Image.Type.Filled;
+                healthFill.fillMethod = Image.FillMethod.Horizontal;
+                healthFill.fillOrigin = 0;
+
+                var health = _ensureText("Threat Health", background.transform);
+                _styleText(health, 11, FontStyle.Bold, TextAnchor.MiddleRight, Color.white);
+                _setRect(health.rectTransform, new Vector2(1f, 0f), new Vector2(1f, 0f),
+                    new Vector2(1f, 0f), new Vector2(-10f, 25f), new Vector2(68f, 18f));
+
+                var footer = _ensureText("Threat Footer", background.transform);
+                _styleText(footer, 10, FontStyle.Normal, TextAnchor.LowerLeft, new Color(0.66f, 0.76f, 0.79f, 1f));
+                _setRect(footer.rectTransform, new Vector2(0f, 0f), new Vector2(1f, 0f),
+                    new Vector2(0.5f, 0f), new Vector2(12f, 6f), new Vector2(-24f, 16f));
+
+                var instrument = background.GetComponent<ThreatHudInstrument>();
+                if (instrument == null)
+                {
+                    instrument = background.gameObject.AddComponent<ThreatHudInstrument>();
+                }
+                instrument.Configure(background, accent, healthFill, header, role, state, health, footer, canvasGroup);
 
                 PrefabUtility.SaveAsPrefabAsset(root, HUD_PREFAB_PATH);
             }

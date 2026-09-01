@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using DeadSignal.Combat;
 using DeadSignal.Missions;
+using DeadSignal.Player;
 using DeadSignal.World;
 
 namespace DeadSignal.Presentation
@@ -43,6 +44,7 @@ namespace DeadSignal.Presentation
         private DeadSignalWorld m_world;
         private DeadSignalThreatController m_threats;
         private ICombatFeedback m_combatFeedback;
+        private IComfortSettings m_comfortSettings;
         private EdgeIndicatorTuning m_tuning;
         private RectTransform m_canvasRect;
         private RectTransform m_panelRect;
@@ -56,6 +58,7 @@ namespace DeadSignal.Presentation
         private float m_revealProgress = 1f;
         private readonly List<ThreatCandidate> m_candidates = new();
         private readonly List<ThreatIndicator> m_threatIndicators = new();
+        private readonly List<Vector2> m_usedThreatPositions = new();
         private float m_guidanceStrength = 0.7f;
         [SerializeField] private GameObject m_panel;
         [SerializeField] private RawImage m_icon;
@@ -102,9 +105,10 @@ namespace DeadSignal.Presentation
         }
 
         [Inject]
-        private void _construct(ICombatFeedback combatFeedback)
+        private void _construct(ICombatFeedback combatFeedback, IComfortSettings comfortSettings)
         {
             m_combatFeedback = combatFeedback;
+            m_comfortSettings = comfortSettings;
         }
 
         void IObjectiveBeacon.Configure(RunModel model, DeadSignalWorld world, DeadSignalThreatController threats)
@@ -335,16 +339,57 @@ namespace DeadSignal.Presentation
             arrow.rectTransform.anchorMax = new Vector2(0f, 1f);
             arrow.rectTransform.pivot = new Vector2(0f, 0.5f);
             arrow.rectTransform.anchoredPosition = new Vector2(6f, 0f);
-            arrow.rectTransform.sizeDelta = new Vector2(30f, 0f);
+            arrow.rectTransform.sizeDelta = new Vector2(28f, 0f);
 
-            var label = _createText(root.transform, "Label", 13, TextAnchor.MiddleLeft, new Color(1f, 0.72f, 0.66f));
+            var accent = root.AddComponent<Outline>();
+            accent.effectColor = new Color(1f, 0.12f, 0.12f, 0.8f);
+            accent.effectDistance = new Vector2(2f, -2f);
+
+            var label = _createText(root.transform, "Label", 13, TextAnchor.UpperLeft, new Color(1f, 0.82f, 0.76f));
             label.fontStyle = FontStyle.Bold;
-            label.rectTransform.anchorMin = Vector2.zero;
-            label.rectTransform.anchorMax = Vector2.one;
-            label.rectTransform.offsetMin = new Vector2(38f, 0f);
-            label.rectTransform.offsetMax = new Vector2(-5f, 0f);
+            label.rectTransform.anchorMin = new Vector2(0f, 1f);
+            label.rectTransform.anchorMax = new Vector2(1f, 1f);
+            label.rectTransform.pivot = new Vector2(0.5f, 1f);
+            label.rectTransform.anchoredPosition = new Vector2(17f, -5f);
+            label.rectTransform.sizeDelta = new Vector2(-54f, 18f);
+
+            var state = _createText(root.transform, "State", 10, TextAnchor.LowerLeft, new Color(1f, 0.46f, 0.38f));
+            state.fontStyle = FontStyle.Bold;
+            state.rectTransform.anchorMin = Vector2.zero;
+            state.rectTransform.anchorMax = Vector2.one;
+            state.rectTransform.offsetMin = new Vector2(38f, 6f);
+            state.rectTransform.offsetMax = new Vector2(-42f, -25f);
+
+            var health = _createText(root.transform, "Health", 10, TextAnchor.UpperRight, Color.white);
+            health.fontStyle = FontStyle.Bold;
+            health.rectTransform.anchorMin = new Vector2(1f, 1f);
+            health.rectTransform.anchorMax = new Vector2(1f, 1f);
+            health.rectTransform.pivot = Vector2.one;
+            health.rectTransform.anchoredPosition = new Vector2(-5f, -5f);
+            health.rectTransform.sizeDelta = new Vector2(42f, 18f);
+
+            var healthTrack = new GameObject("Health Track", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
+            healthTrack.transform.SetParent(root.transform, false);
+            var trackRect = healthTrack.GetComponent<RectTransform>();
+            trackRect.anchorMin = new Vector2(0f, 0f);
+            trackRect.anchorMax = new Vector2(1f, 0f);
+            trackRect.pivot = new Vector2(0.5f, 0f);
+            trackRect.anchoredPosition = new Vector2(17f, 3f);
+            trackRect.sizeDelta = new Vector2(-54f, 3f);
+            healthTrack.GetComponent<Image>().color = new Color(0.22f, 0.04f, 0.05f, 0.95f);
+            var healthFill = new GameObject("Health Fill", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
+            healthFill.transform.SetParent(healthTrack.transform, false);
+            var fillRect = healthFill.GetComponent<RectTransform>();
+            fillRect.anchorMin = Vector2.zero;
+            fillRect.anchorMax = Vector2.one;
+            fillRect.offsetMin = Vector2.zero;
+            fillRect.offsetMax = Vector2.zero;
+            var fill = healthFill.GetComponent<Image>();
+            fill.type = Image.Type.Filled;
+            fill.fillMethod = Image.FillMethod.Horizontal;
+            fill.color = new Color(1f, 0.22f, 0.15f, 1f);
             root.SetActive(false);
-            return new ThreatIndicator(root, rect, arrow, label);
+            return new ThreatIndicator(root, rect, arrow, label, state, health, healthTrack, fill);
         }
 
         private static Text _createText(
@@ -372,28 +417,47 @@ namespace DeadSignal.Presentation
             }
 
             m_candidates.Clear();
-            _addSpecialist(m_world.Warden, m_threats.IsWardenAlive, "WARDEN", m_threats.IsWardenScreeningSapper, 40);
-            _addSpecialist(m_world.Sapper, m_threats.IsSapperAlive, "SAPPER", m_threats.IsSapperLatched, 80);
-            _addSpecialist(m_world.Interceptor, m_threats.IsInterceptorAlive, "INTERCEPTOR", m_threats.IsInterceptorCharging, 70);
+            _addSpecialist(m_world.Warden, m_threats.IsWardenAlive, "WARDEN",
+                m_threats.IsWardenScreeningSapper ? "!! SCREENING" : "PRESSURE", m_threats.IsWardenScreeningSapper,
+                m_threats.WardenHealth, m_threats.WardenMaximumHealth, 40);
+            _addSpecialist(m_world.Sapper, m_threats.IsSapperAlive, "SAPPER",
+                m_threats.IsSapperLatched ? $"!! DRAIN {m_threats.SapperPulseCooldown:0.0}s" : "CLOSING",
+                m_threats.IsSapperLatched, m_threats.SapperHealth, m_threats.SapperMaximumHealth, 80);
+            _addSpecialist(m_world.Interceptor, m_threats.IsInterceptorAlive, "INTERCEPTOR",
+                m_threats.IsInterceptorRecovering ? "◆ EXPOSED" : m_threats.IsInterceptorCharging ? "!! DASH LOCK" : "FLANKING",
+                m_threats.IsInterceptorCharging, m_threats.InterceptorHealth, m_threats.InterceptorMaximumHealth, 70);
             _addSpecialist(m_world.Suppressor, m_threats.IsSuppressorAlive, "SUPPRESSOR",
-                m_threats.IsSuppressorFieldWarningActive || m_threats.IsSuppressorFieldActive, 60);
+                m_threats.IsSuppressorFieldActive ? "!! FIELD ACTIVE" :
+                    m_threats.IsSuppressorFieldWarningActive ? "!! FIELD WARNING" : "POSITIONING",
+                m_threats.IsSuppressorFieldWarningActive || m_threats.IsSuppressorFieldActive,
+                m_threats.SuppressorHealth, m_threats.SuppressorMaximumHealth, 60);
             _addSwarmerGroup();
             m_candidates.Sort((first, second) => second.Score.CompareTo(first.Score));
 
-            var usedPositions = new List<Vector2>();
+            m_usedThreatPositions.Clear();
             var count = Mathf.Min(m_tuning.MaximumThreatIndicators, m_candidates.Count);
             for (var index = 0; index < count; index++)
             {
                 var candidate = m_candidates[index];
                 var direction = _edgeDirection(candidate.Position);
-                var position = _separate(_edgePosition(direction, m_tuning.ThreatSize), direction, usedPositions);
-                usedPositions.Add(position);
+                var position = _threatEdgePosition(direction);
+                position = _separate(position, direction, m_usedThreatPositions);
+                m_usedThreatPositions.Add(position);
                 var indicator = m_threatIndicators[index];
                 indicator.Root.SetActive(true);
                 indicator.Rect.anchoredPosition = position;
                 indicator.Arrow.rectTransform.localRotation = Quaternion.Euler(0f, 0f, _directionAngle(direction));
                 indicator.Label.text = candidate.Label;
-                var pulse = candidate.Imminent ? 1f + Mathf.Sin(Time.unscaledTime * m_tuning.ImminentPulseSpeed) * 0.12f : 1f;
+                indicator.State.text = candidate.State;
+                indicator.Health.text = candidate.MaximumHealth > 0f
+                    ? $"{Mathf.CeilToInt(candidate.Health)}/{Mathf.CeilToInt(candidate.MaximumHealth)}"
+                    : string.Empty;
+                indicator.HealthTrack.SetActive(candidate.MaximumHealth > 0f);
+                indicator.HealthFill.fillAmount = candidate.MaximumHealth > 0f
+                    ? Mathf.Clamp01(candidate.Health / candidate.MaximumHealth)
+                    : 0f;
+                var animate = candidate.Imminent && m_comfortSettings?.ReducedFlashesEnabled != true;
+                var pulse = animate ? 1f + Mathf.Sin(Time.unscaledTime * m_tuning.ImminentPulseSpeed) * 0.06f : 1f;
                 indicator.Rect.localScale = Vector3.one * pulse;
                 indicator.Background.color = candidate.Imminent
                     ? new Color(0.5f, 0.015f, 0.025f, 0.96f)
@@ -402,7 +466,15 @@ namespace DeadSignal.Presentation
             }
         }
 
-        private void _addSpecialist(Transform target, bool alive, string label, bool imminent, int priority)
+        private void _addSpecialist(
+            Transform target,
+            bool alive,
+            string label,
+            string state,
+            bool imminent,
+            float health,
+            float maximumHealth,
+            int priority)
         {
             if (!alive || target == null || !target.gameObject.activeInHierarchy ||
                 _isComfortablyVisible(target.position))
@@ -410,7 +482,9 @@ namespace DeadSignal.Presentation
                 return;
             }
             var distance = DeadSignalWorld.FlatDistance(m_world.Player.position, target.position);
-            m_candidates.Add(new ThreatCandidate(target.position, label, imminent, priority + (imminent ? 100 : 0) - distance * 0.1f));
+            m_candidates.Add(new ThreatCandidate(
+                target.position, label, state, health, maximumHealth, imminent,
+                priority + (imminent ? 100 : 0) - distance * 0.1f));
         }
 
         private void _addSwarmerGroup()
@@ -428,7 +502,7 @@ namespace DeadSignal.Presentation
             }
             if (count > 0)
             {
-                m_candidates.Add(new ThreatCandidate(position / count, $"SWARM ×{count}", false, 30));
+                m_candidates.Add(new ThreatCandidate(position / count, $"SWARM ×{count}", "PRESSURE GROUP", 0f, 0f, false, 30));
             }
         }
 
@@ -466,13 +540,35 @@ namespace DeadSignal.Presentation
         private Vector2 _separate(Vector2 position, Vector2 direction, IReadOnlyList<Vector2> usedPositions)
         {
             var tangent = new Vector2(-direction.y, direction.x);
-            foreach (var used in usedPositions)
+            for (var attempt = 0; attempt < 6; attempt++)
             {
-                if (Vector2.Distance(position, used) < m_tuning.Separation)
+                var overlaps = false;
+                foreach (var used in usedPositions)
                 {
-                    position += tangent * m_tuning.Separation;
+                    if (Vector2.Distance(position, used) >= m_tuning.Separation)
+                    {
+                        continue;
+                    }
+
+                    overlaps = true;
+                    break;
                 }
+
+                if (!overlaps)
+                {
+                    break;
+                }
+
+                position += tangent * m_tuning.Separation;
             }
+            return position;
+        }
+
+        private Vector2 _threatEdgePosition(Vector2 direction)
+        {
+            var position = _edgePosition(direction, m_tuning.ThreatSize);
+            var maximumY = m_canvasRect.rect.height * 0.5f - 170f;
+            position.y = Mathf.Min(position.y, maximumY);
             return position;
         }
 
@@ -548,28 +644,53 @@ namespace DeadSignal.Presentation
 
     internal readonly struct ThreatCandidate
     {
-        public ThreatCandidate(Vector3 position, string label, bool imminent, float score)
+        public ThreatCandidate(
+            Vector3 position,
+            string label,
+            string state,
+            float health,
+            float maximumHealth,
+            bool imminent,
+            float score)
         {
             Position = position;
             Label = label;
+            State = state;
+            Health = health;
+            MaximumHealth = maximumHealth;
             Imminent = imminent;
             Score = score;
         }
 
         public Vector3 Position { get; }
         public string Label { get; }
+        public string State { get; }
+        public float Health { get; }
+        public float MaximumHealth { get; }
         public bool Imminent { get; }
         public float Score { get; }
     }
 
     internal sealed class ThreatIndicator
     {
-        public ThreatIndicator(GameObject root, RectTransform rect, Text arrow, Text label)
+        public ThreatIndicator(
+            GameObject root,
+            RectTransform rect,
+            Text arrow,
+            Text label,
+            Text state,
+            Text health,
+            GameObject healthTrack,
+            Image healthFill)
         {
             Root = root;
             Rect = rect;
             Arrow = arrow;
             Label = label;
+            State = state;
+            Health = health;
+            HealthTrack = healthTrack;
+            HealthFill = healthFill;
             Background = root.GetComponent<Image>();
         }
 
@@ -577,6 +698,10 @@ namespace DeadSignal.Presentation
         public RectTransform Rect { get; }
         public Text Arrow { get; }
         public Text Label { get; }
+        public Text State { get; }
+        public Text Health { get; }
+        public GameObject HealthTrack { get; }
+        public Image HealthFill { get; }
         public Image Background { get; }
     }
 }
