@@ -1,6 +1,7 @@
 using UnityEngine;
 using System.Collections.Generic;
 using DeadSignal.Missions;
+using DeadSignal.Player;
 using DeadSignal.World;
 
 namespace DeadSignal.Presentation
@@ -12,6 +13,7 @@ namespace DeadSignal.Presentation
         private RunMetrics m_metrics;
         private DeadSignalWorld m_world;
         private SignalOverclockChoice m_overclocks;
+        private IDeadSignalInput m_input;
         private Camera m_camera;
         private GUIStyle m_panelStyle;
         private GUIStyle m_primaryStyle;
@@ -19,13 +21,17 @@ namespace DeadSignal.Presentation
         private GUIStyle m_mapTitleStyle;
         private GUIStyle m_mapLabelStyle;
         private GUIStyle m_mapLegendStyle;
+        private GUIStyle m_mapSectionStyle;
         private readonly Queue<SignalEvent> m_signalEvents = new();
         private readonly List<Rect> m_mapLabelRects = new();
+        private Vector2 m_mapPan;
+        private float m_mapZoom = 1f;
 
         private static readonly Color s_mapCyan = new(0.15f, 0.9f, 1f);
         private static readonly Color s_mapAmber = new(1f, 0.66f, 0.12f);
         private static readonly Color s_mapRed = new(1f, 0.18f, 0.16f);
         private static readonly Color s_mapOffline = new(0.28f, 0.42f, 0.46f);
+        private static readonly Color s_mapOpen = new(0.52f, 0.9f, 0.72f);
         private static readonly Vector2[] s_mapLabelOffsets =
         {
             new(9f, -10f), new(9f, 5f), new(-9f, -10f), new(-9f, 5f),
@@ -36,18 +42,56 @@ namespace DeadSignal.Presentation
         public Rect LastTacticalMapCard { get; private set; }
         public Rect LastTacticalMapWorldBounds { get; private set; }
         public int LastTacticalMapObstacleCount { get; private set; }
+        public int LastTacticalMapPoweredObstacleCount { get; private set; }
+        public int LastTacticalMapDoorCount { get; private set; }
+        public float TacticalMapZoom => m_mapZoom;
+        public Vector2 TacticalMapPan => m_mapPan;
 
         internal void Configure(
             RunModel model,
             RunMetrics metrics,
             DeadSignalWorld world,
-            SignalOverclockChoice overclocks)
+            SignalOverclockChoice overclocks,
+            IDeadSignalInput input)
         {
             m_model = model;
             m_metrics = metrics;
             m_world = world;
             m_overclocks = overclocks;
+            m_input = input;
             m_camera = world.Camera;
+        }
+
+        private void Update()
+        {
+            if (m_model == null || m_input == null || m_model.Outcome != RunOutcome.Running || Time.timeScale > 0f)
+            {
+                return;
+            }
+
+            if (m_input.PressedTacticalMapFit())
+            {
+                m_mapZoom = 1f;
+                m_mapPan = Vector2.zero;
+                return;
+            }
+
+            var zoomStep = m_input.ReadTacticalMapZoomStep();
+            if (zoomStep != 0)
+            {
+                m_mapZoom = Mathf.Clamp(m_mapZoom + zoomStep * 0.5f, 1f, 2f);
+                if (m_mapZoom <= 1f)
+                {
+                    m_mapPan = Vector2.zero;
+                }
+            }
+
+            if (m_mapZoom > 1f)
+            {
+                m_mapPan += m_input.ReadTacticalMapPan() * (18f / m_mapZoom) * Time.unscaledDeltaTime;
+                var maximumPan = 14f * (1f - 1f / m_mapZoom);
+                m_mapPan = Vector2.ClampMagnitude(m_mapPan, maximumPan);
+            }
         }
 
         private void OnGUI()
@@ -174,11 +218,8 @@ namespace DeadSignal.Presentation
 
         private void _drawTacticalMap()
         {
-            var cardWidth = Mathf.Min(560f, Screen.width - 36f);
-            var cardY = Mathf.Clamp(Screen.height * 0.19f, 88f, 150f);
-            var cardHeight = Mathf.Min(360f, Screen.height - cardY - 18f);
-            var card = new Rect(18f, cardY, cardWidth, cardHeight);
-            var map = new Rect(card.x + 12f, card.y + 66f, card.width - 24f, card.height - 96f);
+            var card = CalculateTacticalMapCard(Screen.width, Screen.height);
+            var map = new Rect(card.x + 12f, card.y + 82f, card.width - 24f, card.height - 116f);
             LastTacticalMapCard = card;
             var oldColor = GUI.color;
             GUI.color = new Color(0.008f, 0.025f, 0.035f, 0.98f);
@@ -187,23 +228,29 @@ namespace DeadSignal.Presentation
             GUI.DrawTexture(new Rect(card.x, card.y, card.width, 2f), Texture2D.whiteTexture);
             GUI.color = oldColor;
 
-            GUI.Label(new Rect(card.x + 14f, card.y + 8f, card.width - 120f, 24f), "STATION NETWORK", m_mapTitleStyle);
+            var objective = m_model.CurrentObjective;
+            GUI.Label(new Rect(card.x + 14f, card.y + 8f, card.width - 150f, 24f), "STATION SCHEMATIC", m_mapTitleStyle);
             GUI.Label(new Rect(card.x + card.width - 110f, card.y + 10f, 96f, 22f),
-                "PAUSED  //  LIVE", m_mapLegendStyle);
-            _drawLegendItem(new Rect(card.x + 14f, card.y + 38f, 92f, 18f), s_mapCyan, "POWERED");
-            _drawLegendItem(new Rect(card.x + 110f, card.y + 38f, 104f, 18f), s_mapAmber, "OBJECTIVE");
-            _drawLegendItem(new Rect(card.x + 218f, card.y + 38f, 82f, 18f), s_mapRed, "THREAT");
-            _drawLegendItem(new Rect(card.x + 304f, card.y + 38f, 94f, 18f), Color.white, "YOU");
+                $"FIT  {m_mapZoom:0.0}X", m_mapLegendStyle);
+            GUI.Label(new Rect(card.x + 14f, card.y + 31f, card.width - 28f, 18f),
+                $"PHASE {objective.Guidance.Phase:00}  //  {objective.OwningRoom.ToUpperInvariant()}  //  {objective.Guidance.Title.ToUpperInvariant()}",
+                m_mapSectionStyle);
+            _drawLegendItem(new Rect(card.x + 14f, card.y + 55f, 92f, 18f), s_mapCyan, "POWERED");
+            _drawLegendItem(new Rect(card.x + 106f, card.y + 55f, 102f, 18f), s_mapAmber, "OBJECTIVE");
+            _drawLegendItem(new Rect(card.x + 208f, card.y + 55f, 76f, 18f), Color.white, "YOU");
+            _drawLegendItem(new Rect(card.x + 284f, card.y + 55f, 86f, 18f), s_mapOpen, "OPEN");
+            _drawLegendItem(new Rect(card.x + 370f, card.y + 55f, 86f, 18f), s_mapRed, "SEALED");
 
             var waypoint = m_world.GetObjectiveGuidanceWaypoint(m_model, 0.48f);
-            var worldBounds = _calculateMapBounds(map, waypoint);
+            var worldBounds = _applyMapView(_calculateMapBounds(map, waypoint));
             LastTacticalMapWorldBounds = worldBounds;
             LastTacticalMapObstacleCount = m_world.AuthoredMapObstacles.Count;
             GUI.BeginGroup(map);
             var localMap = new Rect(0f, 0f, map.width, map.height);
             _drawMapBackground(localMap, worldBounds);
             m_mapLabelRects.Clear();
-            _drawMapPoint(localMap, worldBounds, m_world.ExtractionPosition, s_mapCyan, 12f, "DOCK");
+            _drawMapPoint(localMap, worldBounds, m_world.ExtractionPosition,
+                m_model.CanExtract ? s_mapCyan : s_mapOffline, 12f, "DOCK");
             _drawMapPoint(localMap, worldBounds, m_world.TowerPosition,
                 m_model.TowerOnline ? s_mapCyan : s_mapOffline, 12f, "CENTRAL");
             _drawMapPoint(localMap, worldBounds, m_world.RelayTowerPosition,
@@ -219,8 +266,15 @@ namespace DeadSignal.Presentation
                         ? m_model.CanExtract
                         : m_model.CanCollectPayload(m_world.GetPayloadRegion(cache), m_world.GetCentralComponent(cache));
                     var color = available ? new Color(1f, 0.66f, 0.12f) : new Color(0.32f, 0.27f, 0.2f);
-                    _drawMapPoint(localMap, worldBounds, cache.transform.position, color, optional ? 8f : 9f,
-                        optional ? "GREED" : available ? "PAYLOAD" : "LOCKED");
+                    if (available)
+                    {
+                        _drawMapPoint(localMap, worldBounds, cache.transform.position, color, optional ? 8f : 9f,
+                            optional ? "GREED" : "PAYLOAD");
+                    }
+                    else
+                    {
+                        _drawMapMarkerOnly(localMap, worldBounds, cache.transform.position, color, 6f);
+                    }
                 }
             }
             if (m_world.Warden.gameObject.activeSelf)
@@ -232,14 +286,44 @@ namespace DeadSignal.Presentation
                 _drawMapPoint(localMap, worldBounds, m_world.Sapper.position,
                     new Color(1f, 0.15f, 0.65f), 9f, "SAPPER");
             }
-            _drawMapPoint(localMap, worldBounds, waypoint, s_mapAmber, 9f, "NEXT");
-            _drawMapPoint(localMap, worldBounds, m_world.Player.position, Color.white, 12f, "YOU");
+            LastTacticalMapDoorCount = 0;
+            _drawMapDoor(localMap, worldBounds, m_world.ShortcutPosition, m_model.ShortcutOpen);
+            _drawMapDoor(localMap, worldBounds, m_world.RelayShortcutPosition, m_world.RelayShortcutOpen);
+            _drawMapDoor(localMap, worldBounds, m_world.SpineReturnPosition, m_world.SpineReturnOpen);
+            _drawMapDoor(localMap, worldBounds, m_world.QuenchReturnPosition, m_world.QuenchReturnOpen);
+            _drawMapDoor(localMap, worldBounds, m_world.DepartureReturnPosition, m_world.DepartureReturnOpen);
+            _drawObjectivePoint(localMap, worldBounds, waypoint);
+            _drawPlayerPoint(localMap, worldBounds, m_world.Player.position);
             GUI.Label(new Rect(localMap.width - 30f, 6f, 20f, 20f), "N", m_mapLegendStyle);
             _drawLine(new Vector2(localMap.width - 20f, 25f), new Vector2(localMap.width - 20f, 38f), 2f, s_mapCyan);
             GUI.EndGroup();
 
             GUI.Label(new Rect(card.x + 14f, card.yMax - 25f, card.width - 28f, 20f),
-                "LIVE ROUTE  //  STRUCTURES SHOWN IN BLUE  //  ESC / MENU TO RESUME", m_mapLegendStyle);
+                _mapControlHint(), m_mapLegendStyle);
+        }
+
+        public static Rect CalculateTacticalMapCard(int screenWidth, int screenHeight)
+        {
+            var cardWidth = Mathf.Min(640f,
+                Mathf.Min(Mathf.Max(524f, screenWidth * 0.31f), screenWidth - 36f));
+            var cardY = Mathf.Clamp(screenHeight * 0.19f, 88f, 150f);
+            var cardHeight = Mathf.Min(410f, screenHeight - cardY - 18f);
+            return new Rect(18f, cardY, cardWidth, cardHeight);
+        }
+
+        private Rect _applyMapView(Rect fitBounds)
+        {
+            if (m_mapZoom <= 1f)
+            {
+                return fitBounds;
+            }
+
+            var size = fitBounds.size / m_mapZoom;
+            var center = fitBounds.center + m_mapPan;
+            var halfSize = size * 0.5f;
+            center.x = Mathf.Clamp(center.x, fitBounds.xMin + halfSize.x, fitBounds.xMax - halfSize.x);
+            center.y = Mathf.Clamp(center.y, fitBounds.yMin + halfSize.y, fitBounds.yMax - halfSize.y);
+            return new Rect(center - halfSize, size);
         }
 
         private Rect _calculateMapBounds(Rect map, Vector3 waypoint)
@@ -298,15 +382,19 @@ namespace DeadSignal.Presentation
                 _drawLine(start, end, 1f, new Color(0.08f, 0.22f, 0.25f, 0.42f));
             }
 
-            _drawMapRoute(map, worldBounds, m_world.ExtractionPosition, m_world.TowerPosition);
-            _drawMapRoute(map, worldBounds, m_world.TowerPosition, m_world.RelayTowerPosition);
-            _drawMapRoute(map, worldBounds, m_world.RelayTowerPosition, m_world.SpineTowerPosition);
+            _drawMapRoute(map, worldBounds, m_world.ExtractionPosition, m_world.TowerPosition, m_model.TowerOnline);
+            _drawMapRoute(map, worldBounds, m_world.TowerPosition, m_world.RelayTowerPosition, m_model.RelayTowerOnline);
+            _drawMapRoute(map, worldBounds, m_world.RelayTowerPosition, m_world.SpineTowerPosition, m_model.SpineTowerOnline);
             foreach (var cache in m_world.SalvagePickups)
             {
-                var source = _nearestMapHub(cache.transform.position);
-                _drawMapRoute(map, worldBounds, source, cache.transform.position, false);
+                if (cache.activeSelf)
+                {
+                    var source = _nearestMapHub(cache.transform.position);
+                    _drawMapRoute(map, worldBounds, source, cache.transform.position, false, false);
+                }
             }
 
+            LastTacticalMapPoweredObstacleCount = 0;
             foreach (var obstacle in m_world.AuthoredMapObstacles)
             {
                 _drawMapObstacle(map, worldBounds, obstacle);
@@ -320,14 +408,21 @@ namespace DeadSignal.Presentation
             GUI.color = oldColor;
         }
 
-        private void _drawMapRoute(Rect map, Rect worldBounds, Vector3 start, Vector3 end, bool primary = true)
+        private void _drawMapRoute(
+            Rect map,
+            Rect worldBounds,
+            Vector3 start,
+            Vector3 end,
+            bool powered,
+            bool primary = true)
         {
             var mapStart = _projectMapPosition(map, worldBounds, start);
             var mapEnd = _projectMapPosition(map, worldBounds, end);
             _drawLine(mapStart, mapEnd, primary ? 13f : 7f,
                 primary ? new Color(0.035f, 0.18f, 0.22f, 0.95f) : new Color(0.05f, 0.13f, 0.15f, 0.8f));
             _drawLine(mapStart, mapEnd, primary ? 2f : 1f,
-                primary ? new Color(0.12f, 0.48f, 0.54f, 0.85f) : new Color(0.2f, 0.3f, 0.31f, 0.7f));
+                powered ? new Color(0.15f, 0.9f, 1f, 0.9f) :
+                primary ? new Color(0.12f, 0.34f, 0.39f, 0.8f) : new Color(0.2f, 0.3f, 0.31f, 0.7f));
         }
 
         private void _drawMapObstacle(Rect map, Rect worldBounds, AuthoredMapObstacle obstacle)
@@ -350,11 +445,88 @@ namespace DeadSignal.Presentation
             var oldMatrix = GUI.matrix;
             var oldColor = GUI.color;
             GUIUtility.RotateAroundPivot(Mathf.Atan2(right.y, right.x) * Mathf.Rad2Deg, projectedCenter);
-            GUI.color = new Color(0.08f, 0.2f, 0.23f, 0.92f);
+            var powered = m_world.IsPowered(center, m_model.TowerOnline, m_model.RelayTowerOnline, m_model.SpineTowerOnline);
+            if (powered)
+            {
+                LastTacticalMapPoweredObstacleCount++;
+            }
+            GUI.color = powered ? new Color(0.08f, 0.38f, 0.42f, 0.95f) : new Color(0.08f, 0.2f, 0.23f, 0.92f);
             GUI.DrawTexture(new Rect(projectedCenter.x - width * 0.5f, projectedCenter.y - height * 0.5f, width, height),
                 Texture2D.whiteTexture);
             GUI.matrix = oldMatrix;
             GUI.color = oldColor;
+        }
+
+        private void _drawMapDoor(Rect map, Rect worldBounds, Vector3 position, bool open)
+        {
+            if (!worldBounds.Contains(new Vector2(position.x, position.z)))
+            {
+                return;
+            }
+
+            var point = _projectMapPosition(map, worldBounds, position);
+            var color = open ? s_mapOpen : s_mapRed;
+            var oldColor = GUI.color;
+            GUI.color = color;
+            if (open)
+            {
+                GUI.DrawTexture(new Rect(point.x - 7f, point.y - 5f, 3f, 10f), Texture2D.whiteTexture);
+                GUI.DrawTexture(new Rect(point.x + 4f, point.y - 5f, 3f, 10f), Texture2D.whiteTexture);
+            }
+            else
+            {
+                GUI.DrawTexture(new Rect(point.x - 7f, point.y - 2f, 14f, 4f), Texture2D.whiteTexture);
+            }
+            GUI.color = oldColor;
+            LastTacticalMapDoorCount++;
+        }
+
+        private void _drawObjectivePoint(Rect map, Rect worldBounds, Vector3 position)
+        {
+            var point = _projectMapPosition(map, worldBounds, position);
+            var oldColor = GUI.color;
+            GUI.color = new Color(s_mapAmber.r, s_mapAmber.g, s_mapAmber.b, 0.28f);
+            GUI.DrawTexture(new Rect(point.x - 11f, point.y - 11f, 22f, 22f), Texture2D.whiteTexture);
+            GUI.color = s_mapAmber;
+            GUI.DrawTexture(new Rect(point.x - 7f, point.y - 2f, 14f, 4f), Texture2D.whiteTexture);
+            GUI.DrawTexture(new Rect(point.x - 2f, point.y - 7f, 4f, 14f), Texture2D.whiteTexture);
+            GUI.color = oldColor;
+            _drawMapPoint(map, worldBounds, position, s_mapAmber, 7f, "OBJECTIVE");
+        }
+
+        private void _drawPlayerPoint(Rect map, Rect worldBounds, Vector3 position)
+        {
+            var point = _projectMapPosition(map, worldBounds, position);
+            var oldMatrix = GUI.matrix;
+            var oldColor = GUI.color;
+            GUIUtility.RotateAroundPivot(45f, point);
+            GUI.color = new Color(1f, 1f, 1f, 0.22f);
+            GUI.DrawTexture(new Rect(point.x - 10f, point.y - 10f, 20f, 20f), Texture2D.whiteTexture);
+            GUI.color = Color.white;
+            GUI.DrawTexture(new Rect(point.x - 5f, point.y - 5f, 10f, 10f), Texture2D.whiteTexture);
+            GUI.matrix = oldMatrix;
+            GUI.color = oldColor;
+        }
+
+        private static void _drawMapMarkerOnly(
+            Rect map,
+            Rect worldBounds,
+            Vector3 position,
+            Color color,
+            float size)
+        {
+            var point = _projectMapPosition(map, worldBounds, position);
+            var oldColor = GUI.color;
+            GUI.color = color;
+            GUI.DrawTexture(new Rect(point.x - size * 0.5f, point.y - size * 0.5f, size, size), Texture2D.whiteTexture);
+            GUI.color = oldColor;
+        }
+
+        private string _mapControlHint()
+        {
+            return m_input != null && m_input.ActivePromptDevice == InputPromptDevice.Gamepad
+                ? "RS PAN  //  LB-RB ZOOM  //  LB+RB FIT  //  MENU RESUME"
+                : "MOUSE WHEEL / PGUP-PGDN ZOOM  //  HOME FIT  //  ESC RESUME";
         }
 
         private void _drawMapPoint(Rect map, Rect worldBounds, Vector3 position, Color color, float size, string label)
@@ -526,6 +698,14 @@ namespace DeadSignal.Presentation
                 fontSize = 10
             };
             m_mapLegendStyle.normal.textColor = new Color(0.48f, 0.72f, 0.76f);
+            m_mapSectionStyle = new GUIStyle(m_mapLegendStyle)
+            {
+                alignment = TextAnchor.MiddleLeft,
+                fontSize = 11,
+                fontStyle = FontStyle.Bold,
+                clipping = TextClipping.Clip
+            };
+            m_mapSectionStyle.normal.textColor = new Color(1f, 0.67f, 0.18f);
         }
     }
 }

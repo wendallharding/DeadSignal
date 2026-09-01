@@ -1589,7 +1589,7 @@ namespace DeadSignal.Application
                 m_overclockChoice, _showFeedback);
             m_hud.Configure(m_model, m_metrics, m_world, m_threats, m_salvage, m_extractionUplink, m_overclockChoice);
             m_missionClarityHud = gameObject.AddComponent<MissionClarityHud>();
-            m_missionClarityHud.Configure(m_model, m_metrics, m_world, m_overclockChoice);
+            m_missionClarityHud.Configure(m_model, m_metrics, m_world, m_overclockChoice, m_input);
             m_objectiveBeacon.Configure(m_model, m_world, m_threats);
             m_objectiveBeacon.SetGuidanceStrength(m_routeGuidanceStrength);
             m_lastPoweredState = m_world.IsPowered(

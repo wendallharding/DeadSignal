@@ -37,6 +37,9 @@ namespace DeadSignal.Player
         bool PressedAudioToggle();
         bool PressedGuidanceToggle();
         bool PressedDifficultyToggle();
+        Vector2 ReadTacticalMapPan();
+        int ReadTacticalMapZoomStep();
+        bool PressedTacticalMapFit();
         void BeginFireKeyboardRebind();
         void BeginInteractKeyboardRebind();
         void BeginMoveUpKeyboardRebind();
@@ -347,6 +350,68 @@ namespace DeadSignal.Player
         public bool PressedDifficultyToggle()
         {
             return _pressed(Keyboard.current?.vKey, Gamepad.current?.rightStickButton);
+        }
+
+        public Vector2 ReadTacticalMapPan()
+        {
+            var gamepadPan = Gamepad.current?.rightStick.ReadValue() ?? Vector2.zero;
+            if (gamepadPan.sqrMagnitude < GAMEPAD_STICK_DEADZONE * GAMEPAD_STICK_DEADZONE)
+            {
+                return Vector2.zero;
+            }
+
+            _useGamepad();
+            return gamepadPan;
+        }
+
+        public int ReadTacticalMapZoomStep()
+        {
+            if (Keyboard.current?.pageUpKey.wasPressedThisFrame == true ||
+                Mouse.current?.scroll.ReadValue().y > 0.1f)
+            {
+                _useKeyboardMouse();
+                return 1;
+            }
+            if (Keyboard.current?.pageDownKey.wasPressedThisFrame == true ||
+                Mouse.current?.scroll.ReadValue().y < -0.1f)
+            {
+                _useKeyboardMouse();
+                return -1;
+            }
+
+            var gamepad = Gamepad.current;
+            if (gamepad?.rightShoulder.wasPressedThisFrame == true)
+            {
+                _useGamepad();
+                return 1;
+            }
+            if (gamepad?.leftShoulder.wasPressedThisFrame == true)
+            {
+                _useGamepad();
+                return -1;
+            }
+
+            return 0;
+        }
+
+        public bool PressedTacticalMapFit()
+        {
+            if (Keyboard.current?.homeKey.wasPressedThisFrame == true)
+            {
+                _useKeyboardMouse();
+                return true;
+            }
+
+            var gamepad = Gamepad.current;
+            if (gamepad != null &&
+                (gamepad.leftShoulder.wasPressedThisFrame && gamepad.rightShoulder.isPressed ||
+                 gamepad.rightShoulder.wasPressedThisFrame && gamepad.leftShoulder.isPressed))
+            {
+                _useGamepad();
+                return true;
+            }
+
+            return false;
         }
 
         private bool _pressed(ButtonControl keyboardButton, ButtonControl gamepadButton)

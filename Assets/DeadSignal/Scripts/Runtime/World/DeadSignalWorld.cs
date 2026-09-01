@@ -22,8 +22,18 @@ namespace DeadSignal.World
         public Vector3 ExtractionPosition => m_scene.ExtractionPosition;
         public Vector3 TowerPosition => m_scene.TowerPosition;
         public Vector3 ShortcutPosition => m_scene.ShortcutPosition;
+        public Vector3 RelayShortcutPosition => m_scene.RelayShortcutPosition;
         public Vector3 RelayTowerPosition => m_scene.RelayTowerPosition;
         public Vector3 SpineTowerPosition => m_scene.SpineTowerPosition;
+        public Vector3 SpineReturnPosition => m_spineReturnGate != null ? m_spineReturnGate.transform.position : SpineTowerPosition;
+        public Vector3 QuenchReturnPosition => m_quenchReturnGate != null ? m_quenchReturnGate.transform.position : SpineTowerPosition;
+        public Vector3 DepartureReturnPosition => m_departureReturnGate != null
+            ? m_departureReturnGate.transform.position
+            : ExtractionPosition;
+        public bool RelayShortcutOpen => m_relayShortcutOpen;
+        public bool SpineReturnOpen => m_spineReturnOpen;
+        public bool QuenchReturnOpen => m_quenchReturnOpen;
+        public bool DepartureReturnOpen => m_departureReturnOpen;
         public Vector3 SpineTowerInteractionPosition => m_spineTowerInteractionAnchor != null
             ? m_spineTowerInteractionAnchor.position
             : SpineTowerPosition;
