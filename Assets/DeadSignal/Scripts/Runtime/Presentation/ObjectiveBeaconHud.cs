@@ -47,16 +47,23 @@ namespace DeadSignal.Presentation
         private RectTransform m_canvasRect;
         private RectTransform m_panelRect;
         private RectTransform m_objectiveTail;
+        private CanvasGroup m_panelCanvasGroup;
         private Vector2 m_edgeIconAnchorMin;
         private Vector2 m_edgeIconAnchorMax;
         private Vector2 m_edgeIconPosition;
         private bool m_wasObjectiveIndicatorCompact;
+        private MissionObjectiveId m_lastPresentedObjective;
+        private float m_revealProgress = 1f;
         private readonly List<ThreatCandidate> m_candidates = new();
         private readonly List<ThreatIndicator> m_threatIndicators = new();
         private float m_guidanceStrength = 0.7f;
         [SerializeField] private GameObject m_panel;
         [SerializeField] private RawImage m_icon;
+        [SerializeField] private Image m_accent;
+        [SerializeField] private Text m_room;
+        [SerializeField] private Text m_phase;
         [SerializeField] private Text m_label;
+        [SerializeField] private Text m_verb;
         [SerializeField] private Text m_hint;
         [SerializeField] private Text m_distance;
 
@@ -69,6 +76,30 @@ namespace DeadSignal.Presentation
         public int ActiveEnemyIndicatorCount { get; private set; }
         public string CurrentLabel => _currentLabel();
         public string CurrentHint => _currentHint();
+        public string CurrentRoom => m_model?.CurrentObjective.OwningRoom ?? string.Empty;
+        public string CurrentTitle => _currentGuidance().Title;
+        public string CurrentVerb => _currentGuidance().Action;
+        public bool IsPresentationConfigured => m_accent != null && m_room != null && m_phase != null &&
+                                                m_label != null && m_verb != null && m_hint != null &&
+                                                m_distance != null;
+
+        public void ConfigurePresentation(
+            Image accent,
+            Text room,
+            Text phase,
+            Text label,
+            Text verb,
+            Text hint,
+            Text distance)
+        {
+            m_accent = accent;
+            m_room = room;
+            m_phase = phase;
+            m_label = label;
+            m_verb = verb;
+            m_hint = hint;
+            m_distance = distance;
+        }
 
         [Inject]
         private void _construct(ICombatFeedback combatFeedback)
@@ -84,11 +115,13 @@ namespace DeadSignal.Presentation
             m_tuning = Resources.Load<EdgeIndicatorTuning>(TUNING_PATH);
             m_canvasRect = m_panel.transform.parent as RectTransform;
             m_panelRect = m_panel.transform as RectTransform;
+            m_panelCanvasGroup = m_panel.GetComponent<CanvasGroup>();
             m_edgeIconAnchorMin = m_icon.rectTransform.anchorMin;
             m_edgeIconAnchorMax = m_icon.rectTransform.anchorMax;
             m_edgeIconPosition = m_icon.rectTransform.anchoredPosition + Vector2.Scale(
                 m_icon.rectTransform.sizeDelta, Vector2.one * 0.5f - m_icon.rectTransform.pivot);
             m_wasObjectiveIndicatorCompact = false;
+            m_lastPresentedObjective = m_model.CurrentObjective.Id;
             _configureObjectivePanel();
             _createThreatIndicators();
             if (!HasIcon)
@@ -156,17 +189,23 @@ namespace DeadSignal.Presentation
                     m_icon.rectTransform.anchoredPosition = previousIconLocalPosition - localPosition;
                 }
 
-                var interpolation = 1f - Mathf.Exp(-m_tuning.ObjectiveTransitionSpeed * Time.unscaledDeltaTime);
+                var compactInterpolation = 1f - Mathf.Exp(-m_tuning.ObjectiveTransitionSpeed * Time.unscaledDeltaTime);
                 m_icon.rectTransform.anchoredPosition = Vector2.Lerp(
-                    m_icon.rectTransform.anchoredPosition, Vector2.zero, interpolation);
+                    m_icon.rectTransform.anchoredPosition, Vector2.zero, compactInterpolation);
                 m_icon.rectTransform.localRotation = Quaternion.identity;
+                m_panelRect.localScale = Vector3.one;
+                if (m_panelCanvasGroup != null)
+                {
+                    m_panelCanvasGroup.alpha = 1f;
+                }
                 m_wasObjectiveIndicatorCompact = true;
                 return;
             }
 
             var direction = _edgeDirection(CurrentTarget);
             var edgePosition = _edgePosition(direction, m_tuning.ObjectiveSize);
-            m_panelRect.anchoredPosition = edgePosition;
+            var interpolation = 1f - Mathf.Exp(-m_tuning.ObjectiveTransitionSpeed * Time.unscaledDeltaTime);
+            m_panelRect.anchoredPosition = Vector2.Lerp(m_panelRect.anchoredPosition, edgePosition, interpolation);
             m_wasObjectiveIndicatorCompact = false;
             var panelImage = m_panel.GetComponent<Image>();
             if (panelImage != null)
@@ -177,11 +216,17 @@ namespace DeadSignal.Presentation
             }
             m_icon.rectTransform.localRotation = Quaternion.Euler(
                 0f, 0f, _directionAngle(direction) + OBJECTIVE_ICON_ROTATION_OFFSET);
-            m_objectiveTail.anchoredPosition = edgePosition - direction * 28f;
+            m_objectiveTail.anchoredPosition = m_panelRect.anchoredPosition - direction * 36f;
             m_objectiveTail.localRotation = Quaternion.Euler(0f, 0f, _directionAngle(direction));
-            m_label.text = $"NEXT  {_currentLabel()}";
+            var guidance = _currentGuidance();
+            m_room.text = m_model.CurrentObjective.OwningRoom.ToUpperInvariant();
+            m_phase.text = $"{guidance.Phase:00}  {_phaseLabel()}";
+            m_label.text = guidance.Title;
+            m_verb.text = _currentLabel();
             m_hint.text = _currentHint();
-            m_distance.text = $"{Mathf.CeilToInt(DeadSignalWorld.FlatDistance(m_world.Player.position, CurrentTarget))}m";
+            m_distance.text = $"{Mathf.CeilToInt(DeadSignalWorld.FlatDistance(m_world.Player.position, CurrentTarget)):000} M";
+            m_accent.color = _phaseColor();
+            _animateObjectiveReveal();
         }
 
         private void _setObjectiveDetailsVisible(bool visible)
@@ -193,6 +238,10 @@ namespace DeadSignal.Presentation
             }
 
             m_label.gameObject.SetActive(visible);
+            m_room.gameObject.SetActive(visible);
+            m_phase.gameObject.SetActive(visible);
+            m_verb.gameObject.SetActive(visible);
+            m_accent.gameObject.SetActive(visible);
             m_hint.gameObject.SetActive(visible);
             m_distance.gameObject.SetActive(visible);
             if (m_objectiveTail != null)
@@ -214,6 +263,11 @@ namespace DeadSignal.Presentation
         private void _refreshTarget()
         {
             CurrentTarget = m_world.GetObjectiveTarget(m_model);
+            if (m_lastPresentedObjective != m_model.CurrentObjective.Id)
+            {
+                m_lastPresentedObjective = m_model.CurrentObjective.Id;
+                m_revealProgress = 0f;
+            }
             CurrentPhase = m_model.CurrentObjective.Id switch
             {
                 MissionObjectiveId.CentralTower or MissionObjectiveId.CentralInstallation or
@@ -235,13 +289,18 @@ namespace DeadSignal.Presentation
             m_panelRect.anchorMax = Vector2.one * 0.5f;
             m_panelRect.pivot = Vector2.one * 0.5f;
             m_panelRect.sizeDelta = m_tuning.ObjectiveSize;
+            m_panelCanvasGroup = m_panel.GetComponent<CanvasGroup>();
+            if (m_panelCanvasGroup == null)
+            {
+                m_panelCanvasGroup = m_panel.AddComponent<CanvasGroup>();
+            }
             var tailObject = new GameObject("Objective Indicator Tail", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
             tailObject.transform.SetParent(m_canvasRect, false);
             m_objectiveTail = tailObject.GetComponent<RectTransform>();
             m_objectiveTail.anchorMin = Vector2.one * 0.5f;
             m_objectiveTail.anchorMax = Vector2.one * 0.5f;
             m_objectiveTail.pivot = new Vector2(0.5f, 1f);
-            m_objectiveTail.sizeDelta = new Vector2(3f, 20f);
+            m_objectiveTail.sizeDelta = new Vector2(3f, 24f);
             tailObject.GetComponent<Image>().color = new Color(1f, 0.58f, 0.08f, 0.85f);
             tailObject.transform.SetAsFirstSibling();
         }
@@ -429,7 +488,7 @@ namespace DeadSignal.Presentation
                 return "MOVE / FIRE — UPLINK LIVE";
             }
 
-            return m_model?.CurrentObjective.Guidance.Action ?? string.Empty;
+            return _currentGuidance().Action;
         }
 
         private string _currentHint()
@@ -439,7 +498,50 @@ namespace DeadSignal.Presentation
                 return "PURGE SECURITY TO SHORTEN THE LINK";
             }
 
-            return m_model?.CurrentObjective.Guidance.Advisory ?? string.Empty;
+            return _currentGuidance().Advisory;
+        }
+
+        private MissionGuidanceState _currentGuidance()
+        {
+            if (m_model == null)
+            {
+                return default;
+            }
+
+            return MissionGuidance.Evaluate(m_model, m_threats?.IsSapperAlive == true,
+                m_threats?.IsSapperLatched == true, m_threats?.SapperPulseCooldown ?? 0f);
+        }
+
+        private string _phaseLabel()
+        {
+            return CurrentPhase switch
+            {
+                ObjectiveBeaconPhase.Tower => "NETWORK",
+                ObjectiveBeaconPhase.Extraction => "EXTRACT",
+                _ => "MISSION"
+            };
+        }
+
+        private Color _phaseColor()
+        {
+            return CurrentPhase switch
+            {
+                ObjectiveBeaconPhase.Tower => new Color(0.08f, 0.9f, 1f, 0.95f),
+                ObjectiveBeaconPhase.Extraction => new Color(0.95f, 0.95f, 0.9f, 0.95f),
+                _ => new Color(1f, 0.58f, 0.08f, 0.95f)
+            };
+        }
+
+        private void _animateObjectiveReveal()
+        {
+            m_revealProgress = Mathf.MoveTowards(
+                m_revealProgress, 1f, m_tuning.ObjectiveRevealSpeed * Time.unscaledDeltaTime);
+            var eased = 1f - (1f - m_revealProgress) * (1f - m_revealProgress);
+            m_panelRect.localScale = Vector3.one * Mathf.Lerp(0.96f, 1f, eased);
+            if (m_panelCanvasGroup != null)
+            {
+                m_panelCanvasGroup.alpha = Mathf.Lerp(0.72f, 1f, eased);
+            }
         }
 
     }

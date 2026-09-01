@@ -21,7 +21,8 @@ namespace DeadSignal.Editor
             AssetDatabase.LoadAssetAtPath<SignalHudTuning>(TUNING_PATH) != null &&
             AssetDatabase.LoadAssetAtPath<EdgeIndicatorTuning>(EDGE_INDICATOR_TUNING_PATH) != null &&
             _hasCompositionPrefab() &&
-            _hasSignalInstrumentPrefab();
+            _hasSignalInstrumentPrefab() &&
+            _hasObjectiveCardPrefab();
 
         public static void EnsureAssets()
         {
@@ -67,6 +68,7 @@ namespace DeadSignal.Editor
 
             _ensureCompositionPrefab();
             _ensureSignalInstrumentPrefab();
+            _ensureObjectiveCardPrefab();
 
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
@@ -91,6 +93,13 @@ namespace DeadSignal.Editor
             var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(HUD_PREFAB_PATH);
             var instrument = prefab == null ? null : prefab.GetComponentInChildren<SignalReserveInstrument>(true);
             return instrument != null && instrument.IsConfigured;
+        }
+
+        private static bool _hasObjectiveCardPrefab()
+        {
+            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(HUD_PREFAB_PATH);
+            var beacon = prefab == null ? null : prefab.GetComponent<ObjectiveBeaconHud>();
+            return beacon != null && beacon.IsPresentationConfigured;
         }
 
         private static void _ensureCompositionPrefab()
@@ -219,6 +228,106 @@ namespace DeadSignal.Editor
             {
                 PrefabUtility.UnloadPrefabContents(root);
             }
+        }
+
+        private static void _ensureObjectiveCardPrefab()
+        {
+            var root = PrefabUtility.LoadPrefabContents(HUD_PREFAB_PATH);
+            try
+            {
+                var beacon = root.GetComponent<ObjectiveBeaconHud>();
+                var panel = root.transform.Find("Run HUD/Objective Beacon") as RectTransform;
+                if (beacon == null || panel == null)
+                {
+                    throw new InvalidOperationException("The authored HUD prefab is missing its objective beacon.");
+                }
+
+                panel.sizeDelta = new Vector2(500f, 94f);
+                var background = panel.GetComponent<Image>();
+                background.color = new Color(0.012f, 0.022f, 0.032f, 0.94f);
+                background.raycastTarget = false;
+                if (panel.GetComponent<CanvasGroup>() == null)
+                {
+                    panel.gameObject.AddComponent<CanvasGroup>();
+                }
+
+                var direction = panel.Find("Direction")?.GetComponent<RawImage>();
+                var title = panel.Find("Objective")?.GetComponent<Text>();
+                var hint = panel.Find("Hint")?.GetComponent<Text>();
+                var distance = panel.Find("Distance")?.GetComponent<Text>();
+                if (direction == null || title == null || hint == null || distance == null)
+                {
+                    throw new InvalidOperationException("The authored objective beacon is missing its base controls.");
+                }
+
+                _setRect(direction.rectTransform, new Vector2(0f, 0.5f), new Vector2(0f, 0.5f),
+                    new Vector2(0.5f, 0.5f), new Vector2(36f, 0f), new Vector2(46f, 46f));
+                direction.color = new Color(1f, 0.62f, 0.12f, 1f);
+
+                var accent = _ensureImage("Objective Accent", panel, new Color(1f, 0.58f, 0.08f, 0.95f));
+                _setRect(accent.rectTransform, new Vector2(0f, 0f), new Vector2(0f, 1f),
+                    new Vector2(0f, 0.5f), Vector2.zero, new Vector2(4f, 0f));
+
+                var room = _ensureText("Room", panel);
+                _styleText(room, 11, FontStyle.Bold, TextAnchor.UpperLeft, new Color(0.68f, 0.78f, 0.82f, 1f));
+                _setRect(room.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f),
+                    new Vector2(0f, 1f), new Vector2(68f, -8f), new Vector2(260f, 16f));
+
+                var phase = _ensureText("Phase", panel);
+                _styleText(phase, 11, FontStyle.Bold, TextAnchor.UpperRight, new Color(1f, 0.68f, 0.22f, 1f));
+                _setRect(phase.rectTransform, new Vector2(1f, 1f), new Vector2(1f, 1f),
+                    new Vector2(1f, 1f), new Vector2(-12f, -8f), new Vector2(104f, 16f));
+
+                _styleText(title, 16, FontStyle.Bold, TextAnchor.UpperLeft, Color.white);
+                _setRect(title.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f),
+                    new Vector2(0f, 1f), new Vector2(68f, -25f), new Vector2(410f, 20f));
+
+                var verb = _ensureText("Verb", panel);
+                _styleText(verb, 14, FontStyle.Bold, TextAnchor.UpperLeft, new Color(1f, 0.72f, 0.24f, 1f));
+                _setRect(verb.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f),
+                    new Vector2(0f, 1f), new Vector2(68f, -47f), new Vector2(410f, 18f));
+
+                _styleText(hint, 10, FontStyle.Normal, TextAnchor.UpperLeft, new Color(0.72f, 0.82f, 0.86f, 1f));
+                _setRect(hint.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f),
+                    new Vector2(0f, 1f), new Vector2(68f, -68f), new Vector2(350f, 16f));
+
+                _styleText(distance, 13, FontStyle.Bold, TextAnchor.LowerRight, Color.white);
+                _setRect(distance.rectTransform, new Vector2(1f, 0f), new Vector2(1f, 0f),
+                    new Vector2(1f, 0f), new Vector2(-12f, 9f), new Vector2(70f, 18f));
+
+                beacon.ConfigurePresentation(accent, room, phase, title, verb, hint, distance);
+                PrefabUtility.SaveAsPrefabAsset(root, HUD_PREFAB_PATH);
+            }
+            finally
+            {
+                PrefabUtility.UnloadPrefabContents(root);
+            }
+        }
+
+        private static void _styleText(Text text, int size, FontStyle style, TextAnchor alignment, Color color)
+        {
+            text.fontSize = size;
+            text.fontStyle = style;
+            text.alignment = alignment;
+            text.color = color;
+            text.horizontalOverflow = HorizontalWrapMode.Overflow;
+            text.verticalOverflow = VerticalWrapMode.Truncate;
+            text.raycastTarget = false;
+        }
+
+        private static void _setRect(
+            RectTransform rect,
+            Vector2 anchorMin,
+            Vector2 anchorMax,
+            Vector2 pivot,
+            Vector2 position,
+            Vector2 size)
+        {
+            rect.anchorMin = anchorMin;
+            rect.anchorMax = anchorMax;
+            rect.pivot = pivot;
+            rect.anchoredPosition = position;
+            rect.sizeDelta = size;
         }
 
         private static Image _ensureImage(string name, Transform parent, Color color)

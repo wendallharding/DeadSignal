@@ -1,4 +1,5 @@
 using System.Collections;
+using System.IO;
 using System.Linq;
 using DeadSignal.Application;
 using DeadSignal.Combat;
@@ -40,6 +41,10 @@ namespace DeadSignal.Tests
             var objectivePanel = GameObject.Find("Objective Beacon");
             Assert.That(objectivePanel.GetComponent<Image>().enabled, Is.False);
             Assert.That(objectivePanel.transform.Find("Objective").gameObject.activeSelf, Is.False);
+            Assert.That(objectivePanel.transform.Find("Room").gameObject.activeSelf, Is.False);
+            Assert.That(objectivePanel.transform.Find("Phase").gameObject.activeSelf, Is.False);
+            Assert.That(objectivePanel.transform.Find("Verb").gameObject.activeSelf, Is.False);
+            Assert.That(objectivePanel.transform.Find("Objective Accent").gameObject.activeSelf, Is.False);
             Assert.That(objectivePanel.transform.Find("Hint").gameObject.activeSelf, Is.False);
             Assert.That(objectivePanel.transform.Find("Distance").gameObject.activeSelf, Is.False);
             Assert.That(objectivePanel.transform.Find("Direction").gameObject.activeSelf, Is.True);
@@ -62,6 +67,17 @@ namespace DeadSignal.Tests
             Assert.That(game.IsObjectiveIndicatorCompact, Is.False);
             Assert.That(objectivePanel.GetComponent<Image>().enabled, Is.True);
             Assert.That(objectivePanel.transform.Find("Objective").gameObject.activeSelf, Is.True);
+            Assert.That(objectivePanel.transform.Find("Room").GetComponent<Text>().text,
+                Is.EqualTo("CENTRAL MAINTENANCE CONCOURSE"));
+            Assert.That(objectivePanel.transform.Find("Objective").GetComponent<Text>().text,
+                Is.EqualTo("RESTORE CENTRAL"));
+            Assert.That(objectivePanel.transform.Find("Verb").GetComponent<Text>().text,
+                Is.EqualTo(game.CurrentObjectiveBeaconLabel));
+            Assert.That(objectivePanel.transform.Find("Phase").GetComponent<Text>().text,
+                Does.Contain("NETWORK"));
+            Assert.That(objectivePanel.transform.Find("Distance").GetComponent<Text>().text,
+                Does.Match("^[0-9]{3} M$"));
+            Assert.That(objectivePanel.GetComponent<CanvasGroup>().alpha, Is.InRange(0.72f, 1f));
             Assert.That(objectiveIcon.pivot, Is.EqualTo(Vector2.one * 0.5f),
                 "The card icon must rotate around its center instead of orbiting below the card.");
             var objectivePanelRect = objectivePanel.GetComponent<RectTransform>();
@@ -126,11 +142,87 @@ namespace DeadSignal.Tests
                 "All off-screen Swarmers should collapse into one counted indicator.");
         }
 
+        [UnityTest]
+        public IEnumerator ObjectiveCard_CapturesMissionIdentitiesAtTargetAspectsWhenRequested()
+        {
+            var captureDirectory = System.Environment.GetEnvironmentVariable("DEAD_SIGNAL_P34_CAPTURE_DIR");
+            if (string.IsNullOrWhiteSpace(captureDirectory))
+            {
+                Assert.Pass("P34 capture directory was not requested.");
+            }
+
+            Directory.CreateDirectory(captureDirectory);
+            yield return SceneManager.LoadSceneAsync("SampleScene");
+            yield return null;
+
+            var game = Object.FindFirstObjectByType<DeadSignalGame>();
+            game.DebugTeleport(DebugLocation.FarEast);
+            yield return _waitForObjectiveIndicatorState(game, false);
+            _captureHud(new Vector2Int(1600, 900),
+                Path.Combine(captureDirectory, "P34-Objective-Network-1600x900.png"));
+
+            game.DebugActivateTower();
+            game.DebugTeleport(DebugLocation.FarEast);
+            yield return _waitFrames(20);
+            Assert.That(game.CurrentObjectiveBeaconPhase, Is.EqualTo(ObjectiveBeaconPhase.Salvage));
+            _captureHud(new Vector2Int(1280, 720),
+                Path.Combine(captureDirectory, "P34-Objective-Mission-1280x720.png"));
+
+            game.DebugMakeExtractionReady();
+            game.DebugTeleport(DebugLocation.FarEast);
+            yield return _waitFrames(20);
+            Assert.That(game.CurrentObjectiveBeaconPhase, Is.EqualTo(ObjectiveBeaconPhase.Extraction));
+            _captureHud(new Vector2Int(3440, 1440),
+                Path.Combine(captureDirectory, "P34-Objective-Extraction-3440x1440.png"));
+        }
+
         private static IEnumerator _waitFrames(int count)
         {
             for (var index = 0; index < count; index++)
             {
                 yield return null;
+            }
+        }
+
+        private static void _captureHud(Vector2Int resolution, string path)
+        {
+            var canvas = Object.FindFirstObjectByType<DeadSignalHud>(FindObjectsInactive.Include).GetComponent<Canvas>();
+            var scaler = canvas.GetComponent<CanvasScaler>();
+            var camera = Object.FindFirstObjectByType<Camera>();
+            var previousRenderMode = canvas.renderMode;
+            var previousWorldCamera = canvas.worldCamera;
+            var previousScaleMode = scaler.uiScaleMode;
+            var previousScaleFactor = scaler.scaleFactor;
+            var previousTarget = camera.targetTexture;
+            var previousActive = RenderTexture.active;
+            var renderTexture = new RenderTexture(resolution.x, resolution.y, 24, RenderTextureFormat.ARGB32);
+            var capture = new Texture2D(resolution.x, resolution.y, TextureFormat.RGB24, false);
+            try
+            {
+                scaler.uiScaleMode = CanvasScaler.ScaleMode.ConstantPixelSize;
+                scaler.scaleFactor = resolution.y / 1080f;
+                canvas.renderMode = RenderMode.ScreenSpaceCamera;
+                canvas.worldCamera = camera;
+                canvas.planeDistance = Mathf.Max(camera.nearClipPlane + 0.1f, 1f);
+                camera.targetTexture = renderTexture;
+                Canvas.ForceUpdateCanvases();
+                camera.Render();
+                RenderTexture.active = renderTexture;
+                capture.ReadPixels(new Rect(0f, 0f, resolution.x, resolution.y), 0, 0);
+                capture.Apply(false);
+                File.WriteAllBytes(path, capture.EncodeToPNG());
+            }
+            finally
+            {
+                camera.targetTexture = previousTarget;
+                RenderTexture.active = previousActive;
+                canvas.renderMode = previousRenderMode;
+                canvas.worldCamera = previousWorldCamera;
+                scaler.uiScaleMode = previousScaleMode;
+                scaler.scaleFactor = previousScaleFactor;
+                Object.DestroyImmediate(capture);
+                renderTexture.Release();
+                Object.DestroyImmediate(renderTexture);
             }
         }
 

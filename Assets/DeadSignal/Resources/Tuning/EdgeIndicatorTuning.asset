@@ -14,9 +14,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: DeadSignal.Runtime::DeadSignal.Presentation.EdgeIndicatorTuning
   m_viewportMargin: {x: 0.08, y: 0.11}
   m_visibleInset: {x: 0.12, y: 0.15}
-  m_objectiveSize: {x: 360, y: 58}
+  m_objectiveSize: {x: 500, y: 94}
   m_threatSize: {x: 126, y: 34}
   m_objectiveTransitionSpeed: 12
+  m_objectiveRevealSpeed: 9
   m_separation: 42
   m_imminentPulseSpeed: 8
   m_maximumThreatIndicators: 3
