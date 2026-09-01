@@ -28,11 +28,8 @@ RectTransform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 7117546378440919755}
-  - {fileID: 9214589254031701869}
-  - {fileID: 8085666535158937554}
-  - {fileID: 6508348606176309196}
   - {fileID: 6295241471142155749}
+  - {fileID: 2996233282569782702}
   m_Father: {fileID: 744117234256473364}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -1411,7 +1408,7 @@ RectTransform:
   m_Children:
   - {fileID: 381058426826092400}
   - {fileID: 3912706931614591325}
-  m_Father: {fileID: 2011792156409801106}
+  m_Father: {fileID: 2996233282569782702}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0}
   m_AnchorMax: {x: 0.5, y: 0}
@@ -2001,6 +1998,45 @@ MonoBehaviour:
     m_VerticalOverflow: 0
     m_LineSpacing: 1
   m_Text: NEXT
+--- !u!1 &2266101025533624501
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2996233282569782702}
+  m_Layer: 0
+  m_Name: Composition Frame
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &2996233282569782702
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2266101025533624501}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 7117546378440919755}
+  - {fileID: 9214589254031701869}
+  - {fileID: 6508348606176309196}
+  - {fileID: 8085666535158937554}
+  m_Father: {fileID: 2011792156409801106}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0}
+  m_AnchorMax: {x: 0.5, y: 1}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 1440, y: 0}
+  m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &2272099256298909067
 GameObject:
   m_ObjectHideFlags: 0
@@ -3364,7 +3400,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: 
+  m_Text:
 --- !u!1 &3858511092943946359
 GameObject:
   m_ObjectHideFlags: 0
@@ -3522,7 +3558,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: 
+  m_Text:
 --- !u!1 &3997696925162183857
 GameObject:
   m_ObjectHideFlags: 0
@@ -3974,7 +4010,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: 
+  m_Text:
 --- !u!1 &4531459959395407198
 GameObject:
   m_ObjectHideFlags: 0
@@ -4913,7 +4949,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: 
+  m_Text:
 --- !u!1 &5668238943361724503
 GameObject:
   m_ObjectHideFlags: 0
@@ -4992,7 +5028,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: 
+  m_Text:
 --- !u!1 &5720160463169425450
 GameObject:
   m_ObjectHideFlags: 0
@@ -5143,7 +5179,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: 
+  m_Text:
 --- !u!1 &5782479992826148688
 GameObject:
   m_ObjectHideFlags: 0
@@ -5475,7 +5511,7 @@ RectTransform:
   - {fileID: 2212115431436116117}
   - {fileID: 4311407392464936952}
   - {fileID: 2589189284534372596}
-  m_Father: {fileID: 2011792156409801106}
+  m_Father: {fileID: 2996233282569782702}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 1, y: 1}
   m_AnchorMax: {x: 1, y: 1}
@@ -5598,7 +5634,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: 
+  m_Text:
 --- !u!1 &6133836344705543281
 GameObject:
   m_ObjectHideFlags: 0
@@ -5870,7 +5906,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: 
+  m_Text:
 --- !u!1 &6693485812502094870
 GameObject:
   m_ObjectHideFlags: 0
@@ -6041,6 +6077,7 @@ GameObject:
   - component: {fileID: 5009733601468530050}
   - component: {fileID: 8339934855568059820}
   - component: {fileID: 7008804719829485004}
+  - component: {fileID: 5518946118152263177}
   m_Layer: 0
   m_Name: DeadSignalHud
   m_TagString: Untagged
@@ -6113,7 +6150,7 @@ MonoBehaviour:
   m_ScaleFactor: 1
   m_ReferenceResolution: {x: 1920, y: 1080}
   m_ScreenMatchMode: 0
-  m_MatchWidthOrHeight: 0.5
+  m_MatchWidthOrHeight: 1
   m_PhysicalUnit: 3
   m_FallbackScreenDPI: 96
   m_DefaultSpriteDPI: 96
@@ -6257,6 +6294,22 @@ MonoBehaviour:
   m_segments:
   - {fileID: 3275198868514395082}
   - {fileID: 109660353679139219}
+--- !u!114 &5518946118152263177
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6855609667598456406}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: df792c01d6803114c99d5c6c58a7e97b, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: DeadSignal.Runtime::DeadSignal.Presentation.HudCompositionLayout
+  m_safeArea: {fileID: 2011792156409801106}
+  m_compositionFrame: {fileID: 2996233282569782702}
+  m_referenceHeight: 1080
+  m_maximumContentWidth: 2160
 --- !u!1 &6863608001527486433
 GameObject:
   m_ObjectHideFlags: 0
@@ -6414,7 +6467,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: 
+  m_Text:
 --- !u!1 &6923584186765646429
 GameObject:
   m_ObjectHideFlags: 0
@@ -6651,7 +6704,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: 
+  m_Text:
 --- !u!1 &7342836911105387417
 GameObject:
   m_ObjectHideFlags: 0
@@ -7275,7 +7328,7 @@ RectTransform:
   - {fileID: 7861289907430942137}
   - {fileID: 6434653491439842167}
   - {fileID: 4990550172162034169}
-  m_Father: {fileID: 2011792156409801106}
+  m_Father: {fileID: 2996233282569782702}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
@@ -7624,7 +7677,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: 
+  m_Text:
 --- !u!1 &9102336554503120425
 GameObject:
   m_ObjectHideFlags: 0
@@ -7655,7 +7708,7 @@ RectTransform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 2011792156409801106}
+  m_Father: {fileID: 2996233282569782702}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 1}
   m_AnchorMax: {x: 0.5, y: 1}
@@ -7703,7 +7756,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: 
+  m_Text:
 --- !u!1 &9170142849546083127
 GameObject:
   m_ObjectHideFlags: 0
