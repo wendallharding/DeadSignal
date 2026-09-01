@@ -161,8 +161,9 @@ namespace DeadSignal.Editor
             threshold.AddBox(new Vector3(0f, 0.1f, -1.28f), new Vector3(0.62f, 0.2f, 0.24f));
             threshold.AddBox(new Vector3(0f, 0.1f, 1.28f), new Vector3(0.62f, 0.2f, 0.24f));
             threshold.AddBox(new Vector3(0f, 0.1f, 0f), new Vector3(0.22f, 0.12f, 2.35f));
-            threshold.AddBox(new Vector3(0f, 1.42f, -1.28f), new Vector3(0.5f, 2.65f, 0.22f));
-            threshold.AddBox(new Vector3(0f, 1.42f, 1.28f), new Vector3(0.5f, 2.65f, 0.22f));
+            // Butt the uprights against the feet and header so their outward faces do not overlap and z-fight.
+            threshold.AddBox(new Vector3(0f, 1.415f, -1.28f), new Vector3(0.5f, 2.43f, 0.22f));
+            threshold.AddBox(new Vector3(0f, 1.415f, 1.28f), new Vector3(0.5f, 2.43f, 0.22f));
             threshold.AddBox(new Vector3(0f, 2.72f, 0f), new Vector3(0.5f, 0.18f, 2.78f));
             _saveOrReplaceMesh(DOOR_THRESHOLD_MESH_PATH, threshold.Build());
         }

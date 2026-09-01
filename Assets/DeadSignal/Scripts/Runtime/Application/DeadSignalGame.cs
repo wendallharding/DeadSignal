@@ -1431,6 +1431,10 @@ namespace DeadSignal.Application
         public void SetMainMenuOpen(bool open)
         {
             IsMainMenuOpen = open;
+            if (m_missionClarityHud != null)
+            {
+                m_missionClarityHud.enabled = !open;
+            }
             _setPaused(open);
             enabled = !open;
         }

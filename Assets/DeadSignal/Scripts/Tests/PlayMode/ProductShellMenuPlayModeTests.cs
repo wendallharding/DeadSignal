@@ -64,6 +64,7 @@ namespace DeadSignal.Tests
             Assert.That(game.enabled, Is.True);
             Assert.That(game.IsPaused, Is.False);
             Assert.That(Time.timeScale, Is.EqualTo(1f));
+            Assert.That(Object.FindFirstObjectByType<MissionClarityHud>().enabled, Is.True);
             _assertOverlay("Run HUD", true);
             _assertOverlay("Pause Overlay", false);
             _assertOverlay("Outcome Overlay", false);
@@ -321,6 +322,8 @@ namespace DeadSignal.Tests
             Assert.That(game.enabled, Is.False);
             Assert.That(game.IsPaused, Is.True);
             Assert.That(Time.timeScale, Is.Zero);
+            Assert.That(Object.FindFirstObjectByType<MissionClarityHud>(FindObjectsInactive.Include).enabled, Is.False,
+                "The paused tactical map must not draw over the main menu.");
             _assertOverlay("Run HUD", false);
             _assertOverlay("Pause Overlay", false);
             _assertOverlay("Outcome Overlay", false);

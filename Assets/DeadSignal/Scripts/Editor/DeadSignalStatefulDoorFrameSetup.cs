@@ -103,8 +103,9 @@ namespace DeadSignal.Editor
         private static Mesh _buildHousing()
         {
             var builder = new MeshBuilder("StatefulDoorFrameHousing");
-            builder.AddBox(new Vector3(0f, 1.42f, -1.5f), new Vector3(0.68f, 2.85f, 0.38f));
-            builder.AddBox(new Vector3(0f, 1.42f, 1.5f), new Vector3(0.68f, 2.85f, 0.38f));
+            // Butt the uprights against the feet and header so their outward faces do not overlap and z-fight.
+            builder.AddBox(new Vector3(0f, 1.435f, -1.5f), new Vector3(0.68f, 2.35f, 0.38f));
+            builder.AddBox(new Vector3(0f, 1.435f, 1.5f), new Vector3(0.68f, 2.35f, 0.38f));
             builder.AddBox(new Vector3(0f, 2.78f, 0f), new Vector3(0.68f, 0.34f, 3.38f));
             builder.AddBox(new Vector3(0f, 0.13f, -1.5f), new Vector3(0.78f, 0.26f, 0.52f));
             builder.AddBox(new Vector3(0f, 0.13f, 1.5f), new Vector3(0.78f, 0.26f, 0.52f));
