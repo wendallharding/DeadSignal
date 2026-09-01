@@ -107,6 +107,11 @@ namespace DeadSignal.Editor
                 _set(serialized, "m_frame", frame);
                 _set(serialized, "m_accentRail", accentRail);
                 _set(serialized, "m_selectionRail", selectionRail.rectTransform);
+                _set(serialized, "m_insignia", insignia);
+                _set(serialized, "m_protocol", protocol);
+                _set(serialized, "m_causeLabel", causeLabel);
+                _set(serialized, "m_evidenceLabel", evidenceLabel);
+                _set(serialized, "m_optionsLabel", optionsLabel);
                 _set(serialized, "m_selectionDetail", selectionDetail);
                 _set(serialized, "m_restartButton", restart);
                 _set(serialized, "m_mainMenuButton", mainMenu);

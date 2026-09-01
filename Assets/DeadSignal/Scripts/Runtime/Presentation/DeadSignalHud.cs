@@ -450,7 +450,8 @@ namespace DeadSignal.Presentation
                 m_outcomeDetail.text = "STATION RESTARTED  //  NETWORK EXTENDED  //  SIGNAL CORE REBUILT  //  EXTRACTION SECURED";
                 m_runReportText.text = $"{debrief.Mission}  //  GRADE {debrief.Grade}  //  {m_personalBestText}\n" +
                                        $"{debrief.Station}  //  {debrief.Route}\n" +
-                                       $"{debrief.CombatHighlight}  //  {debrief.SignalHighlight}";
+                                       $"{debrief.CombatHighlight}  //  {debrief.SignalHighlight}\n" +
+                                       _victoryBuildSummary();
                 m_restartText.text = $"RESTART RUN  {_binding("R / ENTER", "GAMEPAD A")}   |   MAIN MENU AVAILABLE";
                 return;
             }
@@ -556,6 +557,24 @@ namespace DeadSignal.Presentation
                    $"PURGES {m_metrics.ThreatsPurged}   |   RECLAIMED {m_metrics.SignalRecovered:0}   |   " +
                    $"BEST CHAIN x{m_metrics.BestSalvageChain}   |   CHAIN SIGNAL {m_metrics.SalvageSignalRecovered:0}   |   " +
                    $"SIGNAL {Mathf.CeilToInt(m_model.Signal)}";
+        }
+
+        private string _victoryBuildSummary()
+        {
+            var primary = m_overclockChoice.Selected == SignalOverclock.None
+                ? "OVERCLOCK: STANDARD"
+                : _overclockName(m_overclockChoice.Selected);
+            var auxiliary = m_overclockChoice.SelectedAuxiliary switch
+            {
+                SignalAuxiliaryOverclock.EmergencyCapacitor => "AUXILIARY: EMERGENCY CAPACITOR",
+                SignalAuxiliaryOverclock.FeedbackShield => "AUXILIARY: FEEDBACK SHIELD",
+                _ => "AUXILIARY: NONE"
+            };
+            var weapon = m_overclockChoice.SelectedWeapon == SignalWeaponOverclock.None
+                ? "WEAPON: SIGNAL BOLT"
+                : _weaponOverclockName(m_overclockChoice.SelectedWeapon) +
+                  (m_overclockChoice.IsWeaponEvolved ? " EVOLVED" : string.Empty);
+            return $"BUILD  {primary}  //  {auxiliary}  //  {weapon}";
         }
 
         private void _recordPersonalBest()

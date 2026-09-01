@@ -366,6 +366,7 @@ namespace DeadSignal.Tests
             Assert.That(report.text, Does.Contain("CENTRAL > RELAY > SPINE > DOCK"));
             Assert.That(report.text, Does.Contain("COMBAT"));
             Assert.That(report.text, Does.Contain("SIGNAL"));
+            Assert.That(report.text, Does.Contain("BUILD"));
             Assert.That(report.preferredHeight, Is.LessThanOrEqualTo(report.rectTransform.rect.height),
                 "The completion report must fit its authored text region without covering outcome actions.");
             Assert.That(outcome.Find("Restart").GetComponent<Text>().text, Does.Contain("MAIN MENU AVAILABLE"));

@@ -77,6 +77,81 @@ namespace DeadSignal.Tests
             game.DebugToggleReducedFlashes();
         }
 
+        [UnityTest]
+        public IEnumerator VictoryPresentation_StagesDebriefAndTracksDeploymentFocus()
+        {
+            yield return _enterVictory();
+
+            var presentation = Object.FindFirstObjectByType<OutcomePresentation>(FindObjectsInactive.Include);
+            Assert.That(presentation, Is.Not.Null);
+            Assert.That(presentation.IsConfigured, Is.True);
+            Assert.That(presentation.IsVictoryPresentation, Is.True);
+            Assert.That(presentation.Protocol, Does.Contain("EXTRACTION VERIFIED"));
+            Assert.That(presentation.EvidenceLabel, Does.Contain("EXTRACTED TELEMETRY"));
+            Assert.That(presentation.OptionsLabel, Is.EqualTo("NEXT DEPLOYMENT"));
+            Assert.That(presentation.EvidenceOpacity, Is.LessThan(1f));
+            Assert.That(EventSystem.current.currentSelectedGameObject.name, Is.EqualTo("Restart Run"));
+            Assert.That(presentation.SelectionDetail, Does.Contain("NEW RECOVERY"));
+
+            var report = presentation.transform.Find("Run Report").GetComponent<Text>();
+            Assert.That(report.text, Does.Contain("MISSION "));
+            Assert.That(report.text, Does.Contain("CENTRAL > RELAY > SPINE > DOCK"));
+            Assert.That(report.text, Does.Contain("COMBAT"));
+            Assert.That(report.text, Does.Contain("SIGNAL"));
+            Assert.That(report.text, Does.Contain("BUILD"));
+            Assert.That(report.text, Does.Contain("CHAIN ARC"));
+            Assert.That(report.text, Does.Contain("FEEDBACK SHIELD"));
+            Assert.That(report.text, Does.Contain("PIERCING PULSE EVOLVED"));
+            Assert.That(report.preferredHeight, Is.LessThanOrEqualTo(report.rectTransform.rect.height));
+
+            yield return new WaitForSecondsRealtime(0.8f);
+            Assert.That(presentation.EvidenceOpacity, Is.EqualTo(1f).Within(0.001f));
+
+            EventSystem.current.SetSelectedGameObject(_activeButton("Main Menu").gameObject);
+            yield return null;
+            Assert.That(presentation.SelectionDetail, Does.Contain("MISSION CONTROL"));
+
+            presentation.Present(RunOutcome.Victory, true);
+            Assert.That(presentation.EvidenceOpacity, Is.EqualTo(1f),
+                "Reduced Flashes should expose the complete debrief immediately instead of staging multiple fades.");
+        }
+
+        [UnityTest]
+        public IEnumerator VictoryPresentation_CapturesTargetAspectStatesWhenRequested()
+        {
+            var captureDirectory = System.Environment.GetEnvironmentVariable("DEAD_SIGNAL_P41_CAPTURE_DIR");
+            if (string.IsNullOrWhiteSpace(captureDirectory))
+            {
+                Assert.Pass("P41 capture directory was not requested.");
+            }
+
+            Directory.CreateDirectory(captureDirectory);
+            yield return _enterVictory();
+            yield return new WaitForSecondsRealtime(1.5f);
+
+            var presentation = Object.FindFirstObjectByType<OutcomePresentation>(FindObjectsInactive.Include);
+            var game = Object.FindFirstObjectByType<DeadSignalGame>();
+            var canvas = presentation.GetComponentInParent<Canvas>();
+            var scaler = canvas.GetComponent<CanvasScaler>();
+            var camera = Object.FindFirstObjectByType<Camera>();
+
+            EventSystem.current.SetSelectedGameObject(_activeButton("Restart Run").gameObject);
+            yield return null;
+            _capture(canvas, scaler, camera, new Vector2Int(1600, 900),
+                Path.Combine(captureDirectory, "P41-Victory-Restart-1600x900.png"));
+
+            EventSystem.current.SetSelectedGameObject(_activeButton("Main Menu").gameObject);
+            yield return null;
+            _capture(canvas, scaler, camera, new Vector2Int(1280, 720),
+                Path.Combine(captureDirectory, "P41-Victory-Main-Menu-1280x720.png"));
+
+            game.DebugToggleReducedFlashes();
+            yield return null;
+            _capture(canvas, scaler, camera, new Vector2Int(3440, 1440),
+                Path.Combine(captureDirectory, "P41-Victory-Reduced-Flashes-3440x1440.png"));
+            game.DebugToggleReducedFlashes();
+        }
+
         private static IEnumerator _enterDefeat()
         {
             yield return SceneManager.LoadSceneAsync("SampleScene");
@@ -99,6 +174,31 @@ namespace DeadSignal.Tests
                 game.DebugToggleReducedFlashes();
             }
             game.DebugApplyScenario(DebugScenario.Failure);
+            yield return null;
+        }
+
+        private static IEnumerator _enterVictory()
+        {
+            yield return SceneManager.LoadSceneAsync("SampleScene");
+            yield return null;
+
+            var shell = Object.FindFirstObjectByType<DeadSignalShellController>(FindObjectsInactive.Include);
+            shell.DebugShowMenu();
+            yield return null;
+            _menuButton(shell, "Start Run").onClick.Invoke();
+            var deadline = Time.realtimeSinceStartup + 1f;
+            while (shell.IsTransitioning && Time.realtimeSinceStartup < deadline)
+            {
+                yield return null;
+            }
+
+            Assert.That(shell.IsTransitioning, Is.False);
+            var game = Object.FindFirstObjectByType<DeadSignalGame>();
+            if (game.IsReducedFlashesEnabled)
+            {
+                game.DebugToggleReducedFlashes();
+            }
+            game.DebugApplyScenario(DebugScenario.Victory);
             yield return null;
         }
 

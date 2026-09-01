@@ -5710,6 +5710,11 @@ MonoBehaviour:
   m_frame: {fileID: 4161462144822131910}
   m_accentRail: {fileID: 787441012831867657}
   m_selectionRail: {fileID: 5936392088346752235}
+  m_insignia: {fileID: 3949234262860267093}
+  m_protocol: {fileID: 568392455192616064}
+  m_causeLabel: {fileID: 8337840232134358066}
+  m_evidenceLabel: {fileID: 6494470116350570408}
+  m_optionsLabel: {fileID: 6730992068531894819}
   m_selectionDetail: {fileID: 7659845737966565019}
   m_restartButton: {fileID: 5895134755563523718}
   m_mainMenuButton: {fileID: 4345430296101721585}
