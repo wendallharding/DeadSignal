@@ -1689,10 +1689,10 @@ namespace DeadSignal.Application
             m_metrics.RecordTraversalDrain(
                 RunModel.PassiveDrainRate(powered) * dt * m_difficultyDrainMultiplier,
                 RunModel.MovementDrainRate(moving, powered) * dt * m_difficultyDrainMultiplier);
-            m_missionClarityHud.DrainMultiplier = m_difficultyDrainMultiplier;
             m_missionClarityHud.DashCooldown = m_dashCooldown;
-            m_missionClarityHud.IsMoving = moving;
-            m_missionClarityHud.IsPowered = powered;
+            var traversalDrain = (RunModel.PassiveDrainRate(powered) + RunModel.MovementDrainRate(moving, powered)) *
+                                 m_difficultyDrainMultiplier;
+            m_hud.SetTraversalSignalState(traversalDrain, powered);
             _tickDebugRouteSequence(dt);
             _tryTriggerEmergencyCapacitor();
             m_signalDust.Tick(powered, m_model.TowerOnline, m_model.Signal / RunModel.MaximumSignal);

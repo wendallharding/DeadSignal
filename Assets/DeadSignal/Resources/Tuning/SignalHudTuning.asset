@@ -16,6 +16,8 @@ MonoBehaviour:
   m_criticalThreshold: 0.25
   m_criticalPulseSpeed: 3.2
   m_criticalMinimumAlpha: 0.58
+  m_fillCatchUpPerSecond: 1.8
+  m_recoveryLabelSeconds: 1.1
   m_stableColor: {r: 0.02, g: 0.9, b: 1, a: 1}
   m_strainedColor: {r: 1, g: 0.58, b: 0.08, a: 1}
   m_criticalColor: {r: 1, g: 0.06, b: 0.05, a: 1}

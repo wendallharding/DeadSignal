@@ -48,5 +48,15 @@ namespace DeadSignal.Tests
 
             Assert.That(presentation.Alpha, Is.InRange(m_tuning.CriticalMinimumAlpha, 1f));
         }
+
+        [TestCase(125f, 1f)]
+        [TestCase(50f, 0.5f)]
+        [TestCase(-10f, 0f)]
+        public void Evaluate_ClampsReserveRatioWithoutChangingExactSignal(float signal, float expectedRatio)
+        {
+            var presentation = SignalHudPresentation.Evaluate(signal, 100f, false, 0f, m_tuning);
+
+            Assert.That(presentation.Ratio, Is.EqualTo(expectedRatio).Within(0.001f));
+        }
     }
 }

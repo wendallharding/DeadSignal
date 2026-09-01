@@ -35,6 +35,7 @@ namespace DeadSignal.Presentation
         void SetDebugMenuVisible(bool visible);
         void SetMainMenuVisible(bool visible);
         void ConfigureShellActions(System.Action resumeRun, System.Action restartRun, System.Action returnToMenu);
+        void SetTraversalSignalState(float drainPerSecond, bool powered);
         void Tick(float dt);
     }
 
@@ -102,6 +103,7 @@ namespace DeadSignal.Presentation
         private IComfortSettings m_comfortSettings;
         private IDeadSignalInput m_input;
         private SignalHudTuning m_signalHudTuning;
+        private SignalReserveInstrument m_signalInstrument;
         private ObjectiveBeaconHud m_objectiveBeacon;
         private RectTransform m_contextPromptRect;
         private RectTransform m_contextPromptParent;
@@ -112,6 +114,7 @@ namespace DeadSignal.Presentation
         private Texture2D m_runDebriefTexture;
         private float m_feedbackTimer;
         private float m_signalPulseTime;
+        private float m_signalDrainPerSecond;
         private float m_outcomeTransitionElapsed;
         private int m_feedbackPriority;
         private bool m_resultRecorded;
@@ -119,6 +122,7 @@ namespace DeadSignal.Presentation
         private bool m_mainMenuVisible;
         private bool m_pauseNavigationVisible;
         private bool m_outcomeNavigationVisible;
+        private bool m_isPowered;
         private string m_personalBestText = string.Empty;
         private string m_feedback = string.Empty;
         private string m_debugObjective = string.Empty;
@@ -163,6 +167,7 @@ namespace DeadSignal.Presentation
             m_extractionUplink = extractionUplink;
             m_overclockChoice = overclockChoice;
             m_signalHudTuning = Resources.Load<SignalHudTuning>("Tuning/SignalHudTuning");
+            m_signalInstrument = m_signalFill.GetComponentInParent<SignalReserveInstrument>();
             m_objectiveBeacon = GetComponent<ObjectiveBeaconHud>();
             m_contextPromptRect = m_contextPrompt.transform as RectTransform;
             m_contextPromptParent = m_contextPromptRect.parent as RectTransform;
@@ -178,7 +183,8 @@ namespace DeadSignal.Presentation
                 m_runReportText.resizeTextMinSize = 8;
                 m_runReportText.resizeTextMaxSize = 13;
             }
-            if (m_signalHudTuning == null || signalSprite == null || m_runDebriefTexture == null)
+            if (m_signalHudTuning == null || signalSprite == null || m_runDebriefTexture == null ||
+                m_signalInstrument == null || !m_signalInstrument.IsConfigured)
             {
                 Debug.LogError("The authored Signal HUD tuning or reserve conduit art is missing.");
                 return;
@@ -228,6 +234,12 @@ namespace DeadSignal.Presentation
             m_pauseMainMenuButton.onClick.AddListener(() => returnToMenu());
             m_outcomeRestartButton.onClick.AddListener(() => restartRun());
             m_outcomeMainMenuButton.onClick.AddListener(() => returnToMenu());
+        }
+
+        void IDeadSignalHud.SetTraversalSignalState(float drainPerSecond, bool powered)
+        {
+            m_signalDrainPerSecond = Mathf.Max(0f, drainPerSecond);
+            m_isPowered = powered;
         }
 
         void IDeadSignalHud.Tick(float dt)
@@ -281,15 +293,20 @@ namespace DeadSignal.Presentation
 
         private void _refreshRunHud()
         {
-            var ratio = Mathf.Clamp01(m_model.Signal / RunModel.MaximumSignal);
             var presentation = SignalHudPresentation.Evaluate(m_model.Signal, RunModel.MaximumSignal,
                 m_comfortSettings.ReducedFlashesEnabled, m_signalPulseTime, m_signalHudTuning);
             CurrentSignalReserveState = presentation.State;
-            m_signalFill.fillAmount = ratio;
-            var signalColor = presentation.Color;
-            signalColor.a = presentation.Alpha;
-            m_signalFill.color = signalColor;
-            m_signalText.text = $"SIGNAL  {Mathf.CeilToInt(m_model.Signal):000}  //  {presentation.State.ToString().ToUpperInvariant()}";
+            var transaction = _signalTransactionPreview();
+            m_signalInstrument.Apply(
+                m_model.Signal,
+                RunModel.MaximumSignal,
+                presentation,
+                m_signalDrainPerSecond,
+                m_isPowered,
+                transaction.Cost,
+                transaction.Name,
+                Time.unscaledDeltaTime,
+                m_signalHudTuning);
             var chainText = m_salvage.ChainCount > 0 && m_model.Salvage < RunModel.SalvageRequired
                 ? $"  //  CHAIN x{m_salvage.ChainCount}  {m_salvage.ChainSecondsRemaining:0.0}s"
                 : string.Empty;
@@ -310,10 +327,6 @@ namespace DeadSignal.Presentation
             m_salvageText.text =
                 $"SALVAGE  {m_model.Salvage}/{RunModel.SalvageRequired}{chainText}{overclockText}{auxiliaryText}" +
                 $"{synergyText}{weaponText}{optionalText}";
-            var powered = m_world.IsPowered(
-                m_world.Player.position, m_model.TowerOnline, m_model.RelayTowerOnline, m_model.SpineTowerOnline);
-            m_zoneText.text = powered ? "● POWERED TERRITORY" : "▲ DEAD ZONE — ACTIVE DRAIN";
-            m_zoneText.color = powered ? new Color(0.05f, 0.95f, 1f) : new Color(1f, 0.22f, 0.18f);
             var guidance = MissionGuidance.Evaluate(m_model, m_threats.IsSapperAlive, m_threats.IsSapperLatched,
                 m_threats.SapperPulseCooldown);
             CurrentMissionPhase = guidance.Phase;
@@ -711,12 +724,28 @@ namespace DeadSignal.Presentation
                 return m_model.TowerOnline ? $"[{_binding("E", "GAMEPAD X")}]  BURN {RunModel.ShortcutCost:0} SIGNAL FOR SHORTCUT"
                     : "SHORTCUT OFFLINE - ACTIVATE TOWER FIRST";
             if (!m_model.TowerOnline && DeadSignalWorld.FlatDistance(m_world.Player.position, m_world.TowerPosition) < 1.8f)
-                return $"[{_binding("E", "GAMEPAD X")}]  ACTIVATE SIGNAL TOWER  —  COST 10";
+                return $"[{_binding("E", "GAMEPAD X")}]  ACTIVATE SIGNAL TOWER  —  COST {RunModel.TowerCost:0}";
             if (DeadSignalWorld.FlatDistance(m_world.Player.position, m_world.ExtractionPosition) < 1.65f)
                 return m_extractionUplink.IsActive ? $"UPLINK LOCKED  —  {m_extractionUplink.SecondsRemaining:0.0}s"
                     : m_model.CanExtract ? "CHOOSE STABLE OR OVERDRIVE UPLINK"
                     : $"EXTRACTION LOCKED  —  {RunModel.SalvageRequired - m_model.Salvage} SALVAGE MISSING";
             return string.Empty;
+        }
+
+        private SignalTransactionPreview _signalTransactionPreview()
+        {
+            if (!m_model.ShortcutOpen && m_model.TowerOnline &&
+                DeadSignalWorld.FlatDistance(m_world.Player.position, m_world.ShortcutPosition) < 1.9f)
+            {
+                return new SignalTransactionPreview(RunModel.ShortcutCost, "SHORTCUT");
+            }
+
+            if (_isExtractionUplinkChoiceAvailable())
+            {
+                return new SignalTransactionPreview(m_extractionUplink.OverdriveSignalCost, "OVERDRIVE");
+            }
+
+            return default;
         }
 
         private string _activeControlLegend()
@@ -775,5 +804,17 @@ namespace DeadSignal.Presentation
             SignalOverclockSynergy.ShieldSurge => "PAIR: SHIELD SURGE",
             _ => string.Empty
         };
+
+        private readonly struct SignalTransactionPreview
+        {
+            public SignalTransactionPreview(float cost, string name)
+            {
+                Cost = cost;
+                Name = name;
+            }
+
+            public float Cost { get; }
+            public string Name { get; }
+        }
     }
 }

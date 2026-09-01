@@ -32,10 +32,7 @@ namespace DeadSignal.Presentation
             new(0f, -25f), new(0f, 12f)
         };
 
-        public float DrainMultiplier { get; set; } = 1f;
         public float DashCooldown { get; set; }
-        public bool IsMoving { get; set; }
-        public bool IsPowered { get; set; }
         public Rect LastTacticalMapCard { get; private set; }
         public Rect LastTacticalMapWorldBounds { get; private set; }
         public int LastTacticalMapObstacleCount { get; private set; }
@@ -67,7 +64,6 @@ namespace DeadSignal.Presentation
                 return;
             }
 
-            _drawSignalEconomy();
             if (m_model.IsCriticalRecovery)
             {
                 _drawCriticalRecovery();
@@ -94,17 +90,6 @@ namespace DeadSignal.Presentation
                 m_signalEvents.Dequeue();
             }
             m_signalEvents.Enqueue(new SignalEvent(message, Time.unscaledTime + 2.5f));
-        }
-
-        private void _drawSignalEconomy()
-        {
-            var passive = RunModel.PassiveDrainRate(IsPowered);
-            var movement = RunModel.MovementDrainRate(IsMoving, IsPowered);
-            var total = (passive + movement) * DrainMultiplier;
-            var source = IsPowered ? (IsMoving ? "POWERED MOVEMENT" : "POWERED SAFE ZONE") :
-                IsMoving ? "DEAD ZONE + MOVEMENT" : "DEAD ZONE EXPOSURE";
-            GUI.Label(new Rect(18f, 198f, 310f, 48f),
-                total > 0f ? $"TRAVERSAL  −{total:0.0}/s\n{source}" : "TRAVERSAL  STABLE\nPOWERED SAFE ZONE", m_smallStyle);
         }
 
         private void _drawAbilityStatus()
