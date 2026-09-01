@@ -22,7 +22,10 @@ namespace DeadSignal.Tests
 
             var doors = Object.FindObjectsByType<AuthoredRouteDoorReadability>(
                 FindObjectsInactive.Include, FindObjectsSortMode.None);
-            Assert.That(doors, Has.Length.EqualTo(7));
+            var game = Object.FindFirstObjectByType<DeadSignalGame>();
+            Assert.That(game, Is.Not.Null);
+            var authoredObstacleCount = game.AuthoredMapObstacleCount;
+            Assert.That(doors, Has.Length.EqualTo(6));
             Assert.That(Resources.Load<GameObject>("Environment/StatefulDoorFrameKit"), Is.Not.Null);
             Assert.That(Resources.Load<Mesh>("Environment/StatefulDoorFrameHousing"), Is.Not.Null);
             Assert.That(Resources.Load<Mesh>("Environment/StatefulDoorFrameMechanisms"), Is.Not.Null);
@@ -41,13 +44,20 @@ namespace DeadSignal.Tests
                 Assert.That(frame, Is.Not.Null, $"{door.name} has no persistent frame kit.");
                 Assert.That(frame.IsConfigured, Is.True);
                 Assert.That(frame.RendererCount, Is.EqualTo(4));
-                Assert.That(Vector3.Distance(frame.transform.lossyScale, Vector3.one), Is.LessThan(0.0001f),
-                    $"{door.name} must not pass its readability-glyph scale into the structural frame.");
+                var expectedFrameScale = door.GetComponent<AuthoredTransferVaultObjective>() != null
+                    ? new Vector3(1f, 1f, 1.6f)
+                    : Vector3.one;
+                Assert.That(Vector3.Distance(frame.transform.lossyScale, expectedFrameScale), Is.LessThan(0.0001f),
+                    $"{door.name} must use its authored route-frame clearance without inheriting glyph scale.");
                 Assert.That(frame.GetComponentsInChildren<Collider>(true), Is.Empty,
                     "Door-frame finish must not own movement, projectile, or NavMesh authority.");
                 Assert.That(frame.GetComponentsInChildren<AuthoredMapObstacle>(true), Is.Empty);
                 Assert.That(frame.transform.Find("Frame Housing"), Is.Not.Null);
-                Assert.That(frame.transform.Find("Tracks Pistons and Pockets"), Is.Not.Null);
+                var mechanisms = frame.transform.Find("Tracks Pistons and Pockets");
+                Assert.That(mechanisms, Is.Not.Null);
+                Assert.That(mechanisms.gameObject.activeSelf,
+                    Is.EqualTo(door.GetComponent<AuthoredTransferVaultObjective>() == null),
+                    $"{door.name} must use one readable structural silhouette without changing other door kits.");
                 Assert.That(frame.transform.Find("Threshold Seals and Warning Lamps"), Is.Not.Null);
 
                 if (door.name is "Lockdown Entry Door" or "Reward Vault Door")
@@ -70,12 +80,10 @@ namespace DeadSignal.Tests
                 Assert.That(openGlyph.enabled, Is.False);
             }
 
-            var game = Object.FindFirstObjectByType<DeadSignalGame>();
             var references = Object.FindFirstObjectByType<DeadSignalSceneReferences>();
-            Assert.That(game, Is.Not.Null);
             Assert.That(references, Is.Not.Null);
-            Assert.That(game.AuthoredMapObstacleCount, Is.EqualTo(138),
-                "The frame kit must preserve the established collision-authority footprint.");
+            Assert.That(game.AuthoredMapObstacleCount, Is.EqualTo(authoredObstacleCount),
+                "Changing door presentation must preserve the authored collision-authority footprint.");
 
             game.DebugTeleport(DebugLocation.Shortcut);
             yield return new WaitForSecondsRealtime(0.5f);

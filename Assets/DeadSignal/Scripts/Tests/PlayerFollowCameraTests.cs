@@ -54,6 +54,7 @@ namespace DeadSignal.Tests
             Assert.That(tuning, Is.Not.Null);
             Assert.That(tuning.FieldOfView, Is.InRange(35f, 45f));
             Assert.That(tuning.Pitch, Is.InRange(50f, 65f));
+            Assert.That(tuning.Yaw, Is.InRange(30f, 40f));
             Assert.That(tuning.Height, Is.InRange(8f, 16f));
             Assert.That(tuning.FollowDistance, Is.InRange(4f, 12f));
             Assert.That(tuning.FollowSharpness, Is.GreaterThan(0f));

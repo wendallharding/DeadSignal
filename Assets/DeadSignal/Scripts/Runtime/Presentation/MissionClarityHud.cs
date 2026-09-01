@@ -1,5 +1,6 @@
 using UnityEngine;
 using System.Collections.Generic;
+using DeadSignal.Combat;
 using DeadSignal.Missions;
 using DeadSignal.Player;
 using DeadSignal.World;
@@ -14,6 +15,7 @@ namespace DeadSignal.Presentation
         private DeadSignalWorld m_world;
         private SignalOverclockChoice m_overclocks;
         private IDeadSignalInput m_input;
+        private ICombatFeedback m_combatFeedback;
         private Camera m_camera;
         private GUIStyle m_panelStyle;
         private GUIStyle m_primaryStyle;
@@ -46,25 +48,29 @@ namespace DeadSignal.Presentation
         public int LastTacticalMapDoorCount { get; private set; }
         public float TacticalMapZoom => m_mapZoom;
         public Vector2 TacticalMapPan => m_mapPan;
+        public bool IsTacticalMapVisible =>
+            m_model != null && m_model.Outcome == RunOutcome.Running && m_combatFeedback != null && m_combatFeedback.IsPaused;
 
         internal void Configure(
             RunModel model,
             RunMetrics metrics,
             DeadSignalWorld world,
             SignalOverclockChoice overclocks,
-            IDeadSignalInput input)
+            IDeadSignalInput input,
+            ICombatFeedback combatFeedback)
         {
             m_model = model;
             m_metrics = metrics;
             m_world = world;
             m_overclocks = overclocks;
             m_input = input;
+            m_combatFeedback = combatFeedback;
             m_camera = world.Camera;
         }
 
         private void Update()
         {
-            if (m_model == null || m_input == null || m_model.Outcome != RunOutcome.Running || Time.timeScale > 0f)
+            if (m_input == null || !IsTacticalMapVisible)
             {
                 return;
             }
@@ -102,7 +108,7 @@ namespace DeadSignal.Presentation
             }
 
             _ensureStyles();
-            if (Time.timeScale <= 0f)
+            if (IsTacticalMapVisible)
             {
                 _drawTacticalMap();
                 return;

@@ -8,6 +8,7 @@ namespace DeadSignal.Player
         [Header("Three-Quarter Framing")]
         [SerializeField] private float m_fieldOfView = 38f;
         [SerializeField] private float m_pitch = 55f;
+        [SerializeField] private float m_yaw = 35f;
         [SerializeField] private float m_height = 12f;
         [SerializeField] private float m_followDistance = 7.4f;
         [SerializeField] private float m_followSharpness = 8f;
@@ -19,6 +20,7 @@ namespace DeadSignal.Player
 
         public float FieldOfView => m_fieldOfView;
         public float Pitch => m_pitch;
+        public float Yaw => m_yaw;
         public float Height => m_height;
         public float FollowDistance => m_followDistance;
         public float FollowSharpness => m_followSharpness;
@@ -32,6 +34,7 @@ namespace DeadSignal.Player
         {
             m_fieldOfView = Mathf.Clamp(m_fieldOfView, 20f, 70f);
             m_pitch = Mathf.Clamp(m_pitch, 35f, 80f);
+            m_yaw = Mathf.Clamp(m_yaw, -90f, 90f);
             m_height = Mathf.Max(2f, m_height);
             m_followDistance = Mathf.Max(0f, m_followDistance);
             m_followSharpness = Mathf.Max(0.1f, m_followSharpness);

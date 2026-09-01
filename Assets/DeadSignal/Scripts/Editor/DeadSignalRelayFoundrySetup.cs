@@ -179,37 +179,60 @@ namespace DeadSignal.Editor
             try
             {
                 var visual = root.transform.Find("Vault East Wall");
-                if (visual != null && !visual.gameObject.activeSelf &&
-                    root.transform.Find("Vault East Wall Bounds") == null &&
-                    root.transform.Find("Vault East Exit North Bounds") != null &&
-                    root.transform.Find("Vault East Exit South Bounds") != null)
-                {
-                    return;
-                }
-
                 var wallMaterial = visual != null ? visual.GetComponent<Renderer>()?.sharedMaterial : null;
                 if (visual != null) visual.gameObject.SetActive(false);
                 var oldBounds = root.transform.Find("Vault East Wall Bounds");
                 if (oldBounds != null) UnityEngine.Object.DestroyImmediate(oldBounds.gameObject);
-                foreach (var name in new[]
-                         {
-                             "Vault East Exit North", "Vault East Exit North Bounds", "Vault East Exit Divider",
-                             "Vault East Exit South", "Vault East Exit South Bounds"
-                         })
+                var divider = root.transform.Find("Vault East Exit Divider");
+                if (divider != null)
                 {
-                    var existing = root.transform.Find(name);
-                    if (existing != null) UnityEngine.Object.DestroyImmediate(existing.gameObject);
+                    UnityEngine.Object.DestroyImmediate(divider.gameObject);
                 }
-                _wall(root.transform, "Vault East Exit North", new Vector3(-3.15f, 0.5f, 2.75f), new Vector3(0.3f, 1f, 0.8f), wallMaterial, false);
-                _obstacle(root.transform, "Vault East Exit North Bounds", new Vector3(-3.15f, 0f, 2.75f), new Vector2(0.15f, 0.4f));
-                _wall(root.transform, "Vault East Exit South", new Vector3(-3.15f, 0.5f, -2.75f), new Vector3(0.3f, 1f, 0.8f), wallMaterial, false);
-                _obstacle(root.transform, "Vault East Exit South Bounds", new Vector3(-3.15f, 0f, -2.75f), new Vector2(0.15f, 0.4f));
+
+                _configureEastVaultExitSide(root.transform, "North", 1f, wallMaterial);
+                _configureEastVaultExitSide(root.transform, "South", -1f, wallMaterial);
                 PrefabUtility.SaveAsPrefabAsset(root, EAST_VAULT_PATH);
             }
             finally
             {
                 PrefabUtility.UnloadPrefabContents(root);
             }
+        }
+
+        private static void _configureEastVaultExitSide(
+            Transform root,
+            string side,
+            float direction,
+            Material wallMaterial)
+        {
+            var wallName = $"Vault East Exit {side}";
+            var wall = root.Find(wallName);
+            if (wall == null)
+            {
+                _wall(root, wallName, Vector3.zero, Vector3.one, wallMaterial, false);
+                wall = root.Find(wallName);
+            }
+
+            wall.localPosition = new Vector3(-3.15f, 0.5f, direction * 2.927f);
+            wall.localRotation = Quaternion.identity;
+            wall.localScale = new Vector3(0.3f, 1f, 0.446f);
+            if (wallMaterial != null && wall.TryGetComponent<Renderer>(out var renderer))
+            {
+                renderer.sharedMaterial = wallMaterial;
+            }
+
+            var obstacleName = $"{wallName} Bounds";
+            var obstacle = root.Find(obstacleName);
+            if (obstacle == null)
+            {
+                _obstacle(root, obstacleName, Vector3.zero, Vector2.one);
+                obstacle = root.Find(obstacleName);
+            }
+
+            obstacle.localPosition = new Vector3(-3.15f, 0f, direction * 2.623f);
+            obstacle.localRotation = Quaternion.identity;
+            obstacle.localScale = Vector3.one;
+            obstacle.GetComponent<AuthoredMapObstacle>().Configure(new Vector2(0.39f, 0.527f));
         }
 
         private static void _ensurePrefab(Materials materials)

@@ -26,7 +26,10 @@ namespace DeadSignal.Editor
         private const string STATUS_MATERIAL_PATH =
             "Assets/DeadSignal/Resources/Materials/RouteDoorThresholdStatus.mat";
         private const string KIT_NAME = "Stateful Door Frame Kit";
-        private const int EXPECTED_DOOR_COUNT = 7;
+        private const string EAST_VAULT_PATH =
+            "Assets/DeadSignal/Resources/Environment/EastSalvageVault.prefab";
+        private const float EAST_VAULT_FRAME_WIDTH_MULTIPLIER = 1.6f;
+        private const int EXPECTED_DOOR_COUNT = 6;
 
         private static readonly string[] s_doorPrefabPaths =
         {
@@ -223,6 +226,13 @@ namespace DeadSignal.Editor
                         1f / inheritedScale.x,
                         1f / inheritedScale.y,
                         1f / inheritedScale.z);
+                    if (path == EAST_VAULT_PATH && threshold.name == "Central Relay Route Threshold")
+                    {
+                        instance.transform.localScale = Vector3.Scale(
+                            instance.transform.localScale,
+                            new Vector3(1f, 1f, EAST_VAULT_FRAME_WIDTH_MULTIPLIER));
+                        instance.transform.Find("Tracks Pistons and Pockets").gameObject.SetActive(false);
+                    }
                     readability.ConfigureFrameKit(instance.GetComponent<AuthoredStatefulDoorFrame>());
                 }
 

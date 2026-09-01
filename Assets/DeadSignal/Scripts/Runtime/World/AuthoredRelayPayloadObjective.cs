@@ -27,14 +27,12 @@ namespace DeadSignal.World
         [SerializeField] private GameObject m_installedMarker;
         [SerializeField] private Renderer[] m_calibrationRenderers;
         [SerializeField] private Transform m_calibrationSelector;
-        [SerializeField] private AuthoredRouteDoorReadability m_returnDoorReadability;
 
         public Vector3 Position => m_installAnchor != null ? m_installAnchor.position : transform.position;
         public bool IsConfigured => m_installAnchor != null && m_stabilizedMarker != null &&
                                     m_installAvailableMarker != null && m_installedMarker != null;
         public bool HasReadabilityAssets => m_calibrationRenderers is { Length: > 0 } &&
-                                            m_calibrationSelector != null && m_returnDoorReadability != null &&
-                                            m_returnDoorReadability.IsConfigured;
+                                            m_calibrationSelector != null;
         public RelayCalibrationPresentationState PresentationState { get; private set; } =
             RelayCalibrationPresentationState.PrerequisiteLocked;
 
@@ -75,19 +73,16 @@ namespace DeadSignal.World
 
         public void ConfigureReadability(
             Renderer[] calibrationRenderers,
-            Transform calibrationSelector,
-            AuthoredRouteDoorReadability returnDoorReadability)
+            Transform calibrationSelector)
         {
             m_calibrationRenderers = calibrationRenderers;
             m_calibrationSelector = calibrationSelector;
-            m_returnDoorReadability = returnDoorReadability;
             m_hasAppliedPresentation = false;
             m_lastStabilized = false;
             m_lastInstalled = false;
             m_stabilizedTransitionRemaining = 0f;
             m_installationTransitionRemaining = 0f;
             SetState(false, false, false);
-            SetReturnOpen(false);
         }
 
         public void SetState(bool stabilized, bool installAvailable, bool installed)
@@ -123,11 +118,6 @@ namespace DeadSignal.World
             }
 
             _refreshPresentation();
-        }
-
-        public void SetReturnOpen(bool open)
-        {
-            m_returnDoorReadability?.SetOpen(open);
         }
 
         private void _refreshPresentation()

@@ -88,8 +88,10 @@ namespace DeadSignal.Player
 
             m_targetCamera.orthographic = false;
             m_targetCamera.fieldOfView = m_tuning.FieldOfView;
-            m_targetCamera.transform.localPosition = new Vector3(0f, m_tuning.Height, -m_tuning.FollowDistance);
-            m_targetCamera.transform.localRotation = Quaternion.Euler(m_tuning.Pitch, 0f, 0f);
+            var yawRotation = Quaternion.Euler(0f, m_tuning.Yaw, 0f);
+            m_targetCamera.transform.localPosition = yawRotation *
+                                                     new Vector3(0f, m_tuning.Height, -m_tuning.FollowDistance);
+            m_targetCamera.transform.localRotation = Quaternion.Euler(m_tuning.Pitch, m_tuning.Yaw, 0f);
             _refreshGroundFootprint();
             m_currentLookAhead = Vector3.zero;
             m_lastTargetPosition = m_target.position;

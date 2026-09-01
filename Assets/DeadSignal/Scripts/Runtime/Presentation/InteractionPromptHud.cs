@@ -183,8 +183,9 @@ namespace DeadSignal.Presentation
             _ => "SYSTEM LOCK"
         };
 
+        // Detail can contain a live countdown, so it must not restart the prompt entrance transition.
         private static string _signature(InteractionPromptPresentation presentation) =>
-            $"{presentation.State}|{presentation.PrimaryGlyph}|{presentation.PrimaryAction}|{presentation.Detail}|" +
+            $"{presentation.State}|{presentation.PrimaryGlyph}|{presentation.PrimaryAction}|" +
             $"{presentation.SecondaryGlyph}|{presentation.SecondaryAction}";
     }
 }

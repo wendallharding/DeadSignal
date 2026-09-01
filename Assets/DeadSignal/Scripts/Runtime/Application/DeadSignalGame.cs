@@ -1589,7 +1589,7 @@ namespace DeadSignal.Application
                 m_overclockChoice, _showFeedback);
             m_hud.Configure(m_model, m_metrics, m_world, m_threats, m_salvage, m_extractionUplink, m_overclockChoice);
             m_missionClarityHud = gameObject.AddComponent<MissionClarityHud>();
-            m_missionClarityHud.Configure(m_model, m_metrics, m_world, m_overclockChoice, m_input);
+            m_missionClarityHud.Configure(m_model, m_metrics, m_world, m_overclockChoice, m_input, m_combatFeedback);
             m_objectiveBeacon.Configure(m_model, m_world, m_threats);
             m_objectiveBeacon.SetGuidanceStrength(m_routeGuidanceStrength);
             m_lastPoweredState = m_world.IsPowered(
@@ -1780,9 +1780,25 @@ namespace DeadSignal.Application
                 return Vector3.zero;
             }
 
-            var moveInput = m_debugTacticalWindowSweepActive
-                ? m_debugTacticalWindowMoveInput
-                : m_debugRouteDriving ? _debugRouteInput() : m_input.ReadMovement();
+            Vector2 moveInput;
+            if (m_debugTacticalWindowSweepActive)
+            {
+                moveInput = PlayerDroneMovement.CalculateCameraRelativeInput(
+                    m_debugTacticalWindowMoveInput,
+                    m_world.Camera.transform.forward,
+                    m_world.Camera.transform.right);
+            }
+            else if (m_debugRouteDriving)
+            {
+                moveInput = _debugRouteInput();
+            }
+            else
+            {
+                moveInput = PlayerDroneMovement.CalculateCameraRelativeInput(
+                    m_input.ReadMovement(),
+                    m_world.Camera.transform.forward,
+                    m_world.Camera.transform.right);
+            }
             if (_isLiveBalanceAutomationActive())
             {
                 moveInput = LiveBalanceCombatPolicy.BlendMovement(

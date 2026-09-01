@@ -424,7 +424,7 @@ namespace DeadSignal.Diagnostics
                                 game.transform.Find("Relay Foundry Region/Relay Payload Calibration Anchor") != null &&
                                 game.transform.Find("Relay Foundry Region/Relay Calibration Status Panel") != null &&
                                 game.transform.Find("Relay Foundry Region/Relay Calibration Selector") != null &&
-                                game.transform.Find("Relay Foundry Region/Relay Return Threshold") != null &&
+                                game.transform.Find("Relay Foundry Region/Relay Return Threshold") == null &&
                                 game.transform.Find(
                                     "Relay Foundry Region/Relay Cooling Gantry Region/" +
                                     "Cooling Gantry Relay Payload Socket") != null &&

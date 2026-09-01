@@ -50,6 +50,26 @@ namespace DeadSignal.Tests
         }
 
         [Test]
+        public void CalculateCameraRelativeInput_MapsScreenAxesOntoGroundPlane()
+        {
+            var cameraForward = new Vector3(1f, -1f, 1f).normalized;
+            var cameraRight = new Vector3(1f, 0f, -1f).normalized;
+
+            var screenUp = PlayerDroneMovement.CalculateCameraRelativeInput(
+                Vector2.up, cameraForward, cameraRight);
+            var screenRight = PlayerDroneMovement.CalculateCameraRelativeInput(
+                Vector2.right, cameraForward, cameraRight);
+            var analogDiagonal = PlayerDroneMovement.CalculateCameraRelativeInput(
+                new Vector2(0.25f, 0.5f), cameraForward, cameraRight);
+
+            Assert.That(screenUp.x, Is.EqualTo(0.7071068f).Within(0.0001f));
+            Assert.That(screenUp.y, Is.EqualTo(0.7071068f).Within(0.0001f));
+            Assert.That(screenRight.x, Is.EqualTo(0.7071068f).Within(0.0001f));
+            Assert.That(screenRight.y, Is.EqualTo(-0.7071068f).Within(0.0001f));
+            Assert.That(analogDiagonal.magnitude, Is.EqualTo(new Vector2(0.25f, 0.5f).magnitude).Within(0.0001f));
+        }
+
+        [Test]
         public void ApplyResolvedVelocity_PreservesCollisionSlideAndRemovesBlockedMotion()
         {
             var movement = new PlayerDroneMovement();

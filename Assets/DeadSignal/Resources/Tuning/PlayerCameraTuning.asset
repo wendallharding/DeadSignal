@@ -14,6 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: DeadSignal.Runtime::DeadSignal.Player.PlayerCameraTuning
   m_fieldOfView: 38
   m_pitch: 55
+  m_yaw: 35
   m_height: 12
   m_followDistance: 7.4
   m_followSharpness: 8

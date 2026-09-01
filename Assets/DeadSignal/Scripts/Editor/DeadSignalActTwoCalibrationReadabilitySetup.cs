@@ -13,12 +13,8 @@ namespace DeadSignal.Editor
             "Assets/DeadSignal/Resources/Environment/RelayForkPanelReadability.asset";
         private const string CALIBRATION_SELECTOR_MESH_PATH =
             "Assets/DeadSignal/Resources/Environment/RelayForkSelectorReadability.asset";
-        private const string DOOR_THRESHOLD_MESH_PATH =
-            "Assets/DeadSignal/Resources/Environment/RouteDoorThresholdReadability.asset";
         private const string CALIBRATION_MATERIAL_PATH =
             "Assets/DeadSignal/Resources/Materials/RelayFoundry/RelayFoundryWeaponCalibrationDecal.mat";
-        private const string DOOR_MATERIAL_PATH =
-            "Assets/DeadSignal/Resources/Materials/RouteDoorThresholdStatus.mat";
 
         public static bool HasAssets
         {
@@ -30,7 +26,8 @@ namespace DeadSignal.Editor
                        objective.HasReadabilityAssets &&
                        foundry.transform.Find("Relay Calibration Status Panel") != null &&
                        foundry.transform.Find("Relay Calibration Selector") != null &&
-                       foundry.transform.Find("Relay Return Threshold") != null;
+                       foundry.transform.Find("Relay Return Threshold") == null &&
+                       foundry.GetComponent<AuthoredRouteDoorReadability>() == null;
             }
         }
 
@@ -52,11 +49,21 @@ namespace DeadSignal.Editor
             try
             {
                 var objective = root.GetComponent<AuthoredRelayPayloadObjective>();
-                var blockingSlab = root.transform.Find("Relay Return Bulkhead")?.gameObject;
-                var openMarker = root.transform.Find("Relay Signal Lines")?.gameObject;
-                if (objective == null || blockingSlab == null || openMarker == null)
+                if (objective == null || root.transform.Find("Relay Return Bulkhead") == null)
                 {
                     throw new InvalidOperationException("The Relay calibration or return-bulkhead authority is missing.");
+                }
+
+                var redundantThreshold = root.transform.Find("Relay Return Threshold");
+                if (redundantThreshold != null)
+                {
+                    UnityEngine.Object.DestroyImmediate(redundantThreshold.gameObject);
+                }
+
+                var redundantReadability = root.GetComponent<AuthoredRouteDoorReadability>();
+                if (redundantReadability != null)
+                {
+                    UnityEngine.Object.DestroyImmediate(redundantReadability);
                 }
 
                 var panel = _ensureMeshPart(root.transform, "Relay Calibration Status Panel",
@@ -66,16 +73,9 @@ namespace DeadSignal.Editor
                     new Vector3(3.75f, 0.04f, -3.25f), CALIBRATION_SELECTOR_MESH_PATH,
                     CALIBRATION_MATERIAL_PATH);
                 selector.localScale = new Vector3(1.25f, 1f, 1.25f);
-                var threshold = _ensureMeshPart(root.transform, "Relay Return Threshold",
-                    new Vector3(-8f, 0f, 0f), DOOR_THRESHOLD_MESH_PATH, DOOR_MATERIAL_PATH);
-
-                var doorReadability = root.GetComponent<AuthoredRouteDoorReadability>() ??
-                                      root.AddComponent<AuthoredRouteDoorReadability>();
-                doorReadability.Configure(blockingSlab, openMarker, threshold.GetComponent<Renderer>());
                 objective.ConfigureReadability(
                     new[] { panel.GetComponent<Renderer>(), selector.GetComponent<Renderer>() },
-                    selector,
-                    doorReadability);
+                    selector);
                 PrefabUtility.SaveAsPrefabAsset(root, FOUNDRY_PREFAB_PATH);
             }
             finally

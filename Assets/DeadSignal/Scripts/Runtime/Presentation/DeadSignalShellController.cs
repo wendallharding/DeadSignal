@@ -26,6 +26,7 @@ namespace DeadSignal.Presentation
         [SerializeField] private GameObject m_controlsPanel;
         [SerializeField] private CanvasGroup m_menuCanvasGroup;
         [SerializeField] private ProductShellTransitionTuning m_transitionTuning;
+        [SerializeField] private MainMenuPresentation m_mainMenuPresentation;
 
         [Header("Main Menu")]
         [SerializeField] private Button m_startButton;
@@ -52,6 +53,7 @@ namespace DeadSignal.Presentation
         private bool m_keyboardNavigationHeld;
         private bool m_keyboardSubmitHeld;
         private bool m_keyboardBackHeld;
+        private InputPromptDevice m_menuInputDevice;
         private Coroutine m_startTransition;
         private static bool s_showMenuAfterReload;
 
@@ -66,6 +68,8 @@ namespace DeadSignal.Presentation
             m_hud = hud;
             m_comfortSettings = comfortSettings;
             m_input = input;
+            m_menuInputDevice = m_input.ActivePromptDevice;
+            m_mainMenuPresentation.Configure(m_comfortSettings);
             _wireButtons();
             m_hud.ConfigureShellActions(m_game.ResumeRun, m_game.RestartRun, _returnToMenu);
             m_configured = true;
@@ -100,7 +104,9 @@ namespace DeadSignal.Presentation
             {
                 m_game.SetMainMenuOpen(true);
             }
+            _refreshMenuInputDevice();
             _refreshLabels();
+            m_mainMenuPresentation.SetPage(CurrentPage, m_menuInputDevice);
             _handleKeyboardNavigation();
             if (CurrentPage != ProductShellPage.Main && Gamepad.current?.buttonEast.wasPressedThisFrame == true)
             {
@@ -142,6 +148,22 @@ namespace DeadSignal.Presentation
             m_keyboardBackHeld = back;
         }
 
+        private void _refreshMenuInputDevice()
+        {
+            var keyboard = Keyboard.current;
+            if (keyboard != null && (keyboard.anyKey.wasPressedThisFrame || Mouse.current?.delta.ReadValue().sqrMagnitude > 0.01f))
+            {
+                m_menuInputDevice = InputPromptDevice.KeyboardMouse;
+            }
+
+            var gamepad = Gamepad.current;
+            if (gamepad != null && (gamepad.buttonSouth.wasPressedThisFrame || gamepad.buttonEast.wasPressedThisFrame ||
+                                    gamepad.dpad.ReadValue().sqrMagnitude > 0.25f || gamepad.leftStick.ReadValue().sqrMagnitude > 0.25f))
+            {
+                m_menuInputDevice = InputPromptDevice.Gamepad;
+            }
+        }
+
         private void _moveSelection(int direction)
         {
             var buttons = _activePageButtons();
@@ -177,10 +199,10 @@ namespace DeadSignal.Presentation
             m_settingsBackButton.onClick.AddListener(() => _showPage(ProductShellPage.Main));
             m_controlsBackButton.onClick.AddListener(() => _showPage(ProductShellPage.Main));
 
-            m_settingButtons[0].onClick.AddListener(m_comfortSettings.ToggleCameraImpulse);
-            m_settingButtons[1].onClick.AddListener(m_comfortSettings.ToggleReducedFlashes);
-            m_settingButtons[2].onClick.AddListener(m_comfortSettings.ToggleHighContrast);
-            m_settingButtons[3].onClick.AddListener(m_comfortSettings.ToggleAudio);
+            m_settingButtons[0].onClick.AddListener(() => _toggleSetting(0));
+            m_settingButtons[1].onClick.AddListener(() => _toggleSetting(1));
+            m_settingButtons[2].onClick.AddListener(() => _toggleSetting(2));
+            m_settingButtons[3].onClick.AddListener(() => _toggleSetting(3));
 
             m_rebindButtons[0].onClick.AddListener(m_input.BeginMoveUpKeyboardRebind);
             m_rebindButtons[1].onClick.AddListener(m_input.BeginMoveDownKeyboardRebind);
@@ -189,6 +211,28 @@ namespace DeadSignal.Presentation
             m_rebindButtons[4].onClick.AddListener(m_input.BeginFireKeyboardRebind);
             m_rebindButtons[5].onClick.AddListener(m_input.BeginInteractKeyboardRebind);
             m_rebindButtons[6].onClick.AddListener(m_input.ResetKeyboardBindings);
+        }
+
+        private void _toggleSetting(int settingIndex)
+        {
+            switch (settingIndex)
+            {
+                case 0:
+                    m_comfortSettings.ToggleCameraImpulse();
+                    break;
+                case 1:
+                    m_comfortSettings.ToggleReducedFlashes();
+                    break;
+                case 2:
+                    m_comfortSettings.ToggleHighContrast();
+                    break;
+                case 3:
+                    m_comfortSettings.ToggleAudio();
+                    break;
+            }
+
+            _refreshLabels();
+            m_mainMenuPresentation.ConfirmSetting(settingIndex);
         }
 
         private void _startRun()
@@ -285,6 +329,7 @@ namespace DeadSignal.Presentation
                 _ => m_startButton.gameObject
             };
             EventSystem.current?.SetSelectedGameObject(selection);
+            m_mainMenuPresentation.SetPage(page, m_menuInputDevice);
         }
 
         private void _refreshLabels()

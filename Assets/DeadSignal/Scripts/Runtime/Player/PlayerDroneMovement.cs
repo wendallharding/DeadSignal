@@ -27,6 +27,20 @@ namespace DeadSignal.Player
             return Velocity;
         }
 
+        public static Vector2 CalculateCameraRelativeInput(
+            Vector2 input,
+            Vector3 cameraForward,
+            Vector3 cameraRight)
+        {
+            input = Vector2.ClampMagnitude(input, 1f);
+            cameraForward.y = 0f;
+            cameraRight.y = 0f;
+            cameraForward = cameraForward.sqrMagnitude > Mathf.Epsilon ? cameraForward.normalized : Vector3.forward;
+            cameraRight = cameraRight.sqrMagnitude > Mathf.Epsilon ? cameraRight.normalized : Vector3.right;
+            var worldDirection = cameraRight * input.x + cameraForward * input.y;
+            return Vector2.ClampMagnitude(new Vector2(worldDirection.x, worldDirection.z), input.magnitude);
+        }
+
         public void ApplyResolvedVelocity(Vector3 velocity)
         {
             Velocity = new Vector3(velocity.x, 0f, velocity.z);

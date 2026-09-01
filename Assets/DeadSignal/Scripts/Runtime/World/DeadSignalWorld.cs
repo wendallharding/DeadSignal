@@ -452,6 +452,22 @@ namespace DeadSignal.World
             TransferVaultObjective?.SetState(
                 model.CurrentObjective.Id == MissionObjectiveId.CentralAssembly,
                 model.CentralPayloadAssembled);
+            if (TransferVaultObjective != null)
+            {
+                var shouldOpenRelayRoute = model.CentralPayloadSecured;
+                var expectedPresentation = shouldOpenRelayRoute
+                    ? RouteDoorPresentationState.Open
+                    : RouteDoorPresentationState.Locked;
+                var physicalStateChanged = TransferVaultObjective.IsRelayRouteOpen != shouldOpenRelayRoute;
+                if (physicalStateChanged || TransferVaultObjective.RoutePresentationState != expectedPresentation)
+                {
+                    TransferVaultObjective.SetRouteOpen(shouldOpenRelayRoute);
+                    if (physicalStateChanged)
+                    {
+                        _rebuildNavMesh();
+                    }
+                }
+            }
             CentralInstallationObjective?.SetState(
                 model.CurrentObjective.Id == MissionObjectiveId.CentralInstallation,
                 model.CentralPayloadSecured);
@@ -471,7 +487,6 @@ namespace DeadSignal.World
                 model.RelayPayloadStabilized,
                 model.CurrentObjective.Id == MissionObjectiveId.RelayInstallation,
                 model.RelayPayloadSecured);
-            RelayPayloadObjective?.SetReturnOpen(model.RelayTowerOnline);
             RelayNetworkReadability?.SetState(
                 model.CurrentObjective.Id == MissionObjectiveId.RelayTower,
                 model.RelayTowerOnline,

@@ -68,6 +68,28 @@ namespace DeadSignal.Tests.PlayMode
             prompt.Apply(
                 new InteractionPromptPresentation(
                     true,
+                    InteractionPromptState.Progress,
+                    "HOLD",
+                    "MAINTAIN CHAMBER CONTROL",
+                    "CALIBRATING  •  1.5s"),
+                0.2f);
+            Assert.That(prompt.Opacity, Is.EqualTo(1f).Within(0.001f));
+
+            prompt.Apply(
+                new InteractionPromptPresentation(
+                    true,
+                    InteractionPromptState.Progress,
+                    "HOLD",
+                    "MAINTAIN CHAMBER CONTROL",
+                    "CALIBRATING  •  1.4s"),
+                1f / 60f);
+            Assert.That(prompt.Detail, Is.EqualTo("CALIBRATING  •  1.4s"));
+            Assert.That(prompt.Opacity, Is.EqualTo(1f).Within(0.001f),
+                "Updating a live countdown must not restart the prompt entrance transition.");
+
+            prompt.Apply(
+                new InteractionPromptPresentation(
+                    true,
                     InteractionPromptState.Blocked,
                     "",
                     "INSUFFICIENT SIGNAL",

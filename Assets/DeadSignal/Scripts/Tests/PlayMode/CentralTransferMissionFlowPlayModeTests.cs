@@ -93,6 +93,8 @@ namespace DeadSignal.Tests.PlayMode
             Assert.That(relayFork.IsConfigured, Is.True);
             Assert.That(transferVault.IsConfigured, Is.True);
             Assert.That(centralInstallation.IsConfigured, Is.True);
+            var authoredObstacleCount = game.AuthoredMapObstacleCount;
+            Assert.That(authoredObstacleCount, Is.GreaterThan(0));
 
             game.DebugActivateTower();
             game.DebugAssembleCentralPayload();
@@ -123,6 +125,40 @@ namespace DeadSignal.Tests.PlayMode
             Assert.That(transferVault.IsRouteConfigured, Is.True);
             Assert.That(transferVault.IsRelayRouteOpen, Is.False);
             Assert.That(transferVault.RoutePresentationState, Is.EqualTo(RouteDoorPresentationState.Locked));
+            var northFrameBounds = transferVault.transform.Find("Vault East Exit North Bounds")
+                .GetComponent<AuthoredMapObstacle>();
+            var southFrameBounds = transferVault.transform.Find("Vault East Exit South Bounds")
+                .GetComponent<AuthoredMapObstacle>();
+            Assert.That(northFrameBounds.OverlapsCircle(
+                transferVault.transform.TransformPoint(new Vector3(-3.15f, 0f, 2.4f)), 0.1f), Is.True,
+                "The north frame upright must have authored collision.");
+            Assert.That(southFrameBounds.OverlapsCircle(
+                transferVault.transform.TransformPoint(new Vector3(-3.15f, 0f, -2.4f)), 0.1f), Is.True,
+                "The south frame upright must have authored collision.");
+            var routeCenter = transferVault.transform.TransformPoint(new Vector3(-3.15f, 0f, 0f));
+            Assert.That(northFrameBounds.OverlapsCircle(routeCenter, 0.45f), Is.False);
+            Assert.That(southFrameBounds.OverlapsCircle(routeCenter, 0.45f), Is.False,
+                "The corrected frame collision must preserve a player-width central passage.");
+            Assert.That(transferVault.GetComponent<AuthoredRouteDoorReadability>().FrameKit.transform.lossyScale.z,
+                Is.EqualTo(1.6f).Within(0.001f),
+                "The required route frame must retain its widened player and NavMesh clearance.");
+            var routeFrame = transferVault.GetComponent<AuthoredRouteDoorReadability>().FrameKit;
+            Assert.That(transferVault.GetComponentsInChildren<AuthoredStatefulDoorFrame>(true), Has.Length.EqualTo(1),
+                "The Relay route must present a single structural door frame.");
+            Assert.That(routeFrame.transform.Find("Tracks Pistons and Pockets").gameObject.activeSelf, Is.False,
+                "The Relay route must not overlay a second full-height mechanism silhouette on its frame.");
+            var northSweepStart = transferVault.transform.TransformPoint(new Vector3(-2.2f, 0f, 2.4f));
+            var northSweepEnd = transferVault.transform.TransformPoint(new Vector3(-4.1f, 0f, 2.4f));
+            Assert.That(northFrameBounds.TryResolveSlide(
+                northSweepStart, northSweepEnd, 0.45f, out var northResolved), Is.True,
+                "Swept player movement must collide with the north frame upright.");
+            Assert.That(Vector3.Distance(northResolved, northSweepEnd), Is.GreaterThan(0.1f));
+            var southSweepStart = transferVault.transform.TransformPoint(new Vector3(-2.2f, 0f, -2.4f));
+            var southSweepEnd = transferVault.transform.TransformPoint(new Vector3(-4.1f, 0f, -2.4f));
+            Assert.That(southFrameBounds.TryResolveSlide(
+                southSweepStart, southSweepEnd, 0.45f, out var southResolved), Is.True,
+                "Swept player movement must collide with the south frame upright.");
+            Assert.That(Vector3.Distance(southResolved, southSweepEnd), Is.GreaterThan(0.1f));
             var relayRouteGate = transferVault.transform.Find("Central Relay Route Gate");
             Assert.That(relayRouteGate, Is.Not.Null);
             Assert.That(relayRouteGate.gameObject.activeSelf, Is.True);
@@ -157,7 +193,16 @@ namespace DeadSignal.Tests.PlayMode
             Assert.That(transferVault.transform.Find("Central Relay Route Threshold").gameObject.activeSelf, Is.True,
                 "The open route must keep a persistent authored threshold read.");
             Assert.That(centralInstallation.transform.Find("Central Payload Installed").gameObject.activeSelf, Is.True);
-            Assert.That(game.AuthoredMapObstacleCount, Is.EqualTo(138));
+            Assert.That(game.AuthoredMapObstacleCount, Is.EqualTo(authoredObstacleCount),
+                "Opening the route must preserve the authored obstacle registry.");
+
+            transferVault.SetRouteOpen(false);
+            Assert.That(transferVault.RoutePresentationState, Is.EqualTo(RouteDoorPresentationState.Locked));
+            yield return null;
+            Assert.That(transferVault.IsRelayRouteOpen, Is.True,
+                "The route must reconcile its physical state from installed-payload authority.");
+            Assert.That(transferVault.RoutePresentationState, Is.EqualTo(RouteDoorPresentationState.Open),
+                "The route frame must reconcile its presentation from installed-payload authority.");
 
             SceneManager.LoadScene("SampleScene");
             yield return null;

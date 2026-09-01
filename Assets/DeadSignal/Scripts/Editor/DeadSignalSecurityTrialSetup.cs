@@ -160,7 +160,7 @@ namespace DeadSignal.Editor
                     new Vector3(8f, 1f, 0.35f), materials.Armor, true);
                 var reward = _wall(vault.transform, "Trial Capacitor Reward", new Vector3(0f, 0.45f, 0f),
                     new Vector3(1.2f, 0.9f, 1.2f), materials.Amber, false);
-                var clearedSignal = _wall(root.transform, "Cleared Return Signal", new Vector3(0f, -0.1f, 21f),
+                var clearedSignal = _wall(root.transform, "Cleared Return Signal", new Vector3(0f, 0.1f, 21f),
                     new Vector3(0.18f, 0.04f, 41f), materials.Cyan, false);
 
                 var scenarioRoot = new GameObject("Security Trial Combat Scenario");

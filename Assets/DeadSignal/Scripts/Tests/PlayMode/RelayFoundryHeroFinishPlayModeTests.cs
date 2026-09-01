@@ -22,6 +22,8 @@ namespace DeadSignal.Tests.PlayMode
             var finish = Object.FindFirstObjectByType<AuthoredRelayFoundryHeroFinish>();
             var readability = Object.FindFirstObjectByType<AuthoredRelayNetworkReadability>();
             Assert.That(game, Is.Not.Null);
+            var authoredObstacleCount = game.AuthoredMapObstacleCount;
+            Assert.That(authoredObstacleCount, Is.GreaterThan(0));
             Assert.That(scene, Is.Not.Null);
             Assert.That(finish, Is.Not.Null.And.Property("IsConfigured").True);
             Assert.That(readability, Is.Not.Null.And.Property("IsConfigured").True);
@@ -46,7 +48,7 @@ namespace DeadSignal.Tests.PlayMode
                 Is.EqualTo("RelayFoundryHeroArmor"));
             Assert.That(tower.Find("Tower Column").GetComponent<Renderer>().sharedMaterial.name,
                 Is.EqualTo("RelayFoundryHeroCeramic"));
-            Assert.That(game.AuthoredMapObstacleCount, Is.EqualTo(138));
+            Assert.That(game.AuthoredMapObstacleCount, Is.EqualTo(authoredObstacleCount));
             Assert.That(game.AuthoredInterceptorEntranceCount, Is.EqualTo(9));
             Assert.That(readability.RelayState, Is.EqualTo(RelayTowerPresentationState.Dormant));
 
@@ -66,7 +68,10 @@ namespace DeadSignal.Tests.PlayMode
             yield return new WaitForSecondsRealtime(0.8f);
             Assert.That(readability.RelayState, Is.EqualTo(RelayTowerPresentationState.Powered));
             Assert.That(finish.transform.Find("Relay Return Bulkhead").gameObject.activeSelf, Is.False);
-            Assert.That(finish.transform.Find("Relay Return Threshold").gameObject.activeSelf, Is.True);
+            Assert.That(finish.transform.Find("Relay Return Threshold"), Is.Null,
+                "The Foundry finish must not duplicate the Central route frame at the shared doorway.");
+            Assert.That(game.AuthoredMapObstacleCount, Is.EqualTo(authoredObstacleCount),
+                "Removing the duplicate frame must not change the authored collision registry.");
 
             var captureDirectory = System.Environment.GetEnvironmentVariable("DEAD_SIGNAL_FOUNDRY_HERO_CAPTURE_DIR");
             if (!string.IsNullOrWhiteSpace(captureDirectory))

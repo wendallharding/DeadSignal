@@ -72,6 +72,7 @@ namespace DeadSignal.Presentation
         [SerializeField] private Text m_routingStatusText;
         [SerializeField] private Button[] m_rebindButtons;
         [SerializeField] private Text[] m_rebindButtonTexts;
+        [SerializeField] private PauseMenuPresentation m_pauseMenuPresentation;
 
         [Header("Shell Navigation")]
         [SerializeField] private Button m_pauseResumeButton;
@@ -173,6 +174,7 @@ namespace DeadSignal.Presentation
             m_threatInstrument = m_threatText.GetComponentInChildren<ThreatHudInstrument>(true);
             m_objectiveBeacon = GetComponent<ObjectiveBeaconHud>();
             m_interactionPrompt = m_contextPrompt.GetComponent<InteractionPromptHud>();
+            m_pauseMenuPresentation.Configure(m_input);
             m_contextPromptRect = m_contextPrompt.transform as RectTransform;
             m_contextPromptParent = m_contextPromptRect.parent as RectTransform;
             m_contextPromptAnchorMin = m_contextPromptRect.anchorMin;
@@ -541,6 +543,7 @@ namespace DeadSignal.Presentation
             }
 
             m_resumeText.text = $"PRESS {_binding("ESC", "GAMEPAD MENU")} TO RESUME";
+            m_pauseMenuPresentation.Apply(!m_pauseNavigationVisible);
         }
 
         private string _runReport()

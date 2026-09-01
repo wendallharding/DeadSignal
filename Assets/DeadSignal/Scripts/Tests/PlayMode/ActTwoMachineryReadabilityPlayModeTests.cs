@@ -20,18 +20,17 @@ namespace DeadSignal.Tests.PlayMode
             var game = Object.FindFirstObjectByType<DeadSignalGame>();
             var readability = Object.FindFirstObjectByType<AuthoredRelayNetworkReadability>(FindObjectsInactive.Include);
             var calibration = Object.FindFirstObjectByType<AuthoredRelayPayloadObjective>(FindObjectsInactive.Include);
-            var returnDoor = calibration.GetComponent<AuthoredRouteDoorReadability>();
             Assert.That(game, Is.Not.Null);
             Assert.That(readability, Is.Not.Null);
             Assert.That(calibration, Is.Not.Null);
-            Assert.That(returnDoor, Is.Not.Null);
             Assert.That(readability.IsConfigured, Is.True);
             Assert.That(calibration.HasReadabilityAssets, Is.True);
             Assert.That(readability.RelayState, Is.EqualTo(RelayTowerPresentationState.Dormant));
             Assert.That(readability.GantryState, Is.EqualTo(CoolingGantryPresentationState.PrerequisiteLocked));
             Assert.That(calibration.PresentationState,
                 Is.EqualTo(RelayCalibrationPresentationState.PrerequisiteLocked));
-            Assert.That(returnDoor.PresentationState, Is.EqualTo(RouteDoorPresentationState.Locked));
+            Assert.That(calibration.GetComponent<AuthoredRouteDoorReadability>(), Is.Null,
+                "The Central route threshold owns this shared doorway's presentation.");
 
             var relayPanel = readability.transform.Find("Relay Foundry Network Status");
             var gantryPanel = readability.transform.Find("Cooling Gantry Network Status");
@@ -49,11 +48,10 @@ namespace DeadSignal.Tests.PlayMode
                 Is.EqualTo("RelayFoundryWeaponCalibrationDecal"));
             Assert.That(calibrationSelector.GetComponent<MeshFilter>().sharedMesh.name,
                 Is.EqualTo("RelayForkSelectorReadability"));
-            Assert.That(returnThreshold.GetComponent<MeshFilter>().sharedMesh.name,
-                Is.EqualTo("RouteDoorThresholdReadability"));
+            Assert.That(returnThreshold, Is.Null,
+                "The overlapping Relay return threshold must not duplicate the Central route frame.");
             Assert.That(calibrationPanel.GetComponentsInChildren<Collider>(true), Is.Empty);
             Assert.That(calibrationSelector.GetComponentsInChildren<Collider>(true), Is.Empty);
-            Assert.That(returnThreshold.GetComponentsInChildren<Collider>(true), Is.Empty);
 
             game.DebugActivateTower();
             game.DebugCollectNextCache();
@@ -69,10 +67,7 @@ namespace DeadSignal.Tests.PlayMode
             yield return null;
             Assert.That(readability.RelayState, Is.EqualTo(RelayTowerPresentationState.Activating));
             Assert.That(readability.GantryState, Is.EqualTo(CoolingGantryPresentationState.ProcessingAvailable));
-            Assert.That(returnDoor.PresentationState, Is.EqualTo(RouteDoorPresentationState.Open));
             Assert.That(calibration.transform.Find("Relay Return Bulkhead").gameObject.activeSelf, Is.False);
-            Assert.That(returnThreshold.gameObject.activeSelf, Is.True,
-                "The completed doorway threshold must remain visible after its blocking slab retracts.");
             yield return new WaitForSecondsRealtime(0.8f);
             Assert.That(readability.RelayState, Is.EqualTo(RelayTowerPresentationState.Powered));
 
@@ -99,12 +94,11 @@ namespace DeadSignal.Tests.PlayMode
             yield return null;
             readability = Object.FindFirstObjectByType<AuthoredRelayNetworkReadability>(FindObjectsInactive.Include);
             calibration = Object.FindFirstObjectByType<AuthoredRelayPayloadObjective>(FindObjectsInactive.Include);
-            returnDoor = calibration.GetComponent<AuthoredRouteDoorReadability>();
             Assert.That(readability.RelayState, Is.EqualTo(RelayTowerPresentationState.Dormant));
             Assert.That(readability.GantryState, Is.EqualTo(CoolingGantryPresentationState.PrerequisiteLocked));
             Assert.That(calibration.PresentationState,
                 Is.EqualTo(RelayCalibrationPresentationState.PrerequisiteLocked));
-            Assert.That(returnDoor.PresentationState, Is.EqualTo(RouteDoorPresentationState.Locked));
+            Assert.That(calibration.GetComponent<AuthoredRouteDoorReadability>(), Is.Null);
         }
     }
 }

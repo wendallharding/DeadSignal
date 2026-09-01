@@ -31,6 +31,9 @@ namespace DeadSignal.Tests
                 var signalWake = player.GetComponent<PlayerDroneSignalWake>();
                 var tuning = Resources.Load<PlayerDroneMovementTuning>("Tuning/PlayerDroneMovementTuning");
                 var startingPosition = player.position;
+                var cameraForward = Object.FindFirstObjectByType<Camera>().transform.forward;
+                cameraForward.y = 0f;
+                cameraForward.Normalize();
 
                 InputSystem.QueueStateEvent(gamepad, new GamepadState
                 {
@@ -42,10 +45,13 @@ namespace DeadSignal.Tests
                     yield return null;
                 }
 
-                Assert.That(player.position.z, Is.GreaterThan(startingPosition.z));
+                var movementDirection = player.position - startingPosition;
+                movementDirection.y = 0f;
+                Assert.That(Vector3.Dot(movementDirection.normalized, cameraForward), Is.GreaterThan(0.95f),
+                    "Up input should move toward the top of the gameplay camera rather than world north.");
                 Assert.That(Quaternion.Angle(Quaternion.identity, body.localRotation), Is.GreaterThan(0.1f),
                     "Acceleration should bank the visual pivot without tilting the movement root.");
-                Assert.That(Vector3.Dot(body.forward, Vector3.forward), Is.GreaterThan(0.95f),
+                Assert.That(Vector3.Dot(body.forward, cameraForward), Is.GreaterThan(0.95f),
                     "The chassis should face resolved movement rather than aim.");
                 Assert.That(Vector3.Dot(turret.forward, Vector3.right), Is.GreaterThan(0.9f),
                     "The stabilized turret should independently follow right-stick aim.");
@@ -53,7 +59,7 @@ namespace DeadSignal.Tests
                     "The turret should remain visibly mounted above the chassis in perspective.");
                 Assert.That(signalWake.IsEmitting, Is.True,
                     "The twin Signal wake should communicate retained flight speed.");
-                Assert.That(Vector3.Dot(player.Find("Signal Wake Emitters").forward, Vector3.forward),
+                Assert.That(Vector3.Dot(player.Find("Signal Wake Emitters").forward, cameraForward),
                     Is.GreaterThan(0.95f), "Wake spacing should align to resolved travel direction.");
                 Assert.That(player.rotation.eulerAngles.x, Is.EqualTo(0f).Within(0.01f));
                 Assert.That(player.rotation.eulerAngles.y, Is.EqualTo(0f).Within(0.01f));
@@ -95,9 +101,14 @@ namespace DeadSignal.Tests
             Assert.That(camera.transform.parent, Is.EqualTo(followCamera.transform));
             Assert.That(camera.orthographic, Is.False);
             Assert.That(camera.fieldOfView, Is.EqualTo(tuning.FieldOfView).Within(0.001f));
+            var expectedCameraOffset = Quaternion.Euler(0f, tuning.Yaw, 0f) *
+                                       new Vector3(0f, tuning.Height, -tuning.FollowDistance);
             Assert.That(camera.transform.localPosition,
-                Is.EqualTo(new Vector3(0f, tuning.Height, -tuning.FollowDistance)));
-            Assert.That(camera.transform.localRotation.eulerAngles.x, Is.EqualTo(tuning.Pitch).Within(0.001f));
+                Is.EqualTo(expectedCameraOffset));
+            Assert.That(Quaternion.Angle(
+                    camera.transform.localRotation,
+                    Quaternion.Euler(tuning.Pitch, tuning.Yaw, 0f)),
+                Is.LessThan(0.001f));
 
             float startingRigX = followCamera.transform.position.x;
             player.position = new Vector3(8f, 0f, 0f);
@@ -109,7 +120,7 @@ namespace DeadSignal.Tests
             Assert.That(followCamera.transform.position.x, Is.GreaterThan(startingRigX + 2f),
                 "The tactical camera rig should visibly travel with the player.");
             Assert.That(camera.transform.localPosition,
-                Is.EqualTo(new Vector3(0f, tuning.Height, -tuning.FollowDistance)),
+                Is.EqualTo(expectedCameraOffset),
                 "Follow motion must not consume the child camera offset reserved for combat impulse.");
             var viewportPosition = camera.WorldToViewportPoint(player.position);
             Assert.That(viewportPosition.x, Is.InRange(0.1f, 0.9f));
