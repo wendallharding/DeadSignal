@@ -90,6 +90,7 @@ namespace DeadSignal.Editor
             DeadSignalStationBackdropSetup.EnsureAssets();
             DeadSignalStationWallKitSetup.EnsureAssets();
             DeadSignalStatefulDoorFrameSetup.EnsureAssets();
+            DeadSignalStationNavigationSignageSetup.EnsureAssets();
             DeadSignalForegroundCutawaySetup.EnsureAssets();
             DeadSignalSignalSpineSetup.EnsureAssets();
             DeadSignalBoundaryThresholdSetup.EnsureAssets();
@@ -423,6 +424,11 @@ namespace DeadSignal.Editor
             if (!DeadSignalStatefulDoorFrameSetup.HasAssets)
             {
                 throw new BuildFailedException("The reusable stateful progression-door frame kit is missing or incomplete.");
+            }
+
+            if (!DeadSignalStationNavigationSignageSetup.HasAssets)
+            {
+                throw new BuildFailedException("The authored station navigation-signage kit is missing or incomplete.");
             }
 
             if (!DeadSignalForegroundCutawaySetup.HasAssets)
