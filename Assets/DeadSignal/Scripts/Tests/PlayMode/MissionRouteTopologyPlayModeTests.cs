@@ -48,7 +48,7 @@ namespace DeadSignal.Tests
 
             Assert.That(departure.position, Is.EqualTo(new Vector3(-7.2f, 0f, -4.2f)));
             Assert.That(cargo.position, Is.EqualTo(new Vector3(9.7f, 0f, 6.3f)));
-            Assert.That(coolant.position, Is.EqualTo(new Vector3(10.4f, 0f, -6.4f)));
+            Assert.That(coolant.position, Is.EqualTo(new Vector3(10.4f, 0f, -4.8f)));
             Assert.That(relayFork.position, Is.EqualTo(new Vector3(-5.8f, 0f, 7.2f)));
             Assert.That(wardenBay.position, Is.EqualTo(new Vector3(6.8f, 0f, 4.7f)));
             Assert.That(sapperCradle.position, Is.EqualTo(new Vector3(-10.8f, 0f, 5.7f)));

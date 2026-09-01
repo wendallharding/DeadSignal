@@ -889,6 +889,8 @@ namespace DeadSignal.Tests
             Assert.That(salvageLocators, Is.Not.Empty);
             Assert.That(salvageLocators.All(locator => Mathf.Approximately(locator.localScale.y, 0.025f)), Is.True,
                 "Salvage locator pulses must remain thin instead of expanding through the cache geometry.");
+            Assert.That(salvageLocators.All(locator => Mathf.Approximately(locator.localPosition.y, 0.18f)), Is.True,
+                "Salvage locators must remain visibly clear of raised deck finishes.");
         }
 
         [UnityTest]
@@ -917,6 +919,7 @@ namespace DeadSignal.Tests
                 Assert.That(obstacle.OverlapsCircle(wall.position, 0.54f), Is.True,
                     $"{wallName}'s blocker must cover its visible center.");
             }
+
         }
 
         [UnityTest]
@@ -1312,8 +1315,8 @@ namespace DeadSignal.Tests
             var coolantGauntlet = GameObject.Find("Southeast Coolant Gauntlet");
             Assert.That(coolantGauntlet, Is.Not.Null,
                 "The southeast cache should sit inside a scene-authored coolant reclamation lane.");
-            Assert.That(coolantGauntlet.transform.position, Is.EqualTo(new Vector3(10.4f, 0f, -6.4f)),
-                "The gauntlet should surround the established cache without moving the objective.");
+            Assert.That(coolantGauntlet.transform.position, Is.EqualTo(new Vector3(10.4f, 0f, -4.8f)),
+                "The gauntlet should leave a navigable lane between its objective route and the south wall.");
             var coolantObstacles = coolantGauntlet.GetComponentsInChildren<AuthoredMapObstacle>();
             Assert.That(coolantObstacles.Length, Is.EqualTo(2));
             Assert.That(coolantObstacles.Sum(obstacle => obstacle.GetComponentsInChildren<Renderer>().Length), Is.EqualTo(8));

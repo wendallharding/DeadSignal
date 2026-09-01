@@ -90,6 +90,7 @@ namespace DeadSignal.World
         public AuthoredWithdrawalPursuitLandmark WardenBayLandmark { get; private set; }
         public AuthoredWithdrawalPursuitLandmark SapperCradleLandmark { get; private set; }
         public AuthoredExtractionDockReadability ExtractionDockReadability { get; private set; }
+        public IReadOnlyList<AuthoredMapObstacle> AuthoredMapObstacles => m_authoredMapObstacles;
         public IReadOnlyList<GameObject> SalvagePickups => m_salvagePickups;
 
         public SignalRegion GetPayloadRegion(GameObject pickup) => m_salvageRegions.TryGetValue(pickup, out var region)
@@ -1803,7 +1804,7 @@ namespace DeadSignal.World
                     new Vector3(0.9f, 0.06f, 0.28f), m_palette.White, root.transform);
             }
 
-            _createPrimitive("Salvage Locator", PrimitiveType.Cylinder, new Vector3(0f, 0.08f, 0f),
+            _createPrimitive("Salvage Locator", PrimitiveType.Cylinder, new Vector3(0f, SALVAGE_LOCATOR_CENTER_HEIGHT, 0f),
                 new Vector3(1.35f, SALVAGE_LOCATOR_HEIGHT, 1.35f), m_palette.Amber, root.transform);
             _createPrimitive("Salvage Beacon", PrimitiveType.Cube, new Vector3(0f, 1.35f, 0f),
                 new Vector3(0.1f, 1.3f, 0.1f), m_palette.Amber, root.transform);
@@ -2734,6 +2735,7 @@ namespace DeadSignal.World
         private const string SIGNAL_BOLT_PREFAB_RESOURCE = "Projectiles/SignalBoltAssembly";
         private const string PLAYER_CAMERA_TUNING_RESOURCE = "Tuning/PlayerCameraTuning";
         private const string ENVIRONMENT_LIGHTING_TUNING_RESOURCE = "Tuning/EnvironmentLightingTuning";
+        private const float SALVAGE_LOCATOR_CENTER_HEIGHT = 0.18f;
         private const float SALVAGE_LOCATOR_HEIGHT = 0.025f;
         private const float SPINE_TOWER_INTERACTION_RADIUS = 1.6f;
         private const float TOWER_BLOCKER_HALF_SIZE = 0.62f;

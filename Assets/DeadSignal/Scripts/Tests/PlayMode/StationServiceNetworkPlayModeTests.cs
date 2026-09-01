@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.IO;
+using System.Linq;
 using DeadSignal.Application;
 using DeadSignal.World;
 using NUnit.Framework;
@@ -13,6 +14,36 @@ namespace DeadSignal.Tests
 {
     public sealed class StationServiceNetworkPlayModeTests
     {
+        [UnityTest]
+        public IEnumerator OverheadServices_ClearDroneSilhouette()
+        {
+            yield return SceneManager.LoadSceneAsync("SampleScene");
+            yield return null;
+
+            var references = Object.FindFirstObjectByType<DeadSignalSceneReferences>();
+            Assert.That(references, Is.Not.Null);
+            var droneTop = references.Player.GetComponentsInChildren<Renderer>()
+                .Max(renderer => renderer.bounds.max.y - references.Player.position.y);
+            var cableTrayBottom = Resources.Load<Mesh>("Environment/StationCableTrays").bounds.min.y;
+            var coolantPipeBottom = Resources.Load<Mesh>("Environment/StationCoolantPipes").bounds.min.y;
+
+            Assert.That(cableTrayBottom, Is.GreaterThan(droneTop + 0.15f),
+                "Overhead cable trays must clear the complete drone silhouette.");
+            Assert.That(coolantPipeBottom, Is.GreaterThan(droneTop + 0.15f),
+                "Overhead coolant pipes must clear the complete drone silhouette.");
+
+            var pipeRenderers = Object.FindObjectsByType<Renderer>(
+                    FindObjectsInactive.Include,
+                    FindObjectsSortMode.None)
+                .Where(renderer => renderer.name.Contains("Pipe", StringComparison.OrdinalIgnoreCase))
+                .ToArray();
+            Assert.That(pipeRenderers, Is.Not.Empty);
+            Assert.That(pipeRenderers.All(renderer =>
+                    renderer.GetComponentInParent<AuthoredMapObstacle>() != null ||
+                    renderer.bounds.min.y > references.Player.position.y + droneTop + 0.15f), Is.True,
+                "Every pipe assembly must either clear the drone or belong to blocked machinery.");
+        }
+
         [UnityTest]
         public IEnumerator MajorMachinery_HasColliderFreeServiceConnections()
         {

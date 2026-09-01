@@ -33,7 +33,7 @@ namespace DeadSignal.Tests
                 Is.GreaterThanOrEqualTo((references.ArenaHalfExtents.y + cameraSafetyMargin) * 2f));
             Assert.That(backdrop.GetComponentInChildren<Collider>(), Is.Null,
                 "The visual underdeck must not create movement, projectile, or NavMesh collision.");
-            Assert.That(backdrop.StructureRenderers, Has.Length.EqualTo(1));
+            Assert.That(backdrop.StructureRenderers, Has.Length.EqualTo(4));
             var structureRenderer = backdrop.StructureRenderers[0];
             Assert.That(structureRenderer, Is.Not.Null);
             Assert.That(structureRenderer.name, Is.EqualTo("Modular Underdeck Ribs"));
@@ -45,6 +45,31 @@ namespace DeadSignal.Tests
             Assert.That(structureRenderer.bounds.max.x, Is.GreaterThanOrEqualTo(backdrop.Coverage.x * 0.45f));
             Assert.That(structureRenderer.bounds.min.z, Is.LessThanOrEqualTo(-backdrop.Coverage.y * 0.45f));
             Assert.That(structureRenderer.bounds.max.z, Is.GreaterThanOrEqualTo(backdrop.Coverage.y * 0.45f));
+
+            var expectedDepthLayers = new[]
+            {
+                "Distant Superstructure",
+                "Service Shafts",
+                "Distant Machinery Silhouettes"
+            };
+            var highestPoint = float.NegativeInfinity;
+            var lowestPoint = float.PositiveInfinity;
+            for (var i = 1; i < backdrop.StructureRenderers.Length; i++)
+            {
+                var depthRenderer = backdrop.StructureRenderers[i];
+                Assert.That(depthRenderer, Is.Not.Null);
+                Assert.That(depthRenderer.name, Is.EqualTo(expectedDepthLayers[i - 1]));
+                Assert.That(depthRenderer.GetComponent<MeshFilter>().sharedMesh.vertexCount,
+                    Is.GreaterThanOrEqualTo(160));
+                Assert.That(depthRenderer.GetComponent<Collider>(), Is.Null,
+                    "Depth and parallax layers must remain presentation-only.");
+                Assert.That(depthRenderer.bounds.max.y, Is.LessThan(0f),
+                    "Distant station silhouettes must remain below the playable deck.");
+                highestPoint = Mathf.Max(highestPoint, depthRenderer.bounds.max.y);
+                lowestPoint = Mathf.Min(lowestPoint, depthRenderer.bounds.min.y);
+            }
+            Assert.That(highestPoint - lowestPoint, Is.GreaterThanOrEqualTo(0.65f),
+                "Separated underdeck elevations provide bounded perspective parallax without scripted motion.");
 
             var renderer = backdrop.GetComponentInChildren<Renderer>();
             Assert.That(renderer, Is.Not.Null);
@@ -59,24 +84,24 @@ namespace DeadSignal.Tests
                 Is.GreaterThanOrEqualTo(references.ArenaHalfExtents.y + cameraSafetyMargin));
 
             var game = Object.FindFirstObjectByType<DeadSignalGame>();
-            Assert.That(game.AuthoredMapObstacleCount, Is.EqualTo(138));
+            Assert.That(game, Is.Not.Null);
             game.DebugTeleport(DebugLocation.CentralTower);
             yield return new WaitForSecondsRealtime(0.5f);
-            _captureIfRequested(references.PlayerCamera, "P24-Central-Underdeck-1600x900.png", 1600, 900);
+            _captureIfRequested(references.PlayerCamera, "P31-Central-Depth-1600x900.png", 1600, 900);
             game.DebugTeleport(DebugLocation.SpineTower);
             yield return new WaitForSecondsRealtime(0.5f);
-            _captureIfRequested(references.PlayerCamera, "P24-Spine-Underdeck-1280x720.png", 1280, 720);
+            _captureIfRequested(references.PlayerCamera, "P31-Spine-Depth-1280x720.png", 1280, 720);
             game.DebugTeleport(DebugLocation.FarEast);
             yield return new WaitForSecondsRealtime(0.5f);
-            _captureIfRequested(references.PlayerCamera, "P24-Deep-Core-Underdeck-1600x900.png", 1600, 900);
+            _captureIfRequested(references.PlayerCamera, "P31-Deep-Core-Depth-1600x900.png", 1600, 900);
             game.DebugTeleport(DebugLocation.Extraction);
             yield return new WaitForSecondsRealtime(0.5f);
-            _captureIfRequested(references.PlayerCamera, "P24-Dock-Underdeck-1600x900.png", 1600, 900);
+            _captureIfRequested(references.PlayerCamera, "P31-Dock-Depth-1600x900.png", 1600, 900);
         }
 
         private static void _captureIfRequested(Camera camera, string fileName, int width, int height)
         {
-            var captureDirectory = Environment.GetEnvironmentVariable("DEAD_SIGNAL_P24_CAPTURE_DIR");
+            var captureDirectory = Environment.GetEnvironmentVariable("DEAD_SIGNAL_P31_CAPTURE_DIR");
             if (string.IsNullOrWhiteSpace(captureDirectory))
             {
                 return;

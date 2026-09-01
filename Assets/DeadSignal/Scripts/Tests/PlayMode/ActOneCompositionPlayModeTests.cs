@@ -35,7 +35,7 @@ namespace DeadSignal.Tests.PlayMode
                 "Relay Fork must own an underdeck apron.");
             Assert.That(composition.Sections[0].bounds.Contains(new Vector3(9.7f, -0.71f, 6.3f)), Is.True,
                 "Cargo Annex must own an underdeck apron.");
-            Assert.That(composition.Sections[0].bounds.Contains(new Vector3(10.4f, -0.71f, -6.4f)), Is.True,
+            Assert.That(composition.Sections[0].bounds.Contains(new Vector3(10.4f, -0.71f, -4.8f)), Is.True,
                 "Coolant Reclamation must own an underdeck apron.");
             Assert.That(composition.Sections[0].bounds.Contains(new Vector3(16.7f, -0.71f, 0f)), Is.True,
                 "Transfer Vault must own an underdeck apron.");

@@ -30,6 +30,20 @@ namespace DeadSignal.Tests.PlayMode
             Assert.That(objective.IsConfigured, Is.True);
             Assert.That(objective.HasReadabilityAssets, Is.True);
             Assert.That(objective.PresentationState, Is.EqualTo(CoolantReclamationPresentationState.Locked));
+            var obstacles = Object.FindObjectsByType<AuthoredMapObstacle>(FindObjectsSortMode.None);
+            var objectivePositions = new[]
+            {
+                objective.FirstBafflePosition,
+                objective.SecondBafflePosition,
+                objective.SealPosition,
+                objective.ReleasePosition
+            };
+            foreach (var objectivePosition in objectivePositions)
+            {
+                var blockingObstacle = Array.Find(obstacles, obstacle => obstacle.OverlapsCircle(objectivePosition, 0.48f));
+                Assert.That(blockingObstacle, Is.Null,
+                    $"Coolant objective at {objectivePosition} must remain accessible; blocked by {blockingObstacle?.name}.");
+            }
 
             var hero = objective.GetComponentInChildren<AuthoredCoolantReclamationHeroFinish>(true);
             Assert.That(hero, Is.Not.Null);

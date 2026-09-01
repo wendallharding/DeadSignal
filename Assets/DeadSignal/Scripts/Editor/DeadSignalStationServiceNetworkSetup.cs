@@ -32,6 +32,7 @@ namespace DeadSignal.Editor
         private const string ENVIRONMENT_PATH = "DEAD SIGNAL — Authored World/Environment";
         private const string NETWORK_NAME = "Station Service Network";
         private const int CONNECTION_CLUSTER_COUNT = 8;
+        private const float OVERHEAD_SERVICE_HEIGHT = 1.6f;
 
         public static bool HasAssets
         {
@@ -79,43 +80,43 @@ namespace DeadSignal.Editor
             var builder = new MeshBuilder("StationCableTrays");
             _addTrayRun(builder, new[]
             {
-                new Vector3(-10.4f, 0.24f, -0.3f), new Vector3(-7.2f, 0.24f, -0.3f),
-                new Vector3(-7.2f, 0.24f, 2.1f), new Vector3(-2.4f, 0.24f, 2.1f)
+                new Vector3(-10.4f, OVERHEAD_SERVICE_HEIGHT, -0.3f), new Vector3(-7.2f, OVERHEAD_SERVICE_HEIGHT, -0.3f),
+                new Vector3(-7.2f, OVERHEAD_SERVICE_HEIGHT, 2.1f), new Vector3(-2.4f, OVERHEAD_SERVICE_HEIGHT, 2.1f)
             });
             _addTrayRun(builder, new[]
             {
-                new Vector3(-5.8f, 0.24f, 8.5f), new Vector3(-2.2f, 0.24f, 8.5f),
-                new Vector3(-2.2f, 0.24f, 6.1f)
+                new Vector3(-5.8f, OVERHEAD_SERVICE_HEIGHT, 8.5f), new Vector3(-2.2f, OVERHEAD_SERVICE_HEIGHT, 8.5f),
+                new Vector3(-2.2f, OVERHEAD_SERVICE_HEIGHT, 6.1f)
             });
             _addTrayRun(builder, new[]
             {
-                new Vector3(10.7f, 0.24f, 1.1f), new Vector3(14.5f, 0.24f, 1.1f),
-                new Vector3(14.5f, 0.24f, 4.7f), new Vector3(20.8f, 0.24f, 4.7f)
+                new Vector3(10.7f, OVERHEAD_SERVICE_HEIGHT, 1.1f), new Vector3(14.5f, OVERHEAD_SERVICE_HEIGHT, 1.1f),
+                new Vector3(14.5f, OVERHEAD_SERVICE_HEIGHT, 4.7f), new Vector3(20.8f, OVERHEAD_SERVICE_HEIGHT, 4.7f)
             });
             _addTrayRun(builder, new[]
             {
-                new Vector3(27.2f, 0.24f, 5.3f), new Vector3(32.4f, 0.24f, 5.3f),
-                new Vector3(32.4f, 0.24f, 9.4f), new Vector3(38.8f, 0.24f, 9.4f)
+                new Vector3(27.2f, OVERHEAD_SERVICE_HEIGHT, 5.3f), new Vector3(32.4f, OVERHEAD_SERVICE_HEIGHT, 5.3f),
+                new Vector3(32.4f, OVERHEAD_SERVICE_HEIGHT, 9.4f), new Vector3(38.8f, OVERHEAD_SERVICE_HEIGHT, 9.4f)
             });
             _addTrayRun(builder, new[]
             {
-                new Vector3(45.8f, 0.24f, 14.2f), new Vector3(47.5f, 0.24f, 14.2f),
-                new Vector3(47.5f, 0.24f, 27.8f)
+                new Vector3(45.8f, OVERHEAD_SERVICE_HEIGHT, 14.2f), new Vector3(47.5f, OVERHEAD_SERVICE_HEIGHT, 14.2f),
+                new Vector3(47.5f, OVERHEAD_SERVICE_HEIGHT, 27.8f)
             });
             _addTrayRun(builder, new[]
             {
-                new Vector3(39.2f, 0.24f, 30.1f), new Vector3(36.4f, 0.24f, 30.1f),
-                new Vector3(36.4f, 0.24f, 36.7f), new Vector3(39.3f, 0.24f, 36.7f)
+                new Vector3(39.2f, OVERHEAD_SERVICE_HEIGHT, 30.1f), new Vector3(36.4f, OVERHEAD_SERVICE_HEIGHT, 30.1f),
+                new Vector3(36.4f, OVERHEAD_SERVICE_HEIGHT, 36.7f), new Vector3(39.3f, OVERHEAD_SERVICE_HEIGHT, 36.7f)
             });
             _addTrayRun(builder, new[]
             {
-                new Vector3(46f, 0.24f, 39.1f), new Vector3(48.1f, 0.24f, 39.1f),
-                new Vector3(48.1f, 0.24f, 47.2f), new Vector3(45.7f, 0.24f, 47.2f)
+                new Vector3(46f, OVERHEAD_SERVICE_HEIGHT, 39.1f), new Vector3(48.1f, OVERHEAD_SERVICE_HEIGHT, 39.1f),
+                new Vector3(48.1f, OVERHEAD_SERVICE_HEIGHT, 47.2f), new Vector3(45.7f, OVERHEAD_SERVICE_HEIGHT, 47.2f)
             });
             _addTrayRun(builder, new[]
             {
-                new Vector3(39.2f, 0.24f, 51.4f), new Vector3(37.1f, 0.24f, 51.4f),
-                new Vector3(37.1f, 0.24f, 68.1f), new Vector3(39.2f, 0.24f, 68.1f)
+                new Vector3(39.2f, OVERHEAD_SERVICE_HEIGHT, 51.4f), new Vector3(37.1f, OVERHEAD_SERVICE_HEIGHT, 51.4f),
+                new Vector3(37.1f, OVERHEAD_SERVICE_HEIGHT, 68.1f), new Vector3(39.2f, OVERHEAD_SERVICE_HEIGHT, 68.1f)
             });
             return builder.Build();
         }
@@ -139,23 +140,23 @@ namespace DeadSignal.Editor
             var builder = new MeshBuilder("StationCoolantPipes");
             _addPipeRun(builder, new[]
             {
-                new Vector3(5.7f, 0.48f, 8.7f), new Vector3(8.8f, 0.48f, 8.7f),
-                new Vector3(8.8f, 0.48f, 3.2f), new Vector3(11.1f, 0.48f, 3.2f)
+                new Vector3(5.7f, OVERHEAD_SERVICE_HEIGHT, 8.7f), new Vector3(8.8f, OVERHEAD_SERVICE_HEIGHT, 8.7f),
+                new Vector3(8.8f, OVERHEAD_SERVICE_HEIGHT, 3.2f), new Vector3(11.1f, OVERHEAD_SERVICE_HEIGHT, 3.2f)
             });
             _addPipeRun(builder, new[]
             {
-                new Vector3(23.6f, 0.48f, 2.1f), new Vector3(23.6f, 0.48f, -1.2f),
-                new Vector3(28.7f, 0.48f, -1.2f), new Vector3(28.7f, 0.48f, 2.2f)
+                new Vector3(23.6f, OVERHEAD_SERVICE_HEIGHT, 2.1f), new Vector3(23.6f, OVERHEAD_SERVICE_HEIGHT, -1.2f),
+                new Vector3(28.7f, OVERHEAD_SERVICE_HEIGHT, -1.2f), new Vector3(28.7f, OVERHEAD_SERVICE_HEIGHT, 2.2f)
             });
             _addPipeRun(builder, new[]
             {
-                new Vector3(40.5f, 0.48f, 17.2f), new Vector3(38.6f, 0.48f, 17.2f),
-                new Vector3(38.6f, 0.48f, 24.7f), new Vector3(40.2f, 0.48f, 24.7f)
+                new Vector3(40.5f, OVERHEAD_SERVICE_HEIGHT, 17.2f), new Vector3(38.6f, OVERHEAD_SERVICE_HEIGHT, 17.2f),
+                new Vector3(38.6f, OVERHEAD_SERVICE_HEIGHT, 24.7f), new Vector3(40.2f, OVERHEAD_SERVICE_HEIGHT, 24.7f)
             });
             _addPipeRun(builder, new[]
             {
-                new Vector3(45.1f, 0.48f, 38.6f), new Vector3(49.2f, 0.48f, 38.6f),
-                new Vector3(49.2f, 0.48f, 43.7f), new Vector3(45.4f, 0.48f, 43.7f)
+                new Vector3(45.1f, OVERHEAD_SERVICE_HEIGHT, 38.6f), new Vector3(49.2f, OVERHEAD_SERVICE_HEIGHT, 38.6f),
+                new Vector3(49.2f, OVERHEAD_SERVICE_HEIGHT, 43.7f), new Vector3(45.4f, OVERHEAD_SERVICE_HEIGHT, 43.7f)
             });
             return builder.Build();
         }

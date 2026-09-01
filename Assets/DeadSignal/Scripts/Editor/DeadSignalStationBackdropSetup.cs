@@ -17,6 +17,18 @@ namespace DeadSignal.Editor
             "Assets/DeadSignal/Resources/Materials/StationUnderdeckRibs.mat";
         private const string STRUCTURE_MESH_PATH =
             "Assets/DeadSignal/Resources/Environment/StationUnderdeckStructure.asset";
+        private const string SUPERSTRUCTURE_MATERIAL_PATH =
+            "Assets/DeadSignal/Resources/Materials/StationDistantSuperstructure.mat";
+        private const string SUPERSTRUCTURE_MESH_PATH =
+            "Assets/DeadSignal/Resources/Environment/StationDistantSuperstructure.asset";
+        private const string SHAFT_MATERIAL_PATH =
+            "Assets/DeadSignal/Resources/Materials/StationServiceShafts.mat";
+        private const string SHAFT_MESH_PATH =
+            "Assets/DeadSignal/Resources/Environment/StationServiceShafts.asset";
+        private const string MACHINERY_MATERIAL_PATH =
+            "Assets/DeadSignal/Resources/Materials/StationDistantMachinery.mat";
+        private const string MACHINERY_MESH_PATH =
+            "Assets/DeadSignal/Resources/Environment/StationDistantMachinery.asset";
         private const string PREFAB_PATH = "Assets/DeadSignal/Resources/Environment/StationUnderdeckBackdrop.prefab";
         private const string SCENE_PATH = "Assets/DeadSignal/Scenes/SampleScene.unity";
         private const string ENVIRONMENT_PATH = "DEAD SIGNAL — Authored World/Environment";
@@ -34,8 +46,14 @@ namespace DeadSignal.Editor
                        AssetDatabase.LoadAssetAtPath<Material>(MATERIAL_PATH) != null &&
                        AssetDatabase.LoadAssetAtPath<Material>(STRUCTURE_MATERIAL_PATH) != null &&
                        AssetDatabase.LoadAssetAtPath<Mesh>(STRUCTURE_MESH_PATH) != null &&
+                       AssetDatabase.LoadAssetAtPath<Material>(SUPERSTRUCTURE_MATERIAL_PATH) != null &&
+                       AssetDatabase.LoadAssetAtPath<Mesh>(SUPERSTRUCTURE_MESH_PATH) != null &&
+                       AssetDatabase.LoadAssetAtPath<Material>(SHAFT_MATERIAL_PATH) != null &&
+                       AssetDatabase.LoadAssetAtPath<Mesh>(SHAFT_MESH_PATH) != null &&
+                       AssetDatabase.LoadAssetAtPath<Material>(MACHINERY_MATERIAL_PATH) != null &&
+                       AssetDatabase.LoadAssetAtPath<Mesh>(MACHINERY_MESH_PATH) != null &&
                        backdrop != null && backdrop.Coverage == s_coverage &&
-                       backdrop.StructureRenderers is { Length: 1 } &&
+                       backdrop.StructureRenderers is { Length: 4 } &&
                        prefab.GetComponentInChildren<Collider>() == null;
             }
         }
@@ -46,7 +64,16 @@ namespace DeadSignal.Editor
             _configureTextureImport();
             var material = _ensureMaterial();
             _ensureStructureMaterial();
+            _ensureDepthMaterial(SUPERSTRUCTURE_MATERIAL_PATH, "StationDistantSuperstructure",
+                new Color(0.13f, 0.17f, 0.22f, 1f), new Color(0.012f, 0.02f, 0.03f, 1f), 0.38f, 0.2f);
+            _ensureDepthMaterial(SHAFT_MATERIAL_PATH, "StationServiceShafts",
+                new Color(0.2f, 0.23f, 0.27f, 1f), new Color(0.018f, 0.028f, 0.04f, 1f), 0.42f, 0.24f);
+            _ensureDepthMaterial(MACHINERY_MATERIAL_PATH, "StationDistantMachinery",
+                new Color(0.1f, 0.15f, 0.18f, 1f), new Color(0.01f, 0.03f, 0.035f, 1f), 0.3f, 0.16f);
             _ensureMesh(STRUCTURE_MESH_PATH, _buildStructure());
+            _ensureMesh(SUPERSTRUCTURE_MESH_PATH, _buildDistantSuperstructure());
+            _ensureMesh(SHAFT_MESH_PATH, _buildServiceShafts());
+            _ensureMesh(MACHINERY_MESH_PATH, _buildDistantMachinery());
             _ensurePrefab(material);
             _ensureScenePlacement();
             AssetDatabase.SaveAssets();
@@ -130,6 +157,37 @@ namespace DeadSignal.Editor
             EditorUtility.SetDirty(material);
         }
 
+        private static void _ensureDepthMaterial(
+            string path,
+            string name,
+            Color baseColor,
+            Color emissionColor,
+            float metallic,
+            float smoothness)
+        {
+            var material = AssetDatabase.LoadAssetAtPath<Material>(path);
+            if (material == null)
+            {
+                var template = AssetDatabase.LoadAssetAtPath<Material>(
+                    "Assets/DeadSignal/Resources/Materials/RuntimeLitTemplate.mat");
+                if (template == null)
+                {
+                    throw new InvalidOperationException("The runtime Lit material template is missing.");
+                }
+
+                material = new Material(template) { name = name };
+                AssetDatabase.CreateAsset(material, path);
+            }
+
+            material.SetColor("_BaseColor", baseColor);
+            material.SetFloat("_Metallic", metallic);
+            material.SetFloat("_Smoothness", smoothness);
+            material.SetColor("_EmissionColor", emissionColor);
+            material.EnableKeyword("_EMISSION");
+            material.globalIlluminationFlags = MaterialGlobalIlluminationFlags.None;
+            EditorUtility.SetDirty(material);
+        }
+
         private static void _ensurePrefab(Material material)
         {
             var instance = new GameObject(BACKDROP_NAME);
@@ -153,13 +211,31 @@ namespace DeadSignal.Editor
                 _configureRenderer(structureRenderer,
                     AssetDatabase.LoadAssetAtPath<Material>(STRUCTURE_MATERIAL_PATH), true);
 
-                instance.AddComponent<AuthoredStationBackdrop>().Configure(s_coverage, new[] { structureRenderer });
+                var superstructureRenderer = _addDepthLayer(instance.transform, "Distant Superstructure",
+                    SUPERSTRUCTURE_MESH_PATH, SUPERSTRUCTURE_MATERIAL_PATH);
+                var shaftRenderer = _addDepthLayer(instance.transform, "Service Shafts",
+                    SHAFT_MESH_PATH, SHAFT_MATERIAL_PATH);
+                var machineryRenderer = _addDepthLayer(instance.transform, "Distant Machinery Silhouettes",
+                    MACHINERY_MESH_PATH, MACHINERY_MATERIAL_PATH);
+
+                instance.AddComponent<AuthoredStationBackdrop>().Configure(s_coverage,
+                    new[] { structureRenderer, superstructureRenderer, shaftRenderer, machineryRenderer });
                 PrefabUtility.SaveAsPrefabAsset(instance, PREFAB_PATH);
             }
             finally
             {
                 UnityEngine.Object.DestroyImmediate(instance);
             }
+        }
+
+        private static Renderer _addDepthLayer(Transform parent, string name, string meshPath, string materialPath)
+        {
+            var layer = new GameObject(name, typeof(MeshFilter), typeof(MeshRenderer));
+            layer.transform.SetParent(parent, false);
+            layer.GetComponent<MeshFilter>().sharedMesh = AssetDatabase.LoadAssetAtPath<Mesh>(meshPath);
+            var renderer = layer.GetComponent<MeshRenderer>();
+            _configureRenderer(renderer, AssetDatabase.LoadAssetAtPath<Material>(materialPath), true);
+            return renderer;
         }
 
         private static Mesh _buildStructure()
@@ -191,6 +267,89 @@ namespace DeadSignal.Editor
             {
                 builder.AddBox(new Vector3(0f, y - 0.02f, z),
                     new Vector3(horizontalSpan, depth * 0.65f, ribWidth * 0.45f));
+            }
+
+            return builder.Build();
+        }
+
+        private static Mesh _buildDistantSuperstructure()
+        {
+            var builder = new MeshBuilder("StationDistantSuperstructure");
+            const float y = -0.72f;
+            const float depth = 0.22f;
+
+            for (var x = -96f; x <= 96f; x += 24f)
+            {
+                builder.AddBox(new Vector3(x, y, 0f), new Vector3(0.9f, depth, 258f));
+            }
+
+            for (var z = -126f; z <= 126f; z += 24f)
+            {
+                builder.AddBox(new Vector3(0f, y, z), new Vector3(198f, depth, 0.9f));
+            }
+
+            for (var z = -120f; z <= 120f; z += 48f)
+            {
+                builder.AddBox(new Vector3(-100f, y + 0.08f, z), new Vector3(4f, 0.38f, 12f));
+                builder.AddBox(new Vector3(100f, y + 0.08f, z), new Vector3(4f, 0.38f, 12f));
+            }
+
+            return builder.Build();
+        }
+
+        private static Mesh _buildServiceShafts()
+        {
+            var builder = new MeshBuilder("StationServiceShafts");
+            var shaftPositions = new[]
+            {
+                new Vector2(-96f, -112f), new Vector2(-96f, -72f), new Vector2(-96f, -24f),
+                new Vector2(-96f, 28f), new Vector2(-96f, 76f), new Vector2(-96f, 116f),
+                new Vector2(96f, -112f), new Vector2(96f, -64f), new Vector2(96f, -16f),
+                new Vector2(96f, 32f), new Vector2(96f, 80f), new Vector2(96f, 116f),
+                new Vector2(-72f, -128f), new Vector2(-24f, -128f), new Vector2(28f, -128f),
+                new Vector2(76f, -128f), new Vector2(-72f, 128f), new Vector2(-20f, 128f),
+                new Vector2(32f, 128f), new Vector2(76f, 128f)
+            };
+
+            for (var i = 0; i < shaftPositions.Length; i++)
+            {
+                var position = shaftPositions[i];
+                var height = i % 3 == 0 ? 0.92f : 0.68f;
+                var width = i % 2 == 0 ? 2.8f : 2.1f;
+                builder.AddBox(new Vector3(position.x, -0.96f + height * 0.5f, position.y),
+                    new Vector3(width, height, width));
+                builder.AddBox(new Vector3(position.x, -0.94f, position.y),
+                    new Vector3(width + 1.2f, 0.16f, width + 1.2f));
+            }
+
+            return builder.Build();
+        }
+
+        private static Mesh _buildDistantMachinery()
+        {
+            var builder = new MeshBuilder("StationDistantMachinery");
+            var clusterCenters = new[]
+            {
+                new Vector2(-86f, -104f), new Vector2(-88f, -52f), new Vector2(-86f, 54f),
+                new Vector2(-84f, 108f), new Vector2(86f, -102f), new Vector2(88f, -48f),
+                new Vector2(86f, 50f), new Vector2(84f, 106f), new Vector2(-52f, -120f),
+                new Vector2(52f, -120f), new Vector2(-48f, 120f), new Vector2(50f, 120f)
+            };
+
+            for (var i = 0; i < clusterCenters.Length; i++)
+            {
+                var center = clusterCenters[i];
+                var alongX = i % 2 == 0;
+                var bodySize = alongX ? new Vector3(8f, 0.5f, 3.2f) : new Vector3(3.2f, 0.5f, 8f);
+                builder.AddBox(new Vector3(center.x, -0.72f, center.y), bodySize);
+                builder.AddBox(new Vector3(center.x, -0.41f, center.y),
+                    alongX ? new Vector3(3.6f, 0.22f, 2.1f) : new Vector3(2.1f, 0.22f, 3.6f));
+
+                var offset = alongX ? new Vector3(4.8f, 0f, 0f) : new Vector3(0f, 0f, 4.8f);
+                builder.AddBox(new Vector3(center.x, -0.78f, center.y) + offset,
+                    new Vector3(1.4f, 0.36f, 1.4f));
+                builder.AddBox(new Vector3(center.x, -0.78f, center.y) - offset,
+                    new Vector3(1.4f, 0.36f, 1.4f));
             }
 
             return builder.Build();

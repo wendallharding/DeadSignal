@@ -39,7 +39,7 @@ namespace DeadSignal.Editor
         private const string GAUNTLET_PREFAB_PATH = "Assets/DeadSignal/Resources/Environment/SoutheastCoolantGauntlet.prefab";
         private const string SCENE_PATH = "Assets/DeadSignal/Scenes/SampleScene.unity";
 
-        private static readonly Vector3 s_salvagePosition = new(10.4f, 0f, -6.4f);
+        private static readonly Vector3 s_salvagePosition = new(10.4f, 0f, -4.8f);
 
         public static bool HasAssets
         {
@@ -550,10 +550,11 @@ namespace DeadSignal.Editor
                     throw new InvalidOperationException("Could not place the coolant gauntlet in SampleScene.");
                 }
 
-                existing.name = "Southeast Coolant Gauntlet";
-                existing.transform.position = s_salvagePosition;
-                EditorSceneManager.SaveScene(scene);
             }
+
+            existing.name = "Southeast Coolant Gauntlet";
+            existing.transform.position = s_salvagePosition;
+            EditorSceneManager.SaveScene(scene);
 
             if (existing.transform.position != s_salvagePosition ||
                 existing.GetComponentsInChildren<AuthoredMapObstacle>().Length != 2)
