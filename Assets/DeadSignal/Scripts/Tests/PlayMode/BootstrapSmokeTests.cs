@@ -152,8 +152,11 @@ namespace DeadSignal.Tests
                 var objectiveIcon = GameObject.Find("Objective Beacon").transform.Find("Direction") as RectTransform;
                 Assert.That(contextPrompt, Is.Not.Null);
                 Assert.That(contextPrompt.activeSelf, Is.True);
-                Assert.That(contextPrompt.GetComponentInChildren<Text>().text, Does.Contain("ACTIVATE RELAY FOUNDRY"));
-                Assert.That(contextPrompt.GetComponentInChildren<Text>().text, Does.Not.Contain("COST"));
+                var interactionPrompt = contextPrompt.GetComponent<InteractionPromptHud>();
+                Assert.That(interactionPrompt, Is.Not.Null);
+                Assert.That(interactionPrompt.PrimaryGlyph, Is.EqualTo("X"));
+                Assert.That(interactionPrompt.PrimaryAction, Is.EqualTo("ACTIVATE RELAY FOUNDRY"));
+                Assert.That(interactionPrompt.Detail, Does.Not.Contain("COST"));
                 var promptScreenPosition = RectTransformUtility.WorldToScreenPoint(
                     null, contextPrompt.GetComponent<RectTransform>().position);
                 var iconScreenPosition = RectTransformUtility.WorldToScreenPoint(null, objectiveIcon.position);

@@ -22,7 +22,8 @@ namespace DeadSignal.Editor
             AssetDatabase.LoadAssetAtPath<EdgeIndicatorTuning>(EDGE_INDICATOR_TUNING_PATH) != null &&
             _hasCompositionPrefab() &&
             _hasSignalInstrumentPrefab() &&
-            _hasObjectiveCardPrefab();
+            _hasObjectiveCardPrefab() &&
+            _hasInteractionPromptPrefab();
 
         public static void EnsureAssets()
         {
@@ -69,6 +70,7 @@ namespace DeadSignal.Editor
             _ensureCompositionPrefab();
             _ensureSignalInstrumentPrefab();
             _ensureObjectiveCardPrefab();
+            _ensureInteractionPromptPrefab();
 
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
@@ -100,6 +102,13 @@ namespace DeadSignal.Editor
             var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(HUD_PREFAB_PATH);
             var beacon = prefab == null ? null : prefab.GetComponent<ObjectiveBeaconHud>();
             return beacon != null && beacon.IsPresentationConfigured;
+        }
+
+        private static bool _hasInteractionPromptPrefab()
+        {
+            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(HUD_PREFAB_PATH);
+            var prompt = prefab == null ? null : prefab.GetComponentInChildren<InteractionPromptHud>(true);
+            return prompt != null && prompt.IsConfigured;
         }
 
         private static void _ensureCompositionPrefab()
@@ -304,6 +313,109 @@ namespace DeadSignal.Editor
             }
         }
 
+        private static void _ensureInteractionPromptPrefab()
+        {
+            var root = PrefabUtility.LoadPrefabContents(HUD_PREFAB_PATH);
+            try
+            {
+                var panel = root.transform.Find("Run HUD/Composition Frame/Context Prompt") as RectTransform;
+                if (panel == null)
+                {
+                    throw new InvalidOperationException("The authored HUD prefab is missing its Context Prompt panel.");
+                }
+
+                panel.sizeDelta = new Vector2(560f, 78f);
+                panel.anchoredPosition = new Vector2(0f, 42f);
+                var background = panel.GetComponent<Image>();
+                background.color = new Color(0.012f, 0.022f, 0.032f, 0.96f);
+                background.raycastTarget = false;
+                var canvasGroup = panel.GetComponent<CanvasGroup>();
+                if (canvasGroup == null)
+                {
+                    canvasGroup = panel.gameObject.AddComponent<CanvasGroup>();
+                }
+                canvasGroup.blocksRaycasts = false;
+                canvasGroup.interactable = false;
+
+                var legacyGlyph = panel.Find("Use Glyph");
+                if (legacyGlyph != null)
+                {
+                    legacyGlyph.gameObject.SetActive(false);
+                }
+                var legacyPrompt = panel.Find("Prompt");
+                if (legacyPrompt != null)
+                {
+                    legacyPrompt.gameObject.SetActive(false);
+                }
+
+                var accent = _ensureImage("Prompt Accent", panel, new Color(0.08f, 0.94f, 1f, 1f));
+                _setRect(accent.rectTransform, new Vector2(0f, 0f), new Vector2(0f, 1f),
+                    new Vector2(0f, 0.5f), Vector2.zero, new Vector2(4f, 0f));
+
+                var state = _ensureText("Prompt State", panel);
+                _styleText(state, 10, FontStyle.Bold, TextAnchor.UpperLeft, new Color(0.08f, 0.94f, 1f, 1f));
+                _setRect(state.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f),
+                    new Vector2(0f, 1f), new Vector2(14f, -6f), new Vector2(160f, 16f));
+
+                var primaryGlyphBox = _ensureImage("Primary Glyph Box", panel, new Color(0.045f, 0.11f, 0.13f, 1f));
+                _setRect(primaryGlyphBox.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f),
+                    new Vector2(0f, 1f), new Vector2(14f, -27f), new Vector2(48f, 38f));
+                var primaryGlyph = _ensureText("Glyph", primaryGlyphBox.transform);
+                _styleText(primaryGlyph, 15, FontStyle.Bold, TextAnchor.MiddleCenter, new Color(0.08f, 0.94f, 1f, 1f));
+                _stretch(primaryGlyph.rectTransform, 3f);
+
+                var primaryAction = _ensureText("Primary Action", panel);
+                _styleText(primaryAction, 15, FontStyle.Bold, TextAnchor.UpperLeft, Color.white);
+                _setRect(primaryAction.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f),
+                    new Vector2(0f, 1f), new Vector2(72f, -25f), new Vector2(218f, 21f));
+
+                var detail = _ensureText("Prompt Detail", panel);
+                _styleText(detail, 11, FontStyle.Normal, TextAnchor.UpperLeft, new Color(0.7f, 0.8f, 0.84f, 1f));
+                _setRect(detail.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f),
+                    new Vector2(0f, 1f), new Vector2(72f, -48f), new Vector2(218f, 18f));
+
+                var secondary = _ensureImage("Secondary Action", panel, new Color(0.022f, 0.052f, 0.064f, 0.95f));
+                _setRect(secondary.rectTransform, new Vector2(0f, 1f), new Vector2(0f, 1f),
+                    new Vector2(0f, 1f), new Vector2(300f, -22f), new Vector2(246f, 48f));
+                var secondaryGlyphBox = _ensureImage("Glyph Box", secondary.transform, new Color(0.045f, 0.11f, 0.13f, 1f));
+                _setRect(secondaryGlyphBox.rectTransform, new Vector2(0f, 0.5f), new Vector2(0f, 0.5f),
+                    new Vector2(0f, 0.5f), new Vector2(7f, 0f), new Vector2(42f, 36f));
+                var secondaryGlyph = _ensureText("Glyph", secondaryGlyphBox.transform);
+                _styleText(secondaryGlyph, 14, FontStyle.Bold, TextAnchor.MiddleCenter, new Color(0.08f, 0.94f, 1f, 1f));
+                _stretch(secondaryGlyph.rectTransform, 3f);
+                var secondaryAction = _ensureText("Action", secondary.transform);
+                _styleText(secondaryAction, 11, FontStyle.Bold, TextAnchor.MiddleLeft, Color.white);
+                _setRect(secondaryAction.rectTransform, new Vector2(0f, 0f), new Vector2(0f, 1f),
+                    new Vector2(0f, 0.5f), new Vector2(57f, 0f), new Vector2(180f, 0f));
+                secondaryAction.horizontalOverflow = HorizontalWrapMode.Wrap;
+                secondaryAction.verticalOverflow = VerticalWrapMode.Truncate;
+
+                var prompt = panel.GetComponent<InteractionPromptHud>();
+                if (prompt == null)
+                {
+                    prompt = panel.gameObject.AddComponent<InteractionPromptHud>();
+                }
+                prompt.Configure(
+                    background,
+                    accent,
+                    state,
+                    primaryGlyphBox.gameObject,
+                    primaryGlyph,
+                    primaryAction,
+                    detail,
+                    secondary.gameObject,
+                    secondaryGlyph,
+                    secondaryAction,
+                    canvasGroup);
+
+                PrefabUtility.SaveAsPrefabAsset(root, HUD_PREFAB_PATH);
+            }
+            finally
+            {
+                PrefabUtility.UnloadPrefabContents(root);
+            }
+        }
+
         private static void _styleText(Text text, int size, FontStyle style, TextAnchor alignment, Color color)
         {
             text.fontSize = size;
@@ -328,6 +440,15 @@ namespace DeadSignal.Editor
             rect.pivot = pivot;
             rect.anchoredPosition = position;
             rect.sizeDelta = size;
+        }
+
+        private static void _stretch(RectTransform rect, float inset)
+        {
+            rect.anchorMin = Vector2.zero;
+            rect.anchorMax = Vector2.one;
+            rect.pivot = Vector2.one * 0.5f;
+            rect.offsetMin = Vector2.one * inset;
+            rect.offsetMax = Vector2.one * -inset;
         }
 
         private static Image _ensureImage(string name, Transform parent, Color color)

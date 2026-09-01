@@ -105,6 +105,7 @@ namespace DeadSignal.Presentation
         private SignalHudTuning m_signalHudTuning;
         private SignalReserveInstrument m_signalInstrument;
         private ObjectiveBeaconHud m_objectiveBeacon;
+        private InteractionPromptHud m_interactionPrompt;
         private RectTransform m_contextPromptRect;
         private RectTransform m_contextPromptParent;
         private Vector2 m_contextPromptAnchorMin;
@@ -169,6 +170,7 @@ namespace DeadSignal.Presentation
             m_signalHudTuning = Resources.Load<SignalHudTuning>("Tuning/SignalHudTuning");
             m_signalInstrument = m_signalFill.GetComponentInParent<SignalReserveInstrument>();
             m_objectiveBeacon = GetComponent<ObjectiveBeaconHud>();
+            m_interactionPrompt = m_contextPrompt.GetComponent<InteractionPromptHud>();
             m_contextPromptRect = m_contextPrompt.transform as RectTransform;
             m_contextPromptParent = m_contextPromptRect.parent as RectTransform;
             m_contextPromptAnchorMin = m_contextPromptRect.anchorMin;
@@ -360,9 +362,16 @@ namespace DeadSignal.Presentation
             m_threatText.text = _threatStatus();
             m_controlLegendText.text = _activeControlLegend();
             var prompt = _contextPrompt();
-            m_contextPrompt.SetActive(!string.IsNullOrEmpty(prompt));
-            m_contextPromptText.text = prompt;
-            _positionContextPrompt(!string.IsNullOrEmpty(prompt));
+            if (m_interactionPrompt != null)
+            {
+                m_interactionPrompt.Apply(prompt, Time.unscaledDeltaTime);
+            }
+            else
+            {
+                m_contextPrompt.SetActive(prompt.IsVisible);
+                m_contextPromptText.text = prompt.PrimaryAction;
+            }
+            _positionContextPrompt(prompt.IsVisible);
             m_feedbackText.gameObject.SetActive(m_feedbackTimer > 0f);
             m_feedbackText.text = m_feedback;
             m_feedbackText.color = m_feedback.Contains("DEAD") || m_feedback.Contains("SECURITY")
@@ -667,29 +676,48 @@ namespace DeadSignal.Presentation
             m_contextPromptRect.anchoredPosition = desiredPosition - anchorReference;
         }
 
-        private string _contextPrompt()
+        private InteractionPromptPresentation _contextPrompt()
         {
             if (!string.IsNullOrEmpty(m_debugObjective))
-                return string.Empty;
+                return InteractionPromptPresentation.Hidden;
             if (m_overclockChoice.IsPrimaryPending)
-                return $"CHOOSE NOW  —  {_binding("FIRE: CHAIN ARC", "RB: CHAIN ARC")}  |  " +
-                       $"{_binding("USE: OVERDRIVE", "X: OVERDRIVE")}";
+                return _choicePrompt("CHAIN ARC", "OVERRIDE: BOLTS JUMP", "OVERDRIVE", "OVERRIDE: MOVE FASTER");
             if (m_overclockChoice.IsAuxiliaryPending)
-                return $"CHOOSE NOW  —  {_binding("FIRE: CAPACITOR", "RB: CAPACITOR")}  |  " +
-                        $"{_binding("USE: SHIELD", "X: SHIELD")}";
+                return _choicePrompt("CAPACITOR", "LOW-SIGNAL REFILL", "SHIELD", "NEGATE ONE THREAT");
+            if (m_overclockChoice.IsWeaponPending)
+                return _choicePrompt("PIERCING PULSE", "STRIKE TWO THREATS", "CONTROLLED RICOCHET", "REDIRECT FROM COVER");
             if (_isExtractionUplinkChoiceAvailable())
-                return $"CHOOSE LINK  —  {_binding("FIRE: OVERDRIVE", "RB: OVERDRIVE")}  |  " +
-                       $"{_binding("USE: STABLE", "X: STABLE")}";
+                return _choicePrompt(
+                    "OVERDRIVE UPLINK",
+                    $"−{m_extractionUplink.OverdriveSignalCost:0} SIGNAL  •  {m_extractionUplink.OverdriveDuration:0.##}s",
+                    "STABLE UPLINK",
+                    $"FREE  •  {m_extractionUplink.StableDuration:0.##}s");
             if (m_model.CurrentObjective.Id == MissionObjectiveId.RelayFork && m_world.RelayForkObjective != null &&
                 DeadSignalWorld.FlatDistance(m_world.Player.position, m_world.RelayForkObjective.Position) < 1.8f)
-                return $"[{_binding("E", "GAMEPAD X")}]  ROUTE BOTH CENTRAL FEEDS";
+                return _availablePrompt("ROUTE BOTH CENTRAL FEEDS", "TWO COMPONENTS READY");
             if (m_model.CurrentObjective.Id == MissionObjectiveId.CentralAssembly && m_world.TransferVaultObjective != null &&
                 DeadSignalWorld.FlatDistance(m_world.Player.position, m_world.TransferVaultObjective.Position) < 1.8f)
-                return $"[{_binding("E", "GAMEPAD X")}]  ASSEMBLE CENTRAL PAYLOAD";
+                return _availablePrompt("ASSEMBLE CENTRAL PAYLOAD", "TRANSFER VAULT ONLINE");
             if (m_model.CurrentObjective.Id == MissionObjectiveId.CentralInstallation &&
                 m_world.CentralInstallationObjective != null &&
                 DeadSignalWorld.FlatDistance(m_world.Player.position, m_world.CentralInstallationObjective.Position) < 1.8f)
-                return $"[{_binding("E", "GAMEPAD X")}]  INSTALL CENTRAL PAYLOAD";
+                return _availablePrompt("INSTALL CENTRAL PAYLOAD", "CENTRAL SOCKET READY");
+            if (m_model.CurrentObjective.Id == MissionObjectiveId.RelayInstallation &&
+                m_world.RelayPayloadObjective != null &&
+                DeadSignalWorld.FlatDistance(m_world.Player.position, m_world.RelayPayloadObjective.Position) < 1.8f)
+                return _availablePrompt("INSTALL RELAY PAYLOAD", "WEAPON CALIBRATION FOLLOWS");
+            if (m_model.CurrentObjective.Id == MissionObjectiveId.SpineVenting &&
+                m_world.SpineVentingObjective != null &&
+                DeadSignalWorld.FlatDistance(m_world.Player.position, m_world.SpineVentingObjective.Position) < 1.8f)
+                return _availablePrompt("VENT SPINE BERTH", "RELEASE PRESSURE INTERLOCK");
+            if (m_model.CurrentObjective.Id == MissionObjectiveId.InductionLattice &&
+                m_world.InductionLatticeObjective != null &&
+                DeadSignalWorld.FlatDistance(m_world.Player.position, m_world.InductionLatticeObjective.Position) < 1.8f)
+                return _availablePrompt("CHARGE EMPTY LATTICE", "INDUCTION COIL ONLINE");
+            if (m_model.CurrentObjective.Id == MissionObjectiveId.FluxShunt &&
+                m_world.FluxShuntObjective != null &&
+                DeadSignalWorld.FlatDistance(m_world.Player.position, m_world.FluxShuntObjective.Position) < 1.8f)
+                return _availablePrompt("THROW FLUX SHUNT", "OPENS RETURN FLANK");
             if (m_model.CurrentObjective.Id == MissionObjectiveId.ConvergenceCalibration &&
                 m_world.ConvergenceCalibrationObjective != null)
             {
@@ -699,38 +727,100 @@ namespace DeadSignal.Presentation
                         0f,
                         m_model.ConvergenceCalibrationDuration - m_model.ConvergenceCalibrationProgress);
                     return m_world.ConvergenceCalibrationObjective.Contains(m_world.Player.position)
-                        ? $"CALIBRATING  —  HOLD CHAMBER  {remaining:0.0}s"
-                        : $"CALIBRATION PAUSED  —  RETURN TO CHAMBER  {remaining:0.0}s";
+                        ? new InteractionPromptPresentation(true, InteractionPromptState.Progress, "HOLD",
+                            "MAINTAIN CHAMBER CONTROL", $"CALIBRATING  •  {remaining:0.0}s")
+                        : new InteractionPromptPresentation(true, InteractionPromptState.Blocked, "",
+                            "RETURN TO CHAMBER", $"CALIBRATION PAUSED  •  {remaining:0.0}s");
                 }
 
                 if (DeadSignalWorld.FlatDistance(
                         m_world.Player.position,
                         m_world.ConvergenceCalibrationObjective.Position) < 1.8f)
                 {
-                    return $"[{_binding("E", "GAMEPAD X")}]  BEGIN CONVERGENCE CALIBRATION";
+                    return _availablePrompt("BEGIN CONVERGENCE CALIBRATION", "BOUNDED HOLDOUT");
                 }
             }
+            if (m_model.CurrentObjective.Id == MissionObjectiveId.BreakerReset &&
+                m_world.BreakerResetObjective != null &&
+                DeadSignalWorld.FlatDistance(m_world.Player.position, m_world.BreakerResetObjective.Position) < 1.8f)
+                return _availablePrompt("RESET DISTRIBUTION", "UNLOCKS FURNACE PROCESS");
+            if (m_model.CurrentObjective.Id == MissionObjectiveId.FurnaceForge &&
+                m_world.FurnaceForgeObjective != null &&
+                DeadSignalWorld.FlatDistance(m_world.Player.position, m_world.FurnaceForgeObjective.Position) < 1.8f)
+                return _availablePrompt("FORGE CHARGED LATTICE", "ARC FURNACE READY");
+            if (m_model.CurrentObjective.Id == MissionObjectiveId.QuenchStabilization &&
+                m_world.QuenchStabilizationObjective != null &&
+                DeadSignalWorld.FlatDistance(m_world.Player.position, m_world.QuenchStabilizationObjective.Position) < 1.8f)
+                return _availablePrompt("STABILIZE SIGNAL CORE", "OPENS QUENCH RETURN");
+            if (m_model.CurrentObjective.Id == MissionObjectiveId.TrialCommitment &&
+                m_world.CombatChamber != null && m_world.CombatChamber.CanInteract(m_world.Player.position))
+                return m_threats.CanBeginCombatChamber
+                    ? _availablePrompt("ARM FINAL TRIAL", "CROSSING THRESHOLD SEALS ROOM B")
+                    : _blockedPrompt("TRIAL INTERLOCKED", "CLEAR ACTIVE THREATS");
+            if (m_model.CurrentObjective.Id == MissionObjectiveId.StationCapacitor &&
+                m_world.CombatChamber != null && m_world.CombatChamber.RewardAvailable &&
+                DeadSignalWorld.FlatDistance(m_world.Player.position, m_world.CombatChamber.RewardPosition) < 1.8f)
+                return _availablePrompt("RECOVER STATION CAPACITOR", "COMPLETES SIGNAL CORE");
+            if (m_model.CurrentObjective.Id == MissionObjectiveId.SpineCoreInstallation &&
+                m_world.SpineCoreInstallationObjective != null &&
+                DeadSignalWorld.FlatDistance(m_world.Player.position, m_world.SpineCoreInstallationObjective.Position) < 1.8f)
+                return _availablePrompt("INSTALL FINAL SIGNAL CORE", "ENABLES POWERED WITHDRAWAL");
             if (!m_model.SpineTowerOnline &&
                 m_world.IsSpineTowerInteractionInRange(m_world.Player.position))
                 return m_model.RelayTowerOnline
-                    ? $"[{_binding("E", "GAMEPAD X")}]  INSTALL RELAY RESULT"
-                    : "SPINE LOCKED - ACTIVATE RELAY FOUNDRY FIRST";
+                    ? _availablePrompt("INSTALL RELAY RESULT", "SPINE BERTH VENTED")
+                    : _blockedPrompt("SPINE LOCKED", "ACTIVATE RELAY FOUNDRY FIRST");
             if (!m_model.RelayTowerOnline &&
                 DeadSignalWorld.FlatDistance(m_world.Player.position, m_world.RelayTowerPosition) < 1.8f)
                 return m_model.TowerOnline
-                    ? $"[{_binding("E", "GAMEPAD X")}]  ACTIVATE RELAY FOUNDRY"
-                    : "RELAY LOCKED - ACTIVATE CENTRAL TOWER FIRST";
+                    ? _availablePrompt("ACTIVATE RELAY FOUNDRY", "FREE ACTIVATION  •  PAYLOAD PROCESSING")
+                    : _blockedPrompt("RELAY LOCKED", "ACTIVATE CENTRAL TOWER FIRST");
             if (!m_model.ShortcutOpen && DeadSignalWorld.FlatDistance(m_world.Player.position, m_world.ShortcutPosition) < 1.9f)
-                return m_model.TowerOnline ? $"[{_binding("E", "GAMEPAD X")}]  BURN {RunModel.ShortcutCost:0} SIGNAL FOR SHORTCUT"
-                    : "SHORTCUT OFFLINE - ACTIVATE TOWER FIRST";
+                return !m_model.TowerOnline
+                    ? _blockedPrompt("SHORTCUT OFFLINE", "ACTIVATE CENTRAL TOWER FIRST")
+                    : m_model.Signal < RunModel.ShortcutCost
+                        ? _blockedPrompt("INSUFFICIENT SIGNAL",
+                            $"SHORTCUT COST {RunModel.ShortcutCost:0}  •  RESERVE {m_model.Signal:0}")
+                        : _availablePrompt("OPEN CENTRAL SHORTCUT",
+                            $"COST {RunModel.ShortcutCost:0} SIGNAL  •  RESERVE {m_model.Signal:0}");
             if (!m_model.TowerOnline && DeadSignalWorld.FlatDistance(m_world.Player.position, m_world.TowerPosition) < 1.8f)
-                return $"[{_binding("E", "GAMEPAD X")}]  ACTIVATE SIGNAL TOWER  —  COST {RunModel.TowerCost:0}";
+                return _availablePrompt("ACTIVATE SIGNAL TOWER", $"STARTUP COST {RunModel.TowerCost:0}  •  EMERGENCY LINK AVAILABLE");
             if (DeadSignalWorld.FlatDistance(m_world.Player.position, m_world.ExtractionPosition) < 1.65f)
-                return m_extractionUplink.IsActive ? $"UPLINK LOCKED  —  {m_extractionUplink.SecondsRemaining:0.0}s"
-                    : m_model.CanExtract ? "CHOOSE STABLE OR OVERDRIVE UPLINK"
-                    : $"EXTRACTION LOCKED  —  {RunModel.SalvageRequired - m_model.Salvage} SALVAGE MISSING";
-            return string.Empty;
+                return m_extractionUplink.IsActive
+                    ? new InteractionPromptPresentation(true, InteractionPromptState.Progress, "LINK",
+                        "UPLINK IN PROGRESS", $"LOCKED  •  {m_extractionUplink.SecondsRemaining:0.0}s")
+                    : m_model.CanExtract
+                        ? _blockedPrompt("UPLINK READY", "SELECT STABLE OR OVERDRIVE")
+                        : _blockedPrompt("EXTRACTION LOCKED",
+                            $"{RunModel.SalvageRequired - m_model.Salvage} SALVAGE MISSING");
+            return InteractionPromptPresentation.Hidden;
         }
+
+        private InteractionPromptPresentation _availablePrompt(string action, string detail) =>
+            new InteractionPromptPresentation(true, InteractionPromptState.Available, _interactGlyph(), action, detail);
+
+        private static InteractionPromptPresentation _blockedPrompt(string action, string detail) =>
+            new InteractionPromptPresentation(true, InteractionPromptState.Blocked, "", action, detail);
+
+        private InteractionPromptPresentation _choicePrompt(
+            string fireAction,
+            string fireDetail,
+            string interactAction,
+            string interactDetail) =>
+            new InteractionPromptPresentation(
+                true,
+                InteractionPromptState.Choice,
+                _fireGlyph(),
+                fireAction,
+                fireDetail,
+                _interactGlyph(),
+                $"{interactAction}  •  {interactDetail}");
+
+        private string _fireGlyph() =>
+            m_input.ActivePromptDevice == InputPromptDevice.Gamepad ? "RB" : m_input.FireKeyboardBinding;
+
+        private string _interactGlyph() =>
+            m_input.ActivePromptDevice == InputPromptDevice.Gamepad ? "X" : m_input.InteractKeyboardBinding;
 
         private SignalTransactionPreview _signalTransactionPreview()
         {
