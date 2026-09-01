@@ -43,6 +43,21 @@ The P01 read-only inventory found:
 | Shader usage | URP Lit for physical station surfaces; URP Unlit for deliberate status/decal reads; Particles Unlit for bounded VFX; Powered Territory only for its established territory role. Do not solve material hierarchy with a new shader. |
 | Silhouette and clearance | Refinement may not narrow traversable space, alter collision/projectile/NavMesh authority, obscure an interaction side, or reduce a required escape lane. Foreground culling remains disabled. |
 
+## Lighting and atmosphere budget
+
+Lighting becomes the primary environment-composition layer in Runs P15–P23. Materials and geometry establish physical ownership; localized practical light decides what the player reads first and how restoration changes the station.
+
+| Measure | Budget / acceptance rule |
+| --- | --- |
+| Composition | Each representative room frame has one dominant practical-light role tied to the room verb and no more than two supporting light-color roles. Adjacent rooms must differ through value, direction, source shape, or shadow pattern as well as hue. |
+| Controlled darkness | Darkness may separate task-light pools and preserve atmosphere, but it may not hide the drone contour, an active specialist silhouette or telegraph, a required objective/prompt, a projectile path, a hazard boundary, or the only escape lane at 1280×720. |
+| State-driven relighting | A room whose objective changes machinery or power state must change at least one locally owned practical light, emissive fixture, threshold spill, or structural light response. Broad powered-territory glow alone is not sufficient presentation evidence of restoration. |
+| Cyan hierarchy | Cyan powered territory remains authoritative, but in ordinary non-transition frames it must not become both the largest luminous area and the highest-luminance focal area. Local machinery, objective state, actors, projectiles, and threat telegraphs retain separable value hierarchy inside powered territory. |
+| Exposure and emission | Establish exposure and ambient floor from the darkest required combat/navigation state before increasing emissive intensity. Respect the existing emission ceilings; solve flatness first through light placement, direction, falloff, shadow, and local contrast rather than bloom or larger emissive surfaces. |
+| Shadows and lanes | Shadow direction may shape protected/exposed routes and machine depth, but every active combat comparison must retain the player, incoming danger, and at least one continuous escape lane. Avoid high-frequency moving shadows, opaque foreground leaks, and false hazard silhouettes. |
+| Accessibility | Reduced Flashes replaces rapid or high-contrast light changes with slower, steadier state changes while preserving the same objective meaning. Steady Camera remains independent. Lighting state must retain shape/value/source-location redundancy under high contrast and common color-vision simulations. |
+| Performance | Use authored reusable light groups and bounded shadow ownership. Record realtime light count, shadow-casting light count, overlapping-light regions, GPU/frame timing, and any baked/probe changes; do not exceed the global frame budget or create per-frame light/material allocations. |
+
 ## Actor budget
 
 | Measure | Budget / acceptance rule |
@@ -93,9 +108,15 @@ Each finish run must record:
 
 1. The locked source frame or immediately preceding accepted frame.
 2. A same-state, same-camera post frame at 1280×720 and 1600×900.
-3. One Reduced-Flashes plus Steady-Camera 1600×900 frame when emissive, lighting, VFX, or animated presentation changes.
-4. Changed texture import caps, shader families, renderer/material counts, primitive references, and authored vertex counts.
+3. Default and Reduced-Flashes plus Steady-Camera 1600×900 frames when emissive, lighting, VFX, or animated presentation changes.
+4. Changed texture import caps, shader families, renderer/material/light counts, shadow-casting light count, primitive references, authored vertex counts, and any exposure, probe, fog, or post-process values.
 5. Focused Unity validation and exact logs; route regression only when route, room state, doors, extraction, boot, or outcome authority changes.
 6. A human-only verdict left explicitly unproven when no person reviewed hierarchy, comfort, and gameplay-distance readability.
 
 Reject or revise a presentation change that misses a budget, obscures authoritative information, alters gameplay authority, or looks better only in a close editor view rather than the production camera.
+
+## P29 floor-finish evidence
+
+Presentation Run P29 adds one scene-authored, collider-free `Station Floor Finish` prefab across 12 required-route zones. Four shared URP Lit materials and four renderers carry 1,336 authored vertices: 576 panel-seam vertices, 360 functional-threshold vertices, 240 restrained wear/scorch vertices, and 160 maintenance-mark vertices. The kit adds no texture, shader family, emission, light, animation, collider, `AuthoredMapObstacle`, or runtime state; the established authored obstacle count remains 138.
+
+Accepted gameplay-camera frames are `P29-Central-Floor-1600x900.png`, `P29-Relay-Floor-1280x720.png`, and `P29-Trial-Floor-1600x900.png`. They show that seams and wear remain subordinate to the drone, machinery, route signage, and cyan objective language, while the amber Trial threshold retains a color-independent segmented hazard edge. Human review of moving projectiles/enemies, controller traversal, common color-vision simulations, and subjective wear density remains required.

@@ -203,11 +203,26 @@ namespace DeadSignal.Presentation
         [SerializeField, Range(0f, 0.25f)] private float m_reducedFlashesPulseDepth = 0.035f;
         [SerializeField, Min(0f)] private float m_practicalPulseSpeed = 2.2f;
 
+        [Header("Perceptible gameplay lighting")]
+        [SerializeField, Min(1f)] private float m_landmarkIntensityMultiplier = 3.8f;
+        [SerializeField] private Color m_playerTraversalLightColor = new(0.88f, 0.94f, 1f, 1f);
+        [SerializeField, Min(0f)] private float m_playerTraversalLightIntensity = 10.5f;
+        [SerializeField, Min(0.1f)] private float m_playerTraversalLightRange = 15.5f;
+        [SerializeField, Range(1f, 179f)] private float m_playerTraversalLightSpotAngle = 88f;
+        [SerializeField, Min(0.1f)] private float m_playerTraversalLightHeight = 5.2f;
+        [SerializeField, Min(0f)] private float m_playerTraversalLightBackOffset = 1.8f;
+        [SerializeField, Min(0.1f)] private float m_playerTraversalLightForwardReach = 4.8f;
+        [SerializeField, Min(0.01f)] private float m_playerTraversalLightFollowResponse = 12f;
+        [SerializeField, Range(0f, 1f)] private float m_playerTraversalLightShadowStrength = 0.78f;
+        [SerializeField, Min(0f)] private float m_playerFillLightIntensity = 3.8f;
+        [SerializeField, Min(0.1f)] private float m_playerFillLightRange = 7.2f;
+        [SerializeField, Min(0.1f)] private float m_playerFillLightHeight = 2.5f;
+
         [Header("Readability and performance ceilings")]
         [SerializeField, Min(0f)] private float m_maximumEmission = 3.2f;
         [SerializeField, Min(0f)] private float m_maximumPoweredRouteEmission = 0.8f;
-        [SerializeField, Range(1, 12)] private int m_maximumVisibleRealtimeLights = 5;
-        [SerializeField, Range(0, 4)] private int m_maximumShadowedRealtimeLights = 1;
+        [SerializeField, Range(1, 12)] private int m_maximumVisibleRealtimeLights = 7;
+        [SerializeField, Range(0, 4)] private int m_maximumShadowedRealtimeLights = 3;
 
         public Color KeyLightColor => m_keyLightColor;
         public float KeyLightIntensity => m_keyLightIntensity;
@@ -249,6 +264,19 @@ namespace DeadSignal.Presentation
         public float PracticalPulseDepth => m_practicalPulseDepth;
         public float ReducedFlashesPulseDepth => m_reducedFlashesPulseDepth;
         public float PracticalPulseSpeed => m_practicalPulseSpeed;
+        public float LandmarkIntensityMultiplier => m_landmarkIntensityMultiplier;
+        public Color PlayerTraversalLightColor => m_playerTraversalLightColor;
+        public float PlayerTraversalLightIntensity => m_playerTraversalLightIntensity;
+        public float PlayerTraversalLightRange => m_playerTraversalLightRange;
+        public float PlayerTraversalLightSpotAngle => m_playerTraversalLightSpotAngle;
+        public float PlayerTraversalLightHeight => m_playerTraversalLightHeight;
+        public float PlayerTraversalLightBackOffset => m_playerTraversalLightBackOffset;
+        public float PlayerTraversalLightForwardReach => m_playerTraversalLightForwardReach;
+        public float PlayerTraversalLightFollowResponse => m_playerTraversalLightFollowResponse;
+        public float PlayerTraversalLightShadowStrength => m_playerTraversalLightShadowStrength;
+        public float PlayerFillLightIntensity => m_playerFillLightIntensity;
+        public float PlayerFillLightRange => m_playerFillLightRange;
+        public float PlayerFillLightHeight => m_playerFillLightHeight;
         public float MaximumEmission => m_maximumEmission;
         public float MaximumPoweredRouteEmission => m_maximumPoweredRouteEmission;
         public int MaximumVisibleRealtimeLights => m_maximumVisibleRealtimeLights;
@@ -362,6 +390,18 @@ namespace DeadSignal.Presentation
             m_practicalPulseDepth = Mathf.Clamp(m_practicalPulseDepth, 0f, 0.25f);
             m_reducedFlashesPulseDepth = Mathf.Clamp(m_reducedFlashesPulseDepth, 0f, m_practicalPulseDepth);
             m_practicalPulseSpeed = Mathf.Max(0f, m_practicalPulseSpeed);
+            m_landmarkIntensityMultiplier = Mathf.Max(1f, m_landmarkIntensityMultiplier);
+            m_playerTraversalLightIntensity = Mathf.Max(0f, m_playerTraversalLightIntensity);
+            m_playerTraversalLightRange = Mathf.Max(0.1f, m_playerTraversalLightRange);
+            m_playerTraversalLightSpotAngle = Mathf.Clamp(m_playerTraversalLightSpotAngle, 1f, 179f);
+            m_playerTraversalLightHeight = Mathf.Max(0.1f, m_playerTraversalLightHeight);
+            m_playerTraversalLightBackOffset = Mathf.Max(0f, m_playerTraversalLightBackOffset);
+            m_playerTraversalLightForwardReach = Mathf.Max(0.1f, m_playerTraversalLightForwardReach);
+            m_playerTraversalLightFollowResponse = Mathf.Max(0.01f, m_playerTraversalLightFollowResponse);
+            m_playerTraversalLightShadowStrength = Mathf.Clamp01(m_playerTraversalLightShadowStrength);
+            m_playerFillLightIntensity = Mathf.Max(0f, m_playerFillLightIntensity);
+            m_playerFillLightRange = Mathf.Max(0.1f, m_playerFillLightRange);
+            m_playerFillLightHeight = Mathf.Max(0.1f, m_playerFillLightHeight);
             m_maximumEmission = Mathf.Max(0f, m_maximumEmission);
             m_maximumPoweredRouteEmission = Mathf.Clamp(m_maximumPoweredRouteEmission, 0f, m_maximumEmission);
             m_maximumVisibleRealtimeLights = Mathf.Clamp(m_maximumVisibleRealtimeLights, 1, 12);

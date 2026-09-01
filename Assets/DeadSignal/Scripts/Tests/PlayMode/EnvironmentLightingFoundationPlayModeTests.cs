@@ -30,6 +30,8 @@ namespace DeadSignal.Tests.PlayMode
             var scene = Object.FindFirstObjectByType<DeadSignalSceneReferences>();
             var lights = Object.FindObjectsByType<Light>(FindObjectsInactive.Exclude, FindObjectsSortMode.None)
                 .Where(light => light.enabled).ToArray();
+            var playerTraversalLight = GameObject.Find("Player Traversal Spotlight")?.GetComponent<Light>();
+            var playerFillLight = GameObject.Find("Player Traversal Fill")?.GetComponent<Light>();
             var grade = GameObject.Find("Dead Signal Global Grade").GetComponent<Volume>();
 
             Assert.That(tuning, Is.Not.Null);
@@ -46,6 +48,23 @@ namespace DeadSignal.Tests.PlayMode
             Assert.That(lights.Length, Is.LessThanOrEqualTo(tuning.MaximumVisibleRealtimeLights));
             Assert.That(lights.Count(light => light.shadows != LightShadows.None),
                 Is.LessThanOrEqualTo(tuning.MaximumShadowedRealtimeLights));
+            Assert.That(playerTraversalLight, Is.Not.Null);
+            Assert.That(playerTraversalLight.type, Is.EqualTo(LightType.Spot));
+            Assert.That(playerTraversalLight.intensity,
+                Is.EqualTo(tuning.PlayerTraversalLightIntensity).Within(0.001f));
+            Assert.That(playerTraversalLight.range, Is.EqualTo(tuning.PlayerTraversalLightRange).Within(0.001f));
+            Assert.That(playerTraversalLight.spotAngle,
+                Is.EqualTo(tuning.PlayerTraversalLightSpotAngle).Within(0.001f));
+            Assert.That(playerTraversalLight.shadows, Is.EqualTo(LightShadows.Soft));
+            Assert.That(playerTraversalLight.shadowStrength,
+                Is.EqualTo(tuning.PlayerTraversalLightShadowStrength).Within(0.001f));
+            Assert.That(playerTraversalLight.transform.position.y - game.DebugPlayerPosition.y,
+                Is.EqualTo(tuning.PlayerTraversalLightHeight).Within(0.05f));
+            Assert.That(playerFillLight, Is.Not.Null);
+            Assert.That(playerFillLight.type, Is.EqualTo(LightType.Point));
+            Assert.That(playerFillLight.intensity, Is.EqualTo(tuning.PlayerFillLightIntensity).Within(0.001f));
+            Assert.That(playerFillLight.range, Is.EqualTo(tuning.PlayerFillLightRange).Within(0.001f));
+            Assert.That(playerFillLight.shadows, Is.EqualTo(LightShadows.None));
             Assert.That(RenderSettings.ambientLight, Is.EqualTo(game.IsHighContrastEnabled
                 ? tuning.HighContrastAmbientFloor
                 : tuning.AmbientFloor));
@@ -88,8 +107,16 @@ namespace DeadSignal.Tests.PlayMode
                 var light = lightObject.GetComponent<Light>();
                 Assert.That(light.color, Is.EqualTo(profile.Color));
                 Assert.That(light.range, Is.EqualTo(profile.Range).Within(0.001f));
-                Assert.That(light.shadows, Is.EqualTo(LightShadows.None));
+                var authoredIntensity = profile.GetIntensity(false) * tuning.LandmarkIntensityMultiplier;
+                var minimumPulsedIntensity = authoredIntensity * (1f - tuning.PracticalPulseDepth * 2f);
+                Assert.That(light.intensity, Is.InRange(minimumPulsedIntensity - 0.001f, authoredIntensity + 0.001f));
+                Assert.That(light.shadows, Is.EqualTo(LightShadows.None).Or.EqualTo(LightShadows.Soft));
             }
+
+            Assert.That(Object.FindObjectsByType<Light>(FindObjectsInactive.Exclude, FindObjectsSortMode.None)
+                .Any(light => light.name != "Player Traversal Spotlight" && light.type == LightType.Spot &&
+                              light.shadows == LightShadows.Soft), Is.True,
+                "At least one nearby authored projector should produce visible occlusion shadows.");
 
             game.DebugTeleport(DebugLocation.CentralTower);
             yield return new WaitForSecondsRealtime(0.5f);
@@ -97,6 +124,10 @@ namespace DeadSignal.Tests.PlayMode
             game.DebugActivateTower();
             yield return new WaitForSecondsRealtime(0.5f);
             _captureIfRequested(scene.PlayerCamera, "P23-Central-Powered-1600x900.png", 1600, 900);
+
+            game.DebugTeleport(DebugLocation.RelayFork);
+            yield return new WaitForSecondsRealtime(0.5f);
+            _captureIfRequested(scene.PlayerCamera, "P23B-Relay-Fork-Player-Light-1600x900.png", 1600, 900);
 
             game.DebugBeginExtraction(ExtractionUplinkMode.Stable);
             game.DebugTeleport(DebugLocation.Extraction);

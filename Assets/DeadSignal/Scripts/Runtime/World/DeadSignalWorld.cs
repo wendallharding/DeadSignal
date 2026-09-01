@@ -278,6 +278,7 @@ namespace DeadSignal.World
                     "The powered withdrawal requires authored Warden Bay and Sapper Cradle pursuit landmarks.");
             }
             _buildActors(comfortSettings);
+            _buildPlayerTraversalLight();
             m_palette.RebindHierarchy(m_root);
             _configurePlayerCamera();
             _configurePlayerCombatPresentation(comfortSettings);
@@ -1189,6 +1190,7 @@ namespace DeadSignal.World
             DeadSignalThreatController threats,
             Vector3 aimDirection)
         {
+            _updatePlayerTraversalLight(dt, aimDirection);
             var aimEnd = Player.position + aimDirection.normalized * 4.2f;
             _updateGuideLine(m_aimGuide, Player.position + Vector3.up * 0.18f, aimEnd + Vector3.up * 0.18f,
                 m_palette.White, 0.025f);
@@ -2087,7 +2089,7 @@ namespace DeadSignal.World
             light.spotAngle = profile.SpotAngle;
             light.color = profile.GetColor(false);
             light.range = profile.Range;
-            light.intensity = profile.GetIntensity(false);
+            light.intensity = _getLandmarkIntensity(profile, false);
             light.shadows = LightShadows.None;
             if (!string.IsNullOrWhiteSpace(profile.CookieResource))
             {
@@ -2200,7 +2202,7 @@ namespace DeadSignal.World
 
                 var powered = _isLandmarkPowered(profile.PowerSource, false);
                 m_landmarkLights[index].color = profile.GetColor(powered);
-                m_landmarkLights[index].intensity = profile.GetIntensity(powered);
+                m_landmarkLights[index].intensity = _getLandmarkIntensity(profile, powered);
             }
         }
 
@@ -2227,7 +2229,7 @@ namespace DeadSignal.World
 
         private float _getLandmarkIntensity(EnvironmentLightProfile profile, bool powered)
         {
-            var intensity = profile.GetIntensity(powered);
+            var intensity = profile.GetIntensity(powered) * m_environmentLightingTuning.LandmarkIntensityMultiplier;
             if (powered && profile.PowerSource == EnvironmentLightPowerSource.SecurityLockdown &&
                 CombatChamber?.State == CombatChamberState.Lockdown)
             {
@@ -2241,7 +2243,7 @@ namespace DeadSignal.World
         {
             const int PERMANENT_LIGHT_COUNT = 2;
             var localBudget = Mathf.Max(0,
-                m_environmentLightingTuning.MaximumVisibleRealtimeLights - PERMANENT_LIGHT_COUNT - 1);
+                m_environmentLightingTuning.MaximumVisibleRealtimeLights - PERMANENT_LIGHT_COUNT - 2);
             var nearest = -1;
             var secondNearest = -1;
             var nearestDistance = float.PositiveInfinity;
@@ -2266,10 +2268,93 @@ namespace DeadSignal.World
 
             for (var index = 0; index < m_landmarkLights.Count; index++)
             {
-                m_landmarkLights[index].enabled = index < PERMANENT_LIGHT_COUNT ||
-                                                  localBudget > 0 && index == nearest ||
-                                                  localBudget > 1 && index == secondNearest;
+                var light = m_landmarkLights[index];
+                light.enabled = index < PERMANENT_LIGHT_COUNT ||
+                                localBudget > 0 && index == nearest ||
+                                localBudget > 1 && index == secondNearest;
+                light.shadows = LightShadows.None;
             }
+
+            var shadowBudget = Mathf.Max(0, m_environmentLightingTuning.MaximumShadowedRealtimeLights - 2);
+            if (shadowBudget > 0)
+            {
+                _enableLandmarkShadows(nearest, ref shadowBudget);
+                _enableLandmarkShadows(secondNearest, ref shadowBudget);
+            }
+        }
+
+        private void _enableLandmarkShadows(int index, ref int shadowBudget)
+        {
+            if (shadowBudget <= 0 || index < 0 || index >= m_landmarkLights.Count)
+            {
+                return;
+            }
+
+            var light = m_landmarkLights[index];
+            if (!light.enabled || light.type != LightType.Spot)
+            {
+                return;
+            }
+
+            light.shadows = LightShadows.Soft;
+            light.shadowStrength = 0.68f;
+            light.shadowBias = 0.08f;
+            light.shadowNormalBias = 0.4f;
+            shadowBudget--;
+        }
+
+        private void _buildPlayerTraversalLight()
+        {
+            var root = new GameObject("Player Traversal Spotlight");
+            root.transform.SetParent(m_root, false);
+            m_playerTraversalLight = root.AddComponent<Light>();
+            m_playerTraversalLight.type = LightType.Spot;
+            m_playerTraversalLight.color = m_environmentLightingTuning.PlayerTraversalLightColor;
+            m_playerTraversalLight.intensity = m_environmentLightingTuning.PlayerTraversalLightIntensity;
+            m_playerTraversalLight.range = m_environmentLightingTuning.PlayerTraversalLightRange;
+            m_playerTraversalLight.spotAngle = m_environmentLightingTuning.PlayerTraversalLightSpotAngle;
+            m_playerTraversalLight.innerSpotAngle = m_environmentLightingTuning.PlayerTraversalLightSpotAngle * 0.56f;
+            m_playerTraversalLight.shadows = LightShadows.Soft;
+            m_playerTraversalLight.shadowStrength = m_environmentLightingTuning.PlayerTraversalLightShadowStrength;
+            m_playerTraversalLight.shadowBias = 0.08f;
+            m_playerTraversalLight.shadowNormalBias = 0.38f;
+
+            var fillRoot = new GameObject("Player Traversal Fill");
+            fillRoot.transform.SetParent(m_root, false);
+            m_playerFillLight = fillRoot.AddComponent<Light>();
+            m_playerFillLight.type = LightType.Point;
+            m_playerFillLight.color = m_environmentLightingTuning.PlayerTraversalLightColor;
+            m_playerFillLight.intensity = m_environmentLightingTuning.PlayerFillLightIntensity;
+            m_playerFillLight.range = m_environmentLightingTuning.PlayerFillLightRange;
+            m_playerFillLight.shadows = LightShadows.None;
+            _updatePlayerTraversalLight(1f, PlayerTurret != null ? PlayerTurret.forward : Vector3.forward);
+        }
+
+        private void _updatePlayerTraversalLight(float dt, Vector3 aimDirection)
+        {
+            if (m_playerTraversalLight == null || Player == null)
+            {
+                return;
+            }
+
+            aimDirection.y = 0f;
+            if (aimDirection.sqrMagnitude > 0.01f)
+            {
+                var response = 1f - Mathf.Exp(-m_environmentLightingTuning.PlayerTraversalLightFollowResponse * dt);
+                m_playerLightDirection = Vector3.Slerp(
+                    m_playerLightDirection,
+                    aimDirection.normalized,
+                    response).normalized;
+            }
+
+            var lightTransform = m_playerTraversalLight.transform;
+            lightTransform.position = Player.position + Vector3.up * m_environmentLightingTuning.PlayerTraversalLightHeight -
+                                      m_playerLightDirection * m_environmentLightingTuning.PlayerTraversalLightBackOffset;
+            var target = Player.position +
+                         m_playerLightDirection * m_environmentLightingTuning.PlayerTraversalLightForwardReach;
+            lightTransform.rotation = Quaternion.LookRotation((target - lightTransform.position).normalized, Vector3.up);
+            m_playerFillLight.transform.position =
+                Player.position + Vector3.up * m_environmentLightingTuning.PlayerFillLightHeight;
         }
 
         private void _applyOpeningLightingState()
@@ -2695,6 +2780,9 @@ namespace DeadSignal.World
         private float m_boundaryPulse;
         private float m_collisionPulse;
         private LineRenderer m_aimGuide;
+        private Light m_playerTraversalLight;
+        private Light m_playerFillLight;
+        private Vector3 m_playerLightDirection = Vector3.forward;
 
         private GameObject m_towerTerritory;
         private GameObject m_towerSignalLines;
