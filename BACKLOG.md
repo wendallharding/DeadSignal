@@ -189,7 +189,7 @@ Treat lighting as the primary room-composition layer in these runs. Preserve con
 - [x] **Presentation Run P37 — Tactical map:** refine room silhouettes, powered territory, objectives, doors/shortcuts, current position, route changes, legend, zoom/fit, and controller navigation so it reads as a finished station schematic rather than diagnostic geometry
 - [x] **Presentation Run P38 — Main menu:** refine title treatment, animated but restrained background, Start/Settings/Controls/Quit hierarchy, focus states, controller navigation, transitions, and branding at all target aspect ratios without inventing save/continue behavior
 - [x] **Presentation Run P39 — Pause, Settings, and Controls:** refine panels, tabs, focus, sliders/toggles, input diagrams, accessibility explanations, confirmation states, and return actions while preserving pause ownership and immediate input-mode switching
-- [ ] **Presentation Run P40 — Defeat presentation:** refine failure-cause hierarchy, environmental dimming, run-summary reveal, Restart/Main Menu focus, transition timing, and accessibility alternatives into a deliberate terminal state without hiding useful evidence
+- [x] **Presentation Run P40 — Defeat presentation:** refine failure-cause hierarchy, environmental dimming, run-summary reveal, Restart/Main Menu focus, transition timing, and accessibility alternatives into a deliberate terminal state without hiding useful evidence
 - [ ] **Presentation Run P41 — Victory and debrief presentation:** refine extraction completion, title, mission-time/room/combat/Signal highlights, chosen build, staged reveal, Restart/Main Menu focus, and background treatment into a distinct release-quality payoff
 
 ##### Combat, objective, and ambient VFX finish

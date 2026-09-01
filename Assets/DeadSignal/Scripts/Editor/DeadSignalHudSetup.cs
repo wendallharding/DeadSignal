@@ -24,7 +24,8 @@ namespace DeadSignal.Editor
             _hasSignalInstrumentPrefab() &&
             _hasObjectiveCardPrefab() &&
             _hasThreatInstrumentPrefab() &&
-            _hasInteractionPromptPrefab();
+            _hasInteractionPromptPrefab() &&
+            _hasOutcomePresentationPrefab();
 
         public static void EnsureAssets()
         {
@@ -73,6 +74,7 @@ namespace DeadSignal.Editor
             _ensureObjectiveCardPrefab();
             _ensureThreatInstrumentPrefab();
             _ensureInteractionPromptPrefab();
+            DeadSignalOutcomePresentationSetup.EnsureAssets();
 
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
@@ -118,6 +120,13 @@ namespace DeadSignal.Editor
             var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(HUD_PREFAB_PATH);
             var instrument = prefab == null ? null : prefab.GetComponentInChildren<ThreatHudInstrument>(true);
             return instrument != null && instrument.IsConfigured;
+        }
+
+        private static bool _hasOutcomePresentationPrefab()
+        {
+            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(HUD_PREFAB_PATH);
+            var presentation = prefab == null ? null : prefab.GetComponentInChildren<OutcomePresentation>(true);
+            return presentation != null && presentation.IsConfigured;
         }
 
         private static void _ensureCompositionPrefab()

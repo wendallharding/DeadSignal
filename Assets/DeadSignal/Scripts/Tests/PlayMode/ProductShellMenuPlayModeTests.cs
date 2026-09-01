@@ -339,6 +339,10 @@ namespace DeadSignal.Tests
         {
             var hud = Object.FindFirstObjectByType<DeadSignalHud>(FindObjectsInactive.Include);
             var outcome = hud.transform.Find("Outcome Overlay");
+            var presentation = outcome.GetComponent<OutcomePresentation>();
+            Assert.That(presentation, Is.Not.Null);
+            Assert.That(presentation.IsConfigured, Is.True);
+            Assert.That(presentation.IsDefeatPresentation, Is.True);
             Assert.That(outcome.Find("Result").GetComponent<Text>().text, Is.EqualTo("MISSION LOST"));
             Assert.That(outcome.Find("Detail").GetComponent<Text>().text,
                 Is.EqualTo("SIGNAL DEPLETED — EMERGENCY RECOVERY EXPIRED"));

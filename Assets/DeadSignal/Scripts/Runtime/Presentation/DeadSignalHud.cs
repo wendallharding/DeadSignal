@@ -64,6 +64,7 @@ namespace DeadSignal.Presentation
         [SerializeField] private Text m_restartText;
         [SerializeField] private CanvasGroup m_outcomeCanvasGroup;
         [SerializeField] private ProductShellTransitionTuning m_transitionTuning;
+        [SerializeField] private OutcomePresentation m_outcomePresentation;
 
         [Header("Pause")]
         [SerializeField] private GameObject m_pauseOverlay;
@@ -440,6 +441,7 @@ namespace DeadSignal.Presentation
 
             var victory = m_model.Outcome == RunOutcome.Victory;
             _recordPersonalBest();
+            m_outcomePresentation.Present(m_model.Outcome, m_comfortSettings.ReducedFlashesEnabled);
             if (victory)
             {
                 var debrief = RunDebrief.Evaluate(m_model, m_metrics);
