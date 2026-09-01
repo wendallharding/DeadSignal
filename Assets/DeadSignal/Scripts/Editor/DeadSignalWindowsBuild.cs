@@ -91,6 +91,7 @@ namespace DeadSignal.Editor
             DeadSignalStationWallKitSetup.EnsureAssets();
             DeadSignalStatefulDoorFrameSetup.EnsureAssets();
             DeadSignalStationNavigationSignageSetup.EnsureAssets();
+            DeadSignalStationServiceNetworkSetup.EnsureAssets();
             DeadSignalForegroundCutawaySetup.EnsureAssets();
             DeadSignalSignalSpineSetup.EnsureAssets();
             DeadSignalBoundaryThresholdSetup.EnsureAssets();
@@ -429,6 +430,11 @@ namespace DeadSignal.Editor
             if (!DeadSignalStationNavigationSignageSetup.HasAssets)
             {
                 throw new BuildFailedException("The authored station navigation-signage kit is missing or incomplete.");
+            }
+
+            if (!DeadSignalStationServiceNetworkSetup.HasAssets)
+            {
+                throw new BuildFailedException("The authored station service network is missing or incomplete.");
             }
 
             if (!DeadSignalForegroundCutawaySetup.HasAssets)
