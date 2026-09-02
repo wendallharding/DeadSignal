@@ -1,3 +1,4 @@
+using DeadSignal.Player;
 using UnityEngine;
 
 namespace DeadSignal.Presentation
@@ -9,12 +10,20 @@ namespace DeadSignal.Presentation
         private const float PURGE_DURATION = 0.36f;
         private const float WAKE_DURATION = 0.42f;
 
+        private static readonly Color s_roleRed = new(1f, 0.13f, 0.08f, 1f);
+        private static readonly Color s_recoveryAmber = new(1f, 0.58f, 0.12f, 1f);
+
         private Transform m_interceptor;
         private Transform m_chassis;
         private Transform m_leftBlade;
         private Transform m_rightBlade;
         private Transform m_core;
         private Transform m_purgeEcho;
+        private IComfortSettings m_comfortSettings;
+        private Material m_effectMaterial;
+        private LineRenderer m_stateEffect;
+        private LineRenderer m_eventEffect;
+        private LineRenderer m_purgeEffect;
         private Vector3[] m_restPositions;
         private Quaternion[] m_restRotations;
         private Vector3[] m_restScales;
@@ -41,14 +50,30 @@ namespace DeadSignal.Presentation
         public bool IsCoverCrash => IsRecovering && m_crashed;
         public bool IsHitReacting => m_hitRemaining > 0f;
         public bool IsPurgeVisible => m_purgeRemaining > 0f && m_purgeEcho != null && m_purgeEcho.gameObject.activeSelf;
+        public bool IsStateEffectVisible => m_stateEffect != null && m_stateEffect.enabled;
+        public bool IsEventEffectVisible => m_eventEffect != null && m_eventEffect.enabled;
+        public bool IsRecoveryOpeningVisible => IsRecovering && IsStateEffectVisible;
+        public bool IsPurgeEffectVisible => m_purgeEffect != null && m_purgeEffect.enabled;
+        public float MaximumEffectAlpha => Mathf.Max(
+            m_stateEffect != null && m_stateEffect.enabled ? m_stateEffect.startColor.a : 0f,
+            Mathf.Max(
+                m_eventEffect != null && m_eventEffect.enabled ? m_eventEffect.startColor.a : 0f,
+                m_purgeEffect != null && m_purgeEffect.enabled ? m_purgeEffect.startColor.a : 0f));
 
-        public void Configure(Transform interceptor, Transform chassis, Transform leftBlade, Transform rightBlade, Transform core)
+        internal void Configure(
+            Transform interceptor,
+            Transform chassis,
+            Transform leftBlade,
+            Transform rightBlade,
+            Transform core,
+            IComfortSettings comfortSettings)
         {
             m_interceptor = interceptor;
             m_chassis = chassis;
             m_leftBlade = leftBlade;
             m_rightBlade = rightBlade;
             m_core = core;
+            m_comfortSettings = comfortSettings;
             var parts = _parts();
             m_restPositions = new Vector3[parts.Length];
             m_restRotations = new Quaternion[parts.Length];
@@ -60,6 +85,7 @@ namespace DeadSignal.Presentation
                 m_restScales[index] = parts[index].localScale;
             }
             m_purgeEcho = _createPurgeEcho();
+            _createEffectRenderers();
             ResetPresentation();
         }
 
@@ -109,6 +135,9 @@ namespace DeadSignal.Presentation
             for (var index = 0; index < parts.Length; index++) _copyPose(parts[index], m_purgeEcho.GetChild(index));
             m_purgeEcho.gameObject.SetActive(true);
             m_purgeRemaining = PURGE_DURATION;
+            m_purgeEffect.enabled = true;
+            m_stateEffect.enabled = false;
+            m_eventEffect.enabled = false;
             _resetLivePose();
         }
 
@@ -122,6 +151,9 @@ namespace DeadSignal.Presentation
             m_dashing = false;
             m_crashed = false;
             if (m_purgeEcho != null) m_purgeEcho.gameObject.SetActive(false);
+            _setEffectVisible(m_stateEffect, false);
+            _setEffectVisible(m_eventEffect, false);
+            _setEffectVisible(m_purgeEffect, false);
             _resetLivePose();
         }
 
@@ -159,9 +191,193 @@ namespace DeadSignal.Presentation
             m_core.localPosition = m_restPositions[3] + Vector3.up * (chargePulse * 0.055f - recoveryArc * 0.04f);
             m_core.localRotation = m_restRotations[3] * Quaternion.Euler(0f, Time.time * (m_charging ? 520f : 220f), 0f);
             m_core.localScale = m_restScales[3] * Mathf.Lerp(0.45f, 1f + chargePulse * 0.22f, wakeEase);
+            _updateLiveEffects(wakeProgress, speedWeight, recoveryProgress, recoveryArc, hit);
         }
 
         private void OnDisable() => ResetPresentation();
+
+        private void OnDestroy()
+        {
+            if (m_effectMaterial != null)
+            {
+                Destroy(m_effectMaterial);
+            }
+        }
+
+        private void _createEffectRenderers()
+        {
+            var shader = Shader.Find("Sprites/Default");
+            if (shader != null)
+            {
+                m_effectMaterial = new Material(shader)
+                {
+                    name = "Security Interceptor Effect Material",
+                    color = Color.white,
+                    mainTexture = Texture2D.whiteTexture,
+                    hideFlags = HideFlags.HideAndDontSave
+                };
+            }
+            else
+            {
+                Debug.LogWarning("Sprites/Default was unavailable; Interceptor effects will use the authored core material.", this);
+            }
+
+            var material = m_effectMaterial != null
+                ? m_effectMaterial
+                : m_core.GetComponent<MeshRenderer>().sharedMaterial;
+            m_stateEffect = _createEffectRenderer("Security Interceptor State Effect", material, 9, 0.045f);
+            m_eventEffect = _createEffectRenderer("Security Interceptor Event Effect", material, 7, 0.06f);
+            m_purgeEffect = _createEffectRenderer("Security Interceptor Purge Effect", material, 17, 0.055f);
+        }
+
+        private LineRenderer _createEffectRenderer(string objectName, Material material, int positionCount, float width)
+        {
+            var effect = new GameObject(objectName);
+            effect.transform.SetParent(transform, false);
+            var line = effect.AddComponent<LineRenderer>();
+            line.sharedMaterial = material;
+            line.useWorldSpace = true;
+            line.positionCount = positionCount;
+            line.widthMultiplier = width;
+            line.numCapVertices = 2;
+            line.numCornerVertices = 2;
+            line.textureMode = LineTextureMode.Stretch;
+            line.sortingOrder = 27;
+            line.enabled = false;
+            return line;
+        }
+
+        private void _updateLiveEffects(
+            float wakeProgress,
+            float movementWeight,
+            float recoveryProgress,
+            float recoveryArc,
+            float hit)
+        {
+            var reducedFlashes = m_comfortSettings != null && m_comfortSettings.ReducedFlashesEnabled;
+            var alphaPulse = reducedFlashes ? 1f : 0.88f + Mathf.Sin(Time.time * 14f) * 0.12f;
+            var wakeWeight = m_wakeRemaining > 0f ? Mathf.Sin(wakeProgress * Mathf.PI) : 0f;
+            var chargeWeight = m_charging ? 1f : 0f;
+            var dashWeight = m_dashing ? Mathf.Max(0.62f, movementWeight) : 0f;
+            var recoveryWeight = IsRecovering ? Mathf.Max(0.35f, recoveryArc) : 0f;
+            var stateWeight = Mathf.Max(wakeWeight, Mathf.Max(chargeWeight, Mathf.Max(dashWeight, recoveryWeight)));
+
+            if (stateWeight > 0.01f)
+            {
+                _setStateRails(m_stateEffect, m_interceptor.position, m_interceptor.forward, chargeWeight, dashWeight,
+                    recoveryWeight, m_crashed, recoveryProgress);
+                _setEffectColor(
+                    m_stateEffect,
+                    IsRecovering ? s_recoveryAmber : s_roleRed,
+                    Mathf.Min(reducedFlashes ? 0.3f : 0.76f, stateWeight * alphaPulse));
+                m_stateEffect.enabled = true;
+            }
+            else
+            {
+                m_stateEffect.enabled = false;
+            }
+
+            var crashWeight = IsRecovering && m_crashed ? Mathf.Clamp01(1f - recoveryProgress * 1.8f) : 0f;
+            var eventWeight = Mathf.Max(hit, crashWeight);
+            if (eventWeight > 0.01f)
+            {
+                var direction = hit > crashWeight ? m_hitDirection : m_interceptor.forward;
+                _setEventGlyph(m_eventEffect, m_interceptor.position, direction, eventWeight, crashWeight > hit);
+                _setEffectColor(
+                    m_eventEffect,
+                    crashWeight > hit ? s_recoveryAmber : s_roleRed,
+                    Mathf.Min(reducedFlashes ? 0.3f : 0.88f, eventWeight * alphaPulse));
+                m_eventEffect.enabled = true;
+            }
+            else
+            {
+                m_eventEffect.enabled = false;
+            }
+        }
+
+        private static void _setStateRails(
+            LineRenderer line,
+            Vector3 center,
+            Vector3 forward,
+            float charge,
+            float dash,
+            float recovery,
+            bool crashed,
+            float recoveryProgress)
+        {
+            forward.y = 0f;
+            forward = forward.sqrMagnitude > 0.01f ? forward.normalized : Vector3.forward;
+            var right = Vector3.Cross(Vector3.up, forward).normalized;
+            var origin = center + Vector3.up * 0.48f;
+            var halfWidth = Mathf.Lerp(0.72f, 0.48f, charge);
+            var front = Mathf.Lerp(0.46f, 1.18f, Mathf.Max(charge, dash));
+            var back = dash > 0f ? 1.05f : 0.38f;
+            if (recovery > 0f)
+            {
+                halfWidth = crashed ? 0.9f : 0.78f;
+                front = Mathf.Lerp(0.2f, 0.48f, recoveryProgress);
+                back = 0.46f;
+            }
+
+            line.SetPosition(0, origin - forward * back - right * halfWidth);
+            line.SetPosition(1, origin + forward * front - right * halfWidth);
+            line.SetPosition(2, origin + forward * (front + 0.28f) - right * 0.18f);
+            line.SetPosition(3, origin + forward * front);
+            line.SetPosition(4, origin + forward * (front + 0.28f) + right * 0.18f);
+            line.SetPosition(5, origin + forward * front + right * halfWidth);
+            line.SetPosition(6, origin - forward * back + right * halfWidth);
+            line.SetPosition(7, origin - forward * (back + (dash > 0f ? 0.38f : 0f)));
+            line.SetPosition(8, origin - forward * back - right * halfWidth);
+        }
+
+        private static void _setEventGlyph(
+            LineRenderer line,
+            Vector3 center,
+            Vector3 direction,
+            float weight,
+            bool crashed)
+        {
+            direction.y = 0f;
+            direction = direction.sqrMagnitude > 0.01f ? direction.normalized : Vector3.forward;
+            var right = Vector3.Cross(Vector3.up, direction).normalized;
+            var origin = center + Vector3.up * 0.5f;
+            var radius = 0.36f + weight * 0.42f;
+            if (crashed)
+            {
+                line.SetPosition(0, origin - direction * radius - right * radius);
+                line.SetPosition(1, origin + direction * radius + right * radius);
+                line.SetPosition(2, origin);
+                line.SetPosition(3, origin - direction * radius + right * radius);
+                line.SetPosition(4, origin + direction * radius - right * radius);
+                line.SetPosition(5, origin);
+                line.SetPosition(6, origin - direction * radius - right * radius);
+                return;
+            }
+
+            line.SetPosition(0, origin - direction * 0.2f - right * radius);
+            line.SetPosition(1, origin + direction * 0.16f - right * 0.18f);
+            line.SetPosition(2, origin + direction * (0.54f + weight * 0.34f));
+            line.SetPosition(3, origin + direction * 0.16f + right * 0.18f);
+            line.SetPosition(4, origin - direction * 0.2f + right * radius);
+            line.SetPosition(5, origin - direction * 0.08f);
+            line.SetPosition(6, origin - direction * 0.2f - right * radius);
+        }
+
+        private static void _setEffectColor(LineRenderer line, Color color, float alpha)
+        {
+            color.a = alpha;
+            line.startColor = color;
+            color.a *= 0.45f;
+            line.endColor = color;
+        }
+
+        private static void _setEffectVisible(LineRenderer line, bool visible)
+        {
+            if (line != null)
+            {
+                line.enabled = visible;
+            }
+        }
 
         private void _poseBlade(Transform blade, int index, float side, float wakeEase, float chargePulse, float recoveryArc)
         {
@@ -201,7 +417,27 @@ namespace DeadSignal.Presentation
             m_purgeEcho.localRotation = m_purgeRotation * Quaternion.Euler(progress * 65f, progress * 320f, 0f);
             m_purgeEcho.localScale = Vector3.Scale(m_purgeScale,
                 new Vector3(1f + progress * 0.35f, 1f - progress * 0.92f, 1f + progress * 0.55f));
-            if (m_purgeRemaining <= 0f) m_purgeEcho.gameObject.SetActive(false);
+            _setPurgeRing(progress);
+            if (m_purgeRemaining <= 0f)
+            {
+                m_purgeEcho.gameObject.SetActive(false);
+                m_purgeEffect.enabled = false;
+            }
+        }
+
+        private void _setPurgeRing(float progress)
+        {
+            var radius = Mathf.Lerp(0.34f, 1.38f, progress);
+            var center = m_purgeEcho.position + Vector3.up * 0.12f;
+            for (var index = 0; index < 17; index++)
+            {
+                var angle = index / 16f * Mathf.PI * 2f;
+                m_purgeEffect.SetPosition(index, center + new Vector3(Mathf.Cos(angle), 0f, Mathf.Sin(angle)) * radius);
+            }
+
+            var reducedFlashes = m_comfortSettings != null && m_comfortSettings.ReducedFlashesEnabled;
+            _setEffectColor(m_purgeEffect, s_roleRed, Mathf.Min(reducedFlashes ? 0.3f : 0.72f, 1f - progress));
+            m_purgeEffect.enabled = m_purgeRemaining > 0f;
         }
 
         private static void _copyPose(Transform source, Transform destination)

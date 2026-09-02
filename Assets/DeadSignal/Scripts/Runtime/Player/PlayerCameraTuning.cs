@@ -24,6 +24,7 @@ namespace DeadSignal.Player
         [SerializeField] private float m_combatHeight = 24f;
         [SerializeField] private float m_combatFollowDistance = 11.2f;
         [SerializeField] private float m_combatTransitionDuration = 1.1f;
+        [SerializeField, Range(0f, 1f)] private float m_combatArenaFocusWeight = 0.35f;
 
         public float FieldOfView => m_fieldOfView;
         public float Pitch => m_pitch;
@@ -41,6 +42,7 @@ namespace DeadSignal.Player
         public float CombatHeight => m_combatHeight;
         public float CombatFollowDistance => m_combatFollowDistance;
         public float CombatTransitionDuration => m_combatTransitionDuration;
+        public float CombatArenaFocusWeight => m_combatArenaFocusWeight;
 
         private void OnValidate()
         {
@@ -60,6 +62,7 @@ namespace DeadSignal.Player
             m_combatHeight = Mathf.Max(m_height, m_combatHeight);
             m_combatFollowDistance = Mathf.Max(0f, m_combatFollowDistance);
             m_combatTransitionDuration = Mathf.Max(0.1f, m_combatTransitionDuration);
+            m_combatArenaFocusWeight = Mathf.Clamp01(m_combatArenaFocusWeight);
         }
     }
 }

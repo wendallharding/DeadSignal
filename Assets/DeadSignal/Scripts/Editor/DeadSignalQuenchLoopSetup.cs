@@ -368,7 +368,11 @@ namespace DeadSignal.Editor
             var scene = EditorSceneManager.OpenScene(SCENE_PATH, OpenSceneMode.Single);
             var references = UnityEngine.Object.FindFirstObjectByType<DeadSignalSceneReferences>(FindObjectsInactive.Include);
             var serialized = new SerializedObject(references);
-            serialized.FindProperty("m_arenaHalfExtents").vector2Value = new Vector2(57.5f, 30.4f);
+            var boundsProperty = serialized.FindProperty("m_arenaHalfExtents");
+            var existing = boundsProperty.vector2Value;
+            boundsProperty.vector2Value = new Vector2(
+                Mathf.Max(existing.x, 73f),
+                Mathf.Max(existing.y, 30.4f));
             serialized.ApplyModifiedPropertiesWithoutUndo();
             EditorUtility.SetDirty(references);
             EditorSceneManager.SaveScene(scene);

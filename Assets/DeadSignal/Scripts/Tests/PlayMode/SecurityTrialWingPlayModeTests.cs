@@ -35,8 +35,19 @@ namespace DeadSignal.Tests
             Assert.That(wing.Find("Lockdown Arena"), Is.Not.Null);
             Assert.That(wing.Find("Reward Vault"), Is.Not.Null);
             var arenaDeck = wing.Find("Lockdown Arena/Arena Deck");
-            Assert.That(arenaDeck.localScale.x * arenaDeck.localScale.z, Is.EqualTo(1260f).Within(0.1f),
-                "Room B should provide nine times the original 140-square-unit combat floor.");
+            Assert.That(arenaDeck.localScale.x, Is.EqualTo(60f).Within(0.1f),
+                "Room B should match the selected wide arcade-playfield target.");
+            Assert.That(arenaDeck.localScale.z, Is.EqualTo(36f).Within(0.1f),
+                "The accepted vertical depth should remain unchanged for the first scale pass.");
+            Assert.That(arenaDeck.localScale.x / arenaDeck.localScale.z, Is.EqualTo(5f / 3f).Within(0.01f));
+            Assert.That(wing.Find("Lockdown Arena/Arena West Bulkhead").localPosition.x,
+                Is.EqualTo(-30f).Within(0.01f));
+            Assert.That(wing.Find("Lockdown Arena/Arena East Bulkhead").localPosition.x,
+                Is.EqualTo(30f).Within(0.01f));
+            var clampedEast = chamber.CombatScenario.ClampToSafeArea(
+                chamber.ArenaPosition + Vector3.right * 100f);
+            Assert.That(chamber.CombatScenario.transform.InverseTransformPoint(clampedEast).x,
+                Is.EqualTo(28.5f).Within(0.01f));
             Assert.That(wing.Find("Lockdown Entry Door").gameObject.activeSelf, Is.True);
             Assert.That(wing.Find("Reward Vault Door").gameObject.activeSelf, Is.True);
             Assert.That(wing.Find("Cleared Return Signal").gameObject.activeSelf, Is.False);
@@ -55,7 +66,7 @@ namespace DeadSignal.Tests
             Assert.That(Resources.Load<Mesh>("Environment/SecurityTrialCapacitorStatusReadability"), Is.Not.Null);
             Assert.That(Resources.Load<Material>(
                 "Materials/SecurityTrialReadability/SecurityTrialLockdownStatus"), Is.Not.Null);
-            Assert.That(game.AuthoredMapObstacleCount, Is.EqualTo(138));
+            Assert.That(game.AuthoredMapObstacleCount, Is.EqualTo(141));
         }
 
         [UnityTest]

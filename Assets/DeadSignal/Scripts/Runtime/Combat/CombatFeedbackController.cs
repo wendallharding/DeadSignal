@@ -17,6 +17,7 @@ namespace DeadSignal.Combat
         void Configure(Camera targetCamera);
         void SetCameraRestPosition(Vector3 restPosition);
         void PlaySignalImpact(Vector3 position, bool decisive);
+        void PlayArmorImpact(Vector3 position);
         void PlayThreatReaction(Transform target);
         void PlayShieldImpact(Vector3 position);
         void PlaySecurityImpact(Vector3 position);
@@ -35,6 +36,18 @@ namespace DeadSignal.Combat
     [DefaultExecutionOrder(-100)]
     public sealed class CombatFeedbackController : MonoBehaviour, ICombatFeedback
     {
+        public enum ImpactLanguage
+        {
+            None,
+            EnemyHit,
+            ArmorHit,
+            ShieldHit,
+            WallHit,
+            Purge,
+            BountyRecovery,
+            ChainRecovery
+        }
+
         private const string IMPACT_TEXTURE_PATH = "VFX/MaintenanceSignalImpact";
         private const string ENVIRONMENT_IMPACT_TEXTURE_PATH = "Projectiles/SignalBoltBulkheadImpact";
         private const string ENVIRONMENT_IMPACT_MATERIAL_PATH = "Materials/SignalBoltBulkheadImpact";
@@ -103,11 +116,13 @@ namespace DeadSignal.Combat
         public int ChainArcPoolSize => m_chainArcs.Count;
         public int CreatedPooledObjectCount { get; private set; }
         public int ChainArcsPlayed { get; private set; }
+        public ImpactLanguage LastImpactLanguage { get; private set; }
 
         private sealed class ImpactVisual
         {
             public GameObject Root;
             public SpriteRenderer Renderer;
+            public LineRenderer Glyph;
             public Color Tint;
             public float Age;
             public float TargetScale;
@@ -232,12 +247,19 @@ namespace DeadSignal.Combat
 
         public void PlaySignalImpact(Vector3 position, bool decisive)
         {
+            var language = decisive ? ImpactLanguage.Purge : ImpactLanguage.EnemyHit;
             _playImpact(position, s_signalTint, decisive ? 1.28f : 0.86f, decisive ? 0.2f : 0.11f,
-                decisive ? HEAVY_HIT_STOP : LIGHT_HIT_STOP, decisive);
+                decisive ? HEAVY_HIT_STOP : LIGHT_HIT_STOP, decisive, language);
             if (decisive)
             {
-                _playImpact(position, new Color(0.2f, 0.95f, 1f), 1.9f, 0f, 0f, true);
+                _playImpact(position, new Color(0.2f, 0.95f, 1f), 1.9f, 0f, 0f, true, ImpactLanguage.Purge);
             }
+        }
+
+        public void PlayArmorImpact(Vector3 position)
+        {
+            _playImpact(position, new Color(0.72f, 0.9f, 1f), 0.96f, 0.08f, LIGHT_HIT_STOP, false,
+                ImpactLanguage.ArmorHit);
         }
 
         public void PlayThreatReaction(Transform target)
@@ -257,8 +279,9 @@ namespace DeadSignal.Combat
 
         public void PlayShieldImpact(Vector3 position)
         {
-            _playImpact(position, new Color(0.18f, 0.72f, 1f), 1.65f, 0.16f, LIGHT_HIT_STOP);
-            _playImpact(position, Color.white, 0.72f, 0f, 0f);
+            _playImpact(position, new Color(0.18f, 0.72f, 1f), 1.65f, 0.16f, LIGHT_HIT_STOP, false,
+                ImpactLanguage.ShieldHit);
+            _playImpact(position, Color.white, 0.72f, 0f, 0f, false, ImpactLanguage.ShieldHit);
         }
 
         public void PlaySecurityImpact(Vector3 position)
@@ -275,20 +298,21 @@ namespace DeadSignal.Combat
         {
             _playImpact(position, new Color(1f, 0.58f, 0.16f), 0.82f, 0f, 0f,
                 m_environmentImpactSprite, m_environmentImpactMaterial,
-                "Bulkhead Signal Impact", false);
-            _playImpact(position + Vector3.up * 0.03f, Color.white, 0.38f, 0f, 0f);
+                "Bulkhead Signal Impact", false, ImpactLanguage.WallHit);
+            _playImpact(position + Vector3.up * 0.03f, Color.white, 0.38f, 0f, 0f, false, ImpactLanguage.WallHit);
         }
 
         public void PlaySignalRecovery(Vector3 position)
         {
-            _playImpact(position, Color.white, 1.45f, 0f, 0f, m_signalRecoverySprite, null, "Signal Recovery Burst", true);
+            _playImpact(position, Color.white, 1.45f, 0f, 0f, m_signalRecoverySprite, null, "Signal Recovery Burst", true,
+                ImpactLanguage.BountyRecovery);
         }
 
         public void PlaySalvageChain(Vector3 position, int chainCount)
         {
             var tint = chainCount >= 3 ? new Color(1f, 0.72f, 0.12f) : Color.white;
             _playImpact(position, tint, 0.85f + Mathf.Min(chainCount, 3) * 0.22f, 0f, 0f,
-                m_salvageChainSprite, null, "Salvage Chain Burst", true);
+                m_salvageChainSprite, null, "Salvage Chain Burst", true, ImpactLanguage.ChainRecovery);
         }
 
         public void PlayChainArc(Vector3 start, Vector3 end)
@@ -387,10 +411,11 @@ namespace DeadSignal.Combat
             float targetScale,
             float shakeIntensity,
             float hitStopDuration,
-            bool priority = false)
+            bool priority = false,
+            ImpactLanguage language = ImpactLanguage.None)
         {
             _playImpact(position, tint, targetScale, shakeIntensity, hitStopDuration, m_impactSprite, null,
-                "Combat Impact Burst", priority);
+                "Combat Impact Burst", priority, language);
         }
 
         private void _playImpact(
@@ -402,7 +427,8 @@ namespace DeadSignal.Combat
             Sprite sprite,
             Material material,
             string objectName,
-            bool priority)
+            bool priority,
+            ImpactLanguage language)
         {
             if (m_isPaused || sprite == null)
             {
@@ -429,7 +455,9 @@ namespace DeadSignal.Combat
                 impact.TargetScale = targetScale;
                 impact.Age = 0f;
                 impact.IsPriority = priority;
+                _configureImpactGlyph(impact, language);
                 _playDirectionalSparks(position, tint, priority);
+                LastImpactLanguage = language;
             }
 
             if (CameraImpulseEnabled)
@@ -495,6 +523,13 @@ namespace DeadSignal.Combat
                 float easedProgress = 1f - Mathf.Pow(1f - progress, 3f);
                 impact.Root.transform.localScale = Vector3.one * Mathf.Lerp(0.12f, impact.TargetScale, easedProgress);
                 impact.Renderer.color = _impactColor(impact.Tint, progress);
+                if (impact.Glyph.enabled)
+                {
+                    var glyphColor = _impactColor(impact.Tint, progress);
+                    impact.Glyph.startColor = glyphColor;
+                    glyphColor.a *= 0.34f;
+                    impact.Glyph.endColor = glyphColor;
+                }
 
                 if (progress < 1f)
                 {
@@ -684,9 +719,101 @@ namespace DeadSignal.Combat
             root.transform.SetParent(transform, false);
             var renderer = root.AddComponent<SpriteRenderer>();
             renderer.sortingOrder = 30;
+            var glyph = root.AddComponent<LineRenderer>();
+            glyph.sharedMaterial = m_chainArcMaterial;
+            glyph.useWorldSpace = false;
+            glyph.loop = false;
+            glyph.numCornerVertices = 2;
+            glyph.numCapVertices = 3;
+            glyph.startWidth = _impactGlyphWidth();
+            glyph.endWidth = _impactGlyphWidth() * 0.55f;
+            glyph.sortingOrder = 32;
+            glyph.enabled = false;
             root.SetActive(false);
             CreatedPooledObjectCount++;
-            return new ImpactVisual { Root = root, Renderer = renderer };
+            return new ImpactVisual { Root = root, Renderer = renderer, Glyph = glyph };
+        }
+
+        private void _configureImpactGlyph(ImpactVisual impact, ImpactLanguage language)
+        {
+            var glyph = impact.Glyph;
+            glyph.enabled = language != ImpactLanguage.None;
+            glyph.loop = false;
+            glyph.startWidth = _impactGlyphWidth();
+            glyph.endWidth = _impactGlyphWidth() * 0.55f;
+            switch (language)
+            {
+                case ImpactLanguage.EnemyHit:
+                    glyph.positionCount = 4;
+                    glyph.SetPosition(0, new Vector3(-0.3f, 0f, 0f));
+                    glyph.SetPosition(1, Vector3.zero);
+                    glyph.SetPosition(2, new Vector3(0.16f, 0.22f, 0f));
+                    glyph.SetPosition(3, new Vector3(0.31f, 0f, 0f));
+                    break;
+                case ImpactLanguage.ArmorHit:
+                    glyph.positionCount = 5;
+                    glyph.SetPosition(0, new Vector3(-0.32f, 0.22f, 0f));
+                    glyph.SetPosition(1, new Vector3(-0.32f, -0.22f, 0f));
+                    glyph.SetPosition(2, Vector3.zero);
+                    glyph.SetPosition(3, new Vector3(0.32f, -0.22f, 0f));
+                    glyph.SetPosition(4, new Vector3(0.32f, 0.22f, 0f));
+                    break;
+                case ImpactLanguage.ShieldHit:
+                    glyph.loop = true;
+                    glyph.positionCount = 6;
+                    for (var index = 0; index < 6; index++)
+                    {
+                        var angle = index * Mathf.PI / 3f;
+                        glyph.SetPosition(index, new Vector3(Mathf.Cos(angle), Mathf.Sin(angle), 0f) * 0.31f);
+                    }
+                    break;
+                case ImpactLanguage.WallHit:
+                    glyph.positionCount = 4;
+                    glyph.SetPosition(0, new Vector3(-0.3f, 0.18f, 0f));
+                    glyph.SetPosition(1, new Vector3(-0.06f, -0.18f, 0f));
+                    glyph.SetPosition(2, new Vector3(0.1f, 0.18f, 0f));
+                    glyph.SetPosition(3, new Vector3(0.3f, -0.18f, 0f));
+                    break;
+                case ImpactLanguage.Purge:
+                    glyph.loop = true;
+                    glyph.positionCount = 8;
+                    for (var index = 0; index < 8; index++)
+                    {
+                        var radius = index % 2 == 0 ? 0.43f : 0.2f;
+                        var angle = index * Mathf.PI / 4f;
+                        glyph.SetPosition(index, new Vector3(Mathf.Cos(angle), Mathf.Sin(angle), 0f) * radius);
+                    }
+                    break;
+                case ImpactLanguage.BountyRecovery:
+                    glyph.positionCount = 5;
+                    glyph.SetPosition(0, new Vector3(-0.27f, -0.08f, 0f));
+                    glyph.SetPosition(1, new Vector3(0f, 0.25f, 0f));
+                    glyph.SetPosition(2, new Vector3(0.27f, -0.08f, 0f));
+                    glyph.SetPosition(3, new Vector3(0.1f, -0.08f, 0f));
+                    glyph.SetPosition(4, new Vector3(0.1f, -0.28f, 0f));
+                    break;
+                case ImpactLanguage.ChainRecovery:
+                    glyph.positionCount = 5;
+                    glyph.SetPosition(0, new Vector3(-0.34f, 0.08f, 0f));
+                    glyph.SetPosition(1, new Vector3(-0.16f, 0.22f, 0f));
+                    glyph.SetPosition(2, Vector3.zero);
+                    glyph.SetPosition(3, new Vector3(0.16f, -0.22f, 0f));
+                    glyph.SetPosition(4, new Vector3(0.34f, -0.08f, 0f));
+                    break;
+                default:
+                    glyph.enabled = false;
+                    break;
+            }
+
+            if (!glyph.enabled)
+            {
+                return;
+            }
+
+            glyph.startColor = _impactColor(impact.Tint, 0f);
+            var endColor = glyph.startColor;
+            endColor.a *= 0.34f;
+            glyph.endColor = endColor;
         }
 
         private SparkVisual _createSparkVisual()
@@ -887,6 +1014,7 @@ namespace DeadSignal.Combat
         {
             impact.IsActive = false;
             impact.IsPriority = false;
+            impact.Glyph.enabled = false;
             impact.Root.SetActive(false);
             ActiveImpactCount--;
         }
@@ -962,5 +1090,6 @@ namespace DeadSignal.Combat
         private float _chainDuration() => m_tuning == null ? DEFAULT_CHAIN_DURATION : m_tuning.ChainDuration;
         private float _reducedFlashesMaximumAlpha() =>
             m_tuning == null ? DEFAULT_REDUCED_FLASH_ALPHA : m_tuning.ReducedFlashesMaximumAlpha;
+        private float _impactGlyphWidth() => m_tuning == null ? 0.045f : m_tuning.ImpactGlyphWidth;
     }
 }

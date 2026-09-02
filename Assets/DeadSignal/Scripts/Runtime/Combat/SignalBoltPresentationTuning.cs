@@ -25,6 +25,15 @@ namespace DeadSignal.Combat
         [SerializeField] private float m_muzzleLightRange = 2.4f;
         [SerializeField] private float m_muzzleLightIntensity = 2.6f;
 
+        [Header("Evolved Weapon Language")]
+        [SerializeField] private float m_piercingTrailWidth = 0.18f;
+        [SerializeField] private float m_ricochetTrailWidth = 0.21f;
+        [SerializeField] private float m_evolvedTrailMultiplier = 1.16f;
+        [SerializeField] private float m_weaponEventDuration = 0.18f;
+        [SerializeField] private float m_weaponEventLength = 0.72f;
+        [SerializeField] private float m_weaponEventWidth = 0.075f;
+        [SerializeField] private int m_weaponEventPoolSize = 8;
+
         [Header("Projectile Rules")]
         [SerializeField] private float m_speed = 13.5f;
         [SerializeField] private float m_lifetime = 1.5f;
@@ -47,6 +56,13 @@ namespace DeadSignal.Combat
         public float MuzzleLightDuration => m_muzzleLightDuration;
         public float MuzzleLightRange => m_muzzleLightRange;
         public float MuzzleLightIntensity => m_muzzleLightIntensity;
+        public float PiercingTrailWidth => m_piercingTrailWidth;
+        public float RicochetTrailWidth => m_ricochetTrailWidth;
+        public float EvolvedTrailMultiplier => m_evolvedTrailMultiplier;
+        public float WeaponEventDuration => m_weaponEventDuration;
+        public float WeaponEventLength => m_weaponEventLength;
+        public float WeaponEventWidth => m_weaponEventWidth;
+        public int WeaponEventPoolSize => m_weaponEventPoolSize;
         public float Speed => m_speed;
         public float Lifetime => m_lifetime;
         public float FireCooldown => m_fireCooldown;
@@ -70,6 +86,13 @@ namespace DeadSignal.Combat
             m_muzzleLightDuration = Mathf.Max(0.01f, m_muzzleLightDuration);
             m_muzzleLightRange = Mathf.Max(0.1f, m_muzzleLightRange);
             m_muzzleLightIntensity = Mathf.Max(0f, m_muzzleLightIntensity);
+            m_piercingTrailWidth = Mathf.Max(0.01f, m_piercingTrailWidth);
+            m_ricochetTrailWidth = Mathf.Max(0.01f, m_ricochetTrailWidth);
+            m_evolvedTrailMultiplier = Mathf.Max(1f, m_evolvedTrailMultiplier);
+            m_weaponEventDuration = Mathf.Max(0.05f, m_weaponEventDuration);
+            m_weaponEventLength = Mathf.Max(0.1f, m_weaponEventLength);
+            m_weaponEventWidth = Mathf.Max(0.01f, m_weaponEventWidth);
+            m_weaponEventPoolSize = Mathf.Clamp(m_weaponEventPoolSize, 4, 16);
             m_speed = Mathf.Max(0.1f, m_speed);
             m_lifetime = Mathf.Max(0.1f, m_lifetime);
             m_fireCooldown = Mathf.Max(0.01f, m_fireCooldown);

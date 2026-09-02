@@ -1,3 +1,4 @@
+using DeadSignal.Player;
 using UnityEngine;
 
 namespace DeadSignal.Presentation
@@ -12,12 +13,21 @@ namespace DeadSignal.Presentation
         private const float PURGE_DURATION = 0.42f;
         private const float WAKE_DURATION = 0.48f;
 
+        private static readonly Color s_roleMagenta = new(1f, 0.08f, 0.72f, 1f);
+        private static readonly Color s_interruptedAmber = new(1f, 0.56f, 0.12f, 1f);
+
         private Transform m_sapper;
         private Transform m_chassis;
         private Transform m_leftFork;
         private Transform m_rightFork;
         private Transform m_core;
         private Transform m_purgeEcho;
+        private IComfortSettings m_comfortSettings;
+        private Material m_effectMaterial;
+        private LineRenderer m_stateEffect;
+        private LineRenderer m_eventEffect;
+        private LineRenderer m_purgeEffect;
+        private Vector3 m_towerPosition;
         private Vector3 m_chassisRestPosition;
         private Quaternion m_chassisRestRotation;
         private Vector3 m_chassisRestScale;
@@ -54,19 +64,32 @@ namespace DeadSignal.Presentation
         public bool IsHitReacting => m_hitRemaining > 0f;
         public bool IsTetherOwned => m_latched && m_sapper != null && m_sapper.gameObject.activeSelf;
         public bool IsPurgeVisible => m_purgeRemaining > 0f && m_purgeEcho != null && m_purgeEcho.gameObject.activeSelf;
+        public bool IsStateEffectVisible => m_stateEffect != null && m_stateEffect.enabled;
+        public bool IsDrainEffectVisible => m_eventEffect != null && m_eventEffect.enabled && m_pulseRemaining > 0f;
+        public bool IsInterruptedEffectVisible => m_eventEffect != null && m_eventEffect.enabled && m_interruptRemaining > 0f;
+        public bool IsPurgeEffectVisible => m_purgeEffect != null && m_purgeEffect.enabled;
+        public float MaximumEffectAlpha => Mathf.Max(
+            m_stateEffect != null && m_stateEffect.enabled ? m_stateEffect.startColor.a : 0f,
+            Mathf.Max(
+                m_eventEffect != null && m_eventEffect.enabled ? m_eventEffect.startColor.a : 0f,
+                m_purgeEffect != null && m_purgeEffect.enabled ? m_purgeEffect.startColor.a : 0f));
 
-        public void Configure(
+        internal void Configure(
             Transform sapper,
             Transform chassis,
             Transform leftFork,
             Transform rightFork,
-            Transform core)
+            Transform core,
+            Vector3 towerPosition,
+            IComfortSettings comfortSettings)
         {
             m_sapper = sapper;
             m_chassis = chassis;
             m_leftFork = leftFork;
             m_rightFork = rightFork;
             m_core = core;
+            m_towerPosition = towerPosition;
+            m_comfortSettings = comfortSettings;
             m_chassisRestPosition = chassis.localPosition;
             m_chassisRestRotation = chassis.localRotation;
             m_chassisRestScale = chassis.localScale;
@@ -80,6 +103,7 @@ namespace DeadSignal.Presentation
             m_coreRestRotation = core.localRotation;
             m_coreRestScale = core.localScale;
             m_purgeEcho = _createPurgeEcho();
+            _createEffectRenderers();
             ResetPresentation();
         }
 
@@ -154,6 +178,9 @@ namespace DeadSignal.Presentation
             _copyPose(m_core, m_purgeEcho.GetChild(3));
             m_purgeEcho.gameObject.SetActive(true);
             m_purgeRemaining = PURGE_DURATION;
+            m_purgeEffect.enabled = true;
+            m_stateEffect.enabled = false;
+            m_eventEffect.enabled = false;
             _resetLivePose();
         }
 
@@ -172,6 +199,9 @@ namespace DeadSignal.Presentation
             {
                 m_purgeEcho.gameObject.SetActive(false);
             }
+            _setEffectVisible(m_stateEffect, false);
+            _setEffectVisible(m_eventEffect, false);
+            _setEffectVisible(m_purgeEffect, false);
             _resetLivePose();
         }
 
@@ -214,6 +244,8 @@ namespace DeadSignal.Presentation
             var hit = m_hitRemaining > 0f ? Mathf.Sin(m_hitRemaining / HIT_DURATION * Mathf.PI) : 0f;
             var localHit = Quaternion.Inverse(m_sapper.rotation) * m_hitDirection;
 
+            _updateLiveEffects(wakeProgress, latchEase, buildup, pulse, interruption);
+
             m_chassis.localPosition = m_chassisRestPosition + new Vector3(
                 localHit.x * hit * 0.08f,
                 Mathf.Lerp(-0.18f, -0.035f * latchEase, wakeEase) + Mathf.Abs(stride) * 0.02f,
@@ -242,6 +274,170 @@ namespace DeadSignal.Presentation
         private void OnDisable()
         {
             ResetPresentation();
+        }
+
+        private void OnDestroy()
+        {
+            if (m_effectMaterial != null)
+            {
+                Destroy(m_effectMaterial);
+            }
+        }
+
+        private void _createEffectRenderers()
+        {
+            var shader = Shader.Find("Sprites/Default");
+            if (shader != null)
+            {
+                m_effectMaterial = new Material(shader)
+                {
+                    name = "Signal Sapper Effect Material",
+                    color = Color.white,
+                    mainTexture = Texture2D.whiteTexture,
+                    hideFlags = HideFlags.HideAndDontSave
+                };
+            }
+            else
+            {
+                Debug.LogWarning("Sprites/Default was unavailable; Sapper effects will use the authored core material.", this);
+            }
+
+            var material = m_effectMaterial != null
+                ? m_effectMaterial
+                : m_core.GetComponent<MeshRenderer>().sharedMaterial;
+
+            m_stateEffect = _createEffectRenderer("Signal Sapper State Effect", material, 9, 0.045f);
+            m_eventEffect = _createEffectRenderer("Signal Sapper Drain Effect", material, 9, 0.06f);
+            m_purgeEffect = _createEffectRenderer("Signal Sapper Purge Effect", material, 17, 0.055f);
+        }
+
+        private LineRenderer _createEffectRenderer(
+            string objectName,
+            Material material,
+            int positionCount,
+            float width)
+        {
+            var effect = new GameObject(objectName);
+            effect.transform.SetParent(transform, false);
+            var line = effect.AddComponent<LineRenderer>();
+            line.sharedMaterial = material;
+            line.useWorldSpace = true;
+            line.positionCount = positionCount;
+            line.widthMultiplier = width;
+            line.numCapVertices = 2;
+            line.numCornerVertices = 2;
+            line.textureMode = LineTextureMode.Stretch;
+            line.sortingOrder = 27;
+            line.enabled = false;
+            return line;
+        }
+
+        private void _updateLiveEffects(
+            float wakeProgress,
+            float latchEase,
+            float buildup,
+            float pulse,
+            float interruption)
+        {
+            var reducedFlashes = m_comfortSettings != null && m_comfortSettings.ReducedFlashesEnabled;
+            var alphaPulse = reducedFlashes ? 1f : 0.88f + Mathf.Sin(Time.time * 13f) * 0.12f;
+            var wakeWeight = m_wakeRemaining > 0f ? Mathf.Sin(wakeProgress * Mathf.PI) : 0f;
+            var stateWeight = Mathf.Max(wakeWeight, m_latched ? Mathf.Max(0.42f, buildup) : 0.54f);
+            var toTower = m_towerPosition - m_sapper.position;
+            toTower.y = 0f;
+            var direction = toTower.sqrMagnitude > 0.01f ? toTower.normalized : m_sapper.forward;
+
+            _setDirectionalPacketBracket(m_stateEffect, m_sapper.position, direction, latchEase, buildup);
+            _setEffectColor(
+                m_stateEffect,
+                s_roleMagenta,
+                Mathf.Min(reducedFlashes ? 0.3f : 0.74f, stateWeight * alphaPulse));
+            m_stateEffect.enabled = true;
+
+            var eventWeight = Mathf.Max(pulse, interruption);
+            if (eventWeight > 0.01f)
+            {
+                _setEventGlyph(m_eventEffect, m_sapper.position, direction, pulse, interruption);
+                _setEffectColor(
+                    m_eventEffect,
+                    interruption > pulse ? s_interruptedAmber : s_roleMagenta,
+                    Mathf.Min(reducedFlashes ? 0.3f : 0.86f, eventWeight * alphaPulse));
+                m_eventEffect.enabled = true;
+            }
+            else
+            {
+                m_eventEffect.enabled = false;
+            }
+        }
+
+        private static void _setDirectionalPacketBracket(
+            LineRenderer line,
+            Vector3 center,
+            Vector3 direction,
+            float latchEase,
+            float buildup)
+        {
+            var right = Vector3.Cross(Vector3.up, direction).normalized;
+            var radius = Mathf.Lerp(0.82f, 0.58f, Mathf.Max(latchEase, buildup));
+            var origin = center + Vector3.up * 0.5f;
+            var packetOffset = Mathf.Repeat(Time.time * 1.8f, 1f) * 0.24f;
+            line.SetPosition(0, origin - right * radius - direction * 0.28f);
+            line.SetPosition(1, origin - right * radius + direction * 0.18f);
+            line.SetPosition(2, origin - right * 0.28f + direction * 0.05f);
+            line.SetPosition(3, origin + direction * (0.34f + packetOffset) - right * 0.18f);
+            line.SetPosition(4, origin + direction * (0.58f + packetOffset));
+            line.SetPosition(5, origin + direction * (0.34f + packetOffset) + right * 0.18f);
+            line.SetPosition(6, origin + right * 0.28f + direction * 0.05f);
+            line.SetPosition(7, origin + right * radius + direction * 0.18f);
+            line.SetPosition(8, origin + right * radius - direction * 0.28f);
+        }
+
+        private static void _setEventGlyph(
+            LineRenderer line,
+            Vector3 center,
+            Vector3 direction,
+            float pulse,
+            float interruption)
+        {
+            var origin = center + Vector3.up * 0.52f;
+            var right = Vector3.Cross(Vector3.up, direction).normalized;
+            if (interruption > pulse)
+            {
+                var radius = 0.48f + interruption * 0.22f;
+                line.SetPosition(0, origin - right * radius - direction * radius);
+                line.SetPosition(1, origin - right * radius * 0.38f - direction * radius * 0.38f);
+                line.SetPosition(2, origin - right * radius + direction * radius);
+                line.SetPosition(3, origin - right * radius * 0.38f + direction * radius * 0.38f);
+                line.SetPosition(4, origin + right * radius + direction * radius);
+                line.SetPosition(5, origin + right * radius * 0.38f + direction * radius * 0.38f);
+                line.SetPosition(6, origin + right * radius - direction * radius);
+                line.SetPosition(7, origin + right * radius * 0.38f - direction * radius * 0.38f);
+                line.SetPosition(8, origin - right * radius - direction * radius);
+                return;
+            }
+
+            var drainRadius = 0.42f + pulse * 0.62f;
+            for (var index = 0; index < 9; index++)
+            {
+                var angle = index / 8f * Mathf.PI * 2f;
+                line.SetPosition(index, origin + (right * Mathf.Cos(angle) + direction * Mathf.Sin(angle)) * drainRadius);
+            }
+        }
+
+        private static void _setEffectColor(LineRenderer line, Color color, float alpha)
+        {
+            color.a = alpha;
+            line.startColor = color;
+            color.a *= 0.45f;
+            line.endColor = color;
+        }
+
+        private static void _setEffectVisible(LineRenderer line, bool visible)
+        {
+            if (line != null)
+            {
+                line.enabled = visible;
+            }
         }
 
         private static void _poseFork(
@@ -316,10 +512,27 @@ namespace DeadSignal.Presentation
             m_purgeEcho.localScale = Vector3.Scale(
                 m_purgeRestScale,
                 new Vector3(1f + progress * 0.28f, collapse, 1f + progress * 0.28f));
+            _setPurgeRing(progress);
             if (m_purgeRemaining <= 0f)
             {
                 m_purgeEcho.gameObject.SetActive(false);
+                m_purgeEffect.enabled = false;
             }
+        }
+
+        private void _setPurgeRing(float progress)
+        {
+            var radius = Mathf.Lerp(0.32f, 1.28f, progress);
+            var center = m_purgeEcho.position + Vector3.up * 0.12f;
+            for (var index = 0; index < 17; index++)
+            {
+                var angle = index / 16f * Mathf.PI * 2f;
+                m_purgeEffect.SetPosition(index, center + new Vector3(Mathf.Cos(angle), 0f, Mathf.Sin(angle)) * radius);
+            }
+
+            var reducedFlashes = m_comfortSettings != null && m_comfortSettings.ReducedFlashesEnabled;
+            _setEffectColor(m_purgeEffect, s_roleMagenta, Mathf.Min(reducedFlashes ? 0.3f : 0.72f, 1f - progress));
+            m_purgeEffect.enabled = m_purgeRemaining > 0f;
         }
 
         private void _resetLivePose()

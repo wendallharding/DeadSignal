@@ -1,3 +1,4 @@
+using DeadSignal.Player;
 using UnityEngine;
 
 namespace DeadSignal.Presentation
@@ -10,12 +11,20 @@ namespace DeadSignal.Presentation
         private const float STRIKE_DURATION = 0.44f;
         private const float WAKE_DURATION = 0.48f;
 
+        private static readonly Color s_roleRed = new(1f, 0.12f, 0.08f, 1f);
+        private static readonly Color s_recoveryAmber = new(1f, 0.56f, 0.12f, 1f);
+
         private Transform m_warden;
         private Transform m_player;
         private Transform m_chassis;
         private Transform m_eye;
         private Transform m_crown;
         private Transform m_purgeEcho;
+        private IComfortSettings m_comfortSettings;
+        private Material m_effectMaterial;
+        private LineRenderer m_stateEffect;
+        private LineRenderer m_contactEffect;
+        private LineRenderer m_purgeEffect;
         private Vector3 m_chassisRestPosition;
         private Quaternion m_chassisRestRotation;
         private Vector3 m_chassisRestScale;
@@ -44,14 +53,32 @@ namespace DeadSignal.Presentation
         public bool IsHitReacting => m_hitRemaining > 0f;
         public bool IsPurgeVisible => m_purgeRemaining > 0f && m_purgeEcho != null && m_purgeEcho.gameObject.activeSelf;
         public bool IsScreening => m_screening;
+        public bool IsStrikeEffectVisible => m_stateEffect != null && m_stateEffect.enabled;
+        public bool IsContactEffectVisible => m_contactEffect != null && m_contactEffect.enabled;
+        public bool IsRecoveryOpeningVisible => m_stateEffect != null && m_stateEffect.enabled &&
+                                                m_strikeRemaining > 0f &&
+                                                1f - m_strikeRemaining / STRIKE_DURATION >= 0.28f;
+        public bool IsPurgeEffectVisible => m_purgeEffect != null && m_purgeEffect.enabled;
+        public float MaximumEffectAlpha => Mathf.Max(
+            m_stateEffect != null && m_stateEffect.enabled ? m_stateEffect.startColor.a : 0f,
+            Mathf.Max(
+                m_contactEffect != null && m_contactEffect.enabled ? m_contactEffect.startColor.a : 0f,
+                m_purgeEffect != null && m_purgeEffect.enabled ? m_purgeEffect.startColor.a : 0f));
 
-        public void Configure(Transform warden, Transform player, Transform chassis, Transform eye, Transform crown)
+        internal void Configure(
+            Transform warden,
+            Transform player,
+            Transform chassis,
+            Transform eye,
+            Transform crown,
+            IComfortSettings comfortSettings)
         {
             m_warden = warden;
             m_player = player;
             m_chassis = chassis;
             m_eye = eye;
             m_crown = crown;
+            m_comfortSettings = comfortSettings;
             m_chassisRestPosition = chassis.localPosition;
             m_chassisRestRotation = chassis.localRotation;
             m_chassisRestScale = chassis.localScale;
@@ -62,6 +89,7 @@ namespace DeadSignal.Presentation
             m_crownRestRotation = crown.localRotation;
             m_crownRestScale = crown.localScale;
             m_purgeEcho = _createPurgeEcho();
+            _createEffectRenderers();
             ResetPresentation();
         }
 
@@ -125,6 +153,9 @@ namespace DeadSignal.Presentation
             _copyPose(m_crown, m_purgeEcho.GetChild(2));
             m_purgeEcho.gameObject.SetActive(true);
             m_purgeRemaining = PURGE_DURATION;
+            m_purgeEffect.enabled = true;
+            m_stateEffect.enabled = false;
+            m_contactEffect.enabled = false;
             _resetLivePose();
         }
 
@@ -140,6 +171,9 @@ namespace DeadSignal.Presentation
             {
                 m_purgeEcho.gameObject.SetActive(false);
             }
+            _setEffectVisible(m_stateEffect, false);
+            _setEffectVisible(m_contactEffect, false);
+            _setEffectVisible(m_purgeEffect, false);
             _resetLivePose();
         }
 
@@ -182,8 +216,12 @@ namespace DeadSignal.Presentation
             var recovery = strikeProgress >= 0.28f
                 ? Mathf.Sin(Mathf.Clamp01((strikeProgress - 0.28f) / 0.72f) * Mathf.PI)
                 : 0f;
-            var hitPulse = m_hitRemaining > 0f ? Mathf.Sin(m_hitRemaining / HIT_DURATION * Mathf.PI) : 0f;
+            var hitPulse = m_hitRemaining > 0f
+                ? Mathf.Sin(m_hitRemaining / HIT_DURATION * Mathf.PI * 0.5f)
+                : 0f;
             var localHit = Quaternion.Inverse(m_warden.rotation) * m_hitDirection;
+
+            _updateLiveEffects(wakeProgress, anticipation, strikeProgress, hitPulse);
 
             m_chassis.localPosition = m_chassisRestPosition + new Vector3(
                 localHit.x * hitPulse * 0.08f,
@@ -208,6 +246,160 @@ namespace DeadSignal.Presentation
         private void OnDisable()
         {
             ResetPresentation();
+        }
+
+        private void OnDestroy()
+        {
+            if (m_effectMaterial != null)
+            {
+                Destroy(m_effectMaterial);
+            }
+        }
+
+        private void _createEffectRenderers()
+        {
+            var shader = Shader.Find("Sprites/Default");
+            if (shader != null)
+            {
+                m_effectMaterial = new Material(shader)
+                {
+                    name = "Security Warden Effect Material",
+                    hideFlags = HideFlags.HideAndDontSave
+                };
+            }
+            else
+            {
+                Debug.LogWarning("Sprites/Default was unavailable; Warden effects will use the authored eye material.", this);
+            }
+
+            var material = m_effectMaterial != null
+                ? m_effectMaterial
+                : m_eye.GetComponent<MeshRenderer>().sharedMaterial;
+
+            m_stateEffect = _createEffectRenderer("Security Warden State Effect", material, 9, 0.045f);
+            m_contactEffect = _createEffectRenderer("Security Warden Contact Effect", material, 5, 0.065f);
+            m_purgeEffect = _createEffectRenderer("Security Warden Purge Effect", material, 17, 0.055f);
+        }
+
+        private LineRenderer _createEffectRenderer(
+            string objectName,
+            Material material,
+            int positionCount,
+            float width)
+        {
+            var effect = new GameObject(objectName);
+            effect.transform.SetParent(transform, false);
+            var line = effect.AddComponent<LineRenderer>();
+            line.sharedMaterial = material;
+            line.useWorldSpace = true;
+            line.positionCount = positionCount;
+            line.widthMultiplier = width;
+            line.numCapVertices = 2;
+            line.numCornerVertices = 2;
+            line.textureMode = LineTextureMode.Stretch;
+            line.sortingOrder = 27;
+            line.enabled = false;
+            return line;
+        }
+
+        private void _updateLiveEffects(float wakeProgress, float anticipation, float strikeProgress, float hitPulse)
+        {
+            var reducedFlashes = m_comfortSettings != null && m_comfortSettings.ReducedFlashesEnabled;
+            var pulse = reducedFlashes ? 1f : 0.88f + Mathf.Sin(Time.time * 13f) * 0.12f;
+            var wakeWeight = m_wakeRemaining > 0f ? Mathf.Sin(wakeProgress * Mathf.PI) : 0f;
+            var commitWeight = strikeProgress >= 0f && strikeProgress < 0.28f
+                ? Mathf.Sin(strikeProgress / 0.28f * Mathf.PI)
+                : 0f;
+            var recoveryWeight = strikeProgress >= 0.28f
+                ? Mathf.Sin(Mathf.Clamp01((strikeProgress - 0.28f) / 0.72f) * Mathf.PI)
+                : 0f;
+            var stateWeight = Mathf.Max(wakeWeight, Mathf.Max(anticipation * 0.68f, Mathf.Max(commitWeight, recoveryWeight)));
+
+            if (stateWeight > 0.01f)
+            {
+                var recovery = recoveryWeight > commitWeight && recoveryWeight > wakeWeight;
+                var radius = recovery ? 0.84f + recoveryWeight * 0.16f : 0.72f - commitWeight * 0.12f;
+                var height = recovery ? 0.42f : 0.56f + wakeWeight * 0.24f;
+                _setOpenBrace(m_stateEffect, m_warden.position, m_warden.forward, radius, height, recovery);
+                _setEffectColor(
+                    m_stateEffect,
+                    recovery ? s_recoveryAmber : s_roleRed,
+                    Mathf.Min(reducedFlashes ? 0.3f : 0.78f, stateWeight * pulse));
+                m_stateEffect.enabled = true;
+            }
+            else
+            {
+                m_stateEffect.enabled = false;
+            }
+
+            var contactWeight = Mathf.Max(commitWeight, hitPulse);
+            if (contactWeight > 0.01f)
+            {
+                var direction = hitPulse > commitWeight ? m_hitDirection : m_warden.forward;
+                _setContactSeam(m_contactEffect, m_warden.position, direction, contactWeight);
+                _setEffectColor(
+                    m_contactEffect,
+                    s_roleRed,
+                    Mathf.Min(reducedFlashes ? 0.3f : 0.86f, contactWeight * pulse));
+                m_contactEffect.enabled = true;
+            }
+            else
+            {
+                m_contactEffect.enabled = false;
+            }
+        }
+
+        private static void _setOpenBrace(
+            LineRenderer line,
+            Vector3 center,
+            Vector3 forward,
+            float radius,
+            float height,
+            bool open)
+        {
+            var right = Vector3.Cross(Vector3.up, forward).normalized;
+            var opening = open ? 0.52f : 0.2f;
+            var origin = center + Vector3.up * height;
+            var outerDepth = radius * 0.36f;
+            var innerDepth = radius * 0.16f;
+            line.SetPosition(0, origin - right * radius - forward * outerDepth);
+            line.SetPosition(1, origin - right * radius + forward * outerDepth);
+            line.SetPosition(2, origin - right * opening + forward * innerDepth);
+            line.SetPosition(3, origin - right * opening - forward * innerDepth);
+            line.SetPosition(4, origin - forward * (open ? radius * 0.46f : radius * 0.24f));
+            line.SetPosition(5, origin + right * opening - forward * innerDepth);
+            line.SetPosition(6, origin + right * opening + forward * innerDepth);
+            line.SetPosition(7, origin + right * radius + forward * outerDepth);
+            line.SetPosition(8, origin + right * radius - forward * outerDepth);
+        }
+
+        private static void _setContactSeam(LineRenderer line, Vector3 center, Vector3 direction, float weight)
+        {
+            direction.y = 0f;
+            direction = direction.sqrMagnitude > 0.01f ? direction.normalized : Vector3.forward;
+            var right = Vector3.Cross(Vector3.up, direction).normalized;
+            var origin = center + Vector3.up * 0.52f;
+            line.SetPosition(0, origin - direction * 0.2f - right * 0.28f);
+            line.SetPosition(1, origin + direction * (0.18f + weight * 0.16f) - right * 0.08f);
+            line.SetPosition(2, origin + direction * (0.62f + weight * 0.42f));
+            line.SetPosition(3, origin + direction * (0.18f + weight * 0.16f) + right * 0.08f);
+            line.SetPosition(4, origin - direction * 0.2f + right * 0.28f);
+        }
+
+        private static void _setEffectColor(LineRenderer line, Color color, float alpha)
+        {
+            color.a = alpha;
+            line.startColor = color;
+            color.a *= 0.45f;
+            line.endColor = color;
+        }
+
+        private static void _setEffectVisible(LineRenderer line, bool visible)
+        {
+            if (line != null)
+            {
+                line.enabled = visible;
+            }
         }
 
         private Transform _createPurgeEcho()
@@ -256,10 +448,27 @@ namespace DeadSignal.Presentation
             m_purgeEcho.localScale = Vector3.Scale(
                 m_purgeRestScale,
                 new Vector3(1f + progress * 0.22f, squash, 1f + progress * 0.22f));
+            _setPurgeRing(progress);
             if (m_purgeRemaining <= 0f)
             {
                 m_purgeEcho.gameObject.SetActive(false);
+                m_purgeEffect.enabled = false;
             }
+        }
+
+        private void _setPurgeRing(float progress)
+        {
+            var radius = Mathf.Lerp(0.35f, 1.35f, progress);
+            var center = m_purgeEcho.position + Vector3.up * 0.12f;
+            for (var index = 0; index < 17; index++)
+            {
+                var angle = index / 16f * Mathf.PI * 2f;
+                m_purgeEffect.SetPosition(index, center + new Vector3(Mathf.Cos(angle), 0f, Mathf.Sin(angle)) * radius);
+            }
+
+            var reducedFlashes = m_comfortSettings != null && m_comfortSettings.ReducedFlashesEnabled;
+            _setEffectColor(m_purgeEffect, s_roleRed, Mathf.Min(reducedFlashes ? 0.3f : 0.72f, 1f - progress));
+            m_purgeEffect.enabled = m_purgeRemaining > 0f;
         }
 
         private void _resetLivePose()

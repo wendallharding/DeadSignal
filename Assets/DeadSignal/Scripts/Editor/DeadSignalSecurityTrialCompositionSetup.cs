@@ -57,7 +57,7 @@ namespace DeadSignal.Editor
         {
             var builder = new MeshBuilder("SecurityTrialAprons");
             builder.AddBox(new Vector3(42.5f, -0.71f, 33f), new Vector3(8.8f, 0.42f, 6.8f));
-            builder.AddBox(new Vector3(42.5f, -0.71f, 54f), new Vector3(35.8f, 0.42f, 36.8f));
+            builder.AddBox(new Vector3(42.5f, -0.71f, 54f), new Vector3(60.8f, 0.42f, 36.8f));
             builder.AddBox(new Vector3(42.5f, -0.71f, 75f), new Vector3(8.8f, 0.42f, 6.8f));
             return builder.Build();
         }
@@ -67,8 +67,8 @@ namespace DeadSignal.Editor
             var builder = new MeshBuilder("SecurityTrialShadowBacks");
             builder.AddBox(new Vector3(38.1f, -0.66f, 33f), new Vector3(0.34f, 0.92f, 6.8f));
             builder.AddBox(new Vector3(46.9f, -0.66f, 33f), new Vector3(0.34f, 0.92f, 6.8f));
-            builder.AddBox(new Vector3(24.6f, -0.66f, 54f), new Vector3(0.34f, 0.92f, 36.8f));
-            builder.AddBox(new Vector3(60.4f, -0.66f, 54f), new Vector3(0.34f, 0.92f, 36.8f));
+            builder.AddBox(new Vector3(12.1f, -0.66f, 54f), new Vector3(0.34f, 0.92f, 36.8f));
+            builder.AddBox(new Vector3(72.9f, -0.66f, 54f), new Vector3(0.34f, 0.92f, 36.8f));
             builder.AddBox(new Vector3(38.1f, -0.66f, 75f), new Vector3(0.34f, 0.92f, 6.8f));
             builder.AddBox(new Vector3(46.9f, -0.66f, 75f), new Vector3(0.34f, 0.92f, 6.8f));
             builder.AddBox(new Vector3(42.5f, -0.66f, 78.4f), new Vector3(8.8f, 0.92f, 0.34f));
@@ -80,8 +80,8 @@ namespace DeadSignal.Editor
             var builder = new MeshBuilder("SecurityTrialThresholdFrames");
             _addThresholdFrame(builder, 36f);
             _addThresholdFrame(builder, 72f);
-            _addVerticalBracePair(builder, new Vector3(24.62f, -0.2f, 54f), 30f);
-            _addVerticalBracePair(builder, new Vector3(60.38f, -0.2f, 54f), 30f);
+            _addVerticalBracePair(builder, new Vector3(12.12f, -0.2f, 54f), 30f);
+            _addVerticalBracePair(builder, new Vector3(72.88f, -0.2f, 54f), 30f);
             _addHorizontalBracePair(builder, new Vector3(42.5f, -0.2f, 78.38f), 6.8f);
             return builder.Build();
         }

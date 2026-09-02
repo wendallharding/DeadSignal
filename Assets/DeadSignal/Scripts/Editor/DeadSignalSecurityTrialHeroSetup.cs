@@ -177,14 +177,14 @@ namespace DeadSignal.Editor
                     new Vector3(2.2f, 0.08f, 0.14f), angle, index % 2 == 0 ? 2 : 0);
             }
 
-            mesh.AddBox(new Vector3(-15.8f, 0.04f, 0f), new Vector3(0.16f, 0.09f, 30f), 0f, 2);
-            mesh.AddBox(new Vector3(15.8f, 0.04f, 0f), new Vector3(0.16f, 0.09f, 30f), 0f, 2);
-            mesh.AddBox(new Vector3(-9.5f, 0.04f, -16.25f), new Vector3(12.3f, 0.09f, 0.16f), 0f, 0);
-            mesh.AddBox(new Vector3(9.5f, 0.04f, -16.25f), new Vector3(12.3f, 0.09f, 0.16f), 0f, 0);
-            mesh.AddBox(new Vector3(-9.5f, 0.04f, 16.25f), new Vector3(12.3f, 0.09f, 0.16f), 0f, 0);
-            mesh.AddBox(new Vector3(9.5f, 0.04f, 16.25f), new Vector3(12.3f, 0.09f, 0.16f), 0f, 0);
-            mesh.AddBox(new Vector3(-7f, 0.12f, 6f), new Vector3(4.1f, 0.22f, 0.12f), 28f, 1);
-            mesh.AddBox(new Vector3(7f, 0.12f, -6f), new Vector3(4.1f, 0.22f, 0.12f), -28f, 1);
+            mesh.AddBox(new Vector3(-28.3f, 0.04f, 0f), new Vector3(0.16f, 0.09f, 30f), 0f, 2);
+            mesh.AddBox(new Vector3(28.3f, 0.04f, 0f), new Vector3(0.16f, 0.09f, 30f), 0f, 2);
+            mesh.AddBox(new Vector3(-15.75f, 0.04f, -16.25f), new Vector3(24.8f, 0.09f, 0.16f), 0f, 0);
+            mesh.AddBox(new Vector3(15.75f, 0.04f, -16.25f), new Vector3(24.8f, 0.09f, 0.16f), 0f, 0);
+            mesh.AddBox(new Vector3(-15.75f, 0.04f, 16.25f), new Vector3(24.8f, 0.09f, 0.16f), 0f, 0);
+            mesh.AddBox(new Vector3(15.75f, 0.04f, 16.25f), new Vector3(24.8f, 0.09f, 0.16f), 0f, 0);
+            mesh.AddBox(new Vector3(-12f, 0.12f, 6f), new Vector3(4.1f, 0.22f, 0.12f), 28f, 1);
+            mesh.AddBox(new Vector3(12f, 0.12f, -6f), new Vector3(4.1f, 0.22f, 0.12f), -28f, 1);
             return mesh.Build();
         }
 

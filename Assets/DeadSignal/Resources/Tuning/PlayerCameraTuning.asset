@@ -28,3 +28,4 @@ MonoBehaviour:
   m_combatHeight: 24
   m_combatFollowDistance: 11.2
   m_combatTransitionDuration: 1.1
+  m_combatArenaFocusWeight: 0.35

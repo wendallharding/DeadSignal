@@ -507,8 +507,8 @@ namespace DeadSignal.Combat
             m_audio.Play(DeadSignalAudioCue.Fire);
             LastShotBlockedByEnvironment = false;
             var weaponOverclock = m_overclockChoice.SelectedWeapon;
-            var shot = m_world.CreateSignalBolt(direction);
-            m_world.PlayPlayerShot(direction, m_overclockChoice.IsWeaponEvolved);
+            var shot = m_world.CreateSignalBolt(direction, weaponOverclock, m_overclockChoice.IsWeaponEvolved);
+            m_world.PlayPlayerShot(direction, weaponOverclock, m_overclockChoice.IsWeaponEvolved);
             var threatHits = weaponOverclock == SignalWeaponOverclock.PiercingPulse
                 ? m_overclockChoice.IsWeaponEvolved
                     ? m_overclockTuning.EvolvedPiercingPulseThreatHits
@@ -1157,6 +1157,7 @@ namespace DeadSignal.Combat
                         continue;
                     }
 
+                    m_world.PlayWeaponTermination(impactPosition, shot.Direction, shot.Weapon);
                     UnityEngine.Object.Destroy(shot.Visual);
                     m_projectiles.RemoveAt(index);
                     continue;
@@ -1212,6 +1213,7 @@ namespace DeadSignal.Combat
 
                 if (hitTarget != ThreatTarget.None || didHitSwarmer)
                 {
+                    var resolvedHitPosition = Vector3.Lerp(start, end, hitFraction);
                     if (hitTarget != ThreatTarget.None)
                     {
                         shot.MarkHit(hitTarget);
@@ -1219,9 +1221,12 @@ namespace DeadSignal.Combat
                     if (shot.RemainingThreatHits > 0 && shot.Life > 0f)
                     {
                         PiercingPulseFollowThroughs++;
-                        shot.Visual.transform.position = Vector3.Lerp(start, end, hitFraction) + shot.Direction * 0.08f;
+                        var continuationPosition = Vector3.Lerp(start, end, hitFraction) + shot.Direction * 0.08f;
+                        shot.Visual.transform.position = continuationPosition;
+                        m_world.PlayPiercingContinuation(continuationPosition, shot.Direction);
                         continue;
                     }
+                    shot.Visual.transform.position = resolvedHitPosition;
                 }
                 else
                 {
@@ -1230,6 +1235,7 @@ namespace DeadSignal.Combat
 
                 if (hitTarget != ThreatTarget.None || didHitSwarmer || shot.Life <= 0f)
                 {
+                    m_world.PlayWeaponTermination(shot.Visual.transform.position, shot.Direction, shot.Weapon);
                     UnityEngine.Object.Destroy(shot.Visual);
                     m_projectiles.RemoveAt(index);
                 }
@@ -1271,7 +1277,9 @@ namespace DeadSignal.Combat
                 return false;
             }
 
+            var incomingDirection = shot.Direction;
             shot.Redirect(direction, redirectedStart);
+            m_world.PlayRicochetRedirect(impactPosition, incomingDirection, direction);
             return true;
         }
 
@@ -1499,7 +1507,14 @@ namespace DeadSignal.Combat
         {
             m_wardenHealth -= 1f;
             m_world.PlayWardenHit(m_world.Player.position);
-            m_combatFeedback.PlaySignalImpact(m_world.Warden.position + Vector3.up * 0.65f, m_wardenHealth <= 0f);
+            if (m_wardenHealth <= 0f)
+            {
+                m_combatFeedback.PlaySignalImpact(m_world.Warden.position + Vector3.up * 0.65f, true);
+            }
+            else
+            {
+                m_combatFeedback.PlayArmorImpact(m_world.Warden.position + Vector3.up * 0.65f);
+            }
             if (m_wardenHealth > 0f)
             {
                 m_combatFeedback.PlayThreatReaction(m_world.Warden);
@@ -1528,7 +1543,14 @@ namespace DeadSignal.Combat
                 m_sapperPulseCooldown = Mathf.Max(m_sapperPulseCooldown, SAPPER_HIT_INTERRUPT_SECONDS);
                 m_world.SapperTelegraph.SetThreatState(true, true, m_sapperPulseCooldown, m_tuning.SapperPulseInterval);
             }
-            m_combatFeedback.PlaySignalImpact(m_world.Sapper.position + Vector3.up * 0.58f, m_sapperHealth <= 0f);
+            if (m_sapperHealth <= 0f)
+            {
+                m_combatFeedback.PlaySignalImpact(m_world.Sapper.position + Vector3.up * 0.58f, true);
+            }
+            else
+            {
+                m_combatFeedback.PlayArmorImpact(m_world.Sapper.position + Vector3.up * 0.58f);
+            }
             if (m_sapperHealth > 0f)
             {
                 m_combatFeedback.PlayThreatReaction(m_world.Sapper);
@@ -1553,7 +1575,14 @@ namespace DeadSignal.Combat
         {
             m_interceptorHealth -= 1f;
             m_world.PlayInterceptorHit(m_world.Player.position);
-            m_combatFeedback.PlaySignalImpact(m_world.Interceptor.position + Vector3.up * 0.5f, m_interceptorHealth <= 0f);
+            if (m_interceptorHealth <= 0f)
+            {
+                m_combatFeedback.PlaySignalImpact(m_world.Interceptor.position + Vector3.up * 0.5f, true);
+            }
+            else
+            {
+                m_combatFeedback.PlayArmorImpact(m_world.Interceptor.position + Vector3.up * 0.5f);
+            }
             if (m_interceptorHealth > 0f)
             {
                 m_combatFeedback.PlayThreatReaction(m_world.Interceptor);
@@ -1576,7 +1605,14 @@ namespace DeadSignal.Combat
         {
             m_suppressorHealth -= 1f;
             m_world.PlaySuppressorHit(m_world.Player.position);
-            m_combatFeedback.PlaySignalImpact(m_world.Suppressor.position + Vector3.up * 0.5f, m_suppressorHealth <= 0f);
+            if (m_suppressorHealth <= 0f)
+            {
+                m_combatFeedback.PlaySignalImpact(m_world.Suppressor.position + Vector3.up * 0.5f, true);
+            }
+            else
+            {
+                m_combatFeedback.PlayArmorImpact(m_world.Suppressor.position + Vector3.up * 0.5f);
+            }
             if (m_suppressorHealth > 0f)
             {
                 m_combatFeedback.PlayThreatReaction(m_world.Suppressor);

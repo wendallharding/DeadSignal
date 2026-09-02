@@ -33,6 +33,7 @@ namespace DeadSignal.Presentation
         public bool HasTexture => m_texture != null;
         public int EventPoolSize => m_eventSlots?.Length ?? 0;
         public int OwnedObjectCount => (m_progressRoot == null ? 0 : 1) + EventPoolSize;
+        public int OwnedLineCount => (m_progressLine == null ? 0 : 1) + EventPoolSize;
         public bool IsProgressActive => m_progressRoot != null && m_progressRoot.activeSelf;
         public int ActiveEventCount { get; private set; }
         public int PlayCount { get; private set; }
@@ -65,11 +66,13 @@ namespace DeadSignal.Presentation
                 m_texture.width);
             m_sprite.name = "Extraction Outcome Glyph Sprite";
             m_progressRoot = _createRendererOwner(PROGRESS_NAME, 17, out m_progressRenderer);
+            m_progressLine = _createLineRenderer(m_progressRoot.transform, "Uplink Progress Route", 18);
             m_eventSlots = new EventSlot[m_tuning.EventPoolSize];
             for (var index = 0; index < m_eventSlots.Length; index++)
             {
                 var root = _createRendererOwner($"{EVENT_NAME} {index + 1}", 22 + index, out var renderer);
-                m_eventSlots[index] = new EventSlot(root, renderer);
+                var line = _createLineRenderer(root.transform, "Outcome Hierarchy Shape", 24 + index);
+                m_eventSlots[index] = new EventSlot(root, renderer, line);
             }
         }
 
@@ -148,7 +151,7 @@ namespace DeadSignal.Presentation
                 return;
             }
 
-            m_animationTime += Time.deltaTime;
+            m_animationTime += Time.unscaledDeltaTime;
             if (m_extractionActive && m_progressRoot != null && m_progressRoot.activeSelf)
             {
                 _applyProgress();
@@ -162,7 +165,7 @@ namespace DeadSignal.Presentation
                     continue;
                 }
 
-                slot.Elapsed += Time.deltaTime;
+                slot.Elapsed += Time.unscaledDeltaTime;
                 var progress = Mathf.Clamp01(slot.Elapsed / m_tuning.EventDuration);
                 _applyEvent(slot, progress);
                 if (progress >= 1f)
@@ -184,6 +187,11 @@ namespace DeadSignal.Presentation
             if (m_sprite != null)
             {
                 Destroy(m_sprite);
+            }
+
+            if (m_lineMaterial != null)
+            {
+                Destroy(m_lineMaterial);
             }
         }
 
@@ -223,7 +231,24 @@ namespace DeadSignal.Presentation
                 : new Color(0.1f, 0.88f, 1f, 1f);
             modeColor.a = maximumAlpha * pulse;
             m_progressRenderer.color = modeColor;
+            _applyProgressShape(modeColor);
             CurrentMaximumAlpha = Mathf.Max(CurrentMaximumAlpha, modeColor.a);
+        }
+
+        private void _applyProgressShape(Color color)
+        {
+            m_progressLine.loop = false;
+            m_progressLine.positionCount = 5;
+            var start = -0.48f;
+            var end = Mathf.Lerp(start, 0.48f, ProgressNormalized);
+            var lane = m_extractionMode == ExtractionUplinkMode.Overdrive ? -0.12f : 0.12f;
+            m_progressLine.SetPosition(0, new Vector3(start, lane, 0f));
+            m_progressLine.SetPosition(1, new Vector3(end, lane, 0f));
+            m_progressLine.SetPosition(2, new Vector3(end - 0.1f, lane + 0.1f, 0f));
+            m_progressLine.SetPosition(3, new Vector3(end, lane, 0f));
+            m_progressLine.SetPosition(4, new Vector3(end - 0.1f, lane - 0.1f, 0f));
+            _setLineColor(m_progressLine, color, 0.9f);
+            m_progressLine.enabled = color.a > 0.001f;
         }
 
         private void _applyEvent(EventSlot slot, float progress)
@@ -238,12 +263,74 @@ namespace DeadSignal.Presentation
             var maximumAlpha = m_comfortSettings.ReducedFlashesEnabled
                 ? m_tuning.ReducedFlashesEventMaximumAlpha
                 : m_tuning.EventMaximumAlpha;
-            var fadeIn = Mathf.Clamp01(progress / 0.16f);
+            var fadeIn = Mathf.Lerp(0.18f, 1f, Mathf.Clamp01(progress / 0.16f));
             var fadeOut = 1f - Mathf.Clamp01((progress - 0.46f) / 0.54f);
             var color = Color.Lerp(startingColor, endingColor, eased);
             color.a = maximumAlpha * fadeIn * fadeOut;
             slot.Renderer.color = color;
+            _applyEventShape(slot, eased, color);
             CurrentMaximumAlpha = Mathf.Max(CurrentMaximumAlpha, color.a);
+        }
+
+        private static void _applyEventShape(EventSlot slot, float eased, Color color)
+        {
+            switch (slot.Kind)
+            {
+                case ExtractionOutcomeFeedbackKind.ExtractionComplete:
+                    _setDiamond(slot.Line, Mathf.Lerp(0.2f, 0.48f, eased));
+                    break;
+                case ExtractionOutcomeFeedbackKind.Victory:
+                    _setVictoryChevron(slot.Line, Mathf.Lerp(0.22f, 0.54f, eased));
+                    break;
+                case ExtractionOutcomeFeedbackKind.Defeat:
+                    _setDefeatCollapse(slot.Line, Mathf.Lerp(0.52f, 0.16f, eased));
+                    break;
+                default:
+                    slot.Line.enabled = false;
+                    return;
+            }
+
+            _setLineColor(slot.Line, color, 0.9f);
+            slot.Line.enabled = color.a > 0.001f;
+        }
+
+        private static void _setDiamond(LineRenderer line, float radius)
+        {
+            line.loop = true;
+            line.positionCount = 4;
+            line.SetPosition(0, new Vector3(0f, radius, 0f));
+            line.SetPosition(1, new Vector3(radius, 0f, 0f));
+            line.SetPosition(2, new Vector3(0f, -radius, 0f));
+            line.SetPosition(3, new Vector3(-radius, 0f, 0f));
+        }
+
+        private static void _setVictoryChevron(LineRenderer line, float radius)
+        {
+            line.loop = false;
+            line.positionCount = 5;
+            line.SetPosition(0, new Vector3(-radius, -radius * 0.15f, 0f));
+            line.SetPosition(1, new Vector3(-radius * 0.22f, radius * 0.45f, 0f));
+            line.SetPosition(2, new Vector3(0f, 0f, 0f));
+            line.SetPosition(3, new Vector3(radius * 0.22f, radius * 0.45f, 0f));
+            line.SetPosition(4, new Vector3(radius, -radius * 0.15f, 0f));
+        }
+
+        private static void _setDefeatCollapse(LineRenderer line, float radius)
+        {
+            line.loop = false;
+            line.positionCount = 4;
+            line.SetPosition(0, new Vector3(-radius, radius, 0f));
+            line.SetPosition(1, new Vector3(radius, -radius, 0f));
+            line.SetPosition(2, new Vector3(radius, radius, 0f));
+            line.SetPosition(3, new Vector3(-radius, -radius, 0f));
+        }
+
+        private static void _setLineColor(LineRenderer line, Color color, float alphaMultiplier)
+        {
+            color.a *= alphaMultiplier;
+            line.startColor = color;
+            color.a *= 0.45f;
+            line.endColor = color;
         }
 
         private void _eventStyle(
@@ -292,11 +379,40 @@ namespace DeadSignal.Presentation
             return owner;
         }
 
+        private LineRenderer _createLineRenderer(Transform parent, string objectName, int sortingOrder)
+        {
+            if (m_lineMaterial == null)
+            {
+                var shader = Shader.Find("Sprites/Default");
+                if (shader != null)
+                {
+                    m_lineMaterial = new Material(shader)
+                    {
+                        name = "Extraction Outcome Line Material",
+                        hideFlags = HideFlags.HideAndDontSave
+                    };
+                }
+            }
+
+            var owner = new GameObject(objectName);
+            owner.transform.SetParent(parent, false);
+            var line = owner.AddComponent<LineRenderer>();
+            line.sharedMaterial = m_lineMaterial != null ? m_lineMaterial : parent.GetComponent<SpriteRenderer>().sharedMaterial;
+            line.useWorldSpace = false;
+            line.widthMultiplier = 0.026f;
+            line.numCapVertices = 2;
+            line.numCornerVertices = 2;
+            line.sortingOrder = sortingOrder;
+            line.enabled = false;
+            return line;
+        }
+
         private void _hideAll()
         {
             if (m_progressRoot != null)
             {
                 m_progressRoot.SetActive(false);
+                m_progressLine.enabled = false;
             }
 
             if (m_eventSlots != null)
@@ -304,6 +420,7 @@ namespace DeadSignal.Presentation
                 for (var index = 0; index < m_eventSlots.Length; index++)
                 {
                     m_eventSlots[index].Root.SetActive(false);
+                    m_eventSlots[index].Line.enabled = false;
                 }
             }
 
@@ -325,14 +442,16 @@ namespace DeadSignal.Presentation
 
         private sealed class EventSlot
         {
-            public EventSlot(GameObject root, SpriteRenderer renderer)
+            public EventSlot(GameObject root, SpriteRenderer renderer, LineRenderer line)
             {
                 Root = root;
                 Renderer = renderer;
+                Line = line;
             }
 
             public GameObject Root { get; }
             public SpriteRenderer Renderer { get; }
+            public LineRenderer Line { get; }
             public float Elapsed { get; set; }
             public ExtractionOutcomeFeedbackKind Kind { get; set; }
         }
@@ -349,6 +468,8 @@ namespace DeadSignal.Presentation
         private Sprite m_sprite;
         private GameObject m_progressRoot;
         private SpriteRenderer m_progressRenderer;
+        private LineRenderer m_progressLine;
+        private Material m_lineMaterial;
         private EventSlot[] m_eventSlots;
         private ExtractionUplinkMode m_extractionMode;
         private float m_extractionDuration;

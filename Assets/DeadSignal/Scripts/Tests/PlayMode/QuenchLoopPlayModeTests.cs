@@ -74,9 +74,9 @@ namespace DeadSignal.Tests
                 Assert.That(Resources.Load<Mesh>("Environment/QuenchStabilizationStatusReadability"), Is.Not.Null);
                 Assert.That(Resources.Load<Material>(
                     "Materials/CoreProcessingReadability/CoreProcessingStatus"), Is.Not.Null);
-                Assert.That(game.AuthoredMapObstacleCount, Is.EqualTo(138));
+                Assert.That(game.AuthoredMapObstacleCount, Is.EqualTo(141));
                 Assert.That(game.AuthoredInterceptorEntranceCount, Is.EqualTo(9));
-                Assert.That(sceneReferences.ArenaHalfExtents, Is.EqualTo(new Vector2(57.5f, 81f)));
+                Assert.That(sceneReferences.ArenaHalfExtents, Is.EqualTo(new Vector2(73f, 81f)));
                 Assert.That(furnace.Find("Arc Furnace East Bulkhead"), Is.Null);
 
                 player.position = new Vector3(48.4f, 0f, 23f);

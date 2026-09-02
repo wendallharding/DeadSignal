@@ -50,12 +50,20 @@ namespace DeadSignal.Tests
                 "The Relay-region wall face must be part of the shared kit.");
             Assert.That(kit.Sections[0].bounds.Contains(new Vector3(42.5f, -0.2f, 78.4f)), Is.True,
                 "The Security Trial north wall must be part of the shared kit.");
+            Assert.That(kit.Sections[0].bounds.Contains(new Vector3(12.5f, -0.2f, 54f)), Is.True,
+                "The Security Trial west wall finish must follow Room B's expanded edge.");
+            Assert.That(kit.Sections[0].bounds.Contains(new Vector3(72.5f, -0.2f, 54f)), Is.True,
+                "The Security Trial east wall finish must follow Room B's expanded edge.");
+            Assert.That(kit.Sections[2].bounds.Contains(new Vector3(12.5f, 0.24f, 54f)), Is.True,
+                "The west parapet must follow Room B's expanded edge.");
+            Assert.That(kit.Sections[2].bounds.Contains(new Vector3(72.5f, 0.24f, 54f)), Is.True,
+                "The east parapet must follow Room B's expanded edge.");
             Assert.That(kit.Sections[2].bounds.max.y, Is.LessThanOrEqualTo(0.46f),
                 "Parapets must stay low enough to preserve the combat field and foreground cutaway.");
 
             var game = Object.FindFirstObjectByType<DeadSignalGame>();
             Assert.That(game, Is.Not.Null);
-            Assert.That(game.AuthoredMapObstacleCount, Is.EqualTo(138),
+            Assert.That(game.AuthoredMapObstacleCount, Is.EqualTo(141),
                 "Presentation walls must preserve the established collision footprint.");
             var references = Object.FindFirstObjectByType<DeadSignalSceneReferences>();
             game.DebugTeleport(DebugLocation.CentralTower);

@@ -21,6 +21,7 @@ namespace DeadSignal.Player
         private Vector2 m_groundFootprintMaximum;
         private float m_lastAspect;
         private float m_combatFramingBlend;
+        private Vector3 m_combatArenaFocus;
         private bool m_combatArenaFraming;
         private bool m_isConfigured;
 
@@ -65,16 +66,25 @@ namespace DeadSignal.Player
                 desiredLookAhead,
                 _exponentialBlend(m_tuning.LookAheadSharpness, dt));
 
-            var desiredFocus = CalculateClampedFocus(
+            var followFocus = CalculateClampedFocus(
                 targetPosition + m_currentLookAhead,
                 m_arenaHalfExtents,
                 m_groundFootprintMinimum,
                 m_groundFootprintMaximum,
                 m_tuning.ArenaEdgePadding);
-            desiredFocus = EnsureTargetVisibleFocus(
-                desiredFocus,
+            followFocus = EnsureTargetVisibleFocus(
+                followFocus,
                 targetPosition,
                 m_tuning.MaximumTargetFocusOffset);
+            var arenaFocus = Vector3.Lerp(
+                targetPosition,
+                m_combatArenaFocus,
+                m_tuning.CombatArenaFocusWeight);
+            arenaFocus.y = 0f;
+            var desiredFocus = Vector3.Lerp(
+                followFocus,
+                arenaFocus,
+                Mathf.SmoothStep(0f, 1f, m_combatFramingBlend));
             m_currentFocus = Vector3.Lerp(
                 m_currentFocus,
                 desiredFocus,
@@ -101,6 +111,7 @@ namespace DeadSignal.Player
 
             m_combatArenaFraming = false;
             m_combatFramingBlend = 0f;
+            m_combatArenaFocus = m_target.position;
             _applyFraming();
             _refreshGroundFootprint();
             m_currentLookAhead = Vector3.zero;
@@ -124,9 +135,14 @@ namespace DeadSignal.Player
             m_aimDirection = aimDirection;
         }
 
-        public void SetCombatArenaFraming(bool active)
+        public void SetCombatArenaFraming(bool active, Vector3 arenaFocus)
         {
             m_combatArenaFraming = active;
+            if (active)
+            {
+                arenaFocus.y = 0f;
+                m_combatArenaFocus = arenaFocus;
+            }
         }
 
         internal void ConfigureCameraImpulse(ICombatFeedback combatFeedback)

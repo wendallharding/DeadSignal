@@ -18,6 +18,9 @@ MonoBehaviour:
   m_reducedFlashesMaximumAlpha: 0.28
   m_startingDiameterMultiplier: 0.58
   m_endingDiameterMultiplier: 1.15
+  m_primaryLineWidth: 0.028
+  m_detailLineWidth: 0.018
+  m_duplicateSuppressionWindow: 0.08
   m_availableColor: {r: 1, g: 0.58, b: 0.08, a: 1}
   m_completeColor: {r: 0.1, g: 0.88, b: 1, a: 1}
   m_lockdownColor: {r: 1, g: 0.12, b: 0.08, a: 1}

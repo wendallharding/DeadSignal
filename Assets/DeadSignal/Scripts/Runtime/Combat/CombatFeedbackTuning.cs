@@ -9,6 +9,7 @@ namespace DeadSignal.Combat
         [SerializeField, Min(1)] private int m_impactPrewarmCount = 12;
         [SerializeField, Min(1)] private int m_impactMaximumCount = 16;
         [SerializeField, Min(0.05f)] private float m_impactDuration = 0.22f;
+        [SerializeField, Range(0.02f, 0.08f)] private float m_impactGlyphWidth = 0.045f;
 
         [Header("Spark Pool")]
         [SerializeField, Min(1)] private int m_sparkPrewarmCount = 12;
@@ -26,6 +27,7 @@ namespace DeadSignal.Combat
         public int ImpactPrewarmCount => m_impactPrewarmCount;
         public int ImpactMaximumCount => m_impactMaximumCount;
         public float ImpactDuration => m_impactDuration;
+        public float ImpactGlyphWidth => m_impactGlyphWidth;
         public int SparkPrewarmCount => m_sparkPrewarmCount;
         public int SparkMaximumCount => m_sparkMaximumCount;
         public float SparkDuration => m_sparkDuration;
@@ -39,6 +41,7 @@ namespace DeadSignal.Combat
             m_impactPrewarmCount = Mathf.Max(1, m_impactPrewarmCount);
             m_impactMaximumCount = Mathf.Max(m_impactPrewarmCount, m_impactMaximumCount);
             m_impactDuration = Mathf.Max(0.05f, m_impactDuration);
+            m_impactGlyphWidth = Mathf.Clamp(m_impactGlyphWidth, 0.02f, 0.08f);
             m_sparkPrewarmCount = Mathf.Max(1, m_sparkPrewarmCount);
             m_sparkMaximumCount = Mathf.Max(m_sparkPrewarmCount, m_sparkMaximumCount);
             m_sparkDuration = Mathf.Max(0.05f, m_sparkDuration);

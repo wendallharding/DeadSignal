@@ -28,6 +28,13 @@ MonoBehaviour:
   m_muzzleLightDuration: 0.06
   m_muzzleLightRange: 2.4
   m_muzzleLightIntensity: 2.6
+  m_piercingTrailWidth: 0.18
+  m_ricochetTrailWidth: 0.21
+  m_evolvedTrailMultiplier: 1.16
+  m_weaponEventDuration: 0.18
+  m_weaponEventLength: 0.72
+  m_weaponEventWidth: 0.075
+  m_weaponEventPoolSize: 8
   m_speed: 13.5
   m_lifetime: 1.5
   m_fireCooldown: 0.16

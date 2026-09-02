@@ -28,6 +28,8 @@ namespace DeadSignal.Editor
             "Assets/DeadSignal/Resources/Materials/WorldPalette/StationBlack.mat";
         private const string ENVIRONMENT_PATH = "DEAD SIGNAL — Authored World/Environment";
         private const string KIT_NAME = "Station Wall and Parapet Kit";
+        private const float SECURITY_TRIAL_WEST_WALL_X = 12.5f;
+        private const float SECURITY_TRIAL_EAST_WALL_X = 72.5f;
 
         private static readonly WallSegment[] s_segments =
         {
@@ -44,8 +46,8 @@ namespace DeadSignal.Editor
             new(new Vector2(53f, 30.3f), 7.6f, 0f, Vector2.up, true),
             new(new Vector2(56.8f, 21.25f), 18.1f, 90f, Vector2.right, true),
             new(new Vector2(28.2f, 21.25f), 12.1f, 90f, Vector2.left, true),
-            new(new Vector2(24.6f, 54f), 36.8f, 90f, Vector2.left, true),
-            new(new Vector2(60.4f, 54f), 36.8f, 90f, Vector2.right, true),
+            new(new Vector2(SECURITY_TRIAL_WEST_WALL_X, 54f), 36.8f, 90f, Vector2.left, true),
+            new(new Vector2(SECURITY_TRIAL_EAST_WALL_X, 54f), 36.8f, 90f, Vector2.right, true),
             new(new Vector2(42.5f, 78.4f), 8.8f, 0f, Vector2.up, true),
             new(new Vector2(-14f, -5.6f), 9.6f, 90f, Vector2.left, false),
             new(new Vector2(-3.35f, -4.6f), 4.8f, -35f, new Vector2(0.82f, 0.57f), false)

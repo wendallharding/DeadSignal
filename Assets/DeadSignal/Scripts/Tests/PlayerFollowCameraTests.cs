@@ -67,6 +67,7 @@ namespace DeadSignal.Tests
             Assert.That(tuning.CombatHeight, Is.GreaterThan(tuning.Height * 1.8f));
             Assert.That(tuning.CombatFollowDistance, Is.GreaterThan(tuning.FollowDistance));
             Assert.That(tuning.CombatTransitionDuration, Is.InRange(0.5f, 2f));
+            Assert.That(tuning.CombatArenaFocusWeight, Is.InRange(0.35f, 0.65f));
         }
     }
 }

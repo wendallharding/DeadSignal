@@ -48,6 +48,7 @@ namespace DeadSignal.Application
         private IDeadSignalHud m_hud;
         private IObjectiveBeacon m_objectiveBeacon;
         private ISignalDust m_signalDust;
+        private IStationAmbientEffects m_stationAmbientEffects;
         private SalvagePresentationTuning m_salvageTuning;
         private PlayerDroneMovementTuning m_playerMovementTuning;
         private PlayerDroneMovement m_playerMovement;
@@ -236,6 +237,11 @@ namespace DeadSignal.Application
         public bool HasAudioLinkIcon => m_hud?.HasAudioLinkIcon ?? false;
         public bool HasGeneratedAudio => m_audio?.HasGeneratedClips ?? false;
         public bool HasSignalDustTexture => m_signalDust?.HasTexture ?? false;
+        public bool HasStationAmbientEffectsTuning => m_stationAmbientEffects?.HasTuning ?? false;
+        public int StationAmbientEmitterCount => m_stationAmbientEffects?.EmitterCount ?? 0;
+        public int ActiveStationAmbientEmitterCount => m_stationAmbientEffects?.ActiveEmitterCount ?? 0;
+        public int StationAmbientParticleSystemCount => m_stationAmbientEffects?.ParticleSystemCount ?? 0;
+        public float StationAmbientMaximumVisibleAlpha => m_stationAmbientEffects?.MaximumVisibleAlpha ?? 0f;
         public bool HasLowSignalWarningTexture => m_lowSignalWarning?.HasTexture ?? false;
         public bool HasMaintenanceDeckAssets => m_world?.HasMaintenanceDeckAssets ?? false;
         public int MaintenanceDeckModuleCount => m_world?.MaintenanceDeckModuleCount ?? 0;
@@ -1017,7 +1023,7 @@ namespace DeadSignal.Application
 
             m_threats.EndCombatChamber();
             m_combatChamber.Complete();
-            m_world.SetCombatArenaCameraActive(false);
+            m_world.SetCombatArenaCameraActive(false, m_combatChamber.ArenaPosition);
             m_world.RefreshNavigation();
             m_stationStateFeedback.Play(m_combatChamber.ArenaPosition, StationStateFeedbackKind.RoomClear);
             m_stationStateFeedback.Play(m_combatChamber.RewardPosition, StationStateFeedbackKind.RewardRelease);
@@ -1463,6 +1469,7 @@ namespace DeadSignal.Application
             IDeadSignalHud hud,
             IObjectiveBeacon objectiveBeacon,
             ISignalDust signalDust,
+            IStationAmbientEffects stationAmbientEffects,
             ILowSignalWarning lowSignalWarning,
             IDirectionalDamageFeedback directionalDamageFeedback,
             ITowerActivationSweep towerActivationSweep,
@@ -1478,6 +1485,7 @@ namespace DeadSignal.Application
             m_hud = hud;
             m_objectiveBeacon = objectiveBeacon;
             m_signalDust = signalDust;
+            m_stationAmbientEffects = stationAmbientEffects;
             m_lowSignalWarning = lowSignalWarning;
             m_directionalDamageFeedback = directionalDamageFeedback;
             m_towerActivationSweep = towerActivationSweep;
@@ -1598,6 +1606,7 @@ namespace DeadSignal.Application
                 m_world.Player.position, m_model.TowerOnline, m_model.RelayTowerOnline, m_model.SpineTowerOnline);
             m_signalDust.Configure();
             m_signalDust.Tick(m_lastPoweredState, m_model.TowerOnline, m_model.Signal / RunModel.MaximumSignal);
+            m_stationAmbientEffects.Configure(m_world.Player);
             m_lowSignalWarning.Configure(m_model);
             m_lowSignalWarning.Tick(0f);
             m_towerActivationSweep.Configure(m_world.TowerPosition, DeadSignalWorld.TOWER_POWER_RADIUS);
@@ -2149,6 +2158,9 @@ namespace DeadSignal.Application
                     {
                         m_world.RefreshNavigation();
                         m_world.UpdateSecurityTrialPresentation(m_model);
+                        m_stationStateFeedback.Play(
+                            m_combatChamber.CommitmentSwitch.position,
+                            StationStateFeedbackKind.TrialCommitment);
                         m_audio.Play(DeadSignalAudioCue.Shortcut);
                         _showFeedback("SECURITY TRIAL ARMED — CROSSING THE RED THRESHOLD SEALS THE ROOM");
                     }
@@ -3536,6 +3548,9 @@ namespace DeadSignal.Application
                         m_model.TryAdvancePoweredWithdrawal(PoweredWithdrawalPhase.DepartureSurge);
                     }
                     m_combatFeedback.PlaySignalRecovery(m_world.Player.position + Vector3.up * 0.45f);
+                    m_stationStateFeedback.Play(
+                        m_world.Player.position,
+                        StationStateFeedbackKind.DepartureSurge);
                     m_audio.Play(DeadSignalAudioCue.TowerOnline);
                     _showFeedback($"DEPARTURE CAPACITOR DISCHARGED  +{restored:0} SIGNAL  //  DOCK UPLINK READY");
                 }
@@ -3615,11 +3630,13 @@ namespace DeadSignal.Application
                 return;
             }
 
-            m_world.SetCombatArenaCameraActive(m_combatChamber.State == CombatChamberState.Lockdown);
+            m_world.SetCombatArenaCameraActive(
+                m_combatChamber.State == CombatChamberState.Lockdown,
+                m_combatChamber.ArenaPosition);
 
             if (m_combatChamber.TryBeginLockdown(m_world.Player.position))
             {
-                m_world.SetCombatArenaCameraActive(true);
+                m_world.SetCombatArenaCameraActive(true, m_combatChamber.ArenaPosition);
                 m_world.RefreshNavigation();
                 m_threats.BeginCombatChamberPhase(m_combatChamber.CombatScenario, m_combatChamber.Phase);
                 m_stationStateFeedback.Play(
@@ -3655,7 +3672,7 @@ namespace DeadSignal.Application
                 return;
             }
             m_combatChamber.Complete();
-            m_world.SetCombatArenaCameraActive(false);
+            m_world.SetCombatArenaCameraActive(false, m_combatChamber.ArenaPosition);
             m_world.RefreshNavigation();
             m_stationStateFeedback.Play(m_combatChamber.ArenaPosition, StationStateFeedbackKind.RoomClear);
             m_stationStateFeedback.Play(m_combatChamber.RewardPosition, StationStateFeedbackKind.RewardRelease);
@@ -3672,6 +3689,7 @@ namespace DeadSignal.Application
             m_extractionOutcomeFeedback.SetPaused(paused);
             m_audio.SetPaused(paused);
             m_signalDust.SetPaused(paused);
+            m_stationAmbientEffects.SetPaused(paused);
             m_world.PlayerSignalWake.SetPaused(paused);
         }
 

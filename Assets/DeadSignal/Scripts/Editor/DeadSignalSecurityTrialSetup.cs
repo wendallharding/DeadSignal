@@ -10,6 +10,7 @@ namespace DeadSignal.Editor
     public static class DeadSignalSecurityTrialSetup
     {
         private const string SCENE_PATH = "Assets/DeadSignal/Scenes/SampleScene.unity";
+        private const string TUNING_SCENE_PATH = "Assets/DeadSignal/Scenes/SecurityTrialCombatTuning.unity";
         private const string REGION_PREFAB_PATH =
             "Assets/DeadSignal/Resources/Environment/SecurityTrialWingRegion.prefab";
         private const string FURNACE_PREFAB_PATH =
@@ -30,6 +31,15 @@ namespace DeadSignal.Editor
             "Assets/DeadSignal/Resources/Materials/WorldPalette/SignalCyan.mat";
         private const string AMBER_MATERIAL_PATH =
             "Assets/DeadSignal/Resources/Materials/WorldPalette/SalvageAmber.mat";
+        private const float ARENA_WIDTH = 60f;
+        private const float ARENA_DEPTH = 36f;
+        private const float ARENA_HALF_WIDTH = ARENA_WIDTH * 0.5f;
+        private const float ARENA_HALF_DEPTH = ARENA_DEPTH * 0.5f;
+        private const float ARENA_DOOR_WIDTH = 3.2f;
+        private const float ARENA_HORIZONTAL_BULKHEAD_WIDTH = (ARENA_WIDTH - ARENA_DOOR_WIDTH) * 0.5f;
+        private const float ARENA_HORIZONTAL_BULKHEAD_CENTER =
+            (ARENA_HALF_WIDTH + ARENA_DOOR_WIDTH * 0.5f) * 0.5f;
+        private const float GLOBAL_ARENA_HALF_WIDTH = 73f;
 
         public static bool HasAssets
         {
@@ -40,7 +50,11 @@ namespace DeadSignal.Editor
                 var chamber = AssetDatabase.LoadAssetAtPath<GameObject>(CHAMBER_PREFAB_PATH);
                 var gallery = AssetDatabase.LoadAssetAtPath<GameObject>(GALLERY_PREFAB_PATH);
                 var authored = region == null ? null : region.GetComponent<AuthoredCombatChamber>();
+                var arenaDeck = region == null ? null : region.transform.Find("Lockdown Arena/Arena Deck");
                 return authored != null && authored.IsComplete &&
+                       arenaDeck != null &&
+                       Mathf.Approximately(arenaDeck.localScale.x, ARENA_WIDTH) &&
+                       Mathf.Approximately(arenaDeck.localScale.z, ARENA_DEPTH) &&
                        region.transform.Find("Commitment Room") != null &&
                        region.transform.Find("Lockdown Arena") != null &&
                        region.transform.Find("Lockdown Arena/Arena South West Bulkhead") != null &&
@@ -69,6 +83,26 @@ namespace DeadSignal.Editor
             if (!HasAssets)
             {
                 throw new InvalidOperationException("The scene-authored Security Trial Wing is incomplete.");
+            }
+        }
+
+        [MenuItem("DEAD SIGNAL/Setup/Security Trial Expanded Arena")]
+        public static void EnsureExpandedArenaAssets()
+        {
+            var materials = _loadMaterials();
+            _ensureRegionPrefab(materials);
+            DeadSignalSecurityTrialReadabilitySetup.EnsureAssets();
+            DeadSignalSecurityLockdownReadabilitySetup.EnsureAssets();
+            DeadSignalSecurityTrialHeroSetup.EnsureAssets();
+            DeadSignalSecurityTrialCompositionSetup.EnsureAssets();
+            DeadSignalStationWallKitSetup.EnsureAssets();
+            _ensureSceneBounds();
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
+
+            if (!HasAssets)
+            {
+                throw new InvalidOperationException("The expanded Security Trial arena is incomplete.");
             }
         }
 
@@ -116,23 +150,27 @@ namespace DeadSignal.Editor
                 arena.transform.SetParent(root.transform, false);
                 arena.transform.localPosition = new Vector3(0f, 0f, 21f);
                 _wall(arena.transform, "Arena Deck", new Vector3(0f, -0.42f, 0f),
-                    new Vector3(35f, 0.55f, 36f), materials.Deck, false);
-                _wall(arena.transform, "Arena West Bulkhead", new Vector3(-17.5f, 0.5f, 0f),
-                    new Vector3(0.35f, 1f, 36f), materials.Armor, true);
-                _wall(arena.transform, "Arena East Bulkhead", new Vector3(17.5f, 0.5f, 0f),
-                    new Vector3(0.35f, 1f, 36f), materials.Armor, true);
-                _wall(arena.transform, "Arena South West Bulkhead", new Vector3(-9.55f, 0.5f, -18f),
-                    new Vector3(15.9f, 1f, 0.35f), materials.Armor, true);
-                _wall(arena.transform, "Arena South East Bulkhead", new Vector3(9.55f, 0.5f, -18f),
-                    new Vector3(15.9f, 1f, 0.35f), materials.Armor, true);
-                _wall(arena.transform, "Arena North West Bulkhead", new Vector3(-9.55f, 0.5f, 18f),
-                    new Vector3(15.9f, 1f, 0.35f), materials.Armor, true);
-                _wall(arena.transform, "Arena North East Bulkhead", new Vector3(9.55f, 0.5f, 18f),
-                    new Vector3(15.9f, 1f, 0.35f), materials.Armor, true);
-                _wall(arena.transform, "Arena West Deflector", new Vector3(-7f, 0.5f, 6f),
+                    new Vector3(ARENA_WIDTH, 0.55f, ARENA_DEPTH), materials.Deck, false);
+                _wall(arena.transform, "Arena West Bulkhead", new Vector3(-ARENA_HALF_WIDTH, 0.5f, 0f),
+                    new Vector3(0.35f, 1f, ARENA_DEPTH), materials.Armor, true);
+                _wall(arena.transform, "Arena East Bulkhead", new Vector3(ARENA_HALF_WIDTH, 0.5f, 0f),
+                    new Vector3(0.35f, 1f, ARENA_DEPTH), materials.Armor, true);
+                _wall(arena.transform, "Arena South West Bulkhead",
+                    new Vector3(-ARENA_HORIZONTAL_BULKHEAD_CENTER, 0.5f, -ARENA_HALF_DEPTH),
+                    new Vector3(ARENA_HORIZONTAL_BULKHEAD_WIDTH, 1f, 0.35f), materials.Armor, true);
+                _wall(arena.transform, "Arena South East Bulkhead",
+                    new Vector3(ARENA_HORIZONTAL_BULKHEAD_CENTER, 0.5f, -ARENA_HALF_DEPTH),
+                    new Vector3(ARENA_HORIZONTAL_BULKHEAD_WIDTH, 1f, 0.35f), materials.Armor, true);
+                _wall(arena.transform, "Arena North West Bulkhead",
+                    new Vector3(-ARENA_HORIZONTAL_BULKHEAD_CENTER, 0.5f, ARENA_HALF_DEPTH),
+                    new Vector3(ARENA_HORIZONTAL_BULKHEAD_WIDTH, 1f, 0.35f), materials.Armor, true);
+                _wall(arena.transform, "Arena North East Bulkhead",
+                    new Vector3(ARENA_HORIZONTAL_BULKHEAD_CENTER, 0.5f, ARENA_HALF_DEPTH),
+                    new Vector3(ARENA_HORIZONTAL_BULKHEAD_WIDTH, 1f, 0.35f), materials.Armor, true);
+                _wall(arena.transform, "Arena West Deflector", new Vector3(-12f, 0.5f, 6f),
                     new Vector3(4.5f, 1f, 0.45f), materials.White, true).transform.localRotation =
                     Quaternion.Euler(0f, 28f, 0f);
-                _wall(arena.transform, "Arena East Deflector", new Vector3(7f, 0.5f, -6f),
+                _wall(arena.transform, "Arena East Deflector", new Vector3(12f, 0.5f, -6f),
                     new Vector3(4.5f, 1f, 0.45f), materials.White, true).transform.localRotation =
                     Quaternion.Euler(0f, -28f, 0f);
                 _wall(arena.transform, "Arena Circuit Spine", new Vector3(0f, -0.1f, 0f),
@@ -168,13 +206,13 @@ namespace DeadSignal.Editor
                 scenarioRoot.transform.localPosition = new Vector3(0f, 0f, 21f);
                 var player = _anchor(scenarioRoot.transform, "Player Anchor", new Vector3(0f, 0f, -14.5f));
                 var camera = _anchor(scenarioRoot.transform, "Camera Focus", Vector3.zero);
-                var warden = _anchor(scenarioRoot.transform, "Warden Anchor", new Vector3(-12f, 0f, 13f));
-                var sapper = _anchor(scenarioRoot.transform, "Sapper Anchor", new Vector3(12f, 0f, 13f));
-                var interceptor = _anchor(scenarioRoot.transform, "Interceptor Anchor", new Vector3(-12f, 0f, -8f));
-                var suppressor = _anchor(scenarioRoot.transform, "Suppressor Anchor", new Vector3(12f, 0f, -8f));
+                var warden = _anchor(scenarioRoot.transform, "Warden Anchor", new Vector3(-22f, 0f, 13f));
+                var sapper = _anchor(scenarioRoot.transform, "Sapper Anchor", new Vector3(22f, 0f, 13f));
+                var interceptor = _anchor(scenarioRoot.transform, "Interceptor Anchor", new Vector3(-22f, 0f, -8f));
+                var suppressor = _anchor(scenarioRoot.transform, "Suppressor Anchor", new Vector3(22f, 0f, -8f));
                 var scenario = scenarioRoot.AddComponent<AuthoredCombatScenario>();
                 scenario.Configure(player, camera, warden, sapper, interceptor, suppressor,
-                    new Vector2(-16f, -16.5f), new Vector2(16f, 16.5f));
+                    new Vector2(-28.5f, -16.5f), new Vector2(28.5f, 16.5f));
                 var threshold = _anchor(root.transform, "Lockdown Threshold", new Vector3(0f, 0f, 3f));
 
                 root.AddComponent<AuthoredCombatChamber>().Configure(
@@ -230,12 +268,23 @@ namespace DeadSignal.Editor
 
         private static void _ensureSceneBounds()
         {
-            var scene = EditorSceneManager.OpenScene(SCENE_PATH, OpenSceneMode.Single);
+            _ensureSceneBounds(SCENE_PATH);
+            if (AssetDatabase.LoadAssetAtPath<SceneAsset>(TUNING_SCENE_PATH) != null)
+            {
+                _ensureSceneBounds(TUNING_SCENE_PATH);
+            }
+        }
+
+        private static void _ensureSceneBounds(string scenePath)
+        {
+            var scene = EditorSceneManager.OpenScene(scenePath, OpenSceneMode.Single);
             var references = UnityEngine.Object.FindFirstObjectByType<DeadSignalSceneReferences>(FindObjectsInactive.Include);
             var serialized = new SerializedObject(references);
             var boundsProperty = serialized.FindProperty("m_arenaHalfExtents");
             var existing = boundsProperty.vector2Value;
-            boundsProperty.vector2Value = new Vector2(Mathf.Max(existing.x, 57.5f), Mathf.Max(existing.y, 81f));
+            boundsProperty.vector2Value = new Vector2(
+                Mathf.Max(existing.x, GLOBAL_ARENA_HALF_WIDTH),
+                Mathf.Max(existing.y, 81f));
             serialized.ApplyModifiedPropertiesWithoutUndo();
             EditorUtility.SetDirty(references);
             EditorSceneManager.SaveScene(scene);

@@ -15,6 +15,7 @@ MonoBehaviour:
   m_impactPrewarmCount: 12
   m_impactMaximumCount: 16
   m_impactDuration: 0.22
+  m_impactGlyphWidth: 0.045
   m_sparkPrewarmCount: 12
   m_sparkMaximumCount: 16
   m_sparkDuration: 0.22

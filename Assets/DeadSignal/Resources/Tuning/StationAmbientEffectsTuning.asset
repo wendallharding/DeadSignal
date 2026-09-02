@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dc94bf2338107974f8ae0dbe41f11817, type: 3}
+  m_Name: StationAmbientEffectsTuning
+  m_EditorClassIdentifier: DeadSignal.Runtime::DeadSignal.Presentation.StationAmbientEffectsTuning
+  m_cullingDistance: 11
+  m_reducedFlashesEmissionMultiplier: 0.45
+  m_reducedFlashesAlphaMultiplier: 0.55
+  m_maximumParticlesPerEmitter: 12
+  m_continuousEmissionRate: 3.6
+  m_sparseEmissionRate: 1.1
+  m_sparkEmissionRate: 0.6

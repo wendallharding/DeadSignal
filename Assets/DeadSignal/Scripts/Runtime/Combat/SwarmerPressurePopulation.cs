@@ -271,7 +271,8 @@ namespace DeadSignal.Combat
                     visual.transform.Find("Swarmer Body"),
                     visual.transform.Find("Swarmer Core"),
                     visual.transform.Find("Swarmer Needle"),
-                    visual.transform.Find("Swarmer Tail"));
+                    visual.transform.Find("Swarmer Tail"),
+                    m_world.ComfortSettings);
                 m_agents.Add(new Agent(m_agents.Count, visual.transform, presentation, isFirstWave));
             }
         }

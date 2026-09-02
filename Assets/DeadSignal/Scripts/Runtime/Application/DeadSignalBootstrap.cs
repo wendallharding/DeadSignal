@@ -68,6 +68,7 @@ namespace DeadSignal.Application
             var shell = shellInstance.GetComponent<DeadSignalShellController>();
             var objectiveBeacon = hudInstance.GetComponent<ObjectiveBeaconHud>();
             var signalDust = root.AddComponent<SignalDustController>();
+            var stationAmbientEffects = root.AddComponent<StationAmbientEffectsController>();
             var lowSignalWarning = hudInstance.GetComponent<LowSignalWarningController>();
             var directionalDamageFeedback = hudInstance.GetComponent<DirectionalDamageFeedbackController>();
             var towerActivationSweep = root.AddComponent<TowerActivationSweepController>();
@@ -90,6 +91,7 @@ namespace DeadSignal.Application
                 .RegisterValue(hud, new[] { typeof(IDeadSignalHud) })
                 .RegisterValue(objectiveBeacon, new[] { typeof(IObjectiveBeacon) })
                 .RegisterValue(signalDust, new[] { typeof(ISignalDust) })
+                .RegisterValue(stationAmbientEffects, new[] { typeof(IStationAmbientEffects) })
                 .RegisterValue(lowSignalWarning, new[] { typeof(ILowSignalWarning) })
                 .RegisterValue(directionalDamageFeedback, new[] { typeof(IDirectionalDamageFeedback) })
                 .RegisterValue(towerActivationSweep, new[] { typeof(ITowerActivationSweep) })

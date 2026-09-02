@@ -38,6 +38,7 @@ namespace DeadSignal.World
             ? m_spineTowerInteractionAnchor.position
             : SpineTowerPosition;
         public Vector2 ArenaHalfExtents => m_scene.ArenaHalfExtents;
+        internal IComfortSettings ComfortSettings => m_comfortSettings;
 
         public Vector3 GetSalvagePosition(int index)
         {
@@ -818,9 +819,9 @@ namespace DeadSignal.World
                 dt, acceleration, velocity, aimDirection, tuning, signalRatio, isCriticalRecovery);
         }
 
-        public void SetCombatArenaCameraActive(bool active)
+        public void SetCombatArenaCameraActive(bool active, Vector3 arenaFocus)
         {
-            PlayerCamera?.SetCombatArenaFraming(active);
+            PlayerCamera?.SetCombatArenaFraming(active, arenaFocus);
         }
 
         public void ConfigurePlayerCameraImpulse(ICombatFeedback combatFeedback)
@@ -1040,7 +1041,7 @@ namespace DeadSignal.World
         public void SetSuppressorFieldAt(bool visible, bool active, float radius, Vector3 center)
         {
             SuppressorFieldTelegraph.SetState(visible, active, radius, center);
-            SuppressorPresentation?.SetFieldState(visible, active);
+            SuppressorPresentation?.SetFieldState(visible, active, radius, center);
         }
 
         public void SetInterceptorTelegraph(bool visible, Vector3 target)
@@ -1085,7 +1086,7 @@ namespace DeadSignal.World
         public void PlaySapperHit(Vector3 sourcePosition, bool interrupted) =>
             SapperPresentation?.PlayHit(sourcePosition, interrupted);
 
-        public GameObject CreateSignalBolt(Vector3 direction)
+        public GameObject CreateSignalBolt(Vector3 direction, SignalWeaponOverclock weapon, bool evolved)
         {
             GameObject bolt;
             var spawnPosition = Player.position + direction * 0.9f + Vector3.up * 0.25f;
@@ -1124,13 +1125,23 @@ namespace DeadSignal.World
             {
                 energy.localScale *= 1.22f;
             }
+            PlayerCombatPresentation?.ConfigureBolt(bolt, weapon, evolved);
             return bolt;
         }
 
-        public void PlayPlayerShot(Vector3 direction, bool evolved)
+        public void PlayPlayerShot(Vector3 direction, SignalWeaponOverclock weapon, bool evolved)
         {
-            PlayerCombatPresentation?.PlayShot(direction, evolved);
+            PlayerCombatPresentation?.PlayShot(direction, weapon, evolved);
         }
+
+        public void PlayPiercingContinuation(Vector3 position, Vector3 direction) =>
+            PlayerCombatPresentation?.PlayPiercingContinuation(position, direction);
+
+        public void PlayRicochetRedirect(Vector3 position, Vector3 incomingDirection, Vector3 outgoingDirection) =>
+            PlayerCombatPresentation?.PlayRicochetRedirect(position, incomingDirection, outgoingDirection);
+
+        public void PlayWeaponTermination(Vector3 position, Vector3 direction, SignalWeaponOverclock weapon) =>
+            PlayerCombatPresentation?.PlayWeaponTermination(position, direction, weapon);
 
         public void PlayPlayerDamage(Vector3 sourcePosition) => PlayerDronePresentation?.PlayDamage(sourcePosition);
 
@@ -1695,7 +1706,8 @@ namespace DeadSignal.World
                 Player,
                 Warden.Find("Warden Chassis"),
                 Warden.Find("Warden Eye"),
-                Warden.Find("Warden Crown"));
+                Warden.Find("Warden Crown"),
+                m_comfortSettings);
 
             Sapper = m_scene.Sapper;
             Sapper.SetParent(m_root, true);
@@ -1707,7 +1719,9 @@ namespace DeadSignal.World
                 Sapper.Find("Sapper Chassis"),
                 Sapper.Find("Sapper Fork Left"),
                 Sapper.Find("Sapper Fork Right"),
-                SapperCore);
+                SapperCore,
+                TowerPosition,
+                m_comfortSettings);
             HasSignalSapperAssets = m_palette.HasSapperTexture;
             SignalSapperPartCount = 4;
 
@@ -1720,7 +1734,8 @@ namespace DeadSignal.World
                 Interceptor.Find("Interceptor Chassis"),
                 Interceptor.Find("Interceptor Blade Left"),
                 Interceptor.Find("Interceptor Blade Right"),
-                InterceptorCore);
+                InterceptorCore,
+                m_comfortSettings);
             HasSecurityInterceptorAssets = true;
             SecurityInterceptorPartCount = 4;
 
@@ -1730,10 +1745,12 @@ namespace DeadSignal.World
             SuppressorPresentation = m_root.gameObject.AddComponent<SecuritySuppressorPresentation>();
             SuppressorPresentation.Configure(
                 Suppressor,
+                Player,
                 Suppressor.Find("Suppressor Chassis"),
                 Suppressor.Find("Suppressor Emitter Left"),
                 Suppressor.Find("Suppressor Emitter Right"),
-                SuppressorCore);
+                SuppressorCore,
+                m_comfortSettings);
             HasSecuritySuppressorAssets = true;
             SecuritySuppressorPartCount = 4;
 

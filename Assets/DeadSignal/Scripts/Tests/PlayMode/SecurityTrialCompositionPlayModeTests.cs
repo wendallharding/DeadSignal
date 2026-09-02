@@ -34,6 +34,10 @@ namespace DeadSignal.Tests
                 "Room A must own an apron.");
             Assert.That(apronBounds.Contains(new Vector3(42.5f, -0.71f, 54f)), Is.True,
                 "Room B must own an apron.");
+            Assert.That(apronBounds.Contains(new Vector3(12.5f, -0.71f, 54f)), Is.True,
+                "Room B's widened west edge must retain authored underdeck backing.");
+            Assert.That(apronBounds.Contains(new Vector3(72.5f, -0.71f, 54f)), Is.True,
+                "Room B's widened east edge must retain authored underdeck backing.");
             Assert.That(apronBounds.Contains(new Vector3(42.5f, -0.71f, 75f)), Is.True,
                 "The Reward Vault must own an apron.");
         }

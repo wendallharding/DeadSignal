@@ -1,4 +1,6 @@
+using System;
 using System.Collections;
+using System.IO;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -9,6 +11,7 @@ using DeadSignal.Application;
 using DeadSignal.Diagnostics;
 using DeadSignal.Player;
 using DeadSignal.Presentation;
+using Object = UnityEngine.Object;
 
 namespace DeadSignal.Tests
 {
@@ -196,6 +199,115 @@ namespace DeadSignal.Tests
         }
 
         [UnityTest]
+        public IEnumerator RequiredRouteFraming_KeepsApproachesBacktrackingNarrowRoomsAndEdgesReadable()
+        {
+            yield return SceneManager.LoadSceneAsync("SampleScene");
+            yield return null;
+
+            var game = Object.FindFirstObjectByType<DeadSignalGame>();
+            var followCamera = Object.FindFirstObjectByType<PlayerFollowCamera>();
+            var camera = Object.FindFirstObjectByType<Camera>();
+            var player = game.transform.Find("Maintenance Drone");
+            var chamber = Object.FindFirstObjectByType<DeadSignal.World.AuthoredCombatChamber>();
+            Assert.That(game, Is.Not.Null);
+            Assert.That(followCamera, Is.Not.Null);
+            Assert.That(camera, Is.Not.Null);
+            Assert.That(player, Is.Not.Null);
+            Assert.That(chamber, Is.Not.Null);
+
+            var screenForward = camera.transform.forward;
+            screenForward.y = 0f;
+            screenForward.Normalize();
+            var samples = new[]
+            {
+                ("01-Extraction-Start", game.DebugExtractionPosition),
+                ("02-Cargo-Approach", game.CargoCommitmentPosition),
+                ("03-Coolant-Narrow", game.CoolantSecondBafflePosition),
+                ("04-Relay-Fork", game.RelayForkPosition),
+                ("05-Transfer-Vault", game.TransferVaultPosition),
+                ("06-Foundry-Return", game.RelayTowerPosition),
+                ("07-Spine-Venting", game.SpineVentingPosition),
+                ("08-Flux-Narrow", game.FluxShuntPosition),
+                ("09-Convergence-Combat", game.ConvergenceCalibrationPosition),
+                ("10-Furnace-Approach", game.FurnaceForgePosition),
+                ("11-Quench-Narrow", game.QuenchStabilizationPosition)
+            };
+
+            for (var sampleIndex = 0; sampleIndex < samples.Length; sampleIndex++)
+            {
+                if (sampleIndex == 1)
+                {
+                    game.DebugActivateTower();
+                }
+                else if (sampleIndex == 3)
+                {
+                    game.DebugActivateSpineTower();
+                }
+
+                var sample = samples[sampleIndex];
+                player.position = sample.Item2 - screenForward * 1.8f;
+                followCamera.SnapToFocus(sample.Item2);
+                yield return new WaitForSecondsRealtime(0.12f);
+                _assertSafeViewport(camera, player.position, sample.Item1 + " player");
+                _assertSafeViewport(camera, sample.Item2, sample.Item1 + " objective");
+                _captureCameraAuditFrame(camera, sample.Item1 + ".png");
+            }
+
+            game.DebugCommitSecurityTrial();
+            player.position = chamber.LockdownThreshold.TransformPoint(new Vector3(0f, 0f, 1f));
+            yield return new WaitForSecondsRealtime(1.25f);
+            Assert.That(followCamera.IsCombatArenaFraming, Is.True);
+            _assertSafeViewport(camera, player.position, "Room B player");
+            _assertSafeViewport(camera, chamber.ArenaPosition, "Room B arena focus");
+            _captureCameraAuditFrame(camera, "12-Room-B-Lockdown.png");
+            foreach (var direction in new[]
+                     {
+                         new Vector3(-100f, 0f, -100f),
+                         new Vector3(100f, 0f, -100f),
+                         new Vector3(-100f, 0f, 100f),
+                         new Vector3(100f, 0f, 100f)
+                     })
+            {
+                player.position = chamber.CombatScenario.ClampToSafeArea(chamber.ArenaPosition + direction);
+                yield return new WaitForSecondsRealtime(0.6f);
+                _assertSafeViewport(camera, player.position, "Room B circulation edge player");
+            }
+
+            yield return SceneManager.LoadSceneAsync("SampleScene");
+            yield return null;
+            game = Object.FindFirstObjectByType<DeadSignalGame>();
+            followCamera = Object.FindFirstObjectByType<PlayerFollowCamera>();
+            camera = Object.FindFirstObjectByType<Camera>();
+            player = game.transform.Find("Maintenance Drone");
+            chamber = Object.FindFirstObjectByType<DeadSignal.World.AuthoredCombatChamber>();
+            screenForward = camera.transform.forward;
+            screenForward.y = 0f;
+            screenForward.Normalize();
+            game.DebugCompleteSecurityTrial();
+            player.position = chamber.RewardPosition - screenForward * 1.8f;
+            followCamera.SnapToFocus(chamber.RewardPosition);
+            yield return new WaitForSecondsRealtime(1.25f);
+            _assertSafeViewport(camera, chamber.RewardPosition, "Room C reward");
+            _captureCameraAuditFrame(camera, "13-Room-C-Recovery.png");
+
+            game.DebugInstallSpineCore();
+            var withdrawalSamples = new[]
+            {
+                ("14-Warden-Bay-Withdrawal", game.WardenBayPursuitPosition),
+                ("15-Sapper-Cradle-Withdrawal", game.SapperCradlePursuitPosition)
+            };
+            foreach (var sample in withdrawalSamples)
+            {
+                player.position = sample.Item2;
+                followCamera.SnapToFocus(sample.Item2);
+                yield return new WaitForSecondsRealtime(0.12f);
+                _assertSafeViewport(camera, player.position, sample.Item1);
+                _captureCameraAuditFrame(camera, sample.Item1 + ".png");
+            }
+
+        }
+
+        [UnityTest]
         public IEnumerator DronePresentation_CommunicatesFireDamageCriticalRecoveryAndDefeat()
         {
             yield return SceneManager.LoadSceneAsync("SampleScene");
@@ -243,6 +355,48 @@ namespace DeadSignal.Tests
                 .transform.Find("Maintenance Drone").GetComponent<PlayerDronePresentation>();
             Assert.That(controller.IsDefeated, Is.False,
                 "A fresh run must reset every presentation-only state.");
+        }
+
+        private static void _assertSafeViewport(Camera camera, Vector3 position, string context)
+        {
+            var viewport = camera.WorldToViewportPoint(position + Vector3.up * 0.35f);
+            Assert.That(viewport.z, Is.GreaterThan(0f), context);
+            Assert.That(viewport.x, Is.InRange(0.08f, 0.92f), context);
+            Assert.That(viewport.y, Is.InRange(0.08f, 0.92f), context);
+        }
+
+        private static void _captureCameraAuditFrame(Camera camera, string fileName)
+        {
+            var captureDirectory = Environment.GetEnvironmentVariable("DEAD_SIGNAL_P53_CAPTURE_DIR");
+            if (string.IsNullOrWhiteSpace(captureDirectory))
+            {
+                return;
+            }
+
+            Directory.CreateDirectory(captureDirectory);
+            var captureResolution = Environment.GetEnvironmentVariable("DEAD_SIGNAL_P53_CAPTURE_RESOLUTION");
+            var width = string.Equals(captureResolution, "1600x900", StringComparison.OrdinalIgnoreCase) ? 1600 : 1280;
+            var height = width == 1600 ? 900 : 720;
+            var renderTexture = new RenderTexture(width, height, 24, RenderTextureFormat.ARGB32);
+            var texture = new Texture2D(width, height, TextureFormat.RGB24, false);
+            var previousTarget = camera.targetTexture;
+            var previousActive = RenderTexture.active;
+            try
+            {
+                camera.targetTexture = renderTexture;
+                camera.Render();
+                RenderTexture.active = renderTexture;
+                texture.ReadPixels(new Rect(0f, 0f, width, height), 0, 0);
+                texture.Apply();
+                File.WriteAllBytes(Path.Combine(captureDirectory, fileName), texture.EncodeToPNG());
+            }
+            finally
+            {
+                camera.targetTexture = previousTarget;
+                RenderTexture.active = previousActive;
+                Object.DestroyImmediate(texture);
+                Object.DestroyImmediate(renderTexture);
+            }
         }
     }
 }
