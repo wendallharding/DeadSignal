@@ -18,6 +18,13 @@ namespace DeadSignal.Player
         [SerializeField] private float m_arenaEdgePadding = 0.35f;
         [SerializeField] private float m_maximumTargetFocusOffset = 3.2f;
 
+        [Header("Room B Combat Framing")]
+        [SerializeField] private float m_combatFieldOfView = 45f;
+        [SerializeField] private float m_combatPitch = 65f;
+        [SerializeField] private float m_combatHeight = 24f;
+        [SerializeField] private float m_combatFollowDistance = 11.2f;
+        [SerializeField] private float m_combatTransitionDuration = 1.1f;
+
         public float FieldOfView => m_fieldOfView;
         public float Pitch => m_pitch;
         public float Yaw => m_yaw;
@@ -29,6 +36,11 @@ namespace DeadSignal.Player
         public float AimLookAheadDistance => m_aimLookAheadDistance;
         public float ArenaEdgePadding => m_arenaEdgePadding;
         public float MaximumTargetFocusOffset => m_maximumTargetFocusOffset;
+        public float CombatFieldOfView => m_combatFieldOfView;
+        public float CombatPitch => m_combatPitch;
+        public float CombatHeight => m_combatHeight;
+        public float CombatFollowDistance => m_combatFollowDistance;
+        public float CombatTransitionDuration => m_combatTransitionDuration;
 
         private void OnValidate()
         {
@@ -43,6 +55,11 @@ namespace DeadSignal.Player
             m_aimLookAheadDistance = Mathf.Max(0f, m_aimLookAheadDistance);
             m_arenaEdgePadding = Mathf.Max(0f, m_arenaEdgePadding);
             m_maximumTargetFocusOffset = Mathf.Max(1f, m_maximumTargetFocusOffset);
+            m_combatFieldOfView = Mathf.Clamp(m_combatFieldOfView, 20f, 70f);
+            m_combatPitch = Mathf.Clamp(m_combatPitch, 35f, 80f);
+            m_combatHeight = Mathf.Max(m_height, m_combatHeight);
+            m_combatFollowDistance = Mathf.Max(0f, m_combatFollowDistance);
+            m_combatTransitionDuration = Mathf.Max(0.1f, m_combatTransitionDuration);
         }
     }
 }

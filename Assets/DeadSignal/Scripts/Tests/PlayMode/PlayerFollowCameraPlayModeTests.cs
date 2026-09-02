@@ -139,6 +139,63 @@ namespace DeadSignal.Tests
         }
 
         [UnityTest]
+        public IEnumerator SecurityTrialLockdown_PullsBackAndRestoresNormalFraming()
+        {
+            yield return SceneManager.LoadSceneAsync("SampleScene");
+            yield return null;
+
+            var game = Object.FindFirstObjectByType<DeadSignalGame>();
+            var followCamera = Object.FindFirstObjectByType<PlayerFollowCamera>();
+            var camera = Object.FindFirstObjectByType<Camera>();
+            var player = game.transform.Find("Maintenance Drone");
+            var chamber = Object.FindFirstObjectByType<DeadSignal.World.AuthoredCombatChamber>();
+            var tuning = Resources.Load<PlayerCameraTuning>("Tuning/PlayerCameraTuning");
+            var normalUnitScale = Vector2.Distance(
+                camera.WorldToViewportPoint(player.position),
+                camera.WorldToViewportPoint(player.position + Vector3.right));
+            var normalYaw = camera.transform.localEulerAngles.y;
+
+            game.DebugCommitSecurityTrial();
+            player.position = chamber.LockdownThreshold.TransformPoint(new Vector3(0f, 0f, 1f));
+            yield return null;
+
+            Assert.That(followCamera.IsCombatArenaFraming, Is.True);
+            var transitionDeadline = Time.realtimeSinceStartup + tuning.CombatTransitionDuration + 1f;
+            while (followCamera.CombatFramingBlend < 0.999f && Time.realtimeSinceStartup < transitionDeadline)
+            {
+                yield return null;
+            }
+
+            Assert.That(followCamera.CombatFramingBlend, Is.EqualTo(1f).Within(0.01f));
+            Assert.That(camera.fieldOfView, Is.EqualTo(tuning.CombatFieldOfView).Within(0.01f));
+            Assert.That(camera.transform.localPosition.y, Is.EqualTo(tuning.CombatHeight).Within(0.01f));
+            Assert.That(Quaternion.Angle(
+                    camera.transform.localRotation,
+                    Quaternion.Euler(tuning.CombatPitch, tuning.Yaw, 0f)),
+                Is.LessThan(0.01f));
+            var combatUnitScale = Vector2.Distance(
+                camera.WorldToViewportPoint(player.position),
+                camera.WorldToViewportPoint(player.position + Vector3.right));
+            Assert.That(combatUnitScale, Is.LessThan(normalUnitScale * 0.6f),
+                "Room B should present the player at roughly half the normal on-screen scale.");
+            Assert.That(Mathf.Abs(Mathf.DeltaAngle(normalYaw, camera.transform.localEulerAngles.y)), Is.LessThan(0.01f),
+                "Combat framing must not alter the authored yaw.");
+
+            chamber.Complete();
+            yield return null;
+            Assert.That(followCamera.IsCombatArenaFraming, Is.False);
+            transitionDeadline = Time.realtimeSinceStartup + tuning.CombatTransitionDuration + 1f;
+            while (followCamera.CombatFramingBlend > 0.001f && Time.realtimeSinceStartup < transitionDeadline)
+            {
+                yield return null;
+            }
+
+            Assert.That(followCamera.CombatFramingBlend, Is.Zero.Within(0.01f));
+            Assert.That(camera.fieldOfView, Is.EqualTo(tuning.FieldOfView).Within(0.01f));
+            Assert.That(camera.transform.localPosition.y, Is.EqualTo(tuning.Height).Within(0.01f));
+        }
+
+        [UnityTest]
         public IEnumerator DronePresentation_CommunicatesFireDamageCriticalRecoveryAndDefeat()
         {
             yield return SceneManager.LoadSceneAsync("SampleScene");

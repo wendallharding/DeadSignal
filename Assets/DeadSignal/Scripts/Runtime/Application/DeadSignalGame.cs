@@ -1017,6 +1017,7 @@ namespace DeadSignal.Application
 
             m_threats.EndCombatChamber();
             m_combatChamber.Complete();
+            m_world.SetCombatArenaCameraActive(false);
             m_world.RefreshNavigation();
             m_stationStateFeedback.Play(m_combatChamber.ArenaPosition, StationStateFeedbackKind.RoomClear);
             m_stationStateFeedback.Play(m_combatChamber.RewardPosition, StationStateFeedbackKind.RewardRelease);
@@ -1551,6 +1552,7 @@ namespace DeadSignal.Application
             m_combatChamber?.ResetState();
             m_world.ConfigurePlayerSignalWake(m_playerMovementTuning);
             m_combatFeedback.Configure(m_world.Camera);
+            m_world.ConfigurePlayerCameraImpulse(m_combatFeedback);
             m_directionalDamageFeedback.Configure(m_model, m_world.Camera);
             var signalBoltTuning = Resources.Load<SignalBoltPresentationTuning>("Tuning/SignalBoltPresentationTuning");
             var threatTuning = Resources.Load<ThreatBalanceTuning>("Tuning/ThreatBalanceTuning");
@@ -3613,8 +3615,11 @@ namespace DeadSignal.Application
                 return;
             }
 
+            m_world.SetCombatArenaCameraActive(m_combatChamber.State == CombatChamberState.Lockdown);
+
             if (m_combatChamber.TryBeginLockdown(m_world.Player.position))
             {
+                m_world.SetCombatArenaCameraActive(true);
                 m_world.RefreshNavigation();
                 m_threats.BeginCombatChamberPhase(m_combatChamber.CombatScenario, m_combatChamber.Phase);
                 m_stationStateFeedback.Play(
@@ -3650,6 +3655,7 @@ namespace DeadSignal.Application
                 return;
             }
             m_combatChamber.Complete();
+            m_world.SetCombatArenaCameraActive(false);
             m_world.RefreshNavigation();
             m_stationStateFeedback.Play(m_combatChamber.ArenaPosition, StationStateFeedbackKind.RoomClear);
             m_stationStateFeedback.Play(m_combatChamber.RewardPosition, StationStateFeedbackKind.RewardRelease);

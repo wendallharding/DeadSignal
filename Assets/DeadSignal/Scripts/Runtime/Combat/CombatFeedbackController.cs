@@ -15,6 +15,7 @@ namespace DeadSignal.Combat
         bool HasSalvageChainTexture { get; }
 
         void Configure(Camera targetCamera);
+        void SetCameraRestPosition(Vector3 restPosition);
         void PlaySignalImpact(Vector3 position, bool decisive);
         void PlayThreatReaction(Transform target);
         void PlayShieldImpact(Vector3 position);
@@ -76,6 +77,7 @@ namespace DeadSignal.Combat
         private Material m_environmentImpactMaterial;
         private Material m_chainArcMaterial;
         private Vector3 m_cameraRestPosition;
+        private Vector3 m_cameraImpulseOffset;
         private float m_hitStopEndsAt;
         private float m_shakeRemaining;
         private float m_shakeIntensity;
@@ -157,6 +159,7 @@ namespace DeadSignal.Combat
             if (m_targetCamera != null)
             {
                 m_cameraRestPosition = m_targetCamera.transform.localPosition;
+                m_cameraImpulseOffset = Vector3.zero;
             }
 
             m_impactTexture = Resources.Load<Texture2D>(IMPACT_TEXTURE_PATH);
@@ -219,6 +222,12 @@ namespace DeadSignal.Combat
             m_salvageChainSprite.name = "Salvage Chain Burst Sprite";
 
             _prewarmPools();
+        }
+
+        public void SetCameraRestPosition(Vector3 restPosition)
+        {
+            m_cameraRestPosition = restPosition;
+            _applyCameraPosition();
         }
 
         public void PlaySignalImpact(Vector3 position, bool decisive)
@@ -539,8 +548,9 @@ namespace DeadSignal.Combat
             m_shakePhase += dt * 92f;
             float remainingRatio = m_shakeRemaining / SHAKE_DURATION;
             float magnitude = m_shakeIntensity * remainingRatio;
-            var offset = new Vector3(Mathf.Sin(m_shakePhase), 0f, Mathf.Cos(m_shakePhase * 1.37f)) * magnitude;
-            m_targetCamera.transform.localPosition = m_cameraRestPosition + offset;
+            m_cameraImpulseOffset =
+                new Vector3(Mathf.Sin(m_shakePhase), 0f, Mathf.Cos(m_shakePhase * 1.37f)) * magnitude;
+            _applyCameraPosition();
 
             if (m_shakeRemaining <= 0f)
             {
@@ -621,9 +631,15 @@ namespace DeadSignal.Combat
 
         private void _resetCamera()
         {
+            m_cameraImpulseOffset = Vector3.zero;
+            _applyCameraPosition();
+        }
+
+        private void _applyCameraPosition()
+        {
             if (m_targetCamera != null)
             {
-                m_targetCamera.transform.localPosition = m_cameraRestPosition;
+                m_targetCamera.transform.localPosition = m_cameraRestPosition + m_cameraImpulseOffset;
             }
         }
 

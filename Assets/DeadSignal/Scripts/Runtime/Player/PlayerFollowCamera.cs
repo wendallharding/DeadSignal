@@ -1,3 +1,4 @@
+using DeadSignal.Combat;
 using UnityEngine;
 
 namespace DeadSignal.Player
@@ -10,6 +11,7 @@ namespace DeadSignal.Player
         private Camera m_targetCamera;
         private Transform m_target;
         private PlayerCameraTuning m_tuning;
+        private ICombatFeedback m_combatFeedback;
         private Vector2 m_arenaHalfExtents;
         private Vector3 m_currentFocus;
         private Vector3 m_currentLookAhead;
@@ -18,10 +20,14 @@ namespace DeadSignal.Player
         private Vector2 m_groundFootprintMinimum;
         private Vector2 m_groundFootprintMaximum;
         private float m_lastAspect;
+        private float m_combatFramingBlend;
+        private bool m_combatArenaFraming;
         private bool m_isConfigured;
 
         public Vector3 CurrentFocus => m_currentFocus;
         public Vector3 CurrentLookAhead => m_currentLookAhead;
+        public float CombatFramingBlend => m_combatFramingBlend;
+        public bool IsCombatArenaFraming => m_combatArenaFraming;
         public bool IsConfigured => m_isConfigured;
 
         private void LateUpdate()
@@ -31,8 +37,15 @@ namespace DeadSignal.Player
                 return;
             }
 
-            float dt = Mathf.Min(Time.deltaTime, 0.05f);
-            if (!Mathf.Approximately(m_lastAspect, m_targetCamera.aspect))
+            var dt = Mathf.Min(Time.deltaTime, 0.05f);
+            var previousFramingBlend = m_combatFramingBlend;
+            m_combatFramingBlend = Mathf.MoveTowards(
+                m_combatFramingBlend,
+                m_combatArenaFraming ? 1f : 0f,
+                dt / m_tuning.CombatTransitionDuration);
+            _applyFraming();
+            if (!Mathf.Approximately(previousFramingBlend, m_combatFramingBlend) ||
+                !Mathf.Approximately(m_lastAspect, m_targetCamera.aspect))
             {
                 _refreshGroundFootprint();
             }
@@ -86,12 +99,9 @@ namespace DeadSignal.Player
                 return;
             }
 
-            m_targetCamera.orthographic = false;
-            m_targetCamera.fieldOfView = m_tuning.FieldOfView;
-            var yawRotation = Quaternion.Euler(0f, m_tuning.Yaw, 0f);
-            m_targetCamera.transform.localPosition = yawRotation *
-                                                     new Vector3(0f, m_tuning.Height, -m_tuning.FollowDistance);
-            m_targetCamera.transform.localRotation = Quaternion.Euler(m_tuning.Pitch, m_tuning.Yaw, 0f);
+            m_combatArenaFraming = false;
+            m_combatFramingBlend = 0f;
+            _applyFraming();
             _refreshGroundFootprint();
             m_currentLookAhead = Vector3.zero;
             m_lastTargetPosition = m_target.position;
@@ -112,6 +122,17 @@ namespace DeadSignal.Player
         {
             aimDirection.y = 0f;
             m_aimDirection = aimDirection;
+        }
+
+        public void SetCombatArenaFraming(bool active)
+        {
+            m_combatArenaFraming = active;
+        }
+
+        internal void ConfigureCameraImpulse(ICombatFeedback combatFeedback)
+        {
+            m_combatFeedback = combatFeedback;
+            _applyFraming();
         }
 
         public void SnapToFocus(Vector3 focus)
@@ -192,6 +213,39 @@ namespace DeadSignal.Player
         private static float _exponentialBlend(float sharpness, float dt)
         {
             return 1f - Mathf.Exp(-sharpness * dt);
+        }
+
+        private void _applyFraming()
+        {
+            if (m_targetCamera == null || m_tuning == null)
+            {
+                return;
+            }
+
+            var blend = Mathf.SmoothStep(0f, 1f, m_combatFramingBlend);
+            var height = Mathf.Lerp(m_tuning.Height, m_tuning.CombatHeight, blend);
+            var followDistance = Mathf.Lerp(
+                m_tuning.FollowDistance,
+                m_tuning.CombatFollowDistance,
+                blend);
+            var pitch = Mathf.Lerp(m_tuning.Pitch, m_tuning.CombatPitch, blend);
+            var yawRotation = Quaternion.Euler(0f, m_tuning.Yaw, 0f);
+
+            m_targetCamera.orthographic = false;
+            m_targetCamera.fieldOfView = Mathf.Lerp(
+                m_tuning.FieldOfView,
+                m_tuning.CombatFieldOfView,
+                blend);
+            var restPosition = yawRotation * new Vector3(0f, height, -followDistance);
+            if (m_combatFeedback != null)
+            {
+                m_combatFeedback.SetCameraRestPosition(restPosition);
+            }
+            else
+            {
+                m_targetCamera.transform.localPosition = restPosition;
+            }
+            m_targetCamera.transform.localRotation = Quaternion.Euler(pitch, m_tuning.Yaw, 0f);
         }
 
         private void _refreshGroundFootprint()

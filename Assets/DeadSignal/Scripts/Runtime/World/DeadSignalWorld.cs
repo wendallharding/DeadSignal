@@ -818,6 +818,16 @@ namespace DeadSignal.World
                 dt, acceleration, velocity, aimDirection, tuning, signalRatio, isCriticalRecovery);
         }
 
+        public void SetCombatArenaCameraActive(bool active)
+        {
+            PlayerCamera?.SetCombatArenaFraming(active);
+        }
+
+        public void ConfigurePlayerCameraImpulse(ICombatFeedback combatFeedback)
+        {
+            PlayerCamera?.ConfigureCameraImpulse(combatFeedback);
+        }
+
         public void ConfigurePlayerSignalWake(PlayerDroneMovementTuning tuning)
         {
             PlayerSignalWake = Player.gameObject.AddComponent<PlayerDroneSignalWake>();

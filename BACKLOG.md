@@ -285,6 +285,126 @@ Work through these gates in order. Authorize one bounded combat advancement per 
 - [ ] Reject or revise the pattern if matched play shows Signal soft-locks, unreadable saturation, repetitive waves, weak reward value, route coercion, excessive duration, poor return value, or lower fun and replay intent
 - [ ] Do not replicate the chamber pattern elsewhere until the single prototype passes focused tests, complete-run regression, Windows smoke, and a human-controlled before/after comparison
 
+### Security Trial arcade-combat program
+
+The controlling design is `SECURITY_TRIAL_ARCADE_COMBAT_DESIGN.md`. Work through these stages in order and implement no more than one independently measurable behavior family per development pass. The current three-phase combat is disposable, untuned scaffolding: preserve its Room A/B/C, door, navigation, reward, reset, and run-completion integration contracts, but do not preserve its timing, composition, population, tuning, or profile as a gameplay baseline.
+
+#### Stage 0 — Reference evidence and current measurements
+
+- [ ] Capture the current Room B at 1280x720, 1600x900, and 3440x1440 as an integration and geometry record only; measure usable width/height, player visual and collision size, 80-percent horizontal/vertical traversal time, visible-floor coverage, offscreen floor at center/extremes, cover circulation radius, doors, reward, and camera state without treating current combat feel as a benchmark
+- [ ] Record or annotate representative Retro Evolved footage for observable formation time, archetype order, alive count at the next deployment, inter-formation delay, spawn relationship to viewport/playfield edges, warning duration, and breathing intervals; distinguish measured observations from inferred rules
+- [ ] Measure the reference arena across multiple stable frames using arena-to-player width/height ratios, estimated 80-percent traversal time, player screen occupancy, and playfield visibility; record aspect ratio, uncertainty range, and the selected horizontal/vertical target rather than inventing source-game world units
+- [ ] Define the first bounded comparison seed and a concise human play script covering circulation, deliberate low-water clearing, preserving one enemy, visible edge spawns, and reset/re-entry
+- [ ] Record the current Room A → Room B → Room C lifecycle as the integration contract to reproduce, then explicitly mark the three-phase timing, composition, population, and tuning as superseded design inputs
+
+#### Stage 1 — Arena footprint and camera-scale calibration
+
+- [ ] Compare current and reference normalized measurements and approve a target Room B horizontal span; expand horizontally by the measured amount rather than applying an arbitrary scale factor
+- [ ] Measure the current vertical span against the reference and retain it when it falls within the accepted range; change it only when measurement or circulation play shows a specific deficiency
+- [ ] Widen the scene-authored Room B floor, east/west walls, underdeck, backing, arena boundary, and circulation lanes while preserving the north/south Room A and Room C relationship, lockdown trigger, door authority, reward threshold, and withdrawal route
+- [ ] Reposition or revise central deflectors only as required to provide broad circulation, clear projectile lanes, useful gravity/train clearance, and at least two viable loops without converting important authored blockers to world-axis-aligned collision
+- [ ] Recalibrate the existing combat camera's pitch, height, distance, and field of view to match the accepted player-to-arena screen scale; preserve zero yaw through entry, lockdown, extremes, clear, death, and reset
+- [ ] Close camera-visible voids and preserve Room A warning, door state, Room C concealment/release, lighting hierarchy, tactical-window coverage, and all required aspect ratios after expansion
+- [ ] Add focused EditMode/PlayMode coverage for authored bounds, doors, collision, navigation, camera footprint, zero yaw, player containment, traversal clearance, and Room A → B → C lifecycle; capture an interactive horizontal-circulation comparison before beginning spawn tuning
+
+#### Stage 2 — Deterministic encounter foundation
+
+- [ ] Add validated `SecurityTrialEncounterProfile`, formation, spawn, archetype, economy, and performance-budget ScriptableObject contracts with safe defaults; keep the new director isolated from production progression until its deterministic foundation is valid
+- [ ] Implement a pure C# arena encounter director with fixed-seed replay, lifecycle states, elapsed-time gates, predecessor requirements, low-water pressure gates, force times, pressure ceilings, bounded completion, and recoverable placement failure
+- [ ] Implement a population ledger that accounts exactly once for actors, fractional pressure, split children, train segments, pending children, purge, forced retirement, and reset
+- [ ] Add EditMode coverage for deterministic seeds, timing boundaries, low-water acceleration, one-enemy breathing behavior, force-time anti-stall behavior, ceiling enforcement, final clear, invalid tuning, and reset
+- [ ] Expose profile, seed, current state, band, alive pressure, pending formation, and failure reason in the Security Trial combat-tuning scene without changing production Room B
+
+#### Stage 3 — Authored arena and viewport-aware spawning
+
+- [ ] Author Room B's traversable arena boundary and reusable perimeter lanes in the scene; preserve existing walls, rotated deflectors, doors, trigger depth, player anchor, and Room C threshold authority
+- [ ] Implement a Unity visibility adapter that projects the active camera viewport onto the arena floor, clips it to the authored boundary, supports all required aspect ratios, and never reads or writes gameplay yaw as tuning state
+- [ ] Implement deterministic spawn planning for outside-viewport preference, visible perimeter fallback, player exclusion, occupied reservations, wall/door/deflector clearance, angular distribution, recent-sector avoidance, projectile saturation, and seeded tie-breaking
+- [ ] Add formation placement for random perimeter, four corners, partial/full warned ambush rings, opposed lanes, rate-limited corner streams, mixed corners, and hazard-plus-pursuit patterns
+- [ ] Reject candidates that eliminate every escape sector, cross sealed/non-traversable regions, overlap oriented obstacles, or lack segmented-actor clearance; expose rejected reasons in the diagnostic overlay
+- [ ] Add EditMode geometry tests and PlayMode coverage at 1280x720, 1600x900, and 3440x1440 for partially visible and fully visible arena boundaries, Steady Camera, door transitions, and an explicit unchanged-yaw regression
+
+#### Stage 4 — Pooling, actor runtime, and performance instrumentation
+
+- [ ] Add an owned arena-threat pool with prewarm, activation, warning, dangerous, purge, child, retirement, and reset lifecycle; prohibit steady-state actor `Instantiate`, `Destroy`, scene search, material creation, and managed allocation
+- [ ] Add a bounded spatial partition for actor neighbors, projectile proximity, and broad-phase collision; preserve object-aligned authored obstacle collision
+- [ ] Define and enforce separate production ceilings for actors, train segments, projectiles, particles, dynamic lights, and audio voices; delay/reject formations safely when a hard ceiling would be exceeded
+- [ ] Add diagnostics for pool utilization, actor/pressure peaks, allocations, average/95th/worst frame time by band, stuck recovery, and overflow decisions
+- [ ] Build a peak-population PlayMode scenario and establish the first measured 60-fps budget before promoting any high-count formation
+
+#### Stage 5 — Foundational movement roles
+
+- [ ] Adapt the existing Swarmer into the Security Pursuer contract with planar pursuit, bounded turn rate, group separation, arena/obstacle avoidance, compatibility behavior for existing scenarios, and focused deterministic/PlayMode tests
+- [ ] Add the Loose Rotor's player-independent looping/revolving movement, boundary response, low-threat collision, original station-rotor presentation, and isolated counterplay scenario
+- [ ] Add the Evasive Relay's projectile-line perception, bounded sidestep, dodge cooldown, occlusion rule, closing bias, original station-relay presentation, and tests proving it cannot dodge every shot or see through cover
+- [ ] Compose and tune Orientation and Evasion bands in Retro Baseline; require readable silhouettes, spawn sounds, projectile paths, and at least one viable escape lane before proceeding
+- [ ] Run focused validation and matched human comparison; reject health inflation, perfect stacking, unavoidable spawn contact, or a dominant circle-and-hold-fire solution
+
+#### Stage 6 — Multiplication and committed-charge roles
+
+- [ ] Add the Fragment Carrier with owned three-child split scheduling, inherited momentum, non-damaging separation grace, capped post-split pressure, purge/reward accounting, original capacitor-husk presentation, and reset/interruption tests
+- [ ] Adapt the existing Interceptor into the Breach Interceptor contract with warned acquisition, committed low-turn charge, frontal deflection, lateral/rear counterplay, recovery, original presentation continuity, and compatibility tests
+- [ ] Compose corner, partial-ring, mixed-corner, and opposed-lane formations for the Multiplication band; preserve hard pressure ceilings across pending splits
+- [ ] Prove that purging a Carrier at the arena edge, center, and near a Flux-ineligible placeholder cannot create children inside walls, doors, the player exclusion, or another reserved spawn
+- [ ] Run focused validation, `CombatEvidence`, and matched human comparison before accepting the band
+
+#### Stage 7 — Segmented and high-count roles
+
+- [ ] Add the Conduit Train with deterministic head steering, recorded-path segment following, vulnerable-head authority, segment projectile blocking/deflection, whole-train pressure accounting, original cable/insulator presentation, and adequate-clearance spawn validation
+- [ ] Add the Maintenance Cloud using fractional pressure, rate-limited corner streaming, simplified steering/collision/rendering, grouped feedback, original service-debris presentation, and strict actor/effect/audio budgets
+- [ ] Compose the Obstruction and initial Climax bands without allowing segments or cloud actors to block every escape sector
+- [ ] Add stress tests for maximum trains, maximum cloud population, combined projectiles, actor retirement, pool reuse, and frame-time budgets
+- [ ] Run focused validation, `CombatEvidence`, interactive readability captures at all required resolutions, and matched human comparison before accepting either role
+
+#### Stage 8 — Flux Sink hazard
+
+- [ ] Implement dormant, activated, absorbing, saturated, rupturing, and retired Flux Sink states with separately clamped player/actor forces, projectile bending/deflection, absorbed-pressure accounting, child reserve, and deterministic field queries
+- [ ] Author an original failed-routing-node mesh, material, field telegraph, floor response, arrival/activation/rupture audio, and Reduced-Flashes presentation without copying the reference grid or black-hole expression
+- [ ] Define and test interactions with Security Pursuers, Evasive Relays, Fragment children, Conduit Trains, Breach Interceptors, Maintenance Clouds, and every established player weapon behavior
+- [ ] Prove a Flux Sink cannot pull the player through collision, suppress control, spawn within its hard exclusion radius, create an unbounded child burst, or prevent final clear after interruption/reset
+- [ ] Compose hazard-plus-pursuit and late mixed-corner formations, then run focused validation, `CombatEvidence`, performance evidence, and matched human comparison
+
+#### Stage 9 — Presentation, audio, HUD, and accessibility
+
+- [ ] Give every accepted archetype a distinct silhouette, scale, motion signature, spawn warning, directional arrival sound, active sound, purge response, and station-fiction name; do not use color as the sole identifier
+- [ ] Add pooled spawn warnings for offscreen, visible perimeter, corner, ring, stream, and hazard deployments; warning actors remain non-damaging and non-blocking until activation
+- [ ] Extend offscreen threat presentation so high-count basics group cleanly while chargers, trains, and Flux Sinks remain distinguishable without HUD saturation
+- [ ] Cap and aggregate particles, lights, trails, impact effects, and audio voices during the configured climax while preserving player bolts, incoming danger, and escape lanes
+- [ ] Validate Reduced Flashes, Steady Camera, high contrast, keyboard/mouse, controller, 1280x720, 1600x900, and 3440x1440; record any presentation compromise explicitly
+
+#### Stage 10 — Signal economy and failure recovery
+
+- [ ] Add a focused Security Trial economy profile for contact drain, shared contact grace, purge rewards, reward-per-second and reward-per-formation caps, entry reserve, recovery beats, and death/restart restoration
+- [ ] Prevent dense overlap from applying one contact drain per actor in the same immunity window and prove every purge/child/retirement updates rewards exactly once
+- [ ] Tune Retro Baseline first with conservative Signal consequences; compare normal reserve, low reserve, infinite-Signal diagnostic, every established weapon build, and deliberate slow-clear behavior
+- [ ] Define stuck/out-of-bounds actor detection, safe reposition/retirement, unplaceable-formation timeout, invalid-child cleanup, and final-clear recovery without silently rewarding or trapping the player
+- [ ] Run `LiveBalance` only at the accepted economy milestone, then reject soft-locks, runaway positive Signal loops, mandatory builds, attritional unavoidable drains, or recovery that can be exploited
+
+#### Stage 11 — DEAD SIGNAL Remix
+
+- [ ] Create a separate Remix profile from the accepted Retro Baseline without mutating its formation/economy evidence
+- [ ] Add Warden formations only where screening creates a new positioning decision and does not reduce a high-count band to health focus-fire
+- [ ] Add Sapper formations only after Signal economy proves a readable response window and a viable non-Sapper pressure route
+- [ ] Add Suppressor formations only where movement denial leaves at least one validated escape sector and does not combine unfairly with trains, clouds, or Flux pull
+- [ ] Compare authored central deflectors enabled/disabled, baseline/remix role mixtures, every established weapon build, normal/low reserve, and both accessibility camera/effect settings
+- [ ] Reject any Remix addition that obscures the accepted arcade rhythm, duplicates an existing role, creates unavoidable combined control, or makes the Retro Baseline less independently usable
+
+#### Stage 12 — Production replacement and integration
+
+- [ ] Select the production bounded profile and document its exact duration target, formation sequence/variation policy, pressure ceilings, actor ceiling, Signal economy, recovery rules, and accepted comparison seed
+- [ ] Integrate the new controller behind Room B's existing threshold and chamber lifecycle while preserving Room A commitment, door collision/presentation, navigation refresh, Room C capacitor, cleared revisit, withdrawal route, debug completion, and reset authority
+- [ ] Replace the current three-phase scheduling and composition once focused EditMode/PlayMode, `CombatEvidence`, `LiveBalance`, and `RouteRegression` pass; remove obsolete phase configuration and tests instead of retaining an untuned player-facing profile
+- [ ] Capture matched human runs for Retro Baseline and production Remix using keyboard/mouse and controller, every established weapon build, normal/low Signal, Reduced Flashes, and Steady Camera; use the former scaffold only to confirm integration and arena-scale improvement
+- [ ] Promote the replacement only when human evidence prefers its movement decisions, role distinction, rhythm, readability, fairness, fun, and replay intent without harming complete-route pacing
+- [ ] Run full EditMode/PlayMode, Windows build, and packaged smoke for the replacement, then update `GAME_VISION.md`, final tuning documentation, `DEVLOG.md`, test filters, and superseded scaffold notes with exact evidence; if the design fails, revise the new profile rather than restoring the untuned composition as the target
+
+#### Stage 13 — Optional endless laboratory
+
+- [ ] Add endless mode only after the bounded production profile is accepted; keep it restricted to the Security Trial combat-tuning scene
+- [ ] Implement deterministic weighted formation selection, repeat limits, gradual pressure scaling, safety ceilings, seed replay, and manual restart without affecting production completion rules
+- [ ] Expose score/kill/combo measurements only as diagnostic tuning data unless a separate product decision authorizes player-facing score systems
+- [ ] Use endless mode to test long-run pool reuse, numerical stability, spawn-sector distribution, role combinations, and performance without treating it as mission acceptance evidence
+
 ### Combat-proof Definition of Done
 
 - [ ] Matched evidence improves weapon satisfaction, movement decisions, role distinction, encounter variety, combat readability, completion pressure, build diversity, fun, and replay intent

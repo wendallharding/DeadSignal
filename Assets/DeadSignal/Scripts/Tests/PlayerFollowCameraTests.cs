@@ -54,7 +54,7 @@ namespace DeadSignal.Tests
             Assert.That(tuning, Is.Not.Null);
             Assert.That(tuning.FieldOfView, Is.InRange(35f, 45f));
             Assert.That(tuning.Pitch, Is.InRange(50f, 65f));
-            Assert.That(tuning.Yaw, Is.InRange(30f, 40f));
+            Assert.That(tuning.Yaw, Is.EqualTo(0f).Within(0.01f));
             Assert.That(tuning.Height, Is.InRange(8f, 16f));
             Assert.That(tuning.FollowDistance, Is.InRange(4f, 12f));
             Assert.That(tuning.FollowSharpness, Is.GreaterThan(0f));
@@ -62,6 +62,11 @@ namespace DeadSignal.Tests
             Assert.That(tuning.LookAheadSharpness, Is.GreaterThan(0f));
             Assert.That(tuning.ArenaEdgePadding, Is.GreaterThanOrEqualTo(0f));
             Assert.That(tuning.MaximumTargetFocusOffset, Is.InRange(2f, 4f));
+            Assert.That(tuning.CombatFieldOfView, Is.GreaterThan(tuning.FieldOfView));
+            Assert.That(tuning.CombatPitch, Is.GreaterThanOrEqualTo(tuning.Pitch));
+            Assert.That(tuning.CombatHeight, Is.GreaterThan(tuning.Height * 1.8f));
+            Assert.That(tuning.CombatFollowDistance, Is.GreaterThan(tuning.FollowDistance));
+            Assert.That(tuning.CombatTransitionDuration, Is.InRange(0.5f, 2f));
         }
     }
 }
