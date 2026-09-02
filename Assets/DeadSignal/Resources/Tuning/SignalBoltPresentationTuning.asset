@@ -17,6 +17,17 @@ MonoBehaviour:
   m_endingWidth: 0.01
   m_minimumVertexDistance: 0.03
   m_maximumAlpha: 0.86
+  m_recoilDuration: 0.09
+  m_recoilDistance: 0.18
+  m_burstDuration: 0.08
+  m_burstParticleCount: 7
+  m_reducedFlashesParticleCount: 3
+  m_launchStreakDuration: 0.065
+  m_launchStreakLength: 0.46
+  m_launchStreakWidth: 0.12
+  m_muzzleLightDuration: 0.06
+  m_muzzleLightRange: 2.4
+  m_muzzleLightIntensity: 2.6
   m_speed: 13.5
   m_lifetime: 1.5
   m_fireCooldown: 0.16

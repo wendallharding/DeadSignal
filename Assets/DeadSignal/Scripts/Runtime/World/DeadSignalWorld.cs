@@ -1602,6 +1602,7 @@ namespace DeadSignal.World
                 PlayerTurret,
                 PlayerNose,
                 Resources.Load<Material>("Materials/SignalBoltTrail"),
+                m_signalBoltTuning,
                 comfortSettings,
                 PlayerDronePresentation);
         }

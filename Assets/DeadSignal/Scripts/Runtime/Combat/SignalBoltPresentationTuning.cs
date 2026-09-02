@@ -12,6 +12,19 @@ namespace DeadSignal.Combat
         [SerializeField] private float m_minimumVertexDistance = 0.03f;
         [SerializeField] private float m_maximumAlpha = 0.86f;
 
+        [Header("Muzzle and Launch")]
+        [SerializeField] private float m_recoilDuration = 0.09f;
+        [SerializeField] private float m_recoilDistance = 0.18f;
+        [SerializeField] private float m_burstDuration = 0.08f;
+        [SerializeField] private int m_burstParticleCount = 7;
+        [SerializeField] private int m_reducedFlashesParticleCount = 3;
+        [SerializeField] private float m_launchStreakDuration = 0.065f;
+        [SerializeField] private float m_launchStreakLength = 0.46f;
+        [SerializeField] private float m_launchStreakWidth = 0.12f;
+        [SerializeField] private float m_muzzleLightDuration = 0.06f;
+        [SerializeField] private float m_muzzleLightRange = 2.4f;
+        [SerializeField] private float m_muzzleLightIntensity = 2.6f;
+
         [Header("Projectile Rules")]
         [SerializeField] private float m_speed = 13.5f;
         [SerializeField] private float m_lifetime = 1.5f;
@@ -23,6 +36,17 @@ namespace DeadSignal.Combat
         public float EndingWidth => m_endingWidth;
         public float MinimumVertexDistance => m_minimumVertexDistance;
         public float MaximumAlpha => m_maximumAlpha;
+        public float RecoilDuration => m_recoilDuration;
+        public float RecoilDistance => m_recoilDistance;
+        public float BurstDuration => m_burstDuration;
+        public int BurstParticleCount => m_burstParticleCount;
+        public int ReducedFlashesParticleCount => m_reducedFlashesParticleCount;
+        public float LaunchStreakDuration => m_launchStreakDuration;
+        public float LaunchStreakLength => m_launchStreakLength;
+        public float LaunchStreakWidth => m_launchStreakWidth;
+        public float MuzzleLightDuration => m_muzzleLightDuration;
+        public float MuzzleLightRange => m_muzzleLightRange;
+        public float MuzzleLightIntensity => m_muzzleLightIntensity;
         public float Speed => m_speed;
         public float Lifetime => m_lifetime;
         public float FireCooldown => m_fireCooldown;
@@ -35,6 +59,17 @@ namespace DeadSignal.Combat
             m_endingWidth = Mathf.Clamp(m_endingWidth, 0f, m_startingWidth);
             m_minimumVertexDistance = Mathf.Max(0.005f, m_minimumVertexDistance);
             m_maximumAlpha = Mathf.Clamp01(m_maximumAlpha);
+            m_recoilDuration = Mathf.Max(0.01f, m_recoilDuration);
+            m_recoilDistance = Mathf.Max(0f, m_recoilDistance);
+            m_burstDuration = Mathf.Max(0.01f, m_burstDuration);
+            m_burstParticleCount = Mathf.Max(1, m_burstParticleCount);
+            m_reducedFlashesParticleCount = Mathf.Clamp(m_reducedFlashesParticleCount, 1, m_burstParticleCount);
+            m_launchStreakDuration = Mathf.Max(0.01f, m_launchStreakDuration);
+            m_launchStreakLength = Mathf.Max(0.01f, m_launchStreakLength);
+            m_launchStreakWidth = Mathf.Max(0.01f, m_launchStreakWidth);
+            m_muzzleLightDuration = Mathf.Max(0.01f, m_muzzleLightDuration);
+            m_muzzleLightRange = Mathf.Max(0.1f, m_muzzleLightRange);
+            m_muzzleLightIntensity = Mathf.Max(0f, m_muzzleLightIntensity);
             m_speed = Mathf.Max(0.1f, m_speed);
             m_lifetime = Mathf.Max(0.1f, m_lifetime);
             m_fireCooldown = Mathf.Max(0.01f, m_fireCooldown);

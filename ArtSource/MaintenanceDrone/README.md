@@ -15,4 +15,6 @@ The source texture is `Assets/DeadSignal/Resources/Actors/MaintenanceDroneHullAl
 
 The script exports `Assets/DeadSignal/Resources/Actors/MaintenanceDroneModel.fbx` and renders `MaintenanceDronePreview.png`. Keep the four object names and the `Drone Tool` origin stable because runtime presentation and PlayMode validation depend on them.
 
+The `Drone Tool` includes the P42 emitter crown and paired muzzle prongs in the same joined, UV-mapped mesh. Keep that silhouette presentation-only and preserve the existing tool origin as projectile and recoil authority.
+
 All geometry and script content are original to DEAD SIGNAL. The hull albedo was generated for this project with OpenAI's built-in image generation tool using the production prompt recorded in `DEVLOG.md`.

@@ -92,6 +92,21 @@ def add_cylinder(name, location, radius, depth, vertices=12, rotation=(0.0, 0.0,
     return obj
 
 
+def add_torus(name, location, major_radius, minor_radius, rotation=(0.0, 0.0, 0.0)):
+    bpy.ops.mesh.primitive_torus_add(
+        align="WORLD",
+        major_segments=16,
+        minor_segments=6,
+        location=location,
+        rotation=rotation,
+        major_radius=major_radius,
+        minor_radius=minor_radius,
+    )
+    obj = bpy.context.object
+    obj.name = name
+    return obj
+
+
 def join_parts(parts, name, origin, material, smart_uv=True):
     bpy.ops.object.select_all(action="DESELECT")
     for part in parts:
@@ -167,6 +182,12 @@ def build_tool(material):
                          rotation=(0.0, 0.0, math.radians(12.0))),
         add_cylinder("Emitter muzzle", (0.0, -0.93, 0.31), 0.115, 0.10, vertices=10,
                      rotation=(math.radians(90.0), 0.0, 0.0), bevel=0.012),
+        add_torus("Emitter crown", (0.0, -1.0, 0.31), 0.115, 0.025,
+                  rotation=(math.radians(90.0), 0.0, 0.0)),
+        add_beveled_box("Emitter left prong", (-0.12, -1.015, 0.31), (0.055, 0.17, 0.09), 0.016,
+                         rotation=(0.0, 0.0, math.radians(-5.0))),
+        add_beveled_box("Emitter right prong", (0.12, -1.015, 0.31), (0.055, 0.17, 0.09), 0.016,
+                         rotation=(0.0, 0.0, math.radians(5.0))),
     ]
     return join_parts(parts, "Drone Tool", (0.0, -0.68, 0.30), material)
 

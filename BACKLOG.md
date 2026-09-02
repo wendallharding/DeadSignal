@@ -194,7 +194,7 @@ Treat lighting as the primary room-composition layer in these runs. Preserve con
 
 ##### Combat, objective, and ambient VFX finish
 
-- [ ] **Presentation Run P42 — Basic fire and muzzle finish:** refine drone muzzle geometry, bolt launch, trail, cadence readability, light contribution, and firing recoil so free continuous fire feels responsive without widening projectiles or changing damage/collision
+- [x] **Presentation Run P42 — Basic fire and muzzle finish:** refine drone muzzle geometry, bolt launch, trail, cadence readability, light contribution, and firing recoil so free continuous fire feels responsive without widening projectiles or changing damage/collision
 - [ ] **Presentation Run P43 — Evolved weapon finish:** give Piercing Pulse and Controlled Ricochet distinct launch, flight, continuation/redirect, impact, and termination effects that expose their tactical behavior without obscuring aim lines, cover, or hit authority
 - [ ] **Presentation Run P44 — Hit and purge language:** refine enemy-hit, armor-hit, wall-hit, shield-hit, purge, bounty recovery, and chain feedback into consistent layered effects with pooled ownership and no per-hit material creation
 - [ ] **Presentation Run P45 — Warden effects:** integrate wake-up, strike anticipation, contact impact, armor response, recovery opening, and purge effects with the finished Warden model while preserving its red role language and exact attack timing
