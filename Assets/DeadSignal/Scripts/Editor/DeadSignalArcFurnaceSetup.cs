@@ -66,6 +66,7 @@ namespace DeadSignal.Editor
         [MenuItem("DEAD SIGNAL/Setup Arc Furnace")]
         public static void EnsureAssets()
         {
+            _configureModelImport();
             _configureDecalImport();
             _ensureMaterialDirectory();
             var materials = _ensureMaterials();
@@ -81,6 +82,11 @@ namespace DeadSignal.Editor
             {
                 throw new InvalidOperationException("The scene-authored Arc Furnace is incomplete.");
             }
+        }
+
+        private static void _configureModelImport()
+        {
+            DeadSignalPresentationAssetImportSetup.ConfigureStaticModel(MODEL_PATH, "Arc Furnace");
         }
 
         private static void _configureDecalImport()

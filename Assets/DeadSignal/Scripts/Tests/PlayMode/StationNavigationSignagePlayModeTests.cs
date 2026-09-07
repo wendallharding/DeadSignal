@@ -52,7 +52,8 @@ namespace DeadSignal.Tests
             var references = Object.FindFirstObjectByType<DeadSignalSceneReferences>();
             Assert.That(game, Is.Not.Null);
             Assert.That(references, Is.Not.Null);
-            Assert.That(game.AuthoredMapObstacleCount, Is.EqualTo(138));
+            Assert.That(game.AuthoredMapObstacleCount, Is.EqualTo(141),
+                "Room B's widened scene authority adds three blockers; collider-free signage must not alter that total.");
 
             game.DebugTeleport(DebugLocation.CentralTower);
             yield return new WaitForSecondsRealtime(0.5f);
@@ -65,9 +66,84 @@ namespace DeadSignal.Tests
             _captureIfRequested(references.PlayerCamera, "P27-Trial-Signage-1600x900.png", 1600, 900);
         }
 
-        private static void _captureIfRequested(Camera camera, string fileName, int width, int height)
+        [UnityTest]
+        public IEnumerator StationRoute_HighContrastSeparatesHazardsFromPoweredReturnCuesByValueAndShape()
         {
-            var captureDirectory = Environment.GetEnvironmentVariable("DEAD_SIGNAL_P27_CAPTURE_DIR");
+            yield return SceneManager.LoadSceneAsync("SampleScene");
+            yield return null;
+
+            var game = Object.FindFirstObjectByType<DeadSignalGame>();
+            var signage = Object.FindFirstObjectByType<AuthoredStationNavigationSignage>();
+            var references = Object.FindFirstObjectByType<DeadSignalSceneReferences>();
+            var initialHighContrast = game.IsHighContrastEnabled;
+            if (initialHighContrast)
+            {
+                game.DebugToggleHighContrast();
+            }
+
+            try
+            {
+                var hazardRenderer = signage.Layers[1];
+                var poweredRouteRenderer = signage.Layers[4];
+                Assert.That(hazardRenderer.GetComponent<MeshFilter>().sharedMesh,
+                    Is.Not.EqualTo(poweredRouteRenderer.GetComponent<MeshFilter>().sharedMesh),
+                    "Hazards and powered return cues must retain different authored silhouettes.");
+                Assert.That(_luminance(_presentedColor(hazardRenderer)) - _luminance(_presentedColor(poweredRouteRenderer)),
+                    Is.LessThan(0.05f),
+                    "The normal palette documents the demonstrated grayscale collision corrected by High Contrast.");
+
+                references.Player.position = new Vector3(42.5f, 0f, 50.2f);
+                yield return new WaitForSecondsRealtime(0.4f);
+                _captureIfRequested(references.PlayerCamera, "P55B-World-Cues-Normal-1600x900.png", 1600, 900,
+                    "DEAD_SIGNAL_P55B_CAPTURE_DIR");
+
+                game.DebugToggleHighContrast();
+                yield return null;
+
+                Assert.That(signage.IsHighContrastEnabled, Is.True);
+                var hazardColor = _presentedColor(hazardRenderer);
+                var poweredRouteColor = _presentedColor(poweredRouteRenderer);
+                Assert.That(hazardColor.r, Is.EqualTo(hazardColor.g).Within(0.001f));
+                Assert.That(hazardColor.g, Is.EqualTo(hazardColor.b).Within(0.001f));
+                Assert.That(poweredRouteColor.r, Is.EqualTo(poweredRouteColor.g).Within(0.001f));
+                Assert.That(poweredRouteColor.g, Is.EqualTo(poweredRouteColor.b).Within(0.001f));
+                Assert.That(_luminance(hazardColor) - _luminance(poweredRouteColor), Is.GreaterThan(0.2f),
+                    "High Contrast must separate hazard bands from powered-return cues without relying on hue.");
+                Assert.That(signage.GetComponentsInChildren<Collider>(true), Is.Empty);
+                Assert.That(game.HasPlayerDroneAssets, Is.True);
+                Assert.That(game.HasSignalBoltAssets, Is.True);
+                Assert.That(game.HasSecurityInterceptorAssets, Is.True);
+                Assert.That(game.HasSecuritySuppressorAssets, Is.True);
+
+                _captureIfRequested(references.PlayerCamera, "P55B-World-Cues-Accessible-1280x720.png", 1280, 720,
+                    "DEAD_SIGNAL_P55B_CAPTURE_DIR");
+            }
+            finally
+            {
+                if (game.IsHighContrastEnabled != initialHighContrast)
+                {
+                    game.DebugToggleHighContrast();
+                }
+            }
+        }
+
+        private static Color _presentedColor(Renderer renderer)
+        {
+            var properties = new MaterialPropertyBlock();
+            renderer.GetPropertyBlock(properties);
+            return properties.GetColor("_BaseColor");
+        }
+
+        private static float _luminance(Color color) => color.r * 0.2126f + color.g * 0.7152f + color.b * 0.0722f;
+
+        private static void _captureIfRequested(
+            Camera camera,
+            string fileName,
+            int width,
+            int height,
+            string environmentVariable = "DEAD_SIGNAL_P27_CAPTURE_DIR")
+        {
+            var captureDirectory = Environment.GetEnvironmentVariable(environmentVariable);
             if (string.IsNullOrWhiteSpace(captureDirectory))
             {
                 return;

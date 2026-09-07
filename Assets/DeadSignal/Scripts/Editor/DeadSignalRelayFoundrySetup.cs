@@ -103,6 +103,9 @@ namespace DeadSignal.Editor
             model.importCameras = false;
             model.importLights = false;
             model.materialImportMode = ModelImporterMaterialImportMode.None;
+            model.meshCompression = ModelImporterMeshCompression.Low;
+            model.optimizeMeshPolygons = true;
+            model.optimizeMeshVertices = true;
             model.SaveAndReimport();
         }
 

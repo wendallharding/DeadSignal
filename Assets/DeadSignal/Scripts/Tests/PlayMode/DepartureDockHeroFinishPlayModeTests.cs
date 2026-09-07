@@ -33,7 +33,7 @@ namespace DeadSignal.Tests.PlayMode
             Assert.That(channel.GetComponentsInChildren<AuthoredMapObstacle>().Length, Is.EqualTo(3));
             Assert.That(channel.GetComponentsInChildren<Collider>(true), Is.Empty);
             Assert.That(dock.GetComponentsInChildren<Collider>(true), Is.Empty);
-            Assert.That(game.AuthoredMapObstacleCount, Is.EqualTo(138));
+            Assert.That(game.AuthoredMapObstacleCount, Is.EqualTo(141));
             Assert.That(dockReadability.PresentationState, Is.EqualTo(ExtractionDockPresentationState.Dormant));
             Assert.That(Resources.Load<Texture2D>("Environment/DepartureDockHeroAtlas"), Is.Not.Null);
             Assert.That(Resources.Load<Mesh>("Environment/DepartureChannelHeroFinish"), Is.Not.Null);

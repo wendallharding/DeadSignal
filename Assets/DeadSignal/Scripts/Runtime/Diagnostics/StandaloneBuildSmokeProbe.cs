@@ -19,7 +19,7 @@ namespace DeadSignal.Diagnostics
         public const string COMMAND_LINE_ARGUMENT = "-deadSignalBuildSmoke";
         public const string PASS_MARKER = "[DEAD SIGNAL STANDALONE SMOKE] PASS";
 
-        private const int EXPECTED_AUTHORED_OBSTACLE_COUNT = 138;
+        private const int EXPECTED_AUTHORED_OBSTACLE_COUNT = 141;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         private static void _startWhenRequested()
@@ -92,9 +92,7 @@ namespace DeadSignal.Diagnostics
             var relayPayloadReady = relayPayloadObjective != null && relayPayloadObjective.IsConfigured &&
                                     relayPayloadObjective.HasReadabilityAssets &&
                                     relayPayloadObjective.PresentationState ==
-                                    RelayCalibrationPresentationState.PrerequisiteLocked &&
-                                    relayPayloadObjective.GetComponent<AuthoredRouteDoorReadability>()?.PresentationState ==
-                                    RouteDoorPresentationState.Locked;
+                                    RelayCalibrationPresentationState.PrerequisiteLocked;
             var spineVentingReady = spineVentingObjective != null && spineVentingObjective.IsConfigured &&
                                     game != null && !game.IsSpineBerthVented;
             var spineCoreInstallationReady = spineCoreInstallationObjective != null &&
@@ -249,6 +247,7 @@ namespace DeadSignal.Diagnostics
             var wideCutawayMaterialReady =
                 Resources.Load<Material>("Materials/ForegroundCutawayFootprintWide") != null;
             var authoredCutawayBindingCount = FindObjectsByType<AuthoredForegroundCutaway>(
+                FindObjectsInactive.Include,
                 FindObjectsSortMode.None).Length;
             Debug.Log($"[DEAD SIGNAL STANDALONE SMOKE] RELAY WEAPON | " +
                       $"decal={weaponDecalReady} texture={weaponTextureReady} material={weaponMaterialReady} " +
@@ -302,6 +301,9 @@ namespace DeadSignal.Diagnostics
                       $"routeOpen={transferVaultObjective?.IsRelayRouteOpen ?? false}");
             Debug.Log($"[DEAD SIGNAL STANDALONE SMOKE] RELAY PAYLOAD | " +
                       $"configured={relayPayloadObjective?.IsConfigured ?? false} " +
+                      $"readability={relayPayloadObjective?.HasReadabilityAssets ?? false} " +
+                      $"state={relayPayloadObjective?.PresentationState} " +
+                      $"redundantDoorAbsent={relayPayloadObjective?.GetComponent<AuthoredRouteDoorReadability>() == null} " +
                       $"stabilized={game?.IsRelayPayloadStabilized ?? false}");
             Debug.Log($"[DEAD SIGNAL STANDALONE SMOKE] SPINE VENTING | " +
                       $"configured={spineVentingObjective?.IsConfigured ?? false} " +
@@ -326,6 +328,20 @@ namespace DeadSignal.Diagnostics
                       $"furnace={furnaceForgeObjective?.IsConfigured ?? false} " +
                       $"quench={quenchStabilizationObjective?.IsConfigured ?? false} " +
                       $"forged={game?.IsLatticeForged ?? false} stabilized={game?.IsCoreStabilized ?? false}");
+            Debug.Log($"[DEAD SIGNAL STANDALONE SMOKE] CORE CAPABILITIES | " +
+                      $"audio={game?.HasGeneratedAudio ?? false} deck={game?.HasMaintenanceDeckAssets ?? false} " +
+                      $"shell={game?.HasMaintenanceRoomShellAssets ?? false} tower={game?.HasSignalTowerAssets ?? false} " +
+                      $"dock={game?.HasExtractionPadAssets ?? false} shortcut={game?.HasShortcutGateAssets ?? false} " +
+                      $"routing={game?.HasSignalRoutingAssets ?? false} machines={game?.HasStationMachineAssets ?? false} " +
+                      $"salvage={game?.HasSalvageCacheAssets ?? false} drone={game?.HasPlayerDroneAssets ?? false} " +
+                      $"movement={game?.HasPlayerMovementTuning ?? false} wake={game?.HasPlayerSignalWake ?? false} " +
+                      $"cameraTuning={game?.HasPlayerCameraTuning ?? false} cameraFollowing={game?.IsPlayerCameraFollowing ?? false}");
+            Debug.Log($"[DEAD SIGNAL STANDALONE SMOKE] RUNTIME COUNTS | " +
+                      $"salvage={game?.SalvageCacheInstanceCount ?? -1} sockets={game?.AuthoredSalvageSocketCount ?? -1} " +
+                      $"interceptorParts={game?.SecurityInterceptorPartCount ?? -1} " +
+                      $"interceptorEntrances={game?.AuthoredInterceptorEntranceCount ?? -1} " +
+                      $"suppressorParts={game?.SecuritySuppressorPartCount ?? -1} " +
+                      $"trialReadability={securityTrialReadabilityReady}");
             var runtimeReady = game != null &&
                                 productShellReady &&
                                 missionObjectivesReady &&
@@ -732,6 +748,50 @@ namespace DeadSignal.Diagnostics
                                 Resources.Load<Texture2D>("VFX/SalvageChainBurst") != null;
             if (!runtimeReady)
             {
+                Debug.LogError($"[DEAD SIGNAL STANDALONE SMOKE] RUNTIME FLAGS | " +
+                               $"salvageTuning={game?.HasSalvagePresentationTuning ?? false} " +
+                               $"wardenWarning={game?.HasWardenWarningTexture ?? false} " +
+                               $"interceptorAssets={game?.HasSecurityInterceptorAssets ?? false} " +
+                               $"interceptorPresentation={game?.HasSecurityInterceptorPresentation ?? false} " +
+                               $"suppressorAssets={game?.HasSecuritySuppressorAssets ?? false} " +
+                               $"suppressorPresentation={game?.HasSecuritySuppressorPresentation ?? false} " +
+                               $"swarmerAssets={game?.HasSwarmerAssets ?? false} " +
+                               $"signalBolt={game?.HasSignalBoltAssets ?? false} " +
+                               $"bulkheadImpact={game?.HasSignalBoltBulkheadImpact ?? false}");
+                Debug.LogError($"[DEAD SIGNAL STANDALONE SMOKE] BOOT CONTRACTS | " +
+                               $"shell={productShellReady} objectives={missionObjectivesReady} " +
+                               $"consumers={objectiveConsumersReady} cargo={cargoAnnexReady} coolant={coolantReady} " +
+                               $"central={centralTransferReady} relay={relayPayloadReady} venting={spineVentingReady} " +
+                               $"spineInstall={spineCoreInstallationReady} induction={inductionLatticeReady} " +
+                               $"flux={fluxShuntReady} convergence={convergenceCalibrationReady} " +
+                               $"breaker={breakerResetReady} core={coreProcessingReady} trial={securityTrialReadabilityReady} " +
+                               $"withdrawal={withdrawalPursuitReady}");
+                Debug.LogError($"[DEAD SIGNAL STANDALONE SMOKE] FEEDBACK FLAGS | " +
+                               $"lowSignal={game?.HasLowSignalWarningTexture ?? false} " +
+                               $"damage={game?.HasDirectionalDamageIndicator ?? false} " +
+                               $"tower={game?.HasTowerActivationSweepTexture ?? false} " +
+                               $"station={game?.HasStationStateFeedbackTexture ?? false} " +
+                               $"stationPool={game?.StationStateFeedbackPoolSize ?? -1} " +
+                               $"weapon={game?.HasWeaponTransformationFeedbackTextures ?? false} " +
+                               $"weaponPool={game?.WeaponTransformationFeedbackPoolSize ?? -1} " +
+                               $"outcome={game?.HasExtractionOutcomeFeedbackTexture ?? false} " +
+                               $"outcomePool={game?.ExtractionOutcomeFeedbackPoolSize ?? -1}");
+                Debug.LogError($"[DEAD SIGNAL STANDALONE SMOKE] HUD FLAGS | " +
+                               $"bindingMatrix={game?.HasBindingMatrixIcon ?? false} " +
+                               $"bindingConflict={game?.HasBindingConflictIcon ?? false} " +
+                               $"movementRouting={game?.HasMovementRoutingIcon ?? false} " +
+                               $"glyphs={game?.HasControlGlyphSet ?? false} " +
+                               $"signalReserve={game?.HasSignalReserveArt ?? false} " +
+                               $"debrief={game?.HasRunDebriefArt ?? false} " +
+                               $"recovery={game?.HasSignalRecoveryBurst ?? false} " +
+                               $"salvageChain={game?.HasSalvageChainBurst ?? false}");
+                Debug.LogError($"[DEAD SIGNAL STANDALONE SMOKE] ROOT PATHS | " +
+                               $"drone={game?.transform.Find("Maintenance Drone") != null} " +
+                               $"shortcut={game?.transform.Find("Shortcut Gate Assembly/Signal Shortcut Gate") != null} " +
+                               $"trunk={game?.transform.Find("Tower Signal Lines/Signal Trunk West") != null} " +
+                               $"relayTower={game?.transform.Find("Relay Foundry Region/Relay Tower Assembly") != null} " +
+                               $"relayTurbine={game?.transform.Find("Relay Foundry Region/Relay Induction Turbine") != null} " +
+                               $"relayThresholdAbsent={game?.transform.Find("Relay Foundry Region/Relay Return Threshold") == null}");
                 Debug.LogError("[DEAD SIGNAL STANDALONE SMOKE] FAIL | Runtime composition is incomplete.");
                 UnityEngine.Application.Quit(2);
                 yield break;

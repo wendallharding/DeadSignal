@@ -322,7 +322,8 @@ namespace DeadSignal.Editor
                 _setRect(distance.rectTransform, new Vector2(1f, 0f), new Vector2(1f, 0f),
                     new Vector2(1f, 0f), new Vector2(-12f, 9f), new Vector2(70f, 18f));
 
-                beacon.ConfigurePresentation(accent, room, phase, title, verb, hint, distance);
+                var commandPanel = root.transform.Find("Run HUD/Composition Frame/Objective Status") as RectTransform;
+                beacon.ConfigurePresentation(accent, room, phase, title, verb, hint, distance, commandPanel);
                 PrefabUtility.SaveAsPrefabAsset(root, HUD_PREFAB_PATH);
             }
             finally

@@ -52,6 +52,7 @@ namespace DeadSignal.Editor
                 2f / 3f,
                 1f);
             _upgradeRegion(chamberMesh, doorMesh, capacitorMesh, material);
+            DeadSignalStatefulDoorFrameSetup.EnsureAssets();
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
 

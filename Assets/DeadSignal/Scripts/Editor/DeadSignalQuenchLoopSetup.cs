@@ -69,6 +69,7 @@ namespace DeadSignal.Editor
         [MenuItem("DEAD SIGNAL/Setup Quench Loop")]
         public static void EnsureAssets()
         {
+            _configureModelImport();
             _configureDecalImport();
             _ensureMaterialDirectory();
             var materials = _ensureMaterials();
@@ -84,6 +85,11 @@ namespace DeadSignal.Editor
             {
                 throw new InvalidOperationException("The scene-authored Quench Loop is incomplete.");
             }
+        }
+
+        private static void _configureModelImport()
+        {
+            DeadSignalPresentationAssetImportSetup.ConfigureStaticModel(MODEL_PATH, "Quench condenser");
         }
 
         private static void _configureDecalImport()

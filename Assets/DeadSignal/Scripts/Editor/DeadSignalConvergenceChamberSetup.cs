@@ -62,6 +62,7 @@ namespace DeadSignal.Editor
         [MenuItem("DEAD SIGNAL/Setup Convergence Chamber")]
         public static void EnsureAssets()
         {
+            _configureModelImport();
             _configureDecalImport();
             _ensureMaterialDirectory();
             _ensureTuning();
@@ -76,6 +77,11 @@ namespace DeadSignal.Editor
             {
                 throw new InvalidOperationException("The scene-authored Convergence Chamber is incomplete.");
             }
+        }
+
+        private static void _configureModelImport()
+        {
+            DeadSignalPresentationAssetImportSetup.ConfigureStaticModel(MODEL_PATH, "convergence busbar");
         }
 
         public static void PrepareCalibrationSliceAssets()

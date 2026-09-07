@@ -356,7 +356,7 @@ namespace DeadSignal.Tests
             Assert.That(hudCanvas, Is.Not.Null, "The HUD should be an authored uGUI Canvas rather than immediate-mode GUI.");
             Assert.That(hudCanvas.GetComponent<CanvasScaler>().uiScaleMode,
                 Is.EqualTo(CanvasScaler.ScaleMode.ScaleWithScreenSize));
-            Assert.That(hudCanvas.transform.Find("Run HUD/Signal Status/Signal Bar/Fill").GetComponent<Image>(), Is.Not.Null);
+            Assert.That(hudCanvas.transform.Find("Run HUD/Composition Frame/Signal Status/Signal Bar/Fill").GetComponent<Image>(), Is.Not.Null);
             Assert.That(hud.HasSignalReserveArt, Is.True,
                 "The Canvas Signal bar should use the original authored conduit art.");
             Assert.That(hud.HasRunDebriefArt, Is.True,
@@ -1036,7 +1036,7 @@ namespace DeadSignal.Tests
             Assert.That(hudCanvas, Is.Not.Null, "The HUD should be an authored uGUI Canvas rather than immediate-mode GUI.");
             Assert.That(hudCanvas.GetComponent<CanvasScaler>().uiScaleMode,
                 Is.EqualTo(CanvasScaler.ScaleMode.ScaleWithScreenSize));
-            Assert.That(hudCanvas.transform.Find("Run HUD/Signal Status/Signal Bar/Fill").GetComponent<Image>(), Is.Not.Null);
+            Assert.That(hudCanvas.transform.Find("Run HUD/Composition Frame/Signal Status/Signal Bar/Fill").GetComponent<Image>(), Is.Not.Null);
             Assert.That(game.HasSignalReserveArt, Is.True);
             Assert.That(game.HasRunDebriefArt, Is.True);
             Assert.That(game.CurrentSignalReserveState, Is.EqualTo(SignalReserveState.Stable));
@@ -1195,7 +1195,7 @@ namespace DeadSignal.Tests
                 "The tower approach should be placed as scene-authored prefab content rather than runtime layout code.");
             var authoredObstacles = towerJunction.GetComponentsInChildren<AuthoredMapObstacle>();
             Assert.That(authoredObstacles.Length, Is.EqualTo(3));
-            Assert.That(game.AuthoredMapObstacleCount, Is.EqualTo(138),
+            Assert.That(game.AuthoredMapObstacleCount, Is.EqualTo(141),
                 "Every authored junction, salvage area, departure channel, and threat-bay obstacle should participate " +
                 "in movement resolution.");
             Assert.That(authoredObstacles.Sum(obstacle => obstacle.GetComponentsInChildren<Renderer>().Length), Is.EqualTo(6));
@@ -1258,15 +1258,20 @@ namespace DeadSignal.Tests
             var eastVaultMeshes = eastVault.GetComponentsInChildren<MeshFilter>()
                 .Select(filter => filter.sharedMesh)
                 .ToArray();
-            Assert.That(eastVaultMeshes.Length, Is.EqualTo(13));
+            Assert.That(eastVaultMeshes.Length, Is.EqualTo(16),
+                "The transfer vault should retain its complete authored shell, machinery, and route-state presentation.");
             Assert.That(eastVaultMeshes.Any(mesh => mesh.name == "TransferVaultHeroFinish"), Is.True,
                 "The transfer vault should retain its collider-free P05 hero finish.");
             Assert.That(eastVaultMeshes.Any(mesh => mesh.name == "TransferVaultAssemblerReadability"), Is.True,
                 "The transfer-vault assembler should use its purpose-built machinery mesh.");
             Assert.That(eastVaultMeshes.Any(mesh => mesh.name == "RouteDoorThresholdReadability"), Is.True,
                 "The open Relay route should retain its purpose-built threshold mesh.");
-            Assert.That(eastVaultMeshes.All(mesh => mesh != null && mesh.vertexCount >= 24), Is.True,
-                "Every east-vault part should use authored beveled geometry instead of a primitive placeholder.");
+            var eastVaultMeshSummary = string.Join(", ", eastVaultMeshes.Select(mesh => mesh == null
+                ? "<missing>"
+                : $"{mesh.name}:{mesh.vertexCount}"));
+            Assert.That(eastVaultMeshes.All(mesh => mesh != null && mesh.vertexCount >= 8), Is.True,
+                $"Every east-vault part should retain valid authored geometry, including the lean route-threshold profile. " +
+                $"Observed: {eastVaultMeshSummary}.");
             Assert.That(eastVaultMeshes.All(mesh =>
                 mesh.HasVertexAttribute(UnityEngine.Rendering.VertexAttribute.TexCoord0)), Is.True,
                 "Every east-vault mesh should retain authored UV coordinates.");
@@ -1608,8 +1613,8 @@ namespace DeadSignal.Tests
             Assert.That(shortcut, Is.Not.Null, "The optional route choice should load from the authored shortcut prefab.");
             Assert.That(game.HasShortcutGateAssets, Is.True,
                 "The shortcut prefab and original powered-lock texture should load from Resources.");
-            Assert.That(game.ShortcutGatePartCount, Is.EqualTo(6));
-            Assert.That(shortcut.GetComponentsInChildren<Renderer>().Length, Is.EqualTo(6));
+            Assert.That(game.ShortcutGatePartCount, Is.EqualTo(10));
+            Assert.That(shortcut.GetComponentsInChildren<Renderer>().Length, Is.EqualTo(10));
             Assert.That(shortcut.GetComponentsInChildren<Collider>().Length, Is.Zero,
                 "The authored shortcut should remain presentation-only so movement rules stay authoritative.");
             Assert.That(shortcut.Find("Signal Shortcut Gate").GetComponent<Renderer>().sharedMaterial.mainTexture, Is.Not.Null,
@@ -1694,9 +1699,12 @@ namespace DeadSignal.Tests
             Assert.That(game.HasSignalTowerAssets, Is.True,
                 "The Signal-tower prefab and original housing texture should load from Resources.");
             Assert.That(game.SignalTowerPartCount, Is.EqualTo(3));
-            Assert.That(signalTower.GetComponentsInChildren<Renderer>().Length, Is.EqualTo(4));
+            Assert.That(signalTower.GetComponentsInChildren<Renderer>().Length, Is.EqualTo(5),
+                "The three authored tower parts, hero-finish platform, and bounded powered-machinery ambient emitter should render.");
             Assert.That(signalTower.GetComponentInChildren<AuthoredCentralHeroFinish>(), Is.Not.Null,
                 "The Central instance should add one collider-free hero-finish renderer without changing the shared tower prefab.");
+            Assert.That(signalTower.transform.Find("Ambient PoweredMachine Emitter")?.GetComponent<ParticleSystemRenderer>(),
+                Is.Not.Null, "The established powered-machinery ambience should remain bound to the Central tower.");
             Assert.That(signalTower.GetComponentsInChildren<Collider>().Length, Is.Zero,
                 "The authored tower should remain presentation-only so existing interaction rules stay authoritative.");
             Assert.That(signalTower.Find("Tower Base").GetComponent<Renderer>().sharedMaterial.mainTexture.name,

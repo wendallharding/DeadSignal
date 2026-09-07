@@ -45,7 +45,7 @@ namespace DeadSignal.Tests
             var references = Object.FindFirstObjectByType<DeadSignalSceneReferences>();
             Assert.That(game, Is.Not.Null);
             Assert.That(references, Is.Not.Null);
-            Assert.That(game.AuthoredMapObstacleCount, Is.EqualTo(138));
+            Assert.That(game.AuthoredMapObstacleCount, Is.EqualTo(141));
 
             references.Player.position = new Vector3(-11.2f, 0f, -2.9f);
             yield return new WaitForSecondsRealtime(0.5f);

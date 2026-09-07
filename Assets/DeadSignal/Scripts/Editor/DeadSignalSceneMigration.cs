@@ -41,7 +41,9 @@ namespace DeadSignal.Editor
                     module.name = $"Maintenance Deck Module {gridX},{gridZ}";
                     module.transform.localPosition = new Vector3(gridX * 3.9f, -0.45f, gridZ * 3.6f);
                     module.transform.localScale = new Vector3(3.9f, 0.6f, 3.6f);
-                    module.GetComponent<Renderer>().sharedMaterial = palette.Deck;
+                    var moduleRenderer = module.GetComponent<Renderer>();
+                    moduleRenderer.sharedMaterial = palette.Deck;
+                    moduleRenderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
                 }
             }
 
@@ -142,6 +144,35 @@ namespace DeadSignal.Editor
             EditorSceneManager.SaveScene(scene);
             AssetDatabase.SaveAssets();
             Debug.Log("Migrated the fixed DEAD SIGNAL world and persistent actors into SampleScene.");
+        }
+
+        [MenuItem("Tools/DEAD SIGNAL/Apply Maintenance Deck Rendering Budget")]
+        public static void ApplyMaintenanceDeckRenderingBudget()
+        {
+            var scene = EditorSceneManager.OpenScene(SCENE_PATH, OpenSceneMode.Single);
+            var references = UnityEngine.Object.FindFirstObjectByType<DeadSignalSceneReferences>();
+            if (references == null || references.MaintenanceDeck == null)
+            {
+                throw new InvalidOperationException("The authored maintenance deck reference is missing.");
+            }
+
+            var renderers = references.MaintenanceDeck.GetComponentsInChildren<Renderer>(true);
+            if (renderers.Length != 35)
+            {
+                throw new InvalidOperationException(
+                    $"Expected 35 authored maintenance deck renderers, found {renderers.Length}.");
+            }
+
+            foreach (var renderer in renderers)
+            {
+                renderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+                EditorUtility.SetDirty(renderer);
+            }
+
+            EditorSceneManager.MarkSceneDirty(scene);
+            EditorSceneManager.SaveScene(scene);
+            AssetDatabase.SaveAssets();
+            Debug.Log("Disabled redundant shadow casting on 35 authored maintenance deck modules.");
         }
 
         private static PaletteMaterials _createPalette()

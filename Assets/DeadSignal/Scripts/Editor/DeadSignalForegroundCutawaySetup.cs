@@ -94,6 +94,11 @@ namespace DeadSignal.Editor
         {
             var scene = EditorSceneManager.OpenScene(SCENE_PATH, OpenSceneMode.Single);
             var existing = GameObject.Find(BINDINGS_ROOT_NAME);
+            if (_hasValidAuthoredBindings(existing))
+            {
+                return;
+            }
+
             if (existing != null)
             {
                 UnityEngine.Object.DestroyImmediate(existing);
@@ -135,6 +140,38 @@ namespace DeadSignal.Editor
 
             EditorSceneManager.MarkSceneDirty(scene);
             EditorSceneManager.SaveScene(scene);
+        }
+
+        private static bool _hasValidAuthoredBindings(GameObject bindingRoot)
+        {
+            if (bindingRoot == null)
+            {
+                return false;
+            }
+
+            var bindings = bindingRoot.GetComponentsInChildren<AuthoredForegroundCutaway>(true);
+            if (bindings.Length < 9)
+            {
+                return false;
+            }
+
+            foreach (var binding in bindings)
+            {
+                if (binding.Renderers == null || binding.Renderers.Count == 0)
+                {
+                    return false;
+                }
+
+                foreach (var renderer in binding.Renderers)
+                {
+                    if (renderer == null)
+                    {
+                        return false;
+                    }
+                }
+            }
+
+            return true;
         }
 
         private static bool _requiresExplicitBinding(Renderer renderer)

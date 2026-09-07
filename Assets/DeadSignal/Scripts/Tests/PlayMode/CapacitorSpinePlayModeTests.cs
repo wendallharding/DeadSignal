@@ -205,7 +205,7 @@ namespace DeadSignal.Tests
                 Assert.That(Resources.Load<Material>("Materials/CapacitorSpine/CapacitorSpineActivationDecal"), Is.Not.Null);
                 Assert.That(Resources.Load<Texture2D>("Environment/CapacitorSpineReturnDecal"), Is.Not.Null);
                 Assert.That(Resources.Load<Material>("Materials/CapacitorSpine/CapacitorSpineReturnDecal"), Is.Not.Null);
-                Assert.That(game.AuthoredMapObstacleCount, Is.EqualTo(138));
+                Assert.That(game.AuthoredMapObstacleCount, Is.EqualTo(141));
                 Assert.That(game.AuthoredSalvageSocketCount, Is.EqualTo(2));
                 Assert.That(game.AuthoredInterceptorEntranceCount, Is.EqualTo(9),
                     "The Spine extensions should preserve the established gates and add two safe deep-region entrances.");

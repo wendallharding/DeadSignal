@@ -44,7 +44,7 @@ namespace DeadSignal.Tests.PlayMode
                 Is.EqualTo("RelayNetworkStatus"));
             Assert.That(gantry.GetComponentsInChildren<AuthoredMapObstacle>(), Has.Length.EqualTo(6));
             Assert.That(gantry.GetComponentsInChildren<AuthoredInterceptorEntrance>(), Has.Length.EqualTo(1));
-            Assert.That(game.AuthoredMapObstacleCount, Is.EqualTo(138));
+            Assert.That(game.AuthoredMapObstacleCount, Is.EqualTo(141));
             Assert.That(game.AuthoredInterceptorEntranceCount, Is.EqualTo(9));
             Assert.That(readability.GantryState, Is.EqualTo(CoolingGantryPresentationState.PrerequisiteLocked));
 

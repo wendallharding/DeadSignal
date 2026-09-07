@@ -286,8 +286,11 @@ namespace DeadSignal.Tests
             yield return SceneManager.LoadSceneAsync("SampleScene");
             yield return null;
 
-            var bindings = Object.FindObjectsByType<AuthoredForegroundCutaway>(FindObjectsSortMode.None);
-            Assert.That(bindings, Has.Length.GreaterThanOrEqualTo(4));
+            var bindings = Object.FindObjectsByType<AuthoredForegroundCutaway>(
+                FindObjectsInactive.Include,
+                FindObjectsSortMode.None);
+            Assert.That(bindings, Has.Length.GreaterThanOrEqualTo(9),
+                "All compatibility cutaway bindings must survive scene load even while foreground culling is disabled.");
 
             var hasCentralBoundary = false;
             foreach (var binding in bindings)

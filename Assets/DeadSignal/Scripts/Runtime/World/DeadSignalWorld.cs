@@ -101,6 +101,7 @@ namespace DeadSignal.World
         public AuthoredWithdrawalPursuitLandmark WardenBayLandmark { get; private set; }
         public AuthoredWithdrawalPursuitLandmark SapperCradleLandmark { get; private set; }
         public AuthoredExtractionDockReadability ExtractionDockReadability { get; private set; }
+        public AuthoredStationNavigationSignage StationNavigationSignage { get; private set; }
         public IReadOnlyList<AuthoredMapObstacle> AuthoredMapObstacles => m_authoredMapObstacles;
         public IReadOnlyList<GameObject> SalvagePickups => m_salvagePickups;
 
@@ -250,6 +251,8 @@ namespace DeadSignal.World
             QuenchStabilizationObjective =
                 Object.FindFirstObjectByType<AuthoredQuenchStabilizationObjective>(FindObjectsInactive.Include);
             CombatChamber = Object.FindFirstObjectByType<AuthoredCombatChamber>(FindObjectsInactive.Include);
+            StationNavigationSignage =
+                Object.FindFirstObjectByType<AuthoredStationNavigationSignage>(FindObjectsInactive.Include);
             var withdrawalLandmarks = Object.FindObjectsByType<AuthoredWithdrawalPursuitLandmark>(
                 FindObjectsInactive.Include,
                 FindObjectsSortMode.None);
@@ -799,6 +802,7 @@ namespace DeadSignal.World
         public void ApplyHighContrast(bool enabled)
         {
             m_palette.ApplyHighContrast(enabled);
+            StationNavigationSignage?.ApplyHighContrast(enabled);
             Camera.backgroundColor = enabled ? Color.black : m_environmentLightingTuning.CameraBackground;
             RenderSettings.ambientLight = enabled
                 ? m_environmentLightingTuning.HighContrastAmbientFloor
@@ -1527,7 +1531,7 @@ namespace DeadSignal.World
             }
             m_shortcutGate = shortcut.Find("Signal Shortcut Gate").gameObject;
             m_shortcutDoorReadability = shortcut.GetComponent<AuthoredRouteDoorReadability>();
-            HasShortcutGateAssets = ShortcutGatePartCount == 6 && m_palette.HasShortcutTexture;
+            HasShortcutGateAssets = ShortcutGatePartCount == 10 && m_palette.HasShortcutTexture;
             _addShortcutMovementBlockers();
             m_movementBlockers.Add(new MovementBlocker(
                 new Vector2(TowerPosition.x, TowerPosition.z), Vector2.one * TOWER_BLOCKER_HALF_SIZE, false));

@@ -85,7 +85,9 @@ namespace DeadSignal.Tests.PlayMode
             Assert.That(game.CurrentMissionGuidanceTitle, Is.EqualTo("EXTRACT OR GREED"));
             Assert.That(game.CurrentMissionGuidanceAction, Is.EqualTo("RETURN TO THE CYAN DOCK"));
             Assert.That(game.CurrentObjectiveBeaconLabel, Is.EqualTo(game.CurrentMissionGuidanceAction));
-            Assert.That(game.CurrentObjectiveBeaconHint, Does.Contain("THREE TOWERS"));
+            Assert.That(game.CurrentObjectiveBeaconHint,
+                Does.Contain("THREE TOWERS").Or.Match("SAPPER DRAIN.*EXTRACTION READY"),
+                "The terminal beacon should retain extraction context while live Sapper urgency has priority.");
             Assert.That(game.DebugRouteSequenceReport, Does.Contain("Outcome Victory"));
             Assert.That(game.DebugRouteSequenceReport, Does.Contain("Objective Extraction  Phase 7  EXTRACT OR GREED"));
             Assert.That(game.DebugRouteSequenceReport, Does.Contain("Journey OPTIONAL GREED"));

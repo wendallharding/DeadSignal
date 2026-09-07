@@ -147,6 +147,197 @@ namespace DeadSignal.Tests
         }
 
         [UnityTest]
+        public IEnumerator NavigationThreatHud_HighContrastUsesValueAndTextRedundancy()
+        {
+            yield return SceneManager.LoadSceneAsync("SampleScene");
+            yield return null;
+
+            var game = Object.FindFirstObjectByType<DeadSignalGame>();
+            var initialHighContrast = game.IsHighContrastEnabled;
+            var initialReducedFlashes = game.IsReducedFlashesEnabled;
+            if (initialHighContrast)
+            {
+                game.DebugToggleHighContrast();
+            }
+            if (initialReducedFlashes)
+            {
+                game.DebugToggleReducedFlashes();
+            }
+
+            try
+            {
+                game.DebugActivateTower();
+                game.DebugSetThreatsFrozen(true);
+                game.DebugTeleport(DebugLocation.FarEast);
+                var offscreenPosition = game.CurrentObjectiveBeaconTarget;
+                game.transform.Find("Security Warden").position = offscreenPosition + Vector3.left * 2f;
+                game.transform.Find("Signal Sapper").position = offscreenPosition + Vector3.right * 2f;
+                yield return _waitFrames(4);
+
+                var activeIndicator = Object.FindObjectsByType<Transform>(FindObjectsSortMode.None)
+                    .First(transform => transform.name.StartsWith("Enemy Edge Indicator") &&
+                                        transform.gameObject.activeInHierarchy);
+                var background = activeIndicator.GetComponent<Image>();
+                var outline = activeIndicator.GetComponent<Outline>();
+                var normalBackground = background.color;
+                var normalOutline = outline.effectColor;
+                Assert.That(activeIndicator.Find("Label").GetComponent<Text>().text, Is.Not.Empty);
+                Assert.That(activeIndicator.Find("State").GetComponent<Text>().text, Is.Not.Empty,
+                    "Threat urgency must retain a text channel independent of color and motion.");
+
+                var captureDirectory = System.Environment.GetEnvironmentVariable("DEAD_SIGNAL_P55_CAPTURE_DIR");
+                if (!string.IsNullOrWhiteSpace(captureDirectory))
+                {
+                    Directory.CreateDirectory(captureDirectory);
+                    _captureHud(new Vector2Int(1600, 900),
+                        Path.Combine(captureDirectory, "P55-Navigation-Threat-Normal-1600x900.png"));
+                }
+
+                game.DebugToggleReducedFlashes();
+                game.DebugToggleHighContrast();
+                yield return _waitFrames(2);
+
+                Assert.That(game.IsHighContrastEnabled, Is.True);
+                Assert.That(background.color.r, Is.EqualTo(background.color.g).Within(0.001f));
+                Assert.That(background.color.g, Is.EqualTo(background.color.b).Within(0.001f),
+                    "High Contrast threat cards should use value separation instead of a red-only background.");
+                Assert.That(background.color.maxColorComponent, Is.LessThan(0.3f));
+                Assert.That(outline.effectColor.r, Is.GreaterThan(0.9f));
+                Assert.That(outline.effectColor.g, Is.GreaterThan(0.9f));
+                Assert.That(outline.effectColor.b, Is.GreaterThan(0.9f));
+                Assert.That(background.color, Is.Not.EqualTo(normalBackground));
+                Assert.That(outline.effectColor, Is.Not.EqualTo(normalOutline));
+                Assert.That(activeIndicator.Find("Health Track/Health Fill").GetComponent<Image>().color,
+                    Is.EqualTo(Color.white));
+                Assert.That(GameObject.Find("Objective Indicator Tail").GetComponent<Image>().color.r,
+                    Is.EqualTo(1f).Within(0.001f));
+                Assert.That(activeIndicator.Find("Label").GetComponent<Text>().text, Is.Not.Empty);
+                Assert.That(activeIndicator.Find("State").GetComponent<Text>().text, Is.Not.Empty);
+
+                if (!string.IsNullOrWhiteSpace(captureDirectory))
+                {
+                    _captureHud(new Vector2Int(1280, 720),
+                        Path.Combine(captureDirectory, "P55-Navigation-Threat-Accessible-1280x720.png"));
+                }
+            }
+            finally
+            {
+                if (game.IsHighContrastEnabled != initialHighContrast)
+                {
+                    game.DebugToggleHighContrast();
+                }
+                if (game.IsReducedFlashesEnabled != initialReducedFlashes)
+                {
+                    game.DebugToggleReducedFlashes();
+                }
+            }
+        }
+
+        [UnityTest]
+        public IEnumerator CombinedWorldAndHud_RetainsShapeValueAndTextChannelsForColorVisionReview()
+        {
+            yield return SceneManager.LoadSceneAsync("SampleScene");
+            yield return null;
+
+            var game = Object.FindFirstObjectByType<DeadSignalGame>();
+            var references = Object.FindFirstObjectByType<DeadSignalSceneReferences>();
+            var signage = Object.FindFirstObjectByType<AuthoredStationNavigationSignage>();
+            var initialHighContrast = game.IsHighContrastEnabled;
+            var initialReducedFlashes = game.IsReducedFlashesEnabled;
+            if (initialHighContrast)
+            {
+                game.DebugToggleHighContrast();
+            }
+            if (initialReducedFlashes)
+            {
+                game.DebugToggleReducedFlashes();
+            }
+
+            try
+            {
+                game.DebugActivateTower();
+                game.DebugSetThreatsFrozen(true);
+                references.Player.position = new Vector3(42.5f, 0f, 50.2f);
+                yield return _waitFrames(45);
+                var offscreenPosition = game.CurrentObjectiveBeaconTarget;
+                game.transform.Find("Security Warden").position = offscreenPosition + Vector3.left * 2f;
+                game.transform.Find("Signal Sapper").position = offscreenPosition + Vector3.right * 2f;
+                yield return _waitFrames(4);
+
+                var hazardRenderer = signage.Layers[1];
+                var poweredRouteRenderer = signage.Layers[4];
+                Assert.That(hazardRenderer.GetComponent<MeshFilter>().sharedMesh,
+                    Is.Not.EqualTo(poweredRouteRenderer.GetComponent<MeshFilter>().sharedMesh),
+                    "The combined frame must retain different world silhouettes for hazards and powered routes.");
+                Assert.That(game.HasPlayerDroneAssets, Is.True);
+                Assert.That(game.HasSignalBoltAssets, Is.True);
+
+                var activeIndicators = Object.FindObjectsByType<Transform>(FindObjectsSortMode.None)
+                    .Where(transform => transform.name.StartsWith("Enemy Edge Indicator") &&
+                                        transform.gameObject.activeInHierarchy)
+                    .ToArray();
+                Assert.That(activeIndicators, Is.Not.Empty);
+                Assert.That(activeIndicators.All(indicator =>
+                    !string.IsNullOrWhiteSpace(indicator.Find("Label").GetComponent<Text>().text)), Is.True,
+                    "Threat identity must survive color-vision simulation through text, not hue alone.");
+                Assert.That(activeIndicators.All(indicator =>
+                    !string.IsNullOrWhiteSpace(indicator.Find("State").GetComponent<Text>().text)), Is.True,
+                    "Threat state must survive color-vision simulation through text, not hue alone.");
+                Assert.That(game.IsObjectiveEdgeIndicatorVisible, Is.True);
+                Assert.That(GameObject.Find("Objective Indicator Tail"), Is.Not.Null,
+                    "Objective direction must retain its independent shape channel in the combined frame.");
+                var canvasRect = Object.FindFirstObjectByType<DeadSignalHud>(FindObjectsInactive.Include)
+                    .GetComponent<RectTransform>();
+                var objectiveBounds = RectTransformUtility.CalculateRelativeRectTransformBounds(
+                    canvasRect, GameObject.Find("Objective Beacon").transform);
+                foreach (var indicator in activeIndicators)
+                {
+                    var threatBounds = RectTransformUtility.CalculateRelativeRectTransformBounds(canvasRect, indicator);
+                    Assert.That(objectiveBounds.Intersects(threatBounds), Is.False,
+                        $"{indicator.name} must not obscure the objective card in the combined accessibility frame. " +
+                        $"Objective={objectiveBounds}; threat={threatBounds}");
+                }
+
+                var aspectCaptureDirectory = System.Environment.GetEnvironmentVariable("DEAD_SIGNAL_P56B_CAPTURE_DIR");
+                if (!string.IsNullOrWhiteSpace(aspectCaptureDirectory))
+                {
+                    Directory.CreateDirectory(aspectCaptureDirectory);
+                    foreach (var resolution in new[]
+                             {
+                                 new Vector2Int(1280, 720),
+                                 new Vector2Int(1600, 900),
+                                 new Vector2Int(3440, 1440)
+                             })
+                    {
+                        _captureHud(resolution, Path.Combine(
+                            aspectCaptureDirectory,
+                            $"P56B-Combat-{resolution.x}x{resolution.y}.png"),
+                            true);
+                    }
+                }
+
+                var captureDirectory = System.Environment.GetEnvironmentVariable("DEAD_SIGNAL_P55C_CAPTURE_DIR");
+                if (!string.IsNullOrWhiteSpace(captureDirectory))
+                {
+                    Directory.CreateDirectory(captureDirectory);
+                    _captureHud(new Vector2Int(1600, 900),
+                        Path.Combine(captureDirectory, "P55C-Combined-World-Hud-Normal-1600x900.png"));
+                }
+            }
+            finally
+            {
+                if (game.IsHighContrastEnabled != initialHighContrast)
+                {
+                    game.DebugToggleHighContrast();
+                }
+                if (game.IsReducedFlashesEnabled != initialReducedFlashes)
+                {
+                    game.DebugToggleReducedFlashes();
+                }
+            }
+        }
+
+        [UnityTest]
         public IEnumerator Swarmers_CollapseIntoOneCountedOffscreenIndicator()
         {
             yield return SceneManager.LoadSceneAsync("SampleScene");
@@ -233,7 +424,7 @@ namespace DeadSignal.Tests
             game.DebugSetThreatsFrozen(true);
             yield return _waitFrames(4);
             _captureHud(new Vector2Int(1600, 900),
-                Path.Combine(captureDirectory, "P36-Threat-Priority-1600x900.png"));
+                Path.Combine(captureDirectory, "P36-Threat-Priority-1600x900.png"), true);
 
             game.DebugSpawnThreat(SecurityReinforcement.Warden);
             game.DebugSpawnThreat(SecurityReinforcement.Interceptor);
@@ -245,13 +436,13 @@ namespace DeadSignal.Tests
             game.transform.Find("Security Suppressor").position = offscreenPosition + Vector3.back * 2f;
             yield return _waitFrames(4);
             _captureHud(new Vector2Int(1280, 720),
-                Path.Combine(captureDirectory, "P36-Threat-Edges-1280x720.png"));
+                Path.Combine(captureDirectory, "P36-Threat-Edges-1280x720.png"), true);
 
             game.DebugToggleReducedFlashes();
             game.DebugForceThreatAttack(SecurityReinforcement.Interceptor);
             yield return _waitFrames(3);
             _captureHud(new Vector2Int(3440, 1440),
-                Path.Combine(captureDirectory, "P36-Threat-Reduced-Flashes-3440x1440.png"));
+                Path.Combine(captureDirectory, "P36-Threat-Reduced-Flashes-3440x1440.png"), true);
         }
 
         private static IEnumerator _waitFrames(int count)
@@ -262,7 +453,7 @@ namespace DeadSignal.Tests
             }
         }
 
-        private static void _captureHud(Vector2Int resolution, string path)
+        private static void _captureHud(Vector2Int resolution, string path, bool assertReservedRegionsClear = false)
         {
             var canvas = Object.FindFirstObjectByType<DeadSignalHud>(FindObjectsInactive.Include).GetComponent<Canvas>();
             var scaler = canvas.GetComponent<CanvasScaler>();
@@ -284,6 +475,13 @@ namespace DeadSignal.Tests
                 canvas.planeDistance = Mathf.Max(camera.nearClipPlane + 0.1f, 1f);
                 camera.targetTexture = renderTexture;
                 Canvas.ForceUpdateCanvases();
+                var beacon = Object.FindFirstObjectByType<ObjectiveBeaconHud>(FindObjectsInactive.Include);
+                beacon.SendMessage("Update");
+                Canvas.ForceUpdateCanvases();
+                if (assertReservedRegionsClear)
+                {
+                    _assertThreatIndicatorsClearReservedHud();
+                }
                 camera.Render();
                 RenderTexture.active = renderTexture;
                 capture.ReadPixels(new Rect(0f, 0f, resolution.x, resolution.y), 0, 0);
@@ -301,6 +499,42 @@ namespace DeadSignal.Tests
                 Object.DestroyImmediate(capture);
                 renderTexture.Release();
                 Object.DestroyImmediate(renderTexture);
+            }
+        }
+
+        private static void _assertThreatIndicatorsClearReservedHud()
+        {
+            var layout = Object.FindFirstObjectByType<HudCompositionLayout>(FindObjectsInactive.Include);
+            Assert.That(layout, Is.Not.Null);
+            var beacon = Object.FindFirstObjectByType<ObjectiveBeaconHud>(FindObjectsInactive.Include);
+            Assert.That(beacon.HasCommandAvoidanceRegion, Is.True,
+                "The authored command panel must be bound to the edge-indicator placement owner.");
+            var canvasRect = layout.SafeArea;
+            var commandPanel = layout.CompositionFrame.Find("Objective Status") as RectTransform;
+            Assert.That(commandPanel, Is.Not.Null);
+            var commandBounds = RectTransformUtility.CalculateRelativeRectTransformBounds(canvasRect, commandPanel);
+            var activeIndicators = Object.FindObjectsByType<Transform>(FindObjectsSortMode.None)
+                .Where(transform => transform.name.StartsWith("Enemy Edge Indicator") &&
+                                    transform.gameObject.activeInHierarchy)
+                .ToArray();
+            var indicatorBounds = activeIndicators
+                .Select(indicator => RectTransformUtility.CalculateRelativeRectTransformBounds(canvasRect, indicator))
+                .ToArray();
+            for (var index = 0; index < activeIndicators.Length; index++)
+            {
+                var threatBounds = indicatorBounds[index];
+                Assert.That(commandBounds.Intersects(threatBounds), Is.False,
+                    $"{activeIndicators[index].name} must not obscure the command panel at the active aspect ratio. " +
+                    $"Command={commandBounds}; threat={threatBounds}; canvas={canvasRect.rect}");
+                Assert.That(canvasRect.rect.Contains(threatBounds.min), Is.True,
+                    $"{activeIndicators[index].name} must keep its lower edge inside the safe viewport.");
+                Assert.That(canvasRect.rect.Contains(threatBounds.max), Is.True,
+                    $"{activeIndicators[index].name} must keep its upper edge inside the safe viewport.");
+                for (var otherIndex = index + 1; otherIndex < activeIndicators.Length; otherIndex++)
+                {
+                    Assert.That(threatBounds.Intersects(indicatorBounds[otherIndex]), Is.False,
+                        $"{activeIndicators[index].name} and {activeIndicators[otherIndex].name} must remain separate.");
+                }
             }
         }
 

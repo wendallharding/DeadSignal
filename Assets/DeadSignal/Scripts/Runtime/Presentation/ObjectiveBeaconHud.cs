@@ -69,6 +69,7 @@ namespace DeadSignal.Presentation
         [SerializeField] private Text m_verb;
         [SerializeField] private Text m_hint;
         [SerializeField] private Text m_distance;
+        [SerializeField] private RectTransform m_commandPanel;
 
         public bool HasIcon => m_icon != null && m_icon.texture != null;
         public ObjectiveBeaconPhase CurrentPhase { get; private set; }
@@ -85,6 +86,7 @@ namespace DeadSignal.Presentation
         public bool IsPresentationConfigured => m_accent != null && m_room != null && m_phase != null &&
                                                 m_label != null && m_verb != null && m_hint != null &&
                                                 m_distance != null;
+        public bool HasCommandAvoidanceRegion => m_commandPanel != null;
 
         public void ConfigurePresentation(
             Image accent,
@@ -93,7 +95,8 @@ namespace DeadSignal.Presentation
             Text label,
             Text verb,
             Text hint,
-            Text distance)
+            Text distance,
+            RectTransform commandPanel)
         {
             m_accent = accent;
             m_room = room;
@@ -102,6 +105,7 @@ namespace DeadSignal.Presentation
             m_verb = verb;
             m_hint = hint;
             m_distance = distance;
+            m_commandPanel = commandPanel;
         }
 
         [Inject]
@@ -128,11 +132,17 @@ namespace DeadSignal.Presentation
             m_lastPresentedObjective = m_model.CurrentObjective.Id;
             _configureObjectivePanel();
             _createThreatIndicators();
+            if (m_comfortSettings != null)
+            {
+                m_comfortSettings.HighContrastChanged -= _handleHighContrastChanged;
+                m_comfortSettings.HighContrastChanged += _handleHighContrastChanged;
+            }
             if (!HasIcon)
             {
                 Debug.LogWarning($"Objective beacon icon was not found at Resources/{ICON_PATH}.", this);
             }
 
+            _applyHighContrast(m_comfortSettings?.HighContrastEnabled ?? false);
             _refreshTarget();
         }
 
@@ -148,6 +158,14 @@ namespace DeadSignal.Presentation
                 _refreshTarget();
                 _refreshPresentation();
                 _refreshThreatIndicators();
+            }
+        }
+
+        private void OnDestroy()
+        {
+            if (m_comfortSettings != null)
+            {
+                m_comfortSettings.HighContrastChanged -= _handleHighContrastChanged;
             }
         }
 
@@ -441,7 +459,7 @@ namespace DeadSignal.Presentation
                 var candidate = m_candidates[index];
                 var direction = _edgeDirection(candidate.Position);
                 var position = _threatEdgePosition(direction);
-                position = _separate(position, direction, m_usedThreatPositions);
+                position = _separate(position, m_usedThreatPositions);
                 m_usedThreatPositions.Add(position);
                 var indicator = m_threatIndicators[index];
                 indicator.Root.SetActive(true);
@@ -460,10 +478,54 @@ namespace DeadSignal.Presentation
                 var pulse = animate ? 1f + Mathf.Sin(Time.unscaledTime * m_tuning.ImminentPulseSpeed) * 0.06f : 1f;
                 indicator.Rect.localScale = Vector3.one * pulse;
                 indicator.Background.color = candidate.Imminent
-                    ? new Color(0.5f, 0.015f, 0.025f, 0.96f)
-                    : new Color(0.16f, 0.015f, 0.025f, 0.9f);
+                    ? _threatBackgroundColor(true)
+                    : _threatBackgroundColor(false);
                 ActiveEnemyIndicatorCount++;
             }
+        }
+
+        private void _handleHighContrastChanged(bool enabled)
+        {
+            _applyHighContrast(enabled);
+        }
+
+        private void _applyHighContrast(bool enabled)
+        {
+            if (m_objectiveTail != null)
+            {
+                m_objectiveTail.GetComponent<Image>().color = enabled
+                    ? new Color(1f, 1f, 1f, 0.96f)
+                    : new Color(1f, 0.58f, 0.08f, 0.85f);
+            }
+
+            foreach (var indicator in m_threatIndicators)
+            {
+                indicator.Background.color = _threatBackgroundColor(false);
+                indicator.Arrow.color = enabled ? Color.white : new Color(1f, 0.18f, 0.12f);
+                indicator.Label.color = enabled ? Color.white : new Color(1f, 0.82f, 0.76f);
+                indicator.State.color = enabled ? new Color(1f, 0.9f, 0.32f) : new Color(1f, 0.46f, 0.38f);
+                indicator.HealthFill.color = enabled ? Color.white : new Color(1f, 0.22f, 0.15f);
+                indicator.HealthTrack.GetComponent<Image>().color = enabled
+                    ? new Color(0.16f, 0.16f, 0.16f, 1f)
+                    : new Color(0.22f, 0.04f, 0.05f, 0.95f);
+                indicator.Outline.effectColor = enabled
+                    ? new Color(1f, 1f, 1f, 0.95f)
+                    : new Color(1f, 0.12f, 0.12f, 0.8f);
+            }
+        }
+
+        private Color _threatBackgroundColor(bool imminent)
+        {
+            if (m_comfortSettings?.HighContrastEnabled == true)
+            {
+                return imminent
+                    ? new Color(0.28f, 0.28f, 0.28f, 1f)
+                    : new Color(0.015f, 0.015f, 0.015f, 0.98f);
+            }
+
+            return imminent
+                ? new Color(0.5f, 0.015f, 0.025f, 0.96f)
+                : new Color(0.16f, 0.015f, 0.025f, 0.9f);
         }
 
         private void _addSpecialist(
@@ -537,31 +599,153 @@ namespace DeadSignal.Presentation
             return direction * Mathf.Min(scaleX, scaleY);
         }
 
-        private Vector2 _separate(Vector2 position, Vector2 direction, IReadOnlyList<Vector2> usedPositions)
+        private Vector2 _separate(Vector2 position, IReadOnlyList<Vector2> usedPositions)
         {
-            var tangent = new Vector2(-direction.y, direction.x);
-            for (var attempt = 0; attempt < 6; attempt++)
+            var tangent = _edgeTangent(position);
+            if (_tryGetOverlappingHudCenter(position, out var overlappingHudCenter) &&
+                Vector2.Dot(tangent, position - overlappingHudCenter) < 0f)
             {
-                var overlaps = false;
-                foreach (var used in usedPositions)
-                {
-                    if (Vector2.Distance(position, used) >= m_tuning.Separation)
-                    {
-                        continue;
-                    }
-
-                    overlaps = true;
-                    break;
-                }
-
-                if (!overlaps)
-                {
-                    break;
-                }
-
-                position += tangent * m_tuning.Separation;
+                tangent = -tangent;
             }
-            return position;
+
+            for (var attempt = 0; attempt < 10; attempt++)
+            {
+                var offset = tangent * m_tuning.Separation * attempt;
+                var preferred = position + offset;
+                if (!_isOccupied(preferred, usedPositions))
+                {
+                    return preferred;
+                }
+
+                if (attempt <= 0)
+                {
+                    continue;
+                }
+
+                var alternate = position - offset;
+                if (!_isOccupied(alternate, usedPositions))
+                {
+                    return alternate;
+                }
+            }
+            return _nearestAvailablePerimeterPosition(position, usedPositions);
+        }
+
+        private Vector2 _nearestAvailablePerimeterPosition(Vector2 origin, IReadOnlyList<Vector2> usedPositions)
+        {
+            var available = m_canvasRect.rect.size * 0.5f - new Vector2(
+                m_canvasRect.rect.width * m_tuning.ViewportMargin.x,
+                m_canvasRect.rect.height * m_tuning.ViewportMargin.y) - m_tuning.ThreatSize * 0.5f;
+            var horizontalStep = m_tuning.ThreatSize.x + m_tuning.Separation * 0.25f;
+            var verticalStep = m_tuning.ThreatSize.y + m_tuning.Separation * 0.25f;
+            var best = origin;
+            var bestDistance = float.MaxValue;
+
+            for (var x = -available.x; x <= available.x; x += horizontalStep)
+            {
+                _considerPerimeterCandidate(new Vector2(x, -available.y), origin, usedPositions, ref best, ref bestDistance);
+                _considerPerimeterCandidate(new Vector2(x, available.y), origin, usedPositions, ref best, ref bestDistance);
+            }
+            for (var y = -available.y; y <= available.y; y += verticalStep)
+            {
+                _considerPerimeterCandidate(new Vector2(-available.x, y), origin, usedPositions, ref best, ref bestDistance);
+                _considerPerimeterCandidate(new Vector2(available.x, y), origin, usedPositions, ref best, ref bestDistance);
+            }
+
+            return best;
+        }
+
+        private void _considerPerimeterCandidate(
+            Vector2 candidate,
+            Vector2 origin,
+            IReadOnlyList<Vector2> usedPositions,
+            ref Vector2 best,
+            ref float bestDistance)
+        {
+            if (_isOccupied(candidate, usedPositions))
+            {
+                return;
+            }
+
+            var distance = (candidate - origin).sqrMagnitude;
+            if (distance < bestDistance)
+            {
+                best = candidate;
+                bestDistance = distance;
+            }
+        }
+
+        private Vector2 _edgeTangent(Vector2 position)
+        {
+            var halfSize = m_canvasRect.rect.size * 0.5f;
+            var horizontalEdgeDistance = Mathf.Abs(position.x) / Mathf.Max(1f, halfSize.x);
+            var verticalEdgeDistance = Mathf.Abs(position.y) / Mathf.Max(1f, halfSize.y);
+            return horizontalEdgeDistance >= verticalEdgeDistance ? Vector2.up : Vector2.right;
+        }
+
+        private bool _isOccupied(Vector2 position, IReadOnlyList<Vector2> usedPositions)
+        {
+            if (!_isInsideIndicatorArea(position) || _tryGetOverlappingHudCenter(position, out _))
+            {
+                return true;
+            }
+
+            foreach (var used in usedPositions)
+            {
+                var separation = position - used;
+                if (Mathf.Abs(separation.x) < m_tuning.ThreatSize.x + m_tuning.Separation * 0.25f &&
+                    Mathf.Abs(separation.y) < m_tuning.ThreatSize.y + m_tuning.Separation * 0.25f)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private bool _isInsideIndicatorArea(Vector2 position)
+        {
+            var available = m_canvasRect.rect.size * 0.5f - new Vector2(
+                m_canvasRect.rect.width * m_tuning.ViewportMargin.x,
+                m_canvasRect.rect.height * m_tuning.ViewportMargin.y) - m_tuning.ThreatSize * 0.5f;
+            return Mathf.Abs(position.x) <= available.x && Mathf.Abs(position.y) <= available.y;
+        }
+
+        private bool _tryGetOverlappingHudCenter(Vector2 threatPosition, out Vector2 center)
+        {
+            if (m_panelRect != null && m_panel.activeInHierarchy && !IsObjectiveIndicatorCompact &&
+                _overlapsBounds(threatPosition, m_panelRect.anchoredPosition, m_panelRect.rect.size * 0.5f))
+            {
+                center = m_panelRect.anchoredPosition;
+                return true;
+            }
+
+            if (m_commandPanel != null && m_commandPanel.gameObject.activeInHierarchy &&
+                _overlapsRect(threatPosition, m_commandPanel))
+            {
+                center = RectTransformUtility.CalculateRelativeRectTransformBounds(m_canvasRect, m_commandPanel).center -
+                         (Vector3)m_canvasRect.rect.center;
+                return true;
+            }
+
+            center = Vector2.zero;
+            return false;
+        }
+
+        private bool _overlapsRect(Vector2 threatPosition, RectTransform rect)
+        {
+            var bounds = RectTransformUtility.CalculateRelativeRectTransformBounds(m_canvasRect, rect);
+            var centeredPosition = bounds.center - (Vector3)m_canvasRect.rect.center;
+            return _overlapsBounds(threatPosition, centeredPosition, bounds.extents);
+        }
+
+        private bool _overlapsBounds(Vector2 threatPosition, Vector2 center, Vector2 halfSize)
+        {
+            const float padding = 12f;
+            var threatHalfSize = m_tuning.ThreatSize * 0.5f + Vector2.one * padding;
+            var separation = threatPosition - center;
+            return Mathf.Abs(separation.x) < halfSize.x + threatHalfSize.x &&
+                   Mathf.Abs(separation.y) < halfSize.y + threatHalfSize.y;
         }
 
         private Vector2 _threatEdgePosition(Vector2 direction)
@@ -692,6 +876,7 @@ namespace DeadSignal.Presentation
             HealthTrack = healthTrack;
             HealthFill = healthFill;
             Background = root.GetComponent<Image>();
+            Outline = root.GetComponent<Outline>();
         }
 
         public GameObject Root { get; }
@@ -703,5 +888,6 @@ namespace DeadSignal.Presentation
         public GameObject HealthTrack { get; }
         public Image HealthFill { get; }
         public Image Background { get; }
+        public Outline Outline { get; }
     }
 }

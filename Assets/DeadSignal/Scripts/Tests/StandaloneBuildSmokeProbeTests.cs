@@ -17,5 +17,16 @@ namespace DeadSignal.Tests
             Assert.That(StandaloneBuildSmokeProbe.IsRequested(new[] { "DeadSignal.exe", "-batchmode" }), Is.False);
             Assert.That(StandaloneBuildSmokeProbe.IsRequested(null), Is.False);
         }
+
+        [Test]
+        public void RenderingBudgetProbe_IsRequestedOnlyByExplicitArgument()
+        {
+            Assert.That(StandaloneRenderingBudgetProbe.IsRequested(new[]
+            {
+                "DeadSignal.exe",
+                StandaloneRenderingBudgetProbe.COMMAND_LINE_ARGUMENT
+            }), Is.True);
+            Assert.That(StandaloneRenderingBudgetProbe.IsRequested(new[] { "DeadSignal.exe", "-batchmode" }), Is.False);
+        }
     }
 }

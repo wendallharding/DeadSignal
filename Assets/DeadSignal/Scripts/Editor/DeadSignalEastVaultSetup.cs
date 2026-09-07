@@ -49,12 +49,28 @@ namespace DeadSignal.Editor
             AssetDatabase.Refresh();
             if (!HasAssets)
             {
+                var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(PREFAB_PATH);
+                var obstacleCount = prefab != null ? prefab.GetComponentsInChildren<AuthoredMapObstacle>(true).Length : 0;
+                var activeObstacleCount = prefab != null ? prefab.GetComponentsInChildren<AuthoredMapObstacle>().Length : 0;
+                var meshCount = prefab != null ? prefab.GetComponentsInChildren<MeshFilter>().Length : 0;
+                var totalMeshCount = prefab != null ? prefab.GetComponentsInChildren<MeshFilter>(true).Length : 0;
+                var missingMeshCount = prefab != null
+                    ? prefab.GetComponentsInChildren<MeshFilter>().Count(filter => filter.sharedMesh == null)
+                    : 0;
+                var socketCount = prefab != null ? prefab.GetComponentsInChildren<AuthoredSalvageSocket>(true).Length : 0;
+                var colliderCount = prefab != null ? prefab.GetComponentsInChildren<Collider>(true).Length : 0;
+                var objectiveConfigured = prefab != null &&
+                                          prefab.TryGetComponent<AuthoredTransferVaultObjective>(out var objective) &&
+                                          objective.IsConfigured;
                 throw new InvalidOperationException(
                     $"The optional east salvage-vault assets are incomplete: " +
                     $"texture={AssetDatabase.LoadAssetAtPath<Texture2D>(TEXTURE_PATH) != null}, " +
                     $"model={AssetDatabase.LoadAssetAtPath<GameObject>(MODEL_PATH) != null}, " +
                     $"tuning={AssetDatabase.LoadAssetAtPath<SalvagePresentationTuning>(TUNING_PATH) != null}, " +
-                    $"prefab={_hasValidPrefab()}, doorway={_hasOpenEastDoorway()}.");
+                    $"prefab={_hasValidPrefab()} (obstacles={activeObstacleCount}/{obstacleCount}, " +
+                    $"meshes={meshCount}/{totalMeshCount}, missingMeshes={missingMeshCount}, " +
+                    $"sockets={socketCount}, colliders={colliderCount}, objective={objectiveConfigured}), " +
+                    $"doorway={_hasOpenEastDoorway()}.");
             }
         }
 
@@ -433,7 +449,7 @@ namespace DeadSignal.Editor
             var meshes = prefab.GetComponentsInChildren<MeshFilter>();
             var hasCentralRouteGate = prefab.GetComponentsInChildren<AuthoredMapObstacle>(true)
                 .Any(obstacle => obstacle.name == "Central Relay Route Gate");
-            var hasExpectedMeshCount = hasCentralRouteGate ? meshes.Length is 9 or 10 or 11 : meshes.Length is 8 or 9;
+            var hasExpectedMeshCount = hasCentralRouteGate ? meshes.Length is 15 or 16 or 17 : meshes.Length is 14 or 15;
             return hasExpectedMeshCount && meshes.All(filter => filter.sharedMesh != null) &&
                    prefab.GetComponentsInChildren<Collider>().Length == 0;
         }

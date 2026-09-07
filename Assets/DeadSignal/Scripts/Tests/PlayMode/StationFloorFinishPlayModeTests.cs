@@ -46,7 +46,7 @@ namespace DeadSignal.Tests
             var references = Object.FindFirstObjectByType<DeadSignalSceneReferences>();
             Assert.That(game, Is.Not.Null);
             Assert.That(references, Is.Not.Null);
-            Assert.That(game.AuthoredMapObstacleCount, Is.EqualTo(138));
+            Assert.That(game.AuthoredMapObstacleCount, Is.EqualTo(141));
 
             game.DebugTeleport(DeadSignal.Diagnostics.DebugLocation.CentralTower);
             yield return new WaitForSecondsRealtime(0.5f);

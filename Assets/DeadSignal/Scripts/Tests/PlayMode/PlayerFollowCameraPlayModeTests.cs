@@ -367,18 +367,38 @@ namespace DeadSignal.Tests
 
         private static void _captureCameraAuditFrame(Camera camera, string fileName)
         {
+            var aspectCaptureDirectory = Environment.GetEnvironmentVariable("DEAD_SIGNAL_P56_CAPTURE_DIR");
+            if (!string.IsNullOrWhiteSpace(aspectCaptureDirectory))
+            {
+                foreach (var resolution in new[]
+                         {
+                             new Vector2Int(1280, 720),
+                             new Vector2Int(1600, 900),
+                             new Vector2Int(3440, 1440)
+                         })
+                {
+                    var aspectFileName = $"{Path.GetFileNameWithoutExtension(fileName)}-{resolution.x}x{resolution.y}.png";
+                    _captureCameraAuditFrame(camera, aspectCaptureDirectory, aspectFileName, resolution);
+                }
+            }
+
             var captureDirectory = Environment.GetEnvironmentVariable("DEAD_SIGNAL_P53_CAPTURE_DIR");
             if (string.IsNullOrWhiteSpace(captureDirectory))
             {
                 return;
             }
 
-            Directory.CreateDirectory(captureDirectory);
             var captureResolution = Environment.GetEnvironmentVariable("DEAD_SIGNAL_P53_CAPTURE_RESOLUTION");
             var width = string.Equals(captureResolution, "1600x900", StringComparison.OrdinalIgnoreCase) ? 1600 : 1280;
             var height = width == 1600 ? 900 : 720;
-            var renderTexture = new RenderTexture(width, height, 24, RenderTextureFormat.ARGB32);
-            var texture = new Texture2D(width, height, TextureFormat.RGB24, false);
+            _captureCameraAuditFrame(camera, captureDirectory, fileName, new Vector2Int(width, height));
+        }
+
+        private static void _captureCameraAuditFrame(Camera camera, string captureDirectory, string fileName, Vector2Int resolution)
+        {
+            Directory.CreateDirectory(captureDirectory);
+            var renderTexture = new RenderTexture(resolution.x, resolution.y, 24, RenderTextureFormat.ARGB32);
+            var texture = new Texture2D(resolution.x, resolution.y, TextureFormat.RGB24, false);
             var previousTarget = camera.targetTexture;
             var previousActive = RenderTexture.active;
             try
@@ -386,7 +406,7 @@ namespace DeadSignal.Tests
                 camera.targetTexture = renderTexture;
                 camera.Render();
                 RenderTexture.active = renderTexture;
-                texture.ReadPixels(new Rect(0f, 0f, width, height), 0, 0);
+                texture.ReadPixels(new Rect(0f, 0f, resolution.x, resolution.y), 0, 0);
                 texture.Apply();
                 File.WriteAllBytes(Path.Combine(captureDirectory, fileName), texture.EncodeToPNG());
             }

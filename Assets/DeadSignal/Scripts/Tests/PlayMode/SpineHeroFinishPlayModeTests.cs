@@ -46,7 +46,7 @@ namespace DeadSignal.Tests.PlayMode
             Assert.That(spineFinish.FinishRenderer.sharedMaterials[3].name, Is.EqualTo("SpineHeroInsulator"));
             Assert.That(spine.GetComponentsInChildren<AuthoredMapObstacle>(), Has.Length.EqualTo(18));
             Assert.That(trench.GetComponentsInChildren<AuthoredMapObstacle>(), Has.Length.EqualTo(6));
-            Assert.That(game.AuthoredMapObstacleCount, Is.EqualTo(138));
+            Assert.That(game.AuthoredMapObstacleCount, Is.EqualTo(141));
             Assert.That(game.AuthoredInterceptorEntranceCount, Is.EqualTo(9));
             Assert.That(venting.PresentationState, Is.EqualTo(SpineBerthPresentationState.DormantPressurized));
             Assert.That(tower.PresentationState, Is.EqualTo(SpineTowerPresentationState.PressurizedLocked));

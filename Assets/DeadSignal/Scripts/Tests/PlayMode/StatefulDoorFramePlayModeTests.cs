@@ -24,6 +24,8 @@ namespace DeadSignal.Tests
                 FindObjectsInactive.Include, FindObjectsSortMode.None);
             var game = Object.FindFirstObjectByType<DeadSignalGame>();
             Assert.That(game, Is.Not.Null);
+            Assert.That(game.HasShortcutGateAssets, Is.True,
+                $"The authored shortcut gate capability must survive its stateful frame; active renderer count was {game.ShortcutGatePartCount}.");
             var authoredObstacleCount = game.AuthoredMapObstacleCount;
             Assert.That(doors, Has.Length.EqualTo(6));
             Assert.That(Resources.Load<GameObject>("Environment/StatefulDoorFrameKit"), Is.Not.Null);
@@ -96,9 +98,82 @@ namespace DeadSignal.Tests
             _captureIfRequested(references.PlayerCamera, "P26-Relay-Door-Locked-1280x720.png", 1280, 720);
         }
 
-        private static void _captureIfRequested(Camera camera, string fileName, int width, int height)
+        [UnityTest]
+        public IEnumerator RewardVaultDoor_RetainsShapeAndValueStateLanguageInHighContrast()
         {
-            var captureDirectory = Environment.GetEnvironmentVariable("DEAD_SIGNAL_P26_CAPTURE_DIR");
+            yield return SceneManager.LoadSceneAsync("SampleScene");
+            yield return null;
+
+            var game = Object.FindFirstObjectByType<DeadSignalGame>();
+            var chamber = Object.FindFirstObjectByType<AuthoredCombatChamber>();
+            var references = Object.FindFirstObjectByType<DeadSignalSceneReferences>();
+            var rewardDoor = chamber.transform.Find("Reward Vault Door").GetComponent<AuthoredRouteDoorReadability>();
+            var frame = rewardDoor.FrameKit;
+            var initialHighContrast = game.IsHighContrastEnabled;
+            if (initialHighContrast)
+            {
+                game.DebugToggleHighContrast();
+            }
+
+            try
+            {
+                Assert.That(game.AuthoredMapObstacleCount, Is.EqualTo(141),
+                    "The expanded Room B scene owns 141 authored blockers; presentation must not change that authority.");
+                Assert.That(frame, Is.Not.Null);
+                Assert.That(frame.IsConfigured, Is.True);
+                Assert.That(frame.GetComponentsInChildren<Collider>(true), Is.Empty);
+                var status = frame.transform.Find("Threshold Seals and Warning Lamps").GetComponent<Renderer>();
+                var openGlyph = frame.transform.Find("Open Route Glyph").GetComponent<Renderer>();
+                var lockedColor = _presentedColor(status);
+                Assert.That(rewardDoor.PresentationState, Is.EqualTo(RouteDoorPresentationState.Locked));
+                Assert.That(openGlyph.enabled, Is.False);
+
+                references.Player.position = chamber.transform.TransformPoint(new Vector3(0f, 0f, 35f));
+                yield return new WaitForSecondsRealtime(0.5f);
+                _captureIfRequested(references.PlayerCamera, "P55B2-Reward-Door-Locked-1600x900.png", 1600, 900,
+                    "DEAD_SIGNAL_P55B2_CAPTURE_DIR");
+
+                game.DebugToggleHighContrast();
+                game.DebugCompleteSecurityTrial();
+                yield return new WaitForSecondsRealtime(0.5f);
+
+                var openColor = _presentedColor(status);
+                Assert.That(rewardDoor.PresentationState, Is.EqualTo(RouteDoorPresentationState.Open));
+                Assert.That(frame.IsOpen, Is.True);
+                Assert.That(openGlyph.enabled, Is.True,
+                    "The released vault must add a route glyph instead of communicating only through hue.");
+                Assert.That(_luminance(openColor) - _luminance(lockedColor), Is.GreaterThan(0.35f),
+                    "Locked and released status lamps must remain separated by value under the accessibility palette.");
+                Assert.That(game.AuthoredMapObstacleCount, Is.EqualTo(141));
+                _captureIfRequested(references.PlayerCamera, "P55B2-Reward-Door-Open-Accessible-1280x720.png", 1280, 720,
+                    "DEAD_SIGNAL_P55B2_CAPTURE_DIR");
+            }
+            finally
+            {
+                if (game.IsHighContrastEnabled != initialHighContrast)
+                {
+                    game.DebugToggleHighContrast();
+                }
+            }
+        }
+
+        private static Color _presentedColor(Renderer renderer)
+        {
+            var properties = new MaterialPropertyBlock();
+            renderer.GetPropertyBlock(properties);
+            return properties.GetColor("_BaseColor");
+        }
+
+        private static float _luminance(Color color) => color.r * 0.2126f + color.g * 0.7152f + color.b * 0.0722f;
+
+        private static void _captureIfRequested(
+            Camera camera,
+            string fileName,
+            int width,
+            int height,
+            string environmentVariable = "DEAD_SIGNAL_P26_CAPTURE_DIR")
+        {
+            var captureDirectory = Environment.GetEnvironmentVariable(environmentVariable);
             if (string.IsNullOrWhiteSpace(captureDirectory))
             {
                 return;

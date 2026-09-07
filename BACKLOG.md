@@ -209,36 +209,35 @@ Treat lighting as the primary room-composition layer in these runs. Preserve con
 ##### Camera, accessibility, performance, and final presentation gates
 
 - [x] **Presentation Run P53 — Gameplay-camera framing:** audit objective approach, combat, backtracking, narrow-room, and room-edge framing across the required route; fix bounded camera focus/limits only where evidence shows poor composition, without shrinking tactical awareness or revealing new collision problems
-- [ ] **Presentation Run P54 — Foreground cutaway finish:** inspect every owned foreground wall/face transition, fade footprint, material response, restoration, and camera-boundary case; eliminate popping, opaque sibling leaks, and distracting cyan footprints while preserving collision and route readability
-- [ ] **Presentation Run P55 — Contrast and color-independence:** validate drone, enemies, projectiles, objectives, doors, hazards, powered routes, and UI under normal, Reduced Flashes, high-contrast, and common color-vision simulations; add shape/value/motion redundancy rather than relying only on hue
-- [ ] **Presentation Run P56 — Resolution and aspect-ratio visual QA:** capture the full required route at 1280x720, 1600x900, and one ultrawide target; fix clipping, camera-edge voids, tiny details, oversized markers, HUD overlap, unsafe prompts, and composition failures one bounded owner at a time
-- [ ] **Presentation Run P57 — Rendering and overdraw budget:** profile representative quiet, mixed-combat, Security Trial, and extraction frames; reduce transparent overdraw, excessive lights/shadows, material instances, particle counts, and shader cost without flattening the established visual hierarchy
-- [ ] **Presentation Run P58 — Asset and import audit:** verify every presentation mesh, texture, material, animation, VFX asset, prefab, scene binding, Resources reference, importer setting, GUID, `.meta`, Windows inclusion, and reproducible setup hook; remove only confirmed orphaned duplicates created by the presentation work
-- [ ] **Presentation Run P59 — Complete-route capture review:** record a labeled before/after gallery for every major mission room in dormant/locked, available, active where applicable, complete, and powered-return states; review it as one visual journey and create only bounded follow-up defects with exact frame evidence
-- [ ] **Presentation Run P60 — Release presentation gate:** run applicable Unity suites, repeated restart/re-entry/outcome cycles, Windows development build, D3D11 packaged smoke, full required and optional journeys, target-resolution captures, and final critical-log scan; report remaining human-only visual checks and do not mark presentation complete from automation alone
-
-#### Product-shell validation
-
-- [ ] Validate main menu, pause, prompts, outcome screens, and transitions at 1280x720, 1600x900, and one ultrawide target with keyboard/mouse and controller
-- [ ] Validate every new effect with Reduced Flashes on/off and Steady Camera on/off; reject effects that hide threats, objectives, interaction prompts, or escape lanes
-- [ ] Measure allocations and frame time under the existing maximum combat population; pool or simplify effects that cause recurring allocations or miss the established performance budget
-- [ ] Run repeated death/restart/menu, victory/menu, scene reload, and complete-route soak cycles; scan for leaked objects, duplicate services, stale input, missing references, and non-reset presentation state
-- [ ] Complete applicable Unity suites, Windows development build, and packaged smoke after each game-shell integration milestone
+- [ ] **Presentation Run P54 — Foreground cutaway finish — DEFERRED:** foreground culling remains intentionally disabled by owner direction and the bootstrap contract; resume only if that direction changes, then inspect every owned foreground wall/face transition, fade footprint, material response, restoration, and camera-boundary case while preserving collision and route readability
+- [x] **Presentation Run P55 — Contrast and color-independence:** validate drone, enemies, projectiles, objectives, doors, hazards, powered routes, and UI under normal, Reduced Flashes, high-contrast, and common color-vision simulations; add shape/value/motion redundancy rather than relying only on hue
+  - [x] **P55A — Navigation and threat HUD:** make the objective tail and off-screen threat cards respond live to High Contrast with black/white value separation while retaining direction, role/state text, urgency marks, exact health, and Reduced-Flashes behavior
+  - [x] **P55B — World silhouettes and state language:** audit the drone, enemies, projectiles, mission doors, hazards, and powered-route cues under the same accessibility matrix; correct only demonstrated owner-specific failures
+    - [x] **P55B-1 — Hazard and powered-return signage:** make the existing stripe and route-decal meshes respond live to High Contrast with separated grayscale values; preserve their authored shapes and collider-free route authority
+    - [x] **P55B-2 — Mission-door and remaining world audit:** resolve the demonstrated Reward Vault Door missing-frame failure, verify the current 141-obstacle scene authority before updating its stale 138-count contract, then finish the remaining world-space acceptance matrix
+  - [x] **P55C — Combined color-vision review:** derive and inspect one representative world/HUD comparison under common color-vision simulations; correct only a demonstrated cross-layer hierarchy failure
+- [x] **Presentation Run P56 — Resolution and aspect-ratio visual QA:** capture the full required route at 1280x720, 1600x900, and one ultrawide target; fix clipping, camera-edge voids, tiny details, oversized markers, HUD overlap, unsafe prompts, and composition failures one bounded owner at a time
+  - [x] **P56A — World-route camera composition:** capture 15 representative required-route viewpoints at 1280x720, 1600x900, and 3440x1440; retain the established safe player/objective framing and reject a camera or world correction unless a repeated aspect-specific clipping, void, or composition failure is visible
+  - [x] **P56B — Combined world/HUD and prompt composition:** inspect representative navigation, combat, interaction, and outcome states at all three targets; correct only one demonstrated UI owner failure without changing route, camera, or gameplay authority
+- [ ] **Presentation Run P57 — Rendering and overdraw budget — RESIDUAL DEFERRED:** P57B confirmed that quiet, mixed-combat, and extraction submission counts remain above the soft threshold after one bounded shadow-owner correction; resume only with a materially different GPU frame-debugger/RenderDoc attribution method rather than another near-duplicate toggle
+  - [x] **P57A — Representative rendering inventory:** add a reproducible 1600x900 quiet, mixed-combat, active-Trial, and extraction profiler/capture harness; verify light/shadow ceilings, transparent and particle occupancy, and runtime material-instance ownership before changing presentation
+  - [x] **P57B — Render-submission attribution and correction:** reproduce the P57A draw/batch soft-threshold breach in a development player or equivalent player-only profiler capture, attribute passes to the dominant renderer/shadow owner, then correct one demonstrated owner with matched visual evidence; do not treat Editor-harness GC or frame delta as player acceptance data
+- [x] **Presentation Run P58 — Asset and import audit:** verify every presentation mesh, texture, material, animation, VFX asset, prefab, scene binding, Resources reference, importer setting, GUID, `.meta`, Windows inclusion, and reproducible setup hook; remove only confirmed orphaned duplicates created by the presentation work
+- [x] **Presentation Run P59 — Complete-route capture review:** record a labeled before/after gallery for every major mission room in dormant/locked, available, active where applicable, complete, and powered-return states; review it as one visual journey and create only bounded follow-up defects with exact frame evidence
+- [ ] **Presentation Run P60 — Release presentation gate — BLOCKED BY REGRESSION DEBT:** run applicable Unity suites, repeated restart/re-entry/outcome cycles, Windows development build, D3D11 packaged smoke, full required and optional journeys, target-resolution captures, and final critical-log scan; report remaining human-only visual checks and do not mark presentation complete from automation alone
+  - [x] **P60A — Release inventory and stale-contract correction:** pass Full EditMode, repeated shell lifecycle, exact required/optional journeys, ReleaseValidation, and Windows build; preserve nine authored cutaway bindings during builds, recognize the 10-renderer stateful shortcut, and migrate 23 obsolete 138-blocker assertions to the authoritative 141-blocker Room B scene
+  - [ ] **P60B — Remaining automated release blockers:** repair the two stale HUD hierarchy nulls; disposition the six tactical/combat/readability thresholds; keep both failed LiveBalance withdrawals deferred under the existing whole-run tuning decision; then rerun graphics-enabled FullPlay and target-resolution captures
+    - [x] **P60B-1 — Packaged-smoke contract:** add named failure diagnostics, remove the obsolete Relay payload door-readability clause already contradicted by the authoritative Act II setup, and pass the D3D11 packaged smoke
+    - [x] **P60B-2 — Authored-HUD hierarchy contracts:** update both bootstrap checks to follow the authored `Run HUD/Composition Frame/Signal Status` hierarchy; prove the dedicated UI contract and expose the broader bootstrap's independent stale east-vault mesh-count assertion
+    - [x] **P60B-3 — Transfer-vault presentation contract:** update the bootstrap to recognize the authored 16-mesh vault hierarchy and its lean 8-vertex route-threshold profile while preserving exact landmark, UV, collision, and route-clearance checks
+    - [x] **P60B-4 — Central-tower renderer contract:** recognize the established powered-machinery ambient emitter as the fifth Central renderer, require its exact owner binding, and pass the complete bootstrap plus Central machinery lifecycle contracts
+    - [ ] **P60B-5 — Tactical/readability threshold disposition:** take one of the six independently inventoried non-balance FullPlay failures, reproduce it in its focused neighborhood, and correct or defer only that demonstrated owner
 
 ### Transition into Geometry Wars-inspired combat proof
 
 - [ ] After the mission route and unattended product-shell queue are implementation-complete, make `P0 — Geometry Wars-inspired combat proof` the controlling workstream
 - [ ] Begin with Gate A technical baselines and readability improvements, then Gate B composition/timing work; do not represent automated correctness or captures as human proof of fun
 - [ ] Consolidate completed run-history sections into an archive/index when backlog length materially interferes with selecting the next actionable item; preserve decisions and evidence
-
-### Cohesive-mission Definition of Done
-
-- [ ] Every major mission room is entered on the required route and has a distinct legible purpose; decorative pockets are identified rather than padded with fake objectives
-- [ ] No required interaction exists solely to add travel time, and no two consecutive rooms repeat the same pickup, switch, or wave verb
-- [ ] Required backtracking is limited to one meaningful installation return per act and every return demonstrates a changed station state
-- [ ] A first successful human run completes in approximately 20–25 minutes with understandable objectives, manageable Signal pressure, and no filler-room feedback
-- [ ] Keyboard/mouse and controller routes, objective guidance, collision/projectile authority, NavMesh, death/restart/re-entry, doors, rewards, combat states, extraction, Windows build, and packaged smoke remain valid
-- [ ] Do not resume general map expansion until this definition is met or measured play shows a specific missing spatial function
 
 ## P0 — Geometry Wars-inspired combat proof
 
@@ -250,7 +249,6 @@ Work through these gates in order. Authorize one bounded combat advancement per 
 - [ ] Make aim, shot paths, impacts, purges, incoming danger, and escape lanes readable during dense mixed-role combat at 1280x720 and 1600x900
 - [x] Replace the persistent objective route line with a fading screen-edge objective indicator; add capped off-screen specialist indicators and one grouped Swarmer marker
 - [ ] Improve the smallest demonstrated weakness in firing, hit, purge, damage, or near-danger feedback without expanding the HUD or weakening Signal commitment
-- [ ] Reject the change if it harms input parity, collision authority, readability, performance, or the Signal economy
 
 ### Gate B — Mixed-role pressure
 

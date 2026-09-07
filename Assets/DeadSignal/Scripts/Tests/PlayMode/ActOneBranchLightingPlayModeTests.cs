@@ -156,7 +156,7 @@ namespace DeadSignal.Tests.PlayMode
             Assert.That(enabledLights, Has.Length.LessThanOrEqualTo(tuning.MaximumVisibleRealtimeLights));
             Assert.That(enabledLights.Count(light => light.shadows != LightShadows.None),
                 Is.LessThanOrEqualTo(tuning.MaximumShadowedRealtimeLights));
-            Assert.That(game.AuthoredMapObstacleCount, Is.EqualTo(138));
+            Assert.That(game.AuthoredMapObstacleCount, Is.EqualTo(141));
         }
 
         private static void _captureIfRequested(Camera camera, string fileName, int width, int height)
